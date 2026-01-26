@@ -1,0 +1,20 @@
+{
+  "name": "Sophie & Joe Wedding 2027",
+  "short_name": "S&J Wedding",
+  "description": "Join Sophie Geen and Joe O'Brien as they celebrate their wedding at La Conca, Tuscany in May 2027.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#FAF6F0",
+  "theme_color": "#C45C26",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle"],
+  "lang": "en-GB"
+}

@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helpful Tools | Sophie & Joe</title>
+    <meta name="description" content="Weather, currency converter, and emergency kit for Sophie & Joe's Tuscany wedding">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+        }
+
+        .tool-card {
+            background: var(--color-white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .tool-card-header {
+            background: linear-gradient(135deg, var(--color-terracotta), var(--color-gold));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .tool-card-header h3 {
+            color: white;
+            margin: 0;
+        }
+
+        .tool-card-header .icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tool-card-body {
+            padding: 2rem;
+        }
+
+        /* Weather Widget */
+        .weather-display {
+            text-align: center;
+        }
+
+        .weather-main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .weather-icon {
+            font-size: 4rem;
+        }
+
+        .weather-temp {
+            font-family: var(--font-heading);
+            font-size: 3.5rem;
+            color: var(--color-terracotta);
+        }
+
+        .weather-desc {
+            color: var(--color-warm-gray);
+            margin-bottom: 1rem;
+        }
+
+        .weather-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--color-cream);
+        }
+
+        .weather-detail {
+            text-align: center;
+        }
+
+        .weather-detail-icon {
+            font-size: 1.5rem;
+        }
+
+        .weather-detail-value {
+            font-weight: 600;
+            color: var(--color-charcoal);
+        }
+
+        .weather-detail-label {
+            font-size: 0.8rem;
+            color: var(--color-warm-gray);
+        }
+
+        .weather-forecast {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--color-cream);
+        }
+
+        .forecast-day {
+            text-align: center;
+            padding: 0.5rem;
+            background: var(--color-cream);
+            border-radius: 8px;
+        }
+
+        .forecast-day-name {
+            font-size: 0.75rem;
+            color: var(--color-warm-gray);
+        }
+
+        .forecast-day-icon {
+            font-size: 1.5rem;
+        }
+
+        .forecast-day-temp {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Currency Converter */
+        .converter-input {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .converter-input input {
+            flex: 1;
+            padding: 1rem;
+            font-size: 1.5rem;
+            border: 2px solid var(--color-cream);
+            border-radius: 8px;
+            text-align: center;
+            font-family: var(--font-heading);
+        }
+
+        .converter-input input:focus {
+            outline: none;
+            border-color: var(--color-terracotta);
+        }
+
+        .converter-input .currency-label {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--color-charcoal);
+        }
+
+        .converter-result {
+            background: var(--color-cream);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .converter-result-value {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            color: var(--color-terracotta);
+        }
+
+        .converter-result-label {
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+        }
+
+        .exchange-rate {
+            margin-top: 1rem;
+            font-size: 0.85rem;
+            color: var(--color-warm-gray);
+        }
+
+        /* Emergency Kit */
+        .kit-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .kit-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            background: var(--color-cream);
+            border-radius: 8px;
+        }
+
+        .kit-item-icon {
+            font-size: 1.5rem;
+        }
+
+        .kit-item-text {
+            font-size: 0.9rem;
+            color: var(--color-charcoal);
+        }
+
+        .kit-note {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: rgba(201, 169, 97, 0.1);
+            border-left: 3px solid var(--color-gold);
+            border-radius: 0 8px 8px 0;
+            font-size: 0.9rem;
+            color: var(--color-warm-gray);
+        }
+
+        /* Quick numbers */
+        .quick-numbers {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--color-cream);
+        }
+
+        .quick-numbers h4 {
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .quick-number {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px dashed var(--color-cream);
+        }
+
+        .quick-number:last-child {
+            border-bottom: none;
+        }
+
+        .quick-number-label {
+            color: var(--color-warm-gray);
+        }
+
+        .quick-number-value {
+            font-weight: 600;
+            color: var(--color-terracotta);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Helpful Tools</h1>
+        <p>Weather, currency, and emergency essentials</p>
+    </header>
+
+    <!-- Tools Section -->
+    <section class="section">
+        <div class="container">
+            <div class="tools-grid">
+                <!-- Weather Widget -->
+                <div class="tool-card">
+                    <div class="tool-card-header">
+                        <div class="icon">&#9728;</div>
+                        <h3>Tuscany Weather</h3>
+                    </div>
+                    <div class="tool-card-body">
+                        <div class="weather-display">
+                            <div class="weather-main">
+                                <span class="weather-icon">&#9728;</span>
+                                <span class="weather-temp">24°C</span>
+                            </div>
+                            <p class="weather-desc">Sunny with light breeze</p>
+                            <p style="font-size: 0.85rem; color: var(--color-terracotta);">Wedding Weekend: 23-25 May 2027</p>
+
+                            <div class="weather-details">
+                                <div class="weather-detail">
+                                    <div class="weather-detail-icon">&#128167;</div>
+                                    <div class="weather-detail-value">15%</div>
+                                    <div class="weather-detail-label">Rain chance</div>
+                                </div>
+                                <div class="weather-detail">
+                                    <div class="weather-detail-icon">&#128168;</div>
+                                    <div class="weather-detail-value">12 km/h</div>
+                                    <div class="weather-detail-label">Wind</div>
+                                </div>
+                                <div class="weather-detail">
+                                    <div class="weather-detail-icon">&#128166;</div>
+                                    <div class="weather-detail-value">45%</div>
+                                    <div class="weather-detail-label">Humidity</div>
+                                </div>
+                            </div>
+
+                            <div class="weather-forecast">
+                                <div class="forecast-day">
+                                    <div class="forecast-day-name">Thu</div>
+                                    <div class="forecast-day-icon">&#9728;</div>
+                                    <div class="forecast-day-temp">23°</div>
+                                </div>
+                                <div class="forecast-day" style="background: var(--color-gold); color: white;">
+                                    <div class="forecast-day-name">Fri</div>
+                                    <div class="forecast-day-icon">&#9728;</div>
+                                    <div class="forecast-day-temp">24°</div>
+                                </div>
+                                <div class="forecast-day" style="background: var(--color-terracotta); color: white;">
+                                    <div class="forecast-day-name">Sat</div>
+                                    <div class="forecast-day-icon">&#9728;</div>
+                                    <div class="forecast-day-temp">25°</div>
+                                </div>
+                                <div class="forecast-day" style="background: var(--color-gold); color: white;">
+                                    <div class="forecast-day-name">Sun</div>
+                                    <div class="forecast-day-icon">&#127780;</div>
+                                    <div class="forecast-day-temp">23°</div>
+                                </div>
+                                <div class="forecast-day">
+                                    <div class="forecast-day-name">Mon</div>
+                                    <div class="forecast-day-icon">&#127780;</div>
+                                    <div class="forecast-day-temp">22°</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: var(--color-warm-gray);">
+                            *Forecast updates as the date approaches
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Currency Converter -->
+                <div class="tool-card">
+                    <div class="tool-card-header">
+                        <div class="icon">&#128181;</div>
+                        <h3>Currency Converter</h3>
+                    </div>
+                    <div class="tool-card-body">
+                        <div class="converter-input">
+                            <span class="currency-label">&#163;</span>
+                            <input type="number" id="gbpAmount" value="100" min="0" step="10">
+                            <span class="currency-label">GBP</span>
+                        </div>
+
+                        <div class="converter-result">
+                            <div class="converter-result-value" id="eurResult">&#8364;117.00</div>
+                            <div class="converter-result-label">Euro equivalent</div>
+                        </div>
+
+                        <p class="exchange-rate">Exchange rate: &#163;1 = &#8364;<span id="exchangeRate">1.17</span></p>
+
+                        <div class="quick-numbers">
+                            <h4>Quick Reference</h4>
+                            <div class="quick-number">
+                                <span class="quick-number-label">Coffee</span>
+                                <span class="quick-number-value">&#8364;1.50 - &#8364;3</span>
+                            </div>
+                            <div class="quick-number">
+                                <span class="quick-number-label">Glass of wine</span>
+                                <span class="quick-number-value">&#8364;4 - &#8364;8</span>
+                            </div>
+                            <div class="quick-number">
+                                <span class="quick-number-label">Lunch (casual)</span>
+                                <span class="quick-number-value">&#8364;15 - &#8364;25</span>
+                            </div>
+                            <div class="quick-number">
+                                <span class="quick-number-label">Dinner (nice)</span>
+                                <span class="quick-number-value">&#8364;40 - &#8364;70</span>
+                            </div>
+                            <div class="quick-number">
+                                <span class="quick-number-label">Taxi (short)</span>
+                                <span class="quick-number-value">&#8364;10 - &#8364;15</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Kit -->
+                <div class="tool-card" style="grid-column: span 2;">
+                    <div class="tool-card-header">
+                        <div class="icon">&#128084;</div>
+                        <h3>Wedding Day Emergency Kit</h3>
+                    </div>
+                    <div class="tool-card-body">
+                        <p style="text-align: center; margin-bottom: 1.5rem;">Don't worry - we've got you covered! These items will be available on the day:</p>
+
+                        <div class="kit-grid">
+                            <div class="kit-item">
+                                <span class="kit-item-icon">&#128136;</span>
+                                <span class="kit-item-text">Sewing kit & safety pins</span>
+                            </div>
+                            <div class="kit-item">
+                                <span class="kit-item-icon">&#128132;</span>
+                                <span class="kit-item-text">Painkillers & plasters</span>
+                            </div>
+                            <div class="kit-item">
+                                <span class="kit-item-icon">&#128135;</span>
+                                <span class="kit-item-text">Hairspray & bobby pins</span>
+                            </div>
+                            <div class="kit-item">
+                                <span class="kit-item-icon">&#129529;</span>
+                                <span class="kit-item-text">Stain remover wipes</span>
+                            </div>
+                            <div class="kit-item">
+                                <span class="kit-item-icon">&#128138;</span>
+                                <span class="kit-item-text">Antihistamines</span>
+                            </div>
+                            <div class="kit-item">
+                                <span class="kit-item-icon">&#127774;</span>
+                                <span class="kit-item-text">Sunscreen (SPF 50)</span>
+                            </div>
+                            <div class="kit-item">
+                                <span class="kit-item-icon">&#128166;</span>
+                                <span class="kit-item-text">Deodorant</span>
+                            </div>
+                            <div class="kit-item">
+                                <span class="kit-item-icon">&#129657;</span>
+                                <span class="kit-item-text">Blister plasters</span>
+                            </div>
+                            <div class="kit-item">
+                                <span class="kit-item-icon">&#127873;</span>
+                                <span class="kit-item-text">Breath mints</span>
+                            </div>
+                            <div class="kit-item">
+                                <span class="kit-item-icon">&#128161;</span>
+                                <span class="kit-item-text">Phone chargers</span>
+                            </div>
+                            <div class="kit-item">
+                                <span class="kit-item-icon">&#129506;</span>
+                                <span class="kit-item-text">Flip flops for dancing</span>
+                            </div>
+                            <div class="kit-item">
+                                <span class="kit-item-icon">&#129525;</span>
+                                <span class="kit-item-text">Tissues</span>
+                            </div>
+                        </div>
+
+                        <div class="kit-note">
+                            <strong>&#128161; Tip:</strong> The emergency kit will be at the "Comfort Station" near the restrooms. Just ask one of the ushers if you need anything!
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Important Numbers -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>&#128222; Important Numbers</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="card-grid" style="max-width: 900px; margin: 0 auto;">
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Emergency Services</h3>
+                        <p><strong>European Emergency:</strong> 112</p>
+                        <p><strong>Italian Police:</strong> 113</p>
+                        <p><strong>Ambulance:</strong> 118</p>
+                        <p><strong>Fire Brigade:</strong> 115</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Wedding Contacts</h3>
+                        <p><strong>Sophie:</strong> +44 7XXX XXX XXX</p>
+                        <p><strong>Joe:</strong> +44 7XXX XXX XXX</p>
+                        <p><strong>Best Man (Dave):</strong> +44 7XXX XXX XXX</p>
+                        <p><strong>Maid of Honour (Emma):</strong> +44 7XXX XXX XXX</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Local Services</h3>
+                        <p><strong>Nearest Hospital:</strong></p>
+                        <p style="font-size: 0.9rem;">Ospedale della Valdichiana<br>+39 0575 XXX XXX (20 min drive)</p>
+                        <p><strong>Local Taxi:</strong> +39 XXX XXX XXXX</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Currency converter
+        const gbpInput = document.getElementById('gbpAmount');
+        const eurResult = document.getElementById('eurResult');
+        const exchangeRate = 1.17; // Update with real rate
+
+        function updateConversion() {
+            const gbp = parseFloat(gbpInput.value) || 0;
+            const eur = (gbp * exchangeRate).toFixed(2);
+            eurResult.textContent = `\u20AC${eur}`;
+        }
+
+        gbpInput.addEventListener('input', updateConversion);
+    </script>
+</body>
+</html>

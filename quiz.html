@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How Well Do You Know Us? | Sophie & Joe</title>
+    <meta name="description" content="Test your knowledge about Sophie and Joe with our fun wedding quiz!">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Open Graph / Social Preview -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="How Well Do You Know Us? | Sophie & Joe">
+    <meta property="og:description" content="Test your knowledge about Sophie and Joe with our fun wedding quiz!">
+    <meta property="og:image" content="images/hero-bg.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .quiz-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Progress Bar */
+        .quiz-progress {
+            background: var(--color-cream);
+            border-radius: 50px;
+            height: 12px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+        .quiz-progress-bar {
+            background: linear-gradient(90deg, var(--color-terracotta), var(--color-gold));
+            height: 100%;
+            border-radius: 50px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
+        .quiz-progress-text {
+            text-align: center;
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Question Card */
+        .quiz-card {
+            background: var(--color-white);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-medium);
+            text-align: center;
+            animation: slideIn 0.4s ease;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .question-number {
+            display: inline-block;
+            background: var(--color-terracotta);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            line-height: 40px;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+
+        .question-text {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--color-charcoal);
+            margin-bottom: 2rem;
+            line-height: 1.4;
+        }
+
+        /* Answer Options */
+        .quiz-options {
+            display: grid;
+            gap: 1rem;
+        }
+        .quiz-option {
+            background: var(--color-cream);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 1rem;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .quiz-option:hover {
+            border-color: var(--color-gold);
+            background: var(--color-gold-light);
+        }
+        .quiz-option.selected {
+            border-color: var(--color-terracotta);
+            background: var(--color-terracotta-light);
+        }
+        .quiz-option.correct {
+            border-color: #4CAF50;
+            background: #E8F5E9;
+        }
+        .quiz-option.incorrect {
+            border-color: #f44336;
+            background: #FFEBEE;
+        }
+        .quiz-option.disabled {
+            pointer-events: none;
+        }
+
+        .option-letter {
+            width: 32px;
+            height: 32px;
+            background: var(--color-white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--color-terracotta);
+            flex-shrink: 0;
+        }
+        .quiz-option.correct .option-letter {
+            background: #4CAF50;
+            color: white;
+        }
+        .quiz-option.incorrect .option-letter {
+            background: #f44336;
+            color: white;
+        }
+
+        /* Feedback */
+        .quiz-feedback {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 12px;
+            display: none;
+        }
+        .quiz-feedback.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        .quiz-feedback.correct {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        .quiz-feedback.incorrect {
+            background: #FFEBEE;
+            color: #C62828;
+        }
+        .quiz-feedback p {
+            margin: 0;
+        }
+        .quiz-feedback .fun-fact {
+            margin-top: 0.5rem;
+            font-style: italic;
+            opacity: 0.9;
+        }
+
+        /* Next Button */
+        .quiz-next {
+            margin-top: 2rem;
+            display: none;
+        }
+        .quiz-next.show {
+            display: block;
+        }
+
+        /* Results */
+        .quiz-results {
+            text-align: center;
+        }
+        .results-score {
+            font-size: 5rem;
+            font-family: var(--font-heading);
+            color: var(--color-terracotta);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        .results-label {
+            font-size: 1.25rem;
+            color: var(--color-warm-gray);
+            margin-bottom: 2rem;
+        }
+        .results-message {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            color: var(--color-charcoal);
+            margin-bottom: 1rem;
+        }
+        .results-description {
+            color: var(--color-warm-gray);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .results-badge {
+            display: inline-block;
+            padding: 0.75rem 2rem;
+            background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold));
+            border-radius: 50px;
+            font-weight: bold;
+            color: var(--color-charcoal);
+            margin-bottom: 2rem;
+        }
+        .results-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        /* Start Screen */
+        .quiz-start {
+            text-align: center;
+        }
+        .quiz-start-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        .quiz-start h3 {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            color: var(--color-charcoal);
+            margin-bottom: 1rem;
+        }
+        .quiz-start p {
+            color: var(--color-warm-gray);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .quiz-info {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .quiz-info-item {
+            text-align: center;
+        }
+        .quiz-info-item strong {
+            display: block;
+            font-size: 1.5rem;
+            color: var(--color-terracotta);
+        }
+        .quiz-info-item span {
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Leaderboard */
+        .leaderboard {
+            margin-top: 3rem;
+            background: var(--color-cream);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+        .leaderboard h4 {
+            font-family: var(--font-heading);
+            color: var(--color-terracotta);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .leaderboard-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--color-gold-light);
+        }
+        .leaderboard-item:last-child {
+            border-bottom: none;
+        }
+        .leaderboard-rank {
+            width: 30px;
+            height: 30px;
+            background: var(--color-terracotta);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .leaderboard-rank.gold { background: #FFD700; color: #333; }
+        .leaderboard-rank.silver { background: #C0C0C0; color: #333; }
+        .leaderboard-rank.bronze { background: #CD7F32; color: white; }
+        .leaderboard-name {
+            flex: 1;
+            color: var(--color-charcoal);
+        }
+        .leaderboard-score {
+            font-weight: bold;
+            color: var(--color-terracotta);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>The Sophie & Joe Quiz</h1>
+        <p>How well do you really know us?</p>
+    </header>
+
+    <!-- Quiz Section -->
+    <section class="section">
+        <div class="container">
+            <div class="quiz-container">
+
+                <!-- Start Screen -->
+                <div class="quiz-card quiz-start" id="quiz-start">
+                    <div class="quiz-start-icon">&#128149;</div>
+                    <h3>Test Your Knowledge!</h3>
+                    <p>Think you know Sophie and Joe? Put your friendship to the test with our fun quiz. Answer questions about our relationship, favourite things, and the big day!</p>
+
+                    <div class="quiz-info">
+                        <div class="quiz-info-item">
+                            <strong>10</strong>
+                            <span>Questions</span>
+                        </div>
+                        <div class="quiz-info-item">
+                            <strong>Fun</strong>
+                            <span>Difficulty</span>
+                        </div>
+                        <div class="quiz-info-item">
+                            <strong>&#127942;</strong>
+                            <span>Bragging Rights</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="startQuiz()">Start Quiz</button>
+                </div>
+
+                <!-- Quiz Questions (hidden initially) -->
+                <div id="quiz-game" style="display: none;">
+                    <div class="quiz-progress-text">Question <span id="current-q">1</span> of <span id="total-q">10</span></div>
+                    <div class="quiz-progress">
+                        <div class="quiz-progress-bar" id="progress-bar"></div>
+                    </div>
+
+                    <div class="quiz-card" id="question-card">
+                        <div class="question-number" id="q-number">1</div>
+                        <div class="question-text" id="q-text">Loading question...</div>
+
+                        <div class="quiz-options" id="quiz-options">
+                            <!-- Options will be inserted here -->
+                        </div>
+
+                        <div class="quiz-feedback" id="quiz-feedback">
+                            <p id="feedback-text"></p>
+                            <p class="fun-fact" id="fun-fact"></p>
+                        </div>
+
+                        <div class="quiz-next" id="quiz-next">
+                            <button class="btn btn-primary" onclick="nextQuestion()">Next Question</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results (hidden initially) -->
+                <div class="quiz-card quiz-results" id="quiz-results" style="display: none;">
+                    <div class="results-score" id="final-score">0/10</div>
+                    <div class="results-label">Questions Correct</div>
+                    <div class="results-badge" id="results-badge">Quiz Champion</div>
+                    <div class="results-message" id="results-message">Amazing!</div>
+                    <div class="results-description" id="results-description">
+                        You really know Sophie and Joe well!
+                    </div>
+                    <div class="results-actions">
+                        <button class="btn btn-outline" onclick="restartQuiz()">Play Again</button>
+                        <a href="rsvp.html" class="btn btn-primary">RSVP Now</a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Leaderboard -->
+            <div class="leaderboard" id="leaderboard">
+                <h4>&#127942; Top Scores</h4>
+                <p style="text-align: center; color: var(--color-warm-gray); font-size: 0.9rem;">Complete the quiz to see how you compare!</p>
+                <ul class="leaderboard-list" id="leaderboard-list">
+                    <!-- Leaderboard items will be shown after quiz -->
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Quiz Questions - Update these with real answers about Sophie & Joe!
+        const quizQuestions = [
+            {
+                question: "Where did Sophie and Joe first meet?",
+                options: ["At a party", "Through mutual friends", "At work", "Online"],
+                correct: 1, // Update with correct answer (0-indexed)
+                funFact: "Update this with the real story of how you met!"
+            },
+            {
+                question: "What was the location of their first date?",
+                options: ["A coffee shop", "A restaurant", "A pub", "A park"],
+                correct: 2,
+                funFact: "Add a fun memory from your first date here!"
+            },
+            {
+                question: "What is Sophie's favourite food?",
+                options: ["Pizza", "Sushi", "Pasta", "Thai"],
+                correct: 0,
+                funFact: "Sophie could eat pizza every day if she could!"
+            },
+            {
+                question: "What is Joe's favourite hobby?",
+                options: ["Football", "Gaming", "Cooking", "Golf"],
+                correct: 1,
+                funFact: "Add a fun fact about Joe's hobby!"
+            },
+            {
+                question: "Where did Joe propose?",
+                options: ["Paris", "At home", "On holiday", "In Tuscany"],
+                correct: 2,
+                funFact: "Update with the real proposal story!"
+            },
+            {
+                question: "What's their favourite TV show to watch together?",
+                options: ["Friends", "The Office", "Game of Thrones", "Love Island"],
+                correct: 1,
+                funFact: "They've watched it through at least 5 times!"
+            },
+            {
+                question: "How many years have Sophie and Joe been together?",
+                options: ["2 years", "3 years", "5 years", "7 years"],
+                correct: 2,
+                funFact: "Update with the real number!"
+            },
+            {
+                question: "What's Sophie's go-to drink?",
+                options: ["Prosecco", "Gin & Tonic", "White wine", "Aperol Spritz"],
+                correct: 3,
+                funFact: "Perfect for an Italian wedding!"
+            },
+            {
+                question: "What's Joe's favourite football team?",
+                options: ["Manchester United", "Liverpool", "Chelsea", "He doesn't like football"],
+                correct: 0,
+                funFact: "Update with the real answer!"
+            },
+            {
+                question: "Why did they choose Tuscany for their wedding?",
+                options: ["Sophie's Italian heritage", "They love Italian food", "It's romantic", "All of the above"],
+                correct: 3,
+                funFact: "Tuscany was always the dream destination!"
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let answered = false;
+
+        function startQuiz() {
+            document.getElementById('quiz-start').style.display = 'none';
+            document.getElementById('quiz-game').style.display = 'block';
+            document.getElementById('total-q').textContent = quizQuestions.length;
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = quizQuestions[currentQuestion];
+            document.getElementById('q-number').textContent = currentQuestion + 1;
+            document.getElementById('current-q').textContent = currentQuestion + 1;
+            document.getElementById('q-text').textContent = q.question;
+
+            // Update progress bar
+            const progress = ((currentQuestion) / quizQuestions.length) * 100;
+            document.getElementById('progress-bar').style.width = progress + '%';
+
+            // Generate options
+            const optionsHtml = q.options.map((opt, i) => {
+                const letters = ['A', 'B', 'C', 'D'];
+                return `
+                    <button class="quiz-option" onclick="selectAnswer(${i})">
+                        <span class="option-letter">${letters[i]}</span>
+                        <span>${opt}</span>
+                    </button>
+                `;
+            }).join('');
+            document.getElementById('quiz-options').innerHTML = optionsHtml;
+
+            // Hide feedback and next button
+            document.getElementById('quiz-feedback').classList.remove('show', 'correct', 'incorrect');
+            document.getElementById('quiz-next').classList.remove('show');
+            answered = false;
+
+            // Animate card
+            document.getElementById('question-card').style.animation = 'none';
+            setTimeout(() => {
+                document.getElementById('question-card').style.animation = 'slideIn 0.4s ease';
+            }, 10);
+        }
+
+        function selectAnswer(index) {
+            if (answered) return;
+            answered = true;
+
+            const q = quizQuestions[currentQuestion];
+            const options = document.querySelectorAll('.quiz-option');
+            const feedback = document.getElementById('quiz-feedback');
+            const feedbackText = document.getElementById('feedback-text');
+            const funFact = document.getElementById('fun-fact');
+
+            // Disable all options
+            options.forEach(opt => opt.classList.add('disabled'));
+
+            // Mark selected and correct
+            options[index].classList.add('selected');
+
+            if (index === q.correct) {
+                score++;
+                options[index].classList.add('correct');
+                feedback.classList.add('correct');
+                feedbackText.textContent = '&#10004; Correct!';
+            } else {
+                options[index].classList.add('incorrect');
+                options[q.correct].classList.add('correct');
+                feedback.classList.add('incorrect');
+                feedbackText.textContent = '&#10008; Not quite!';
+            }
+
+            funFact.textContent = q.funFact;
+            feedback.classList.add('show');
+            document.getElementById('quiz-next').classList.add('show');
+
+            // Update next button text for last question
+            if (currentQuestion === quizQuestions.length - 1) {
+                document.querySelector('#quiz-next button').textContent = 'See Results';
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+
+            if (currentQuestion >= quizQuestions.length) {
+                showResults();
+            } else {
+                showQuestion();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-game').style.display = 'none';
+            document.getElementById('quiz-results').style.display = 'block';
+
+            const percentage = (score / quizQuestions.length) * 100;
+            document.getElementById('final-score').textContent = `${score}/${quizQuestions.length}`;
+
+            let badge, message, description;
+
+            if (percentage === 100) {
+                badge = '&#127942; Perfect Score!';
+                message = 'Incredible!';
+                description = "You know Sophie and Joe better than they know themselves! You're officially their #1 fan.";
+            } else if (percentage >= 80) {
+                badge = '&#11088; Expert Level';
+                message = 'Amazing!';
+                description = "You really know Sophie and Joe well. You must be a close friend or family member!";
+            } else if (percentage >= 60) {
+                badge = '&#128077; Great Job';
+                message = 'Well Done!';
+                description = "You know your stuff! A few tricky ones caught you out, but solid performance.";
+            } else if (percentage >= 40) {
+                badge = '&#129300; Getting There';
+                message = 'Not Bad!';
+                description = "You know some things about Sophie and Joe, but there's room for improvement. Maybe chat to them more at the wedding!";
+            } else {
+                badge = '&#128064; New Friend?';
+                message = 'Uh Oh!';
+                description = "Did you guess? Don't worry - the wedding is the perfect chance to get to know Sophie and Joe better!";
+            }
+
+            document.getElementById('results-badge').innerHTML = badge;
+            document.getElementById('results-message').textContent = message;
+            document.getElementById('results-description').textContent = description;
+
+            // Update progress bar to 100%
+            document.getElementById('progress-bar').style.width = '100%';
+
+            // Show sample leaderboard
+            showLeaderboard();
+        }
+
+        function showLeaderboard() {
+            const leaderboard = document.getElementById('leaderboard-list');
+            // Sample leaderboard - in reality you'd store/fetch this from a backend
+            const scores = [
+                { name: 'You', score: score, isYou: true },
+                { name: 'Sarah G.', score: 9 },
+                { name: 'Mike J.', score: 8 },
+                { name: 'Emma W.', score: 7 },
+                { name: 'David O.', score: 6 }
+            ];
+
+            // Sort by score
+            scores.sort((a, b) => b.score - a.score);
+
+            leaderboard.innerHTML = scores.map((item, i) => {
+                let rankClass = '';
+                if (i === 0) rankClass = 'gold';
+                else if (i === 1) rankClass = 'silver';
+                else if (i === 2) rankClass = 'bronze';
+
+                return `
+                    <li class="leaderboard-item" style="${item.isYou ? 'background: var(--color-gold-light); border-radius: 8px; padding-left: 0.5rem; padding-right: 0.5rem;' : ''}">
+                        <span class="leaderboard-rank ${rankClass}">${i + 1}</span>
+                        <span class="leaderboard-name">${item.name} ${item.isYou ? '(You!)' : ''}</span>
+                        <span class="leaderboard-score">${item.score}/${quizQuestions.length}</span>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            answered = false;
+            document.getElementById('quiz-results').style.display = 'none';
+            document.getElementById('quiz-game').style.display = 'block';
+            document.querySelector('#quiz-next button').textContent = 'Next Question';
+            showQuestion();
+        }
+    </script>
+</body>
+</html>

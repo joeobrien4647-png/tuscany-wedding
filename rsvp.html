@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSVP | Sophie & Joe</title>
+    <meta name="description" content="RSVP for Sophie and Joe's wedding in Tuscany, May 2027.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Open Graph / Social Preview -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="RSVP | Sophie & Joe">
+    <meta property="og:description" content="RSVP for Sophie and Joe's wedding in Tuscany, May 2027.">
+    <meta property="og:image" content="images/hero-bg.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary active">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>RSVP</h1>
+        <p>We can't wait to celebrate with you</p>
+    </header>
+
+    <!-- RSVP Deadline Countdown -->
+    <section class="rsvp-deadline-section">
+        <div class="container">
+            <div class="rsvp-deadline-card">
+                <div class="rsvp-deadline-icon">&#9200;</div>
+                <div class="rsvp-deadline-content">
+                    <h3>RSVP Deadline: 1st March 2027</h3>
+                    <p>Time remaining to respond:</p>
+                    <div class="rsvp-countdown">
+                        <div class="rsvp-countdown-item">
+                            <span class="rsvp-countdown-number" id="rsvp-days">--</span>
+                            <span class="rsvp-countdown-label">Days</span>
+                        </div>
+                        <div class="rsvp-countdown-item">
+                            <span class="rsvp-countdown-number" id="rsvp-hours">--</span>
+                            <span class="rsvp-countdown-label">Hours</span>
+                        </div>
+                        <div class="rsvp-countdown-item">
+                            <span class="rsvp-countdown-number" id="rsvp-minutes">--</span>
+                            <span class="rsvp-countdown-label">Minutes</span>
+                        </div>
+                        <div class="rsvp-countdown-item">
+                            <span class="rsvp-countdown-number" id="rsvp-seconds">--</span>
+                            <span class="rsvp-countdown-label">Seconds</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RSVP Form Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Will You Join Us?</h2>
+                <div class="section-divider"></div>
+                <p>Please let us know if you can make it by filling out the form below. We kindly ask for your response by <strong>1st March 2027</strong>.</p>
+            </div>
+
+            <!-- RSVP Form -->
+            <!-- Note: Replace YOUR_FORMSPREE_ID with your actual Formspree form ID -->
+            <form id="rsvp-form" class="rsvp-form" action="https://formspree.io/f/YOUR_FORMSPREE_ID" method="POST">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="first-name">First Name *</label>
+                        <input type="text" id="first-name" name="first_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="last-name">Last Name *</label>
+                        <input type="text" id="last-name" name="last_name" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Will you be attending? *</label>
+                    <div class="radio-group">
+                        <label class="radio-option">
+                            <input type="radio" name="attending" value="yes" required>
+                            <span>Joyfully Accept</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="attending" value="no">
+                            <span>Regretfully Decline</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group" id="guest-count-group">
+                    <label for="guests">Number of Guests (including yourself)</label>
+                    <select id="guests" name="guest_count">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="dietary">Dietary Requirements</label>
+                    <textarea id="dietary" name="dietary_requirements" placeholder="Please let us know of any allergies or dietary requirements for you and your guests..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="song">Song Request</label>
+                    <input type="text" id="song" name="song_request" placeholder="What song will get you on the dance floor?">
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Message for Sophie & Joe</label>
+                    <textarea id="message" name="message" placeholder="Anything else you'd like to share with us..."></textarea>
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">Send RSVP</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section class="section section-alt">
+        <div class="container text-center">
+            <h2>Questions?</h2>
+            <div class="section-divider"></div>
+            <p>If you have any questions or need to update your RSVP, please don't hesitate to reach out.</p>
+            <p class="mt-2"><strong>Email:</strong> wedding@sophieandjoe.com</p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // RSVP Deadline Countdown
+        function initRSVPCountdown() {
+            const rsvpDeadline = new Date('2027-03-01T23:59:59').getTime();
+
+            function updateRSVPCountdown() {
+                const now = new Date().getTime();
+                const distance = rsvpDeadline - now;
+
+                if (distance < 0) {
+                    document.querySelector('.rsvp-deadline-card').innerHTML = `
+                        <div class="rsvp-deadline-icon">&#128232;</div>
+                        <div class="rsvp-deadline-content">
+                            <h3>RSVP Deadline Has Passed</h3>
+                            <p>Please contact us directly if you still need to RSVP.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                document.getElementById('rsvp-days').textContent = days;
+                document.getElementById('rsvp-hours').textContent = hours.toString().padStart(2, '0');
+                document.getElementById('rsvp-minutes').textContent = minutes.toString().padStart(2, '0');
+                document.getElementById('rsvp-seconds').textContent = seconds.toString().padStart(2, '0');
+            }
+
+            updateRSVPCountdown();
+            setInterval(updateRSVPCountdown, 1000);
+        }
+
+        initRSVPCountdown();
+    </script>
+</body>
+</html>

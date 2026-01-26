@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Bingo | Sophie & Joe</title>
+    <meta name="description" content="Play wedding bingo during Sophie and Joe's reception!">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .bingo-intro {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+
+        .bingo-card {
+            max-width: 500px;
+            margin: 0 auto;
+            background: var(--color-white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .bingo-header {
+            background: linear-gradient(135deg, var(--color-terracotta), var(--color-gold));
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .bingo-header h2 {
+            color: white;
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2px;
+            background: var(--color-cream);
+            padding: 2px;
+        }
+
+        .bingo-cell {
+            background: white;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .bingo-cell:hover {
+            background: var(--color-cream);
+        }
+
+        .bingo-cell.marked {
+            background: var(--color-terracotta);
+            color: white;
+        }
+
+        .bingo-cell.marked::after {
+            content: '&#10004;';
+            position: absolute;
+            font-size: 1.5rem;
+            opacity: 0.3;
+        }
+
+        .bingo-cell.free {
+            background: var(--color-gold);
+            color: white;
+            font-weight: 600;
+        }
+
+        .bingo-footer {
+            padding: 1.5rem;
+            text-align: center;
+            background: var(--color-cream);
+        }
+
+        .bingo-actions {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .print-bingo {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Conversation starters */
+        .starters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .starter-card {
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+            border-top: 4px solid var(--color-terracotta);
+        }
+
+        .starter-card-number {
+            display: inline-block;
+            background: var(--color-terracotta);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            line-height: 40px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .starter-card p {
+            color: var(--color-charcoal);
+            font-size: 1.1rem;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        /* Predictions */
+        .prediction-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--color-white);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .prediction-question {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--color-cream);
+        }
+
+        .prediction-question:last-of-type {
+            border-bottom: none;
+        }
+
+        .prediction-question label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--color-charcoal);
+        }
+
+        .prediction-question input,
+        .prediction-question select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--color-cream);
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        @media print {
+            .nav, .page-header, footer, .bingo-actions, .section-alt {
+                display: none !important;
+            }
+
+            .bingo-card {
+                box-shadow: none;
+                border: 2px solid #000;
+            }
+
+            .bingo-cell {
+                border: 1px solid #ccc;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Wedding Fun</h1>
+        <p>Games and activities for the big day!</p>
+    </header>
+
+    <!-- Bingo Section -->
+    <section class="section">
+        <div class="container">
+            <div class="bingo-intro">
+                <h2>&#127919; Wedding Bingo</h2>
+                <div class="section-divider"></div>
+                <p>Print your bingo card and mark off squares as you spot things during the reception. Get 5 in a row to win! Show your completed card to the DJ to claim a prize.</p>
+            </div>
+
+            <div class="bingo-card" id="bingoCard">
+                <div class="bingo-header">
+                    <h2>BINGO</h2>
+                </div>
+                <div class="bingo-grid">
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Someone cries during vows</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Dad jokes in a speech</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Prosecco spill</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Someone trips on the dance floor</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Bride & Groom kiss</div>
+
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Kid running around</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Someone says "you're next!"</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Photo booth queue</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Shoes off on dance floor</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Someone asks where you know them from</div>
+
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Clink of glasses</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Best Man embarasses groom</div>
+                    <div class="bingo-cell free">FREE SPACE &#128141;</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Bridesmaid tears up</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Someone takes 10+ selfies</div>
+
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Awkward hug vs handshake</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Someone mentions "the weather"</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Drunk uncle spotted</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Someone requests a song</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Cake cutting</div>
+
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Group photo chaos</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">First dance &#128149;</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Someone checks their phone during speech</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Late night pizza!</div>
+                    <div class="bingo-cell" onclick="this.classList.toggle('marked')">Someone starts a conga line</div>
+                </div>
+                <div class="bingo-footer">
+                    <p>Tap to mark squares | Print for the wedding day!</p>
+                </div>
+            </div>
+
+            <div class="bingo-actions">
+                <button class="btn btn-primary print-bingo" onclick="window.print()">
+                    &#128424; Print Bingo Card
+                </button>
+                <button class="btn btn-outline" onclick="location.reload()">
+                    &#128260; New Card
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Table Conversation Starters -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>&#128172; Table Conversation Starters</h2>
+                <div class="section-divider"></div>
+                <p>Break the ice with your tablemates! Pick a number and answer the question.</p>
+            </div>
+
+            <div class="starters-grid">
+                <div class="starter-card">
+                    <div class="starter-card-number">1</div>
+                    <p>What's your best memory with Sophie or Joe?</p>
+                </div>
+                <div class="starter-card">
+                    <div class="starter-card-number">2</div>
+                    <p>If you could live anywhere in the world, where would it be?</p>
+                </div>
+                <div class="starter-card">
+                    <div class="starter-card-number">3</div>
+                    <p>What's the best wedding you've ever been to?</p>
+                </div>
+                <div class="starter-card">
+                    <div class="starter-card-number">4</div>
+                    <p>What song always gets you on the dance floor?</p>
+                </div>
+                <div class="starter-card">
+                    <div class="starter-card-number">5</div>
+                    <p>What's your favourite thing about Tuscany so far?</p>
+                </div>
+                <div class="starter-card">
+                    <div class="starter-card-number">6</div>
+                    <p>If you could give Sophie & Joe one piece of advice, what would it be?</p>
+                </div>
+                <div class="starter-card">
+                    <div class="starter-card-number">7</div>
+                    <p>What's the most romantic thing you've ever done/seen?</p>
+                </div>
+                <div class="starter-card">
+                    <div class="starter-card-number">8</div>
+                    <p>Describe yourself in 3 words!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Predictions Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>&#128302; Predict Their Future</h2>
+                <div class="section-divider"></div>
+                <p>Have some fun predicting what's in store for Sophie & Joe!</p>
+            </div>
+
+            <form class="prediction-form" id="predictionForm">
+                <div class="prediction-question">
+                    <label>&#128118; Their first child will be named...</label>
+                    <input type="text" placeholder="Your prediction...">
+                </div>
+
+                <div class="prediction-question">
+                    <label>&#127968; In 5 years, they'll be living in...</label>
+                    <input type="text" placeholder="City/Country...">
+                </div>
+
+                <div class="prediction-question">
+                    <label>&#128054; Their next pet will be a...</label>
+                    <input type="text" placeholder="Type of pet...">
+                </div>
+
+                <div class="prediction-question">
+                    <label>&#127881; Who will cry first at the ceremony?</label>
+                    <select>
+                        <option value="">Select...</option>
+                        <option value="sophie">Sophie</option>
+                        <option value="joe">Joe</option>
+                        <option value="both">Both at the same time!</option>
+                        <option value="neither">Neither (they're tough!)</option>
+                    </select>
+                </div>
+
+                <div class="prediction-question">
+                    <label>&#128131; Who will be last on the dance floor?</label>
+                    <select>
+                        <option value="">Select...</option>
+                        <option value="sophie">Sophie</option>
+                        <option value="joe">Joe</option>
+                        <option value="both">Both of them!</option>
+                    </select>
+                </div>
+
+                <div class="prediction-question">
+                    <label>&#127796; They'll next go on holiday to...</label>
+                    <input type="text" placeholder="Destination...">
+                </div>
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-primary">&#128302; Submit Predictions</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Prediction form
+        document.getElementById('predictionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            this.innerHTML = `
+                <div class="text-center">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">&#128302;&#10024;</div>
+                    <h3>Predictions Submitted!</h3>
+                    <p>Thanks for playing! We'll check back on your 1st anniversary to see how accurate you were...</p>
+                    <a href="index.html" class="btn btn-outline" style="margin-top: 1rem;">Back to Home</a>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meet Our Fur Baby | Sophie & Joe</title>
+    <meta name="description" content="Meet the most important member of Sophie and Joe's family!">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .pet-hero {
+            text-align: center;
+            padding: 3rem 0;
+        }
+
+        .pet-photo {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: var(--color-cream);
+            margin: 0 auto 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8rem;
+            box-shadow: var(--shadow-medium);
+            border: 8px solid var(--color-gold);
+        }
+
+        .pet-name {
+            font-family: var(--font-heading);
+            font-size: 3.5rem;
+            color: var(--color-terracotta);
+            margin-bottom: 0.5rem;
+        }
+
+        .pet-title {
+            color: var(--color-warm-gray);
+            font-size: 1.2rem;
+            font-style: italic;
+        }
+
+        .pet-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin: 3rem 0;
+            flex-wrap: wrap;
+        }
+
+        .pet-stat {
+            text-align: center;
+        }
+
+        .pet-stat-value {
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            color: var(--color-terracotta);
+        }
+
+        .pet-stat-label {
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+        }
+
+        .pet-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .pet-info-card {
+            background: var(--color-white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .pet-info-card h3 {
+            color: var(--color-terracotta);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pet-info-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .pet-info-card li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--color-cream);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pet-info-card li:last-child {
+            border-bottom: none;
+        }
+
+        .pet-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .pet-gallery-item {
+            aspect-ratio: 1;
+            background: var(--color-cream);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .pet-quote {
+            background: var(--color-cream);
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .pet-quote blockquote {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--color-charcoal);
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .pet-quote cite {
+            color: var(--color-warm-gray);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Meet Our Fur Baby</h1>
+        <p>The real boss of our household</p>
+    </header>
+
+    <!-- Pet Hero -->
+    <section class="section">
+        <div class="container">
+            <div class="pet-hero">
+                <div class="pet-photo">&#128054;</div>
+                <h2 class="pet-name">Biscuit</h2>
+                <p class="pet-title">"Chief Cuddle Officer & Professional Treat Tester"</p>
+            </div>
+
+            <div class="pet-stats">
+                <div class="pet-stat">
+                    <div class="pet-stat-value">3</div>
+                    <div class="pet-stat-label">Years Old</div>
+                </div>
+                <div class="pet-stat">
+                    <div class="pet-stat-value">&#128149;</div>
+                    <div class="pet-stat-label">Rescue Dog</div>
+                </div>
+                <div class="pet-stat">
+                    <div class="pet-stat-value">100%</div>
+                    <div class="pet-stat-label">Good Boy</div>
+                </div>
+                <div class="pet-stat">
+                    <div class="pet-stat-value">&#8734;</div>
+                    <div class="pet-stat-label">Zoomies</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pet Info -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="pet-info-grid">
+                <div class="pet-info-card">
+                    <h3>&#128149; The Basics</h3>
+                    <ul>
+                        <li>&#128054; Breed: Cockapoo</li>
+                        <li>&#127873; Birthday: March 2024</li>
+                        <li>&#127968; Adopted: Winter 2024</li>
+                        <li>&#128214; Full Name: Sir Biscuit McFluffington</li>
+                        <li>&#127775; Nicknames: Bisky, Biscotti, The Floof</li>
+                    </ul>
+                </div>
+
+                <div class="pet-info-card">
+                    <h3>&#128149; Favourite Things</h3>
+                    <ul>
+                        <li>&#129372; Treats (especially cheese)</li>
+                        <li>&#128164; Napping on the sofa</li>
+                        <li>&#127790; Squeaky toys</li>
+                        <li>&#128694; Walks in the park</li>
+                        <li>&#128587; Belly rubs from Dad</li>
+                    </ul>
+                </div>
+
+                <div class="pet-info-card">
+                    <h3>&#128169; Not-So-Favourite Things</h3>
+                    <ul>
+                        <li>&#128166; Bath time</li>
+                        <li>&#129417; The hoover</li>
+                        <li>&#9749; Being ignored during breakfast</li>
+                        <li>&#128663; Car journeys</li>
+                        <li>&#127769; Bedtime (FOMO is real)</li>
+                    </ul>
+                </div>
+
+                <div class="pet-info-card">
+                    <h3>&#127942; Special Talents</h3>
+                    <ul>
+                        <li>&#128062; Sit, stay, paw</li>
+                        <li>&#128064; Mastering the "puppy eyes"</li>
+                        <li>&#128587; Strategic begging</li>
+                        <li>&#127939; Olympic-level zoomies</li>
+                        <li>&#128164; Snoring louder than Joe</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How We Met -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>How We Found Each Other</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div style="max-width: 700px; margin: 0 auto;">
+                <div class="pet-quote">
+                    <blockquote>"We weren't looking for a dog. We went 'just to look' at the rescue centre. Three hours later, we were buying a bed, toys, and had our hearts completely stolen."</blockquote>
+                    <cite>- Sophie & Joe</cite>
+                </div>
+
+                <p style="margin-top: 2rem; text-align: center; color: var(--color-warm-gray);">
+                    Biscuit was found as a stray and brought to a local rescue. The moment he put his paw on Sophie's knee, we knew he was coming home with us. He's been the best addition to our little family - and the reason we can never have a lie-in anymore!
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Photo Gallery -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>&#128247; Biscuit's Photo Album</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="pet-gallery">
+                <div class="pet-gallery-item">&#128054;</div>
+                <div class="pet-gallery-item">&#128021;</div>
+                <div class="pet-gallery-item">&#128054;</div>
+                <div class="pet-gallery-item">&#128021;</div>
+                <div class="pet-gallery-item">&#128054;</div>
+                <div class="pet-gallery-item">&#128021;</div>
+            </div>
+
+            <p class="text-center" style="margin-top: 2rem; color: var(--color-warm-gray);">
+                <em>Photos coming soon! We have approximately 5,000 to choose from...</em>
+            </p>
+        </div>
+    </section>
+
+    <!-- Wedding Day -->
+    <section class="section">
+        <div class="container text-center">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">&#128054;&#128141;</div>
+            <h2>Will Biscuit Be at the Wedding?</h2>
+            <div class="section-divider"></div>
+            <p style="max-width: 600px; margin: 0 auto;">
+                Sadly, Biscuit won't be making the trip to Tuscany (he's not a fan of flying!). But he'll be enjoying a luxury staycation with his favourite dog sitter, complete with extra treats and belly rubs.
+            </p>
+            <p style="margin-top: 1.5rem; font-style: italic; color: var(--color-warm-gray);">
+                Don't worry - we'll FaceTime him!
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

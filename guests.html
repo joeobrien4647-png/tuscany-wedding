@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meet the Guests | Sophie & Joe</title>
+    <meta name="description" content="Meet the wonderful guests joining Sophie and Joe's wedding celebration in Tuscany.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Open Graph / Social Preview -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Meet the Guests | Sophie & Joe">
+    <meta property="og:description" content="Meet the wonderful guests joining Sophie and Joe's wedding celebration in Tuscany.">
+    <meta property="og:image" content="images/hero-bg.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Guest Stats */
+        .guest-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-number {
+            font-family: var(--font-heading);
+            font-size: 3.5rem;
+            color: var(--color-terracotta);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        .stat-label {
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Filter Tabs */
+        .filter-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .filter-tab {
+            padding: 0.5rem 1.25rem;
+            background: var(--color-white);
+            border: 2px solid var(--color-cream);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            color: var(--color-warm-gray);
+        }
+        .filter-tab:hover {
+            border-color: var(--color-gold);
+            color: var(--color-charcoal);
+        }
+        .filter-tab.active {
+            background: var(--color-terracotta);
+            border-color: var(--color-terracotta);
+            color: white;
+        }
+
+        /* Guest Grid */
+        .guest-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Guest Card */
+        .guest-card {
+            background: var(--color-white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .guest-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-medium);
+        }
+        .guest-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-terracotta), var(--color-gold));
+        }
+
+        .guest-photo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--color-terracotta-light), var(--color-gold-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+            border: 3px solid var(--color-gold-light);
+        }
+        .guest-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .guest-photo.bride-side {
+            background: linear-gradient(135deg, #f8e1e4, #e8a8b0);
+        }
+        .guest-photo.groom-side {
+            background: linear-gradient(135deg, #e1e8f8, #a8b8e8);
+        }
+        .guest-photo.mutual {
+            background: linear-gradient(135deg, var(--color-olive-light), var(--color-olive));
+        }
+
+        .guest-name {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            color: var(--color-charcoal);
+            margin-bottom: 0.25rem;
+        }
+        .guest-relation {
+            color: var(--color-terracotta);
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+        .guest-location {
+            color: var(--color-warm-gray);
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+        }
+
+        /* Guest Card Expanded State */
+        .guest-card.expanded {
+            grid-column: span 2;
+        }
+        @media (max-width: 500px) {
+            .guest-card.expanded {
+                grid-column: span 1;
+            }
+        }
+        .guest-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .guest-card.expanded .guest-details {
+            max-height: 200px;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--color-cream);
+        }
+        .guest-fun-fact {
+            color: var(--color-warm-gray);
+            font-style: italic;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .guest-travel-info {
+            background: var(--color-cream);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: var(--color-charcoal);
+            display: inline-block;
+        }
+
+        /* Coming Soon Placeholder */
+        .coming-soon-card {
+            background: var(--color-cream);
+            border: 2px dashed var(--color-gold);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            color: var(--color-warm-gray);
+        }
+        .coming-soon-card h4 {
+            color: var(--color-terracotta);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Group Photo Section */
+        .group-photo-section {
+            background: var(--color-cream);
+            border-radius: 16px;
+            padding: 3rem;
+            text-align: center;
+            margin-top: 3rem;
+        }
+        .group-photo-section h3 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--color-terracotta);
+            margin-bottom: 0.5rem;
+        }
+        .group-photo-section p {
+            color: var(--color-warm-gray);
+            margin-bottom: 1rem;
+        }
+        .group-photo-placeholder {
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 4rem 2rem;
+            color: var(--color-warm-gray);
+            border: 2px dashed var(--color-gold);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Meet the Guests</h1>
+        <p>The wonderful people joining us in Tuscany</p>
+    </header>
+
+    <!-- Guest Count Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Who's Coming?</h2>
+                <div class="section-divider"></div>
+                <p>Get to know your fellow wedding guests before the big day!</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="guest-stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="total-guests">--</div>
+                    <div class="stat-label">Guests Confirmed</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="countries-count">--</div>
+                    <div class="stat-label">Countries</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="awaiting-count">--</div>
+                    <div class="stat-label">Awaiting RSVP</div>
+                </div>
+            </div>
+
+            <!-- Filter Tabs -->
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">Everyone</button>
+                <button class="filter-tab" data-filter="bride">Sophie's Friends & Family</button>
+                <button class="filter-tab" data-filter="groom">Joe's Friends & Family</button>
+                <button class="filter-tab" data-filter="mutual">Mutual Friends</button>
+            </div>
+
+            <!-- Guest Grid -->
+            <div class="guest-grid">
+
+                <!-- Example Guest Cards - Replace with real guests as RSVPs come in -->
+
+                <div class="guest-card" data-side="bride">
+                    <div class="guest-photo bride-side">&#128105;</div>
+                    <div class="guest-name">Jane Smith</div>
+                    <div class="guest-relation">Sophie's University Friend</div>
+                    <div class="guest-location">&#128205; London, UK</div>
+                    <div class="guest-details">
+                        <p class="guest-fun-fact">"Sophie's partner in crime since Freshers' Week!"</p>
+                        <div class="guest-travel-info">Flying from Gatwick</div>
+                    </div>
+                </div>
+
+                <div class="guest-card" data-side="groom">
+                    <div class="guest-photo groom-side">&#128104;</div>
+                    <div class="guest-name">Mike Johnson</div>
+                    <div class="guest-relation">Joe's Best Friend</div>
+                    <div class="guest-location">&#128205; Manchester, UK</div>
+                    <div class="guest-details">
+                        <p class="guest-fun-fact">"Known Joe since they were 5 years old!"</p>
+                        <div class="guest-travel-info">Driving from Florence</div>
+                    </div>
+                </div>
+
+                <div class="guest-card" data-side="bride">
+                    <div class="guest-photo bride-side">&#128105;</div>
+                    <div class="guest-name">Sarah Green</div>
+                    <div class="guest-relation">Sophie's Sister</div>
+                    <div class="guest-location">&#128205; Bristol, UK</div>
+                    <div class="guest-details">
+                        <p class="guest-fun-fact">"Chief bridesmaid and proud of it!"</p>
+                        <div class="guest-travel-info">Flying from Bristol</div>
+                    </div>
+                </div>
+
+                <div class="guest-card" data-side="groom">
+                    <div class="guest-photo groom-side">&#128104;</div>
+                    <div class="guest-name">David O'Brien</div>
+                    <div class="guest-relation">Joe's Brother</div>
+                    <div class="guest-location">&#128205; Dublin, Ireland</div>
+                    <div class="guest-details">
+                        <p class="guest-fun-fact">"Preparing his best man speech for months!"</p>
+                        <div class="guest-travel-info">Flying from Dublin</div>
+                    </div>
+                </div>
+
+                <div class="guest-card" data-side="mutual">
+                    <div class="guest-photo mutual">&#128107;</div>
+                    <div class="guest-name">Tom & Emma Wilson</div>
+                    <div class="guest-relation">Friends from Work</div>
+                    <div class="guest-location">&#128205; Birmingham, UK</div>
+                    <div class="guest-details">
+                        <p class="guest-fun-fact">"Met Sophie & Joe at the Christmas party!"</p>
+                        <div class="guest-travel-info">Flying from Birmingham</div>
+                    </div>
+                </div>
+
+                <div class="guest-card" data-side="bride">
+                    <div class="guest-photo bride-side">&#128107;</div>
+                    <div class="guest-name">Mr & Mrs Green</div>
+                    <div class="guest-relation">Sophie's Parents</div>
+                    <div class="guest-location">&#128205; Surrey, UK</div>
+                    <div class="guest-details">
+                        <p class="guest-fun-fact">"So proud of our Sophie!"</p>
+                        <div class="guest-travel-info">Flying from Heathrow</div>
+                    </div>
+                </div>
+
+                <div class="guest-card" data-side="groom">
+                    <div class="guest-photo groom-side">&#128107;</div>
+                    <div class="guest-name">Mr & Mrs O'Brien</div>
+                    <div class="guest-relation">Joe's Parents</div>
+                    <div class="guest-location">&#128205; Cork, Ireland</div>
+                    <div class="guest-details">
+                        <p class="guest-fun-fact">"Can't wait to welcome Sophie to the family!"</p>
+                        <div class="guest-travel-info">Flying from Cork</div>
+                    </div>
+                </div>
+
+                <div class="guest-card" data-side="mutual">
+                    <div class="guest-photo mutual">&#128104;</div>
+                    <div class="guest-name">Chris Taylor</div>
+                    <div class="guest-relation">Uni Housemate</div>
+                    <div class="guest-location">&#128205; Edinburgh, UK</div>
+                    <div class="guest-details">
+                        <p class="guest-fun-fact">"Witnessed the first date!"</p>
+                        <div class="guest-travel-info">Flying from Edinburgh</div>
+                    </div>
+                </div>
+
+                <!-- Placeholder Cards for More Guests -->
+                <div class="coming-soon-card">
+                    <h4>More Guests Coming!</h4>
+                    <p>This section will be updated as RSVPs come in. Check back soon to see who else is joining us!</p>
+                </div>
+
+            </div>
+
+            <!-- Group Photo Section -->
+            <div class="group-photo-section">
+                <h3>Group Photo Coming Soon!</h3>
+                <p>After the wedding, we'll add a group photo of everyone who celebrated with us.</p>
+                <div class="group-photo-placeholder">
+                    <p>&#128247; Watch this space!</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Travel Buddies CTA -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="card" style="max-width: 700px; margin: 0 auto;">
+                <div class="card-content text-center">
+                    <h3>Find Your Travel Buddies</h3>
+                    <p>Flying from the same airport or arriving at the same time as another guest? Coordinate your travel and share the journey!</p>
+                    <p style="margin-top: 1rem;"><strong>Tip:</strong> Add your travel plans to your RSVP and we'll help connect you with others on similar routes.</p>
+                    <a href="rsvp.html" class="btn btn-primary" style="margin-top: 1.5rem;">RSVP Now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Haven't RSVP'd Section -->
+    <section class="section">
+        <div class="container text-center">
+            <h2>Not on the List Yet?</h2>
+            <div class="section-divider"></div>
+            <p>Make sure you're counted! RSVP to join the celebration and appear on this page.</p>
+            <a href="rsvp.html" class="btn btn-primary mt-2">RSVP Now</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Update stats
+            const guestCards = document.querySelectorAll('.guest-card');
+            document.getElementById('total-guests').textContent = guestCards.length;
+            document.getElementById('countries-count').textContent = '3'; // Update manually
+            document.getElementById('awaiting-count').textContent = '42'; // Update manually
+
+            // Filter functionality
+            const filterTabs = document.querySelectorAll('.filter-tab');
+
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const filter = this.dataset.filter;
+
+                    // Update active tab
+                    filterTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Filter cards
+                    guestCards.forEach(card => {
+                        const side = card.dataset.side;
+                        if (filter === 'all' || side === filter) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+
+            // Expandable cards
+            guestCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    guestCards.forEach(c => {
+                        if (c !== card) c.classList.remove('expanded');
+                    });
+                    this.classList.toggle('expanded');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

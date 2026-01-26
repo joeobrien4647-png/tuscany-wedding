@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Vendors | Sophie & Joe</title>
+    <meta name="description" content="Meet the amazing vendors making Sophie and Joe's wedding magical.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .vendor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .vendor-card {
+            background: var(--color-white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+            transition: var(--transition);
+        }
+
+        .vendor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .vendor-image {
+            height: 200px;
+            background: linear-gradient(135deg, var(--color-terracotta-light), var(--color-gold-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .vendor-content {
+            padding: 1.5rem;
+        }
+
+        .vendor-category {
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1px;
+            color: var(--color-terracotta);
+            margin-bottom: 0.5rem;
+        }
+
+        .vendor-name {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--color-charcoal);
+            margin-bottom: 0.5rem;
+        }
+
+        .vendor-description {
+            color: var(--color-warm-gray);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .vendor-links {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .vendor-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.4rem 0.8rem;
+            background: var(--color-cream);
+            color: var(--color-charcoal);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .vendor-link:hover {
+            background: var(--color-terracotta);
+            color: white;
+        }
+
+        .thank-you-section {
+            background: linear-gradient(135deg, var(--color-terracotta), var(--color-terracotta-light));
+            color: white;
+            text-align: center;
+            padding: 4rem 2rem;
+            border-radius: 16px;
+            margin-top: 3rem;
+        }
+
+        .thank-you-section h2 {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Our Vendors</h1>
+        <p>The talented people making our day magical</p>
+    </header>
+
+    <!-- Vendors Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Meet Our Team</h2>
+                <div class="section-divider"></div>
+                <p>We've been so lucky to work with these incredible vendors. If you're planning an event, we highly recommend them!</p>
+            </div>
+
+            <div class="vendor-grid">
+                <!-- Venue -->
+                <div class="vendor-card">
+                    <div class="vendor-image" style="background: linear-gradient(135deg, #89CFF0, #2E86AB);">
+                        &#127968;
+                    </div>
+                    <div class="vendor-content">
+                        <div class="vendor-category">Venue</div>
+                        <h3 class="vendor-name">La Conca Agriturismo</h3>
+                        <p class="vendor-description">Our stunning venue nestled in the Tuscan hills. They've been amazing to work with and the views are simply breathtaking.</p>
+                        <div class="vendor-links">
+                            <a href="https://laconca.it/en/" target="_blank" class="vendor-link">&#127760; Website</a>
+                            <a href="https://instagram.com/laconca" target="_blank" class="vendor-link">&#128247; Instagram</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photographer -->
+                <div class="vendor-card">
+                    <div class="vendor-image" style="background: linear-gradient(135deg, #FFB347, #FF6B35);">
+                        &#128247;
+                    </div>
+                    <div class="vendor-content">
+                        <div class="vendor-category">Photography</div>
+                        <h3 class="vendor-name">Photographer Name TBC</h3>
+                        <p class="vendor-description">Capturing all our special moments with their beautiful, natural style. We can't wait to see the photos!</p>
+                        <div class="vendor-links">
+                            <a href="#" class="vendor-link">&#127760; Website</a>
+                            <a href="#" class="vendor-link">&#128247; Instagram</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Videographer -->
+                <div class="vendor-card">
+                    <div class="vendor-image" style="background: linear-gradient(135deg, #DDA0DD, #9370DB);">
+                        &#127909;
+                    </div>
+                    <div class="vendor-content">
+                        <div class="vendor-category">Videography</div>
+                        <h3 class="vendor-name">Videographer Name TBC</h3>
+                        <p class="vendor-description">Creating a cinematic film of our day that we'll treasure forever.</p>
+                        <div class="vendor-links">
+                            <a href="#" class="vendor-link">&#127760; Website</a>
+                            <a href="#" class="vendor-link">&#128247; Instagram</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Caterer -->
+                <div class="vendor-card">
+                    <div class="vendor-image" style="background: linear-gradient(135deg, #98D8C8, #56A08A);">
+                        &#127860;
+                    </div>
+                    <div class="vendor-content">
+                        <div class="vendor-category">Catering</div>
+                        <h3 class="vendor-name">Caterer Name TBC</h3>
+                        <p class="vendor-description">Serving up an authentic Italian feast with local ingredients and traditional recipes.</p>
+                        <div class="vendor-links">
+                            <a href="#" class="vendor-link">&#127760; Website</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Florist -->
+                <div class="vendor-card">
+                    <div class="vendor-image" style="background: linear-gradient(135deg, #F8B4D9, #E91E8C);">
+                        &#127803;
+                    </div>
+                    <div class="vendor-content">
+                        <div class="vendor-category">Flowers</div>
+                        <h3 class="vendor-name">Florist Name TBC</h3>
+                        <p class="vendor-description">Creating beautiful, romantic arrangements with Tuscan wildflowers and greenery.</p>
+                        <div class="vendor-links">
+                            <a href="#" class="vendor-link">&#127760; Website</a>
+                            <a href="#" class="vendor-link">&#128247; Instagram</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Music/DJ -->
+                <div class="vendor-card">
+                    <div class="vendor-image" style="background: linear-gradient(135deg, #FFD700, #FFA500);">
+                        &#127926;
+                    </div>
+                    <div class="vendor-content">
+                        <div class="vendor-category">Music & Entertainment</div>
+                        <h3 class="vendor-name">DJ/Band Name TBC</h3>
+                        <p class="vendor-description">Keeping the party going all night with an amazing mix of music for everyone.</p>
+                        <div class="vendor-links">
+                            <a href="#" class="vendor-link">&#127760; Website</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hair & Makeup -->
+                <div class="vendor-card">
+                    <div class="vendor-image" style="background: linear-gradient(135deg, #C9A961, #E0C988);">
+                        &#128132;
+                    </div>
+                    <div class="vendor-content">
+                        <div class="vendor-category">Hair & Makeup</div>
+                        <h3 class="vendor-name">Stylist Name TBC</h3>
+                        <p class="vendor-description">Making Sophie and the bridal party look and feel amazing on the big day.</p>
+                        <div class="vendor-links">
+                            <a href="#" class="vendor-link">&#128247; Instagram</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wedding Planner -->
+                <div class="vendor-card">
+                    <div class="vendor-image" style="background: linear-gradient(135deg, var(--color-terracotta-light), var(--color-terracotta));">
+                        &#128203;
+                    </div>
+                    <div class="vendor-content">
+                        <div class="vendor-category">Wedding Planner</div>
+                        <h3 class="vendor-name">Planner Name TBC</h3>
+                        <p class="vendor-description">The mastermind behind making everything run smoothly. We couldn't have done it without them!</p>
+                        <div class="vendor-links">
+                            <a href="#" class="vendor-link">&#127760; Website</a>
+                            <a href="#" class="vendor-link">&#128247; Instagram</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thank You Message -->
+            <div class="thank-you-section">
+                <h2>Thank You!</h2>
+                <p style="max-width: 600px; margin: 1rem auto 0; opacity: 0.9;">
+                    A huge thank you to all our vendors for bringing our vision to life. Your talent, dedication, and passion have made our wedding truly special.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

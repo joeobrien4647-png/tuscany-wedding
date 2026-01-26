@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us | Sophie & Joe</title>
+    <meta name="description" content="Get in touch with Sophie and Joe about their wedding.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Contact Us | Sophie & Joe">
+    <meta property="og:description" content="Get in touch with Sophie and Joe about their wedding.">
+    <meta property="og:image" content="images/hero-bg.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .contact-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .contact-card {
+            background: var(--color-white);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+            transition: var(--transition);
+        }
+
+        .contact-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .contact-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .contact-card h3 {
+            color: var(--color-charcoal);
+            margin-bottom: 0.5rem;
+        }
+
+        .contact-card p {
+            color: var(--color-warm-gray);
+            margin-bottom: 1rem;
+        }
+
+        .contact-link {
+            display: inline-block;
+            color: var(--color-terracotta);
+            font-weight: 600;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 2px solid var(--color-terracotta);
+            border-radius: 50px;
+            transition: var(--transition);
+        }
+
+        .contact-link:hover {
+            background: var(--color-terracotta);
+            color: white;
+        }
+
+        .contact-form-section {
+            background: var(--color-white);
+            border-radius: 16px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-soft);
+            max-width: 600px;
+            margin: 3rem auto 0;
+        }
+
+        .contact-form-section h3 {
+            text-align: center;
+            color: var(--color-terracotta);
+            margin-bottom: 1.5rem;
+        }
+
+        .urgency-banner {
+            background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold));
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .urgency-banner p {
+            margin: 0;
+            color: var(--color-charcoal);
+            font-weight: 500;
+        }
+
+        .urgency-banner strong {
+            color: var(--color-terracotta);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Contact Us</h1>
+        <p>We'd love to hear from you!</p>
+    </header>
+
+    <!-- Contact Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Get in Touch</h2>
+                <div class="section-divider"></div>
+                <p>Have a question about the wedding? Need help with travel or accommodation? We're here to help!</p>
+            </div>
+
+            <!-- RSVP Reminder -->
+            <div class="urgency-banner">
+                <p>&#128197; Please RSVP by <strong>1st March 2027</strong> so we can finalise arrangements!</p>
+            </div>
+
+            <!-- Contact Cards -->
+            <div class="contact-grid">
+                <div class="contact-card">
+                    <div class="contact-icon">&#128231;</div>
+                    <h3>Email Us</h3>
+                    <p>For general questions about the wedding</p>
+                    <a href="mailto:wedding@sophieandjoe.com" class="contact-link">wedding@sophieandjoe.com</a>
+                </div>
+
+                <div class="contact-card">
+                    <div class="contact-icon">&#128241;</div>
+                    <h3>WhatsApp Group</h3>
+                    <p>Join the guest chat for updates and coordination</p>
+                    <a href="https://chat.whatsapp.com/YOUR_GROUP_LINK" class="contact-link whatsapp-btn" style="background: #25D366; border-color: #25D366; color: white;">Join Group</a>
+                </div>
+
+                <div class="contact-card">
+                    <div class="contact-icon">&#128222;</div>
+                    <h3>Call or Text</h3>
+                    <p>For urgent matters closer to the date</p>
+                    <p style="font-size: 0.9rem; color: var(--color-warm-gray);">
+                        <strong>Sophie:</strong> +44 7XXX XXXXXX<br>
+                        <strong>Joe:</strong> +44 7XXX XXXXXX
+                    </p>
+                </div>
+            </div>
+
+            <!-- Contact Form -->
+            <div class="contact-form-section">
+                <h3>Send Us a Message</h3>
+                <form id="contact-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+                    <div class="form-group">
+                        <label for="contact-name">Your Name</label>
+                        <input type="text" id="contact-name" name="name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contact-email">Your Email</label>
+                        <input type="email" id="contact-email" name="email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contact-subject">Subject</label>
+                        <select id="contact-subject" name="subject">
+                            <option value="general">General Question</option>
+                            <option value="travel">Travel & Transport</option>
+                            <option value="accommodation">Accommodation</option>
+                            <option value="dietary">Dietary Requirements</option>
+                            <option value="rsvp">RSVP Help</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contact-message">Your Message</label>
+                        <textarea id="contact-message" name="message" rows="5" required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Links -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>Quick Links</h2>
+                <div class="section-divider"></div>
+                <p>Looking for something specific?</p>
+            </div>
+
+            <div class="card-grid" style="max-width: 900px; margin: 0 auto;">
+                <a href="faq.html" class="card" style="text-decoration: none;">
+                    <div class="card-content text-center">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">&#10067;</div>
+                        <h4>FAQ</h4>
+                        <p>Find answers to common questions</p>
+                    </div>
+                </a>
+
+                <a href="travel.html" class="card" style="text-decoration: none;">
+                    <div class="card-content text-center">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">&#9992;</div>
+                        <h4>Travel Info</h4>
+                        <p>Flights, transport & directions</p>
+                    </div>
+                </a>
+
+                <a href="rsvp.html" class="card" style="text-decoration: none;">
+                    <div class="card-content text-center">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">&#128140;</div>
+                        <h4>RSVP</h4>
+                        <p>Let us know if you can make it</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

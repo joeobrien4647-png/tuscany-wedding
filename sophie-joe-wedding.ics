@@ -1,0 +1,56 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Sophie & Joe Wedding//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+X-WR-CALNAME:Sophie & Joe's Wedding
+X-WR-TIMEZONE:Europe/Rome
+BEGIN:VTIMEZONE
+TZID:Europe/Rome
+X-LIC-LOCATION:Europe/Rome
+BEGIN:DAYLIGHT
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0200
+TZNAME:CEST
+DTSTART:19700329T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:+0200
+TZOFFSETTO:+0100
+TZNAME:CET
+DTSTART:19701025T030000
+RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+DTSTART;TZID=Europe/Rome:20270523T190000
+DTEND;TZID=Europe/Rome:20270523T220000
+DTSTAMP:20260125T000000Z
+UID:welcome-drinks-sophie-joe-2027@laconca
+SUMMARY:Sophie & Joe Wedding - Welcome Drinks
+DESCRIPTION:Kick off the wedding weekend with drinks and nibbles at La Conca Agriturismo.\n\nDress code: Smart Casual
+LOCATION:La Conca Agriturismo, Sansepolcro, Tuscany, Italy
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=Europe/Rome:20270524T150000
+DTEND;TZID=Europe/Rome:20270525T020000
+DTSTAMP:20260125T000000Z
+UID:wedding-day-sophie-joe-2027@laconca
+SUMMARY:Sophie & Joe Wedding - The Big Day!
+DESCRIPTION:Wedding Ceremony at 3:00 PM\nDrinks Reception 4:00 PM - 6:00 PM\nWedding Breakfast & Party from 6:30 PM\n\nDress code: Formal / Black Tie Optional\n\nVenue: La Conca Agriturismo, Tuscany
+LOCATION:La Conca Agriturismo, Sansepolcro, Tuscany, Italy
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+DTSTART;TZID=Europe/Rome:20270525T110000
+DTEND;TZID=Europe/Rome:20270525T140000
+DTSTAMP:20260125T000000Z
+UID:farewell-brunch-sophie-joe-2027@laconca
+SUMMARY:Sophie & Joe Wedding - Farewell Brunch
+DESCRIPTION:One last gathering before everyone heads off. Relax, recover, and say your goodbyes over a leisurely brunch.\n\nDress code: Casual
+LOCATION:La Conca Agriturismo, Sansepolcro, Tuscany, Italy
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR

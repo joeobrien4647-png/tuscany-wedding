@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Love Story Timeline | Sophie & Joe</title>
+    <meta name="description" content="Follow Sophie and Joe's journey from first meeting to wedding day">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .love-timeline {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 0;
+        }
+
+        .love-timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--color-terracotta), var(--color-gold));
+            border-radius: 2px;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 3rem;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .timeline-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .timeline-item:nth-child(odd) {
+            padding-right: calc(50% + 40px);
+            text-align: right;
+        }
+
+        .timeline-item:nth-child(even) {
+            padding-left: calc(50% + 40px);
+            text-align: left;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            background: var(--color-terracotta);
+            border: 4px solid var(--color-cream);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .timeline-dot::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: var(--color-terracotta);
+            border-radius: 50%;
+            opacity: 0;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.3; transform: translate(-50%, -50%) scale(1.5); }
+        }
+
+        .timeline-content {
+            background: var(--color-white);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-soft);
+            position: relative;
+        }
+
+        .timeline-content::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            width: 0;
+            height: 0;
+            border: 10px solid transparent;
+        }
+
+        .timeline-item:nth-child(odd) .timeline-content::before {
+            right: -20px;
+            border-left-color: var(--color-white);
+        }
+
+        .timeline-item:nth-child(even) .timeline-content::before {
+            left: -20px;
+            border-right-color: var(--color-white);
+        }
+
+        .timeline-date {
+            display: inline-block;
+            background: var(--color-terracotta);
+            color: white;
+            padding: 0.25rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-content h3 {
+            color: var(--color-charcoal);
+            margin-bottom: 0.5rem;
+        }
+
+        .timeline-content p {
+            color: var(--color-warm-gray);
+            margin-bottom: 0;
+        }
+
+        .timeline-emoji {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-photo {
+            width: 100%;
+            height: 200px;
+            background: var(--color-cream);
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Final item - Wedding */
+        .timeline-final {
+            text-align: center;
+            padding: 0 !important;
+            margin-top: 4rem;
+        }
+
+        .timeline-final .timeline-dot {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--color-terracotta), var(--color-gold));
+        }
+
+        .timeline-final .timeline-content {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--color-terracotta), var(--color-gold));
+            color: white;
+            max-width: 400px;
+            margin-top: 2rem;
+        }
+
+        .timeline-final .timeline-content::before {
+            display: none;
+        }
+
+        .timeline-final h3 {
+            color: white;
+        }
+
+        .timeline-final p {
+            color: rgba(255,255,255,0.9);
+        }
+
+        @media (max-width: 768px) {
+            .love-timeline::before {
+                left: 20px;
+            }
+
+            .timeline-item {
+                padding-left: 60px !important;
+                padding-right: 0 !important;
+                text-align: left !important;
+            }
+
+            .timeline-dot {
+                left: 20px;
+            }
+
+            .timeline-content::before {
+                left: -20px !important;
+                right: auto !important;
+                border-right-color: var(--color-white) !important;
+                border-left-color: transparent !important;
+            }
+
+            .timeline-final {
+                padding-left: 0 !important;
+            }
+
+            .timeline-final .timeline-dot {
+                left: 50%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Our Love Story</h1>
+        <p>The journey that led us here</p>
+    </header>
+
+    <!-- Timeline Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>How It All Began...</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="love-timeline">
+                <!-- First Meeting -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-emoji">&#128075;</div>
+                        <span class="timeline-date">Summer 2019</span>
+                        <h3>We First Met</h3>
+                        <p>Our paths crossed for the first time at a friend's birthday party. Little did we know this chance meeting would change everything...</p>
+                        <div class="timeline-photo">Photo coming soon</div>
+                    </div>
+                </div>
+
+                <!-- First Date -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-emoji">&#127863;</div>
+                        <span class="timeline-date">Autumn 2019</span>
+                        <h3>Our First Date</h3>
+                        <p>After weeks of texting, we finally went on our first proper date. Dinner turned into drinks, which turned into walking around the city until 2am. Neither of us wanted the night to end.</p>
+                        <div class="timeline-photo">Photo coming soon</div>
+                    </div>
+                </div>
+
+                <!-- Official -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-emoji">&#128149;</div>
+                        <span class="timeline-date">Winter 2019</span>
+                        <h3>Making It Official</h3>
+                        <p>After a few months of dating, we made it official. Joe asked Sophie to be his girlfriend over a cozy dinner at home.</p>
+                        <div class="timeline-photo">Photo coming soon</div>
+                    </div>
+                </div>
+
+                <!-- First Holiday -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-emoji">&#9992;</div>
+                        <span class="timeline-date">Summer 2020</span>
+                        <h3>First Holiday Together</h3>
+                        <p>We survived lockdown together and celebrated with our first trip abroad as a couple. Spoiler: it was amazing, and we didn't argue once about directions!</p>
+                        <div class="timeline-photo">Photo coming soon</div>
+                    </div>
+                </div>
+
+                <!-- Moving In -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-emoji">&#127968;</div>
+                        <span class="timeline-date">Spring 2021</span>
+                        <h3>Moving In Together</h3>
+                        <p>We took the big step of getting our own place together. Learning to share a bathroom was... an adventure. But waking up next to each other every day? Worth it.</p>
+                        <div class="timeline-photo">Photo coming soon</div>
+                    </div>
+                </div>
+
+                <!-- Getting a Pet -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-emoji">&#128054;</div>
+                        <span class="timeline-date">Winter 2022</span>
+                        <h3>Our Little Family Grew</h3>
+                        <p>We welcomed a new member to our family! Our fur baby has brought so much joy (and chaos) into our home.</p>
+                        <div class="timeline-photo">Photo coming soon</div>
+                    </div>
+                </div>
+
+                <!-- Italy Trip -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-emoji">&#127470;&#127481;</div>
+                        <span class="timeline-date">Summer 2023</span>
+                        <h3>Falling in Love with Italy</h3>
+                        <p>Our trip to Tuscany was magical. The rolling hills, incredible food, and romantic sunsets... We said we'd come back one day for something special.</p>
+                        <div class="timeline-photo">Photo coming soon</div>
+                    </div>
+                </div>
+
+                <!-- The Proposal -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-emoji">&#128141;</div>
+                        <span class="timeline-date">Spring 2025</span>
+                        <h3>The Proposal</h3>
+                        <p>Joe got down on one knee and asked Sophie to spend forever with him. Through happy tears, she said YES! The ring was beautiful, but the promise behind it was even more so.</p>
+                        <div class="timeline-photo">Photo coming soon</div>
+                    </div>
+                </div>
+
+                <!-- The Wedding -->
+                <div class="timeline-item timeline-final">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-emoji">&#128144;</div>
+                        <span class="timeline-date">24th May 2027</span>
+                        <h3>The Big Day!</h3>
+                        <p>And now, we're getting married in beautiful Tuscany, surrounded by the people we love most. This is just the beginning of our forever...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section section-alt">
+        <div class="container text-center">
+            <h2>Be Part of Our Story</h2>
+            <div class="section-divider"></div>
+            <p style="max-width: 600px; margin: 0 auto 2rem;">We can't wait to celebrate the next chapter with you in Tuscany!</p>
+            <a href="rsvp.html" class="btn btn-primary">RSVP Now</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Animate timeline items on scroll
+        const timelineItems = document.querySelectorAll('.timeline-item');
+
+        const observerOptions = {
+            threshold: 0.2,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+
+        timelineItems.forEach(item => observer.observe(item));
+    </script>
+</body>
+</html>

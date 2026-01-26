@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Menu | Sophie & Joe</title>
+    <meta name="description" content="Discover the delicious Italian menu for Sophie and Joe's wedding celebration in Tuscany.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Open Graph / Social Preview -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Wedding Menu | Sophie & Joe">
+    <meta property="og:description" content="Discover the delicious Italian menu for Sophie and Joe's wedding celebration in Tuscany.">
+    <meta property="og:image" content="images/hero-bg.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Menu Tabs */
+        .menu-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 3rem;
+        }
+        .menu-tab {
+            padding: 0.75rem 1.5rem;
+            background: var(--color-white);
+            border: 2px solid var(--color-cream);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            color: var(--color-warm-gray);
+        }
+        .menu-tab:hover {
+            border-color: var(--color-gold);
+            color: var(--color-charcoal);
+        }
+        .menu-tab.active {
+            background: var(--color-terracotta);
+            border-color: var(--color-terracotta);
+            color: white;
+        }
+
+        /* Menu Sections */
+        .menu-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        .menu-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Menu Card */
+        .menu-card {
+            background: var(--color-white);
+            border-radius: 20px;
+            box-shadow: var(--shadow-soft);
+            max-width: 700px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+        .menu-card-header {
+            background: linear-gradient(135deg, var(--color-terracotta), var(--color-terracotta-light));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        .menu-card-header h3 {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .menu-card-header p {
+            opacity: 0.9;
+            font-size: 0.95rem;
+        }
+        .menu-card-body {
+            padding: 2rem;
+        }
+
+        /* Course */
+        .course {
+            margin-bottom: 2.5rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--color-cream);
+        }
+        .course:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .course-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .course-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--color-cream);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        .course-title {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            color: var(--color-terracotta);
+            margin: 0;
+        }
+        .course-subtitle {
+            font-size: 0.85rem;
+            color: var(--color-warm-gray);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Dish */
+        .dish {
+            margin-bottom: 1.25rem;
+        }
+        .dish:last-child {
+            margin-bottom: 0;
+        }
+        .dish-name {
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin-bottom: 0.25rem;
+        }
+        .dish-description {
+            color: var(--color-warm-gray);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+        .dish-tags {
+            margin-top: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .dish-tag {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+            background: var(--color-cream);
+            color: var(--color-warm-gray);
+        }
+        .dish-tag.vegan {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        .dish-tag.vegetarian {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        .dish-tag.gluten-free {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+
+        /* Drinks Section */
+        .drinks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .drink-card {
+            background: var(--color-white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-soft);
+            text-align: center;
+            transition: var(--transition);
+        }
+        .drink-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
+        }
+        .drink-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .drink-card h4 {
+            font-family: var(--font-heading);
+            color: var(--color-charcoal);
+            margin-bottom: 0.5rem;
+        }
+        .drink-card p {
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+        }
+        .drink-list {
+            margin-top: 1rem;
+            text-align: left;
+            background: var(--color-cream);
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .drink-list li {
+            margin-bottom: 0.5rem;
+            color: var(--color-charcoal);
+        }
+        .drink-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Dietary Info */
+        .dietary-info {
+            background: var(--color-cream);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+        .dietary-info h3 {
+            font-family: var(--font-heading);
+            color: var(--color-terracotta);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        .dietary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .dietary-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: var(--color-white);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+        .dietary-item span {
+            font-size: 1.5rem;
+        }
+        .dietary-item p {
+            margin: 0;
+            color: var(--color-charcoal);
+            font-size: 0.9rem;
+        }
+
+        /* Time Cards */
+        .time-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .time-card {
+            background: var(--color-cream);
+            border-radius: 12px;
+            padding: 1.25rem;
+            text-align: center;
+        }
+        .time-card-time {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--color-terracotta);
+            margin-bottom: 0.25rem;
+        }
+        .time-card-event {
+            color: var(--color-charcoal);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>The Menu</h1>
+        <p>A taste of Tuscany awaits</p>
+    </header>
+
+    <!-- Menu Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>What We're Serving</h2>
+                <div class="section-divider"></div>
+                <p>We've worked with our amazing caterers to create an authentic Italian feast. Here's what's on the menu!</p>
+            </div>
+
+            <!-- Menu Tabs -->
+            <div class="menu-tabs">
+                <button class="menu-tab active" data-menu="friday">Friday Welcome</button>
+                <button class="menu-tab" data-menu="saturday">Saturday Wedding</button>
+                <button class="menu-tab" data-menu="sunday">Sunday Brunch</button>
+                <button class="menu-tab" data-menu="drinks">Drinks</button>
+            </div>
+
+            <!-- Friday Menu -->
+            <div class="menu-section active" data-menu="friday">
+                <div class="time-cards">
+                    <div class="time-card">
+                        <div class="time-card-time">7:00 PM</div>
+                        <div class="time-card-event">Welcome Drinks Begin</div>
+                    </div>
+                    <div class="time-card">
+                        <div class="time-card-time">10:00 PM</div>
+                        <div class="time-card-event">Evening Ends</div>
+                    </div>
+                </div>
+
+                <div class="menu-card">
+                    <div class="menu-card-header">
+                        <h3>Welcome Aperitivo</h3>
+                        <p>A relaxed evening of Italian nibbles and drinks</p>
+                    </div>
+                    <div class="menu-card-body">
+                        <div class="course">
+                            <div class="course-header">
+                                <div class="course-icon">&#127869;</div>
+                                <div>
+                                    <div class="course-subtitle">Antipasti</div>
+                                    <h4 class="course-title">Italian Nibbles</h4>
+                                </div>
+                            </div>
+
+                            <div class="dish">
+                                <div class="dish-name">Bruschetta Trio</div>
+                                <div class="dish-description">Classic tomato & basil, creamy burrata, and wild mushroom toppings on toasted ciabatta</div>
+                                <div class="dish-tags">
+                                    <span class="dish-tag vegetarian">Vegetarian</span>
+                                </div>
+                            </div>
+
+                            <div class="dish">
+                                <div class="dish-name">Salumi Board</div>
+                                <div class="dish-description">Selection of Tuscan cured meats - prosciutto di Parma, finocchiona, and coppa</div>
+                            </div>
+
+                            <div class="dish">
+                                <div class="dish-name">Formaggi Selection</div>
+                                <div class="dish-description">Local Pecorino Toscano, creamy Gorgonzola, and aged Parmigiano Reggiano</div>
+                                <div class="dish-tags">
+                                    <span class="dish-tag vegetarian">Vegetarian</span>
+                                    <span class="dish-tag gluten-free">Gluten Free</span>
+                                </div>
+                            </div>
+
+                            <div class="dish">
+                                <div class="dish-name">Marinated Olives & Grissini</div>
+                                <div class="dish-description">Warm Tuscan olives with herbs, served with crispy breadsticks</div>
+                                <div class="dish-tags">
+                                    <span class="dish-tag vegan">Vegan</span>
+                                </div>
+                            </div>
+
+                            <div class="dish">
+                                <div class="dish-name">Arancini</div>
+                                <div class="dish-description">Crispy risotto balls filled with mozzarella and ragù</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saturday Menu -->
+            <div class="menu-section" data-menu="saturday">
+                <div class="time-cards">
+                    <div class="time-card">
+                        <div class="time-card-time">4:00 PM</div>
+                        <div class="time-card-event">Canapes & Drinks</div>
+                    </div>
+                    <div class="time-card">
+                        <div class="time-card-time">6:30 PM</div>
+                        <div class="time-card-event">Wedding Breakfast</div>
+                    </div>
+                    <div class="time-card">
+                        <div class="time-card-time">10:00 PM</div>
+                        <div class="time-card-event">Evening Bites</div>
+                    </div>
+                </div>
+
+                <div class="menu-card">
+                    <div class="menu-card-header" style="background: linear-gradient(135deg, var(--color-gold), var(--color-gold-light));">
+                        <h3>Wedding Breakfast</h3>
+                        <p>A five-course Italian feast under the Tuscan stars</p>
+                    </div>
+                    <div class="menu-card-body">
+
+                        <div class="course">
+                            <div class="course-header">
+                                <div class="course-icon">&#129367;</div>
+                                <div>
+                                    <div class="course-subtitle">To Start</div>
+                                    <h4 class="course-title">Antipasto</h4>
+                                </div>
+                            </div>
+                            <div class="dish">
+                                <div class="dish-name">Burrata with Heirloom Tomatoes</div>
+                                <div class="dish-description">Creamy burrata cheese, vine-ripened tomatoes, fresh basil, aged balsamic, and extra virgin olive oil</div>
+                                <div class="dish-tags">
+                                    <span class="dish-tag vegetarian">Vegetarian</span>
+                                    <span class="dish-tag gluten-free">Gluten Free</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="course">
+                            <div class="course-header">
+                                <div class="course-icon">&#127837;</div>
+                                <div>
+                                    <div class="course-subtitle">First Course</div>
+                                    <h4 class="course-title">Primo</h4>
+                                </div>
+                            </div>
+                            <div class="dish">
+                                <div class="dish-name">Handmade Pici Pasta</div>
+                                <div class="dish-description">Traditional thick Tuscan pasta with slow-cooked wild boar ragù and pecorino</div>
+                            </div>
+                            <div class="dish">
+                                <div class="dish-name"><em>Vegetarian Option:</em> Pici Cacio e Pepe</div>
+                                <div class="dish-description">Classic Roman-style pasta with Pecorino Romano and black pepper</div>
+                                <div class="dish-tags">
+                                    <span class="dish-tag vegetarian">Vegetarian</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="course">
+                            <div class="course-header">
+                                <div class="course-icon">&#127830;</div>
+                                <div>
+                                    <div class="course-subtitle">Main Course</div>
+                                    <h4 class="course-title">Secondo</h4>
+                                </div>
+                            </div>
+                            <div class="dish">
+                                <div class="dish-name">Bistecca alla Fiorentina</div>
+                                <div class="dish-description">Chargrilled Chianina beef T-bone steak, served with roasted potatoes and seasonal vegetables</div>
+                                <div class="dish-tags">
+                                    <span class="dish-tag gluten-free">Gluten Free</span>
+                                </div>
+                            </div>
+                            <div class="dish">
+                                <div class="dish-name"><em>Fish Option:</em> Sea Bass al Cartoccio</div>
+                                <div class="dish-description">Fresh Mediterranean sea bass baked in parchment with cherry tomatoes, olives, and capers</div>
+                                <div class="dish-tags">
+                                    <span class="dish-tag gluten-free">Gluten Free</span>
+                                </div>
+                            </div>
+                            <div class="dish">
+                                <div class="dish-name"><em>Vegetarian Option:</em> Melanzane alla Parmigiana</div>
+                                <div class="dish-description">Layers of aubergine, tomato sauce, mozzarella, and Parmigiano Reggiano</div>
+                                <div class="dish-tags">
+                                    <span class="dish-tag vegetarian">Vegetarian</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="course">
+                            <div class="course-header">
+                                <div class="course-icon">&#127856;</div>
+                                <div>
+                                    <div class="course-subtitle">Dessert</div>
+                                    <h4 class="course-title">Dolce</h4>
+                                </div>
+                            </div>
+                            <div class="dish">
+                                <div class="dish-name">Wedding Cake</div>
+                                <div class="dish-description">Three-tier Italian lemon and mascarpone cake with fresh berries</div>
+                            </div>
+                            <div class="dish">
+                                <div class="dish-name">Miniature Italian Desserts</div>
+                                <div class="dish-description">Selection of tiramisu, panna cotta, and cantuccini with Vin Santo</div>
+                            </div>
+                        </div>
+
+                        <div class="course">
+                            <div class="course-header">
+                                <div class="course-icon">&#9749;</div>
+                                <div>
+                                    <div class="course-subtitle">To Finish</div>
+                                    <h4 class="course-title">Caffè & Digestivi</h4>
+                                </div>
+                            </div>
+                            <div class="dish">
+                                <div class="dish-name">Espresso & Italian Digestifs</div>
+                                <div class="dish-description">Fresh espresso, limoncello, grappa, and amaro to end the meal</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Evening Bites -->
+                <div class="menu-card" style="margin-top: 2rem;">
+                    <div class="menu-card-header" style="background: linear-gradient(135deg, var(--color-olive), var(--color-olive-light));">
+                        <h3>Evening Bites</h3>
+                        <p>Late night snacks to keep you dancing</p>
+                    </div>
+                    <div class="menu-card-body">
+                        <div class="course">
+                            <div class="dish">
+                                <div class="dish-name">Pizza al Taglio</div>
+                                <div class="dish-description">Roman-style pizza by the slice - Margherita, Quattro Formaggi, and Prosciutto</div>
+                            </div>
+                            <div class="dish">
+                                <div class="dish-name">Panini Station</div>
+                                <div class="dish-description">Fresh Italian sandwiches made to order</div>
+                            </div>
+                            <div class="dish">
+                                <div class="dish-name">Gelato Cart</div>
+                                <div class="dish-description">Authentic Italian ice cream in a variety of flavours</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sunday Menu -->
+            <div class="menu-section" data-menu="sunday">
+                <div class="time-cards">
+                    <div class="time-card">
+                        <div class="time-card-time">11:00 AM</div>
+                        <div class="time-card-event">Brunch Begins</div>
+                    </div>
+                    <div class="time-card">
+                        <div class="time-card-time">2:00 PM</div>
+                        <div class="time-card-event">Farewells</div>
+                    </div>
+                </div>
+
+                <div class="menu-card">
+                    <div class="menu-card-header" style="background: linear-gradient(135deg, #FFB74D, #FFE0B2);">
+                        <h3>Farewell Brunch</h3>
+                        <p>A relaxed morning spread to cure any sore heads</p>
+                    </div>
+                    <div class="menu-card-body">
+                        <div class="course">
+                            <div class="course-header">
+                                <div class="course-icon">&#127798;</div>
+                                <div>
+                                    <div class="course-subtitle">Help Yourself</div>
+                                    <h4 class="course-title">Buffet Style</h4>
+                                </div>
+                            </div>
+
+                            <div class="dish">
+                                <div class="dish-name">Continental Selection</div>
+                                <div class="dish-description">Fresh pastries, croissants, ciabatta, and focaccia with local jams and Nutella</div>
+                            </div>
+
+                            <div class="dish">
+                                <div class="dish-name">Fresh Fruit & Yogurt Bar</div>
+                                <div class="dish-description">Seasonal fruits, Greek yogurt, local honey, and granola</div>
+                                <div class="dish-tags">
+                                    <span class="dish-tag vegetarian">Vegetarian</span>
+                                    <span class="dish-tag gluten-free">GF option</span>
+                                </div>
+                            </div>
+
+                            <div class="dish">
+                                <div class="dish-name">Eggs Your Way</div>
+                                <div class="dish-description">Scrambled, fried, or as a frittata with vegetables</div>
+                                <div class="dish-tags">
+                                    <span class="dish-tag vegetarian">Vegetarian</span>
+                                    <span class="dish-tag gluten-free">Gluten Free</span>
+                                </div>
+                            </div>
+
+                            <div class="dish">
+                                <div class="dish-name">Italian Cold Cuts & Cheeses</div>
+                                <div class="dish-description">Prosciutto, salami, mortadella with fresh mozzarella and Pecorino</div>
+                            </div>
+
+                            <div class="dish">
+                                <div class="dish-name">Bloody Mary & Mimosa Bar</div>
+                                <div class="dish-description">Hair of the dog, anyone? Mix your own!</div>
+                            </div>
+
+                            <div class="dish">
+                                <div class="dish-name">Fresh Juices & Smoothies</div>
+                                <div class="dish-description">Orange, apple, and tropical blends</div>
+                                <div class="dish-tags">
+                                    <span class="dish-tag vegan">Vegan</span>
+                                </div>
+                            </div>
+
+                            <div class="dish">
+                                <div class="dish-name">Unlimited Coffee & Tea</div>
+                                <div class="dish-description">Espresso, cappuccino, latte, and a selection of teas</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drinks Menu -->
+            <div class="menu-section" data-menu="drinks">
+                <div class="section-header" style="margin-bottom: 2rem;">
+                    <h3 style="font-family: var(--font-heading); color: var(--color-terracotta);">What's Behind the Bar</h3>
+                    <p>We've got you covered with plenty of drinks throughout the weekend!</p>
+                </div>
+
+                <div class="drinks-grid">
+                    <div class="drink-card">
+                        <div class="drink-icon">&#127863;</div>
+                        <h4>Bubbles</h4>
+                        <p>Toast to love with Italian fizz</p>
+                        <ul class="drink-list">
+                            <li>Prosecco (unlimited!)</li>
+                            <li>Champagne for toasts</li>
+                            <li>Bellinis at brunch</li>
+                        </ul>
+                    </div>
+
+                    <div class="drink-card">
+                        <div class="drink-icon">&#127863;</div>
+                        <h4>Wine</h4>
+                        <p>Local Tuscan selections</p>
+                        <ul class="drink-list">
+                            <li>Chianti Classico (Red)</li>
+                            <li>Brunello di Montalcino (Red)</li>
+                            <li>Vernaccia di San Gimignano (White)</li>
+                            <li>Rosato Toscano (Rosé)</li>
+                        </ul>
+                    </div>
+
+                    <div class="drink-card">
+                        <div class="drink-icon">&#127865;</div>
+                        <h4>Cocktails</h4>
+                        <p>Italian classics & favourites</p>
+                        <ul class="drink-list">
+                            <li>Aperol Spritz</li>
+                            <li>Negroni</li>
+                            <li>Limoncello Spritz</li>
+                            <li>Espresso Martini</li>
+                        </ul>
+                    </div>
+
+                    <div class="drink-card">
+                        <div class="drink-icon">&#127866;</div>
+                        <h4>Beer & More</h4>
+                        <p>Something for everyone</p>
+                        <ul class="drink-list">
+                            <li>Peroni</li>
+                            <li>Moretti</li>
+                            <li>Craft Italian beers</li>
+                            <li>Soft drinks & mocktails</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="text-center" style="margin-top: 2rem;">
+                    <p style="color: var(--color-warm-gray);">All drinks included throughout the wedding weekend!</p>
+                </div>
+            </div>
+
+            <!-- Dietary Info -->
+            <div class="dietary-info">
+                <h3>Dietary Requirements</h3>
+                <p style="text-align: center; color: var(--color-warm-gray); margin-bottom: 1.5rem;">We want everyone to enjoy the food! Let us know your dietary needs in your RSVP.</p>
+                <div class="dietary-grid">
+                    <div class="dietary-item">
+                        <span>&#127807;</span>
+                        <p><strong>Vegetarian</strong><br>Options at every course</p>
+                    </div>
+                    <div class="dietary-item">
+                        <span>&#127793;</span>
+                        <p><strong>Vegan</strong><br>Just let us know</p>
+                    </div>
+                    <div class="dietary-item">
+                        <span>&#127838;</span>
+                        <p><strong>Gluten Free</strong><br>Many dishes available</p>
+                    </div>
+                    <div class="dietary-item">
+                        <span>&#129372;</span>
+                        <p><strong>Allergies</strong><br>Tell us in your RSVP</p>
+                    </div>
+                </div>
+                <div class="text-center" style="margin-top: 1.5rem;">
+                    <a href="rsvp.html" class="btn btn-primary">RSVP & Tell Us Your Dietary Needs</a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Menu tab switching
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuTabs = document.querySelectorAll('.menu-tab');
+            const menuSections = document.querySelectorAll('.menu-section');
+
+            menuTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const menu = this.dataset.menu;
+
+                    // Update active tab
+                    menuTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Show corresponding section
+                    menuSections.forEach(section => {
+                        if (section.dataset.menu === menu) {
+                            section.classList.add('active');
+                        } else {
+                            section.classList.remove('active');
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

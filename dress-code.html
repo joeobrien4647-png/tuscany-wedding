@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dress Code Inspiration | Sophie & Joe</title>
+    <meta name="description" content="What to wear to Sophie and Joe's Tuscany wedding">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .dress-code-hero {
+            background: linear-gradient(135deg, var(--color-charcoal) 0%, #1a1a1a 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .dress-code-hero h2 {
+            color: var(--color-gold);
+            font-size: 1rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .dress-code-main {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .dress-code-sub {
+            opacity: 0.8;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Event Cards */
+        .event-dress-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .event-dress-card {
+            background: var(--color-white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .event-dress-header {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .event-dress-header.friday {
+            background: linear-gradient(135deg, #5C6B4A, #7A8B68);
+            color: white;
+        }
+
+        .event-dress-header.saturday {
+            background: linear-gradient(135deg, var(--color-terracotta), var(--color-gold));
+            color: white;
+        }
+
+        .event-dress-header.sunday {
+            background: linear-gradient(135deg, #89CFF0, #4682B4);
+            color: white;
+        }
+
+        .event-dress-header h3 {
+            color: white;
+            margin: 0;
+        }
+
+        .event-dress-header p {
+            margin: 0.5rem 0 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .event-dress-body {
+            padding: 2rem;
+        }
+
+        .dress-code-label {
+            display: inline-block;
+            background: var(--color-cream);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin-bottom: 1.5rem;
+        }
+
+        .outfit-ideas {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .outfit-column h4 {
+            color: var(--color-terracotta);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .outfit-column ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .outfit-column li {
+            padding: 0.5rem 0;
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Mood board */
+        .mood-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+        }
+
+        .mood-item {
+            aspect-ratio: 1;
+            background: var(--color-cream);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+
+        .mood-item.tall {
+            grid-row: span 2;
+        }
+
+        .mood-item.wide {
+            grid-column: span 2;
+        }
+
+        /* Color palette */
+        .color-palette {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 2rem 0;
+        }
+
+        .color-swatch {
+            text-align: center;
+        }
+
+        .color-swatch-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 0.5rem;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .color-swatch-name {
+            font-size: 0.85rem;
+            color: var(--color-warm-gray);
+        }
+
+        /* Tips */
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .tip-card {
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .tip-card-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .tip-card h4 {
+            color: var(--color-terracotta);
+            margin-bottom: 0.5rem;
+        }
+
+        .tip-card p {
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        /* Do's and Don'ts */
+        .dos-donts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .dos, .donts {
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .dos h4 {
+            color: var(--color-olive);
+        }
+
+        .donts h4 {
+            color: var(--color-terracotta);
+        }
+
+        .dos ul, .donts ul {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0 0;
+        }
+
+        .dos li, .donts li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .dos li::before {
+            content: '&#10004;';
+            color: var(--color-olive);
+        }
+
+        .donts li::before {
+            content: '&#10008;';
+            color: var(--color-terracotta);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <div class="dress-code-hero">
+        <h2>What to Wear</h2>
+        <div class="dress-code-main">Dress Code Guide</div>
+        <p class="dress-code-sub">Everything you need to know about dressing for our Tuscan celebration - from welcome drinks to farewell brunch.</p>
+    </div>
+
+    <!-- Event Dress Codes -->
+    <section class="section">
+        <div class="container">
+            <div class="event-dress-grid">
+                <!-- Friday -->
+                <div class="event-dress-card">
+                    <div class="event-dress-header friday">
+                        <h3>Friday Evening</h3>
+                        <p>Welcome Drinks by the Pool</p>
+                    </div>
+                    <div class="event-dress-body">
+                        <span class="dress-code-label">&#127796; Smart Casual</span>
+                        <div class="outfit-ideas">
+                            <div class="outfit-column">
+                                <h4>Ladies</h4>
+                                <ul>
+                                    <li>&#128087; Sundress or midi dress</li>
+                                    <li>&#128087; Linen trousers & nice top</li>
+                                    <li>&#128087; Jumpsuit</li>
+                                    <li>&#128087; Wedges or sandals</li>
+                                </ul>
+                            </div>
+                            <div class="outfit-column">
+                                <h4>Gents</h4>
+                                <ul>
+                                    <li>&#128084; Chinos & polo/shirt</li>
+                                    <li>&#128084; Linen trousers & shirt</li>
+                                    <li>&#128084; Smart shorts okay!</li>
+                                    <li>&#128084; Loafers or smart trainers</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Saturday -->
+                <div class="event-dress-card">
+                    <div class="event-dress-header saturday">
+                        <h3>Saturday</h3>
+                        <p>Ceremony & Reception</p>
+                    </div>
+                    <div class="event-dress-body">
+                        <span class="dress-code-label">&#128141; Formal / Black Tie Optional</span>
+                        <div class="outfit-ideas">
+                            <div class="outfit-column">
+                                <h4>Ladies</h4>
+                                <ul>
+                                    <li>&#128087; Floor-length or midi dress</li>
+                                    <li>&#128087; Cocktail dress</li>
+                                    <li>&#128087; Elegant jumpsuit</li>
+                                    <li>&#128087; Block heels recommended</li>
+                                </ul>
+                            </div>
+                            <div class="outfit-column">
+                                <h4>Gents</h4>
+                                <ul>
+                                    <li>&#128084; Suit (tie optional)</li>
+                                    <li>&#128084; Dinner jacket welcome</li>
+                                    <li>&#128084; Dress shirt</li>
+                                    <li>&#128084; Smart dress shoes</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sunday -->
+                <div class="event-dress-card">
+                    <div class="event-dress-header sunday">
+                        <h3>Sunday</h3>
+                        <p>Farewell Brunch</p>
+                    </div>
+                    <div class="event-dress-body">
+                        <span class="dress-code-label">&#9749; Relaxed Casual</span>
+                        <div class="outfit-ideas">
+                            <div class="outfit-column">
+                                <h4>Ladies</h4>
+                                <ul>
+                                    <li>&#128087; Casual dress or skirt</li>
+                                    <li>&#128087; Jeans & nice top</li>
+                                    <li>&#128087; Comfortable & cute</li>
+                                    <li>&#128087; Flat sandals perfect</li>
+                                </ul>
+                            </div>
+                            <div class="outfit-column">
+                                <h4>Gents</h4>
+                                <ul>
+                                    <li>&#128084; Casual shirt & chinos</li>
+                                    <li>&#128084; Smart shorts fine</li>
+                                    <li>&#128084; Polo shirt</li>
+                                    <li>&#128084; Trainers/loafers</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Color Palette -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>&#127912; Our Colour Palette</h2>
+                <div class="section-divider"></div>
+                <p>No need to match, but here's our Tuscan-inspired palette if you'd like some inspiration!</p>
+            </div>
+
+            <div class="color-palette">
+                <div class="color-swatch">
+                    <div class="color-swatch-circle" style="background: #C45C26;"></div>
+                    <span class="color-swatch-name">Terracotta</span>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-swatch-circle" style="background: #C9A961;"></div>
+                    <span class="color-swatch-name">Gold</span>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-swatch-circle" style="background: #5C6B4A;"></div>
+                    <span class="color-swatch-name">Olive</span>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-swatch-circle" style="background: #FAF6F0;"></div>
+                    <span class="color-swatch-name">Cream</span>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-swatch-circle" style="background: #8B4513;"></div>
+                    <span class="color-swatch-name">Sienna</span>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-swatch-circle" style="background: #D4A574;"></div>
+                    <span class="color-swatch-name">Blush</span>
+                </div>
+            </div>
+
+            <p class="text-center" style="color: var(--color-warm-gray); font-size: 0.9rem;">
+                Jewel tones, earth tones, and soft neutrals all work beautifully with our palette
+            </p>
+        </div>
+    </section>
+
+    <!-- Tips -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>&#128161; Top Tips</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <div class="tip-card-icon">&#128095;</div>
+                    <h4>Mind the Grass</h4>
+                    <p>The ceremony is in the olive grove on grass. Ladies, block heels or wedges will be much kinder than stilettos!</p>
+                </div>
+                <div class="tip-card">
+                    <div class="tip-card-icon">&#127774;</div>
+                    <h4>Tuscan Weather</h4>
+                    <p>Late May is warm (20-25°C). Bring a light layer for the evening when it cools down.</p>
+                </div>
+                <div class="tip-card">
+                    <div class="tip-card-icon">&#128083;</div>
+                    <h4>Sun Protection</h4>
+                    <p>The ceremony starts at 3:30pm. Consider sunglasses and don't forget SPF!</p>
+                </div>
+                <div class="tip-card">
+                    <div class="tip-card-icon">&#128131;</div>
+                    <h4>Dancing Shoes</h4>
+                    <p>We'll be partying until late! Bring comfy shoes to change into for the dance floor.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Do's and Don'ts -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>The Do's & Don'ts</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="dos-donts">
+                <div class="dos">
+                    <h4>&#128077; Please Do</h4>
+                    <ul>
+                        <li>Wear colours - we love them!</li>
+                        <li>Dress comfortably for the heat</li>
+                        <li>Bring layers for the evening</li>
+                        <li>Wear practical shoes for grass</li>
+                        <li>Express your personal style</li>
+                        <li>Bring sunglasses</li>
+                    </ul>
+                </div>
+                <div class="donts">
+                    <h4>&#128078; Please Avoid</h4>
+                    <ul>
+                        <li>All white/ivory (bride's territory!)</li>
+                        <li>Anything too casual for Saturday</li>
+                        <li>Very high stilettos (grass + heels = disaster)</li>
+                        <li>Anything you can't dance in</li>
+                        <li>Heavy fabrics (it'll be warm!)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Story | Sophie & Joe</title>
+    <meta name="description" content="The story of Sophie and Joe - how we met, fell in love, and decided to get married in Tuscany.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Open Graph / Social Preview -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Our Story | Sophie & Joe">
+    <meta property="og:description" content="The story of Sophie and Joe - how we met, fell in love, and decided to get married in Tuscany.">
+    <meta property="og:image" content="images/hero-bg.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .story-timeline {
+            position: relative;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .story-timeline::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--color-gold), var(--color-terracotta));
+        }
+        .story-item {
+            position: relative;
+            padding: 2rem 0;
+            display: flex;
+            align-items: center;
+        }
+        .story-item:nth-child(odd) {
+            flex-direction: row-reverse;
+        }
+        .story-item:nth-child(odd) .story-content {
+            text-align: right;
+            padding-right: 4rem;
+            padding-left: 0;
+        }
+        .story-item:nth-child(even) .story-content {
+            padding-left: 4rem;
+        }
+        .story-heart {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            background: var(--color-terracotta);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            z-index: 1;
+            box-shadow: 0 4px 15px rgba(196, 92, 38, 0.3);
+        }
+        .story-content {
+            width: 45%;
+            background: var(--color-white);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-soft);
+        }
+        .story-year {
+            font-family: var(--font-heading);
+            color: var(--color-gold);
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        .story-content h3 {
+            color: var(--color-terracotta);
+            margin-bottom: 0.75rem;
+        }
+        .story-content p {
+            color: var(--color-warm-gray);
+            margin-bottom: 0;
+        }
+        .story-photo {
+            width: 45%;
+            aspect-ratio: 4/3;
+            background: var(--color-olive-light);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+        }
+        .story-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        @media (max-width: 768px) {
+            .story-timeline::before {
+                left: 25px;
+            }
+            .story-item,
+            .story-item:nth-child(odd) {
+                flex-direction: column;
+            }
+            .story-heart {
+                left: 25px;
+                top: 2rem;
+            }
+            .story-content,
+            .story-item:nth-child(odd) .story-content {
+                width: 100%;
+                padding-left: 70px !important;
+                padding-right: 0 !important;
+                text-align: left !important;
+            }
+            .story-photo {
+                width: 100%;
+                margin-top: 1rem;
+                margin-left: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html" class="active">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Our Story</h1>
+        <p>How two became one</p>
+    </header>
+
+    <!-- Story Timeline -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>The Journey So Far</h2>
+                <div class="section-divider"></div>
+                <p>Every love story is beautiful, but ours is our favourite.</p>
+            </div>
+
+            <div class="story-timeline">
+                <!-- First Meeting -->
+                <div class="story-item">
+                    <div class="story-heart">&#10084;</div>
+                    <div class="story-content">
+                        <span class="story-year">Year TBC</span>
+                        <h3>How We Met</h3>
+                        <p>Add your story here - where did you meet? What were your first impressions? Was it love at first sight or did it take a while?</p>
+                    </div>
+                    <div class="story-photo">
+                        <p>Add photo</p>
+                    </div>
+                </div>
+
+                <!-- First Date -->
+                <div class="story-item">
+                    <div class="story-heart">&#10084;</div>
+                    <div class="story-content">
+                        <span class="story-year">Year TBC</span>
+                        <h3>First Date</h3>
+                        <p>Where did you go? What did you do? Share a fun memory or funny moment from your early days of dating.</p>
+                    </div>
+                    <div class="story-photo">
+                        <p>Add photo</p>
+                    </div>
+                </div>
+
+                <!-- A Special Memory -->
+                <div class="story-item">
+                    <div class="story-heart">&#10084;</div>
+                    <div class="story-content">
+                        <span class="story-year">Year TBC</span>
+                        <h3>A Special Memory</h3>
+                        <p>Share a meaningful moment - a trip together, moving in, meeting the families, an adventure you had... whatever makes your story unique!</p>
+                    </div>
+                    <div class="story-photo">
+                        <p>Add photo</p>
+                    </div>
+                </div>
+
+                <!-- The Proposal -->
+                <div class="story-item">
+                    <div class="story-heart">&#10084;</div>
+                    <div class="story-content">
+                        <span class="story-year">Year TBC</span>
+                        <h3>The Proposal</h3>
+                        <p>How did Joe pop the question? Where were you? What did Sophie say? (We hope it was yes!) Share the romantic details.</p>
+                    </div>
+                    <div class="story-photo">
+                        <p>Add photo</p>
+                    </div>
+                </div>
+
+                <!-- Wedding -->
+                <div class="story-item">
+                    <div class="story-heart">&#10084;</div>
+                    <div class="story-content">
+                        <span class="story-year">May 2027</span>
+                        <h3>The Wedding!</h3>
+                        <p>And now we're getting married in beautiful Tuscany, surrounded by the people we love most. We can't wait to celebrate with you!</p>
+                    </div>
+                    <div class="story-photo" style="background-image: url('https://laconca.it/wp-content/uploads/2022/10/Agriturismo-La-Conca-Santarsa-villa-indipendente-002-1536x1024.jpg'); background-size: cover; background-position: center;">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Fun Facts -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>Fun Facts About Us</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-content text-center">
+                        <h3 class="text-terracotta" style="font-size: 3rem; margin-bottom: 0.5rem;">?</h3>
+                        <h4>Years Together</h4>
+                        <p>Update with how long you've been together!</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content text-center">
+                        <h3 class="text-terracotta" style="font-size: 3rem; margin-bottom: 0.5rem;">?</h3>
+                        <h4>Countries Visited</h4>
+                        <p>How many places have you explored together?</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content text-center">
+                        <h3 class="text-terracotta" style="font-size: 3rem; margin-bottom: 0.5rem;">&#10084;</h3>
+                        <h4>Our Song</h4>
+                        <p>What's your special song? Add it here!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

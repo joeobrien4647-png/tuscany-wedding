@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guest Map | Sophie & Joe</title>
+    <meta name="description" content="See where all our guests are travelling from to celebrate with us in Tuscany">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .map-container {
+            position: relative;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--color-white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .world-map {
+            width: 100%;
+            height: auto;
+            position: relative;
+        }
+
+        .map-svg {
+            width: 100%;
+            height: auto;
+        }
+
+        .map-pin {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            z-index: 10;
+        }
+
+        .map-pin:hover {
+            transform: translate(-50%, -100%) scale(1.2);
+        }
+
+        .map-pin-icon {
+            font-size: 2rem;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .map-pin-label {
+            position: absolute;
+            bottom: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--color-charcoal);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .map-pin:hover .map-pin-label {
+            opacity: 1;
+        }
+
+        .destination-pin {
+            z-index: 20;
+        }
+
+        .destination-pin .map-pin-icon {
+            font-size: 3rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Stats */
+        .travel-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .travel-stat {
+            text-align: center;
+            background: var(--color-cream);
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+
+        .travel-stat-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .travel-stat-number {
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            color: var(--color-terracotta);
+            line-height: 1;
+        }
+
+        .travel-stat-label {
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Guest locations list */
+        .locations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .location-card {
+            background: var(--color-white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-soft);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .location-flag {
+            font-size: 2.5rem;
+        }
+
+        .location-info h4 {
+            margin-bottom: 0.25rem;
+            color: var(--color-charcoal);
+        }
+
+        .location-info p {
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+            margin-bottom: 0;
+        }
+
+        /* Simple map visual */
+        .simple-map {
+            background: linear-gradient(135deg, #e8f4f8 0%, #d4e8eb 100%);
+            border-radius: 12px;
+            padding: 3rem;
+            position: relative;
+            min-height: 400px;
+            overflow: hidden;
+        }
+
+        .map-europe {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .location-dot {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: var(--color-terracotta);
+            border: 3px solid white;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .location-dot:hover {
+            transform: scale(1.3);
+        }
+
+        .location-dot.destination {
+            width: 30px;
+            height: 30px;
+            background: var(--color-gold);
+            animation: pulse-destination 2s infinite;
+        }
+
+        @keyframes pulse-destination {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(201, 169, 97, 0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(201, 169, 97, 0); }
+        }
+
+        .travel-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, var(--color-terracotta), var(--color-gold));
+            transform-origin: left center;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Where We're Coming From</h1>
+        <p>Our guests are travelling from near and far!</p>
+    </header>
+
+    <!-- Map Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>&#127758; Around the World to Tuscany</h2>
+                <div class="section-divider"></div>
+                <p>Thank you all for making the journey to celebrate with us. Here's where everyone is travelling from!</p>
+            </div>
+
+            <!-- Simple Visual Map -->
+            <div class="map-container">
+                <div class="simple-map" id="guestMap">
+                    <!-- Destination marker (Tuscany) -->
+                    <div class="location-dot destination" style="top: 48%; left: 52%;" title="Tuscany, Italy - Wedding Venue"></div>
+
+                    <!-- Guest location markers -->
+                    <div class="location-dot" style="top: 35%; left: 45%;" title="London, UK"></div>
+                    <div class="location-dot" style="top: 38%; left: 44%;" title="Bristol, UK"></div>
+                    <div class="location-dot" style="top: 32%; left: 46%;" title="Manchester, UK"></div>
+                    <div class="location-dot" style="top: 28%; left: 44%;" title="Edinburgh, Scotland"></div>
+                    <div class="location-dot" style="top: 40%; left: 42%;" title="Dublin, Ireland"></div>
+                    <div class="location-dot" style="top: 45%; left: 48%;" title="Paris, France"></div>
+                    <div class="location-dot" style="top: 42%; left: 55%;" title="Berlin, Germany"></div>
+                    <div class="location-dot" style="top: 55%; left: 58%;" title="Barcelona, Spain"></div>
+                    <div class="location-dot" style="top: 38%; left: 25%;" title="New York, USA"></div>
+                    <div class="location-dot" style="top: 45%; left: 15%;" title="Los Angeles, USA"></div>
+                    <div class="location-dot" style="top: 75%; left: 82%;" title="Sydney, Australia"></div>
+                </div>
+
+                <!-- Travel Stats -->
+                <div class="travel-stats">
+                    <div class="travel-stat">
+                        <div class="travel-stat-icon">&#127758;</div>
+                        <div class="travel-stat-number">7</div>
+                        <div class="travel-stat-label">Countries</div>
+                    </div>
+                    <div class="travel-stat">
+                        <div class="travel-stat-icon">&#9992;</div>
+                        <div class="travel-stat-number">85</div>
+                        <div class="travel-stat-label">Guests</div>
+                    </div>
+                    <div class="travel-stat">
+                        <div class="travel-stat-icon">&#128663;</div>
+                        <div class="travel-stat-number">50,000+</div>
+                        <div class="travel-stat-label">Combined Miles</div>
+                    </div>
+                    <div class="travel-stat">
+                        <div class="travel-stat-icon">&#128156;</div>
+                        <div class="travel-stat-number">1</div>
+                        <div class="travel-stat-label">Destination</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Locations List -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>Guest Locations</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="locations-grid">
+                <div class="location-card">
+                    <span class="location-flag">&#127468;&#127463;</span>
+                    <div class="location-info">
+                        <h4>United Kingdom</h4>
+                        <p>45 guests from London, Bristol, Manchester & more</p>
+                    </div>
+                </div>
+
+                <div class="location-card">
+                    <span class="location-flag">&#127470;&#127466;</span>
+                    <div class="location-info">
+                        <h4>Ireland</h4>
+                        <p>12 guests from Dublin & Cork</p>
+                    </div>
+                </div>
+
+                <div class="location-card">
+                    <span class="location-flag">&#127467;&#127479;</span>
+                    <div class="location-info">
+                        <h4>France</h4>
+                        <p>4 guests from Paris</p>
+                    </div>
+                </div>
+
+                <div class="location-card">
+                    <span class="location-flag">&#127465;&#127466;</span>
+                    <div class="location-info">
+                        <h4>Germany</h4>
+                        <p>3 guests from Berlin</p>
+                    </div>
+                </div>
+
+                <div class="location-card">
+                    <span class="location-flag">&#127466;&#127480;</span>
+                    <div class="location-info">
+                        <h4>Spain</h4>
+                        <p>2 guests from Barcelona</p>
+                    </div>
+                </div>
+
+                <div class="location-card">
+                    <span class="location-flag">&#127482;&#127480;</span>
+                    <div class="location-info">
+                        <h4>United States</h4>
+                        <p>8 guests from New York & LA</p>
+                    </div>
+                </div>
+
+                <div class="location-card">
+                    <span class="location-flag">&#127462;&#127482;</span>
+                    <div class="location-info">
+                        <h4>Australia</h4>
+                        <p>6 guests from Sydney</p>
+                    </div>
+                </div>
+
+                <div class="location-card">
+                    <span class="location-flag">&#127470;&#127481;</span>
+                    <div class="location-info">
+                        <h4>Italy (Destination!)</h4>
+                        <p>La Conca Agriturismo, Tuscany</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Longest Journey -->
+    <section class="section">
+        <div class="container text-center">
+            <div class="card" style="max-width: 600px; margin: 0 auto;">
+                <div class="card-content">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">&#127942;</div>
+                    <h3>Longest Journey Award</h3>
+                    <p style="font-family: var(--font-heading); font-size: 1.5rem; color: var(--color-terracotta);">The Williams Family</p>
+                    <p>Travelling over 10,000 miles from Sydney, Australia!</p>
+                    <p style="font-size: 0.9rem; color: var(--color-warm-gray);">We're so grateful you're making the trip!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Add tooltips to location dots
+        document.querySelectorAll('.location-dot').forEach(dot => {
+            dot.addEventListener('mouseenter', function(e) {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'map-tooltip';
+                tooltip.textContent = this.title;
+                tooltip.style.cssText = `
+                    position: absolute;
+                    background: var(--color-charcoal);
+                    color: white;
+                    padding: 0.5rem 1rem;
+                    border-radius: 4px;
+                    font-size: 0.85rem;
+                    white-space: nowrap;
+                    z-index: 100;
+                    pointer-events: none;
+                    transform: translateX(-50%);
+                    bottom: calc(100% + 10px);
+                    left: 50%;
+                `;
+                this.appendChild(tooltip);
+            });
+
+            dot.addEventListener('mouseleave', function() {
+                const tooltip = this.querySelector('.map-tooltip');
+                if (tooltip) tooltip.remove();
+            });
+        });
+    </script>
+</body>
+</html>

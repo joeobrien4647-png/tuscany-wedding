@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Honeymoon Tracker | Sophie & Joe</title>
+    <meta name="description" content="Follow Sophie and Joe's honeymoon adventure!">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .honeymoon-hero {
+            background: linear-gradient(135deg, #0077B6 0%, #00B4D8 50%, #90E0EF 100%);
+            min-height: 50vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            padding: 3rem;
+            position: relative;
+        }
+
+        .honeymoon-hero::before {
+            content: '&#127796;';
+            position: absolute;
+            font-size: 10rem;
+            opacity: 0.1;
+            bottom: -20px;
+            right: 10%;
+        }
+
+        .honeymoon-hero h1 {
+            color: white;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .honeymoon-status {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            margin-top: 1rem;
+        }
+
+        /* Countdown/Status */
+        .status-card {
+            max-width: 600px;
+            margin: -50px auto 0;
+            background: var(--color-white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow-medium);
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        .status-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .status-title {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            color: var(--color-terracotta);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Journey Map */
+        .journey-map {
+            background: var(--color-cream);
+            padding: 2rem;
+            border-radius: 16px;
+            margin: 2rem 0;
+        }
+
+        .journey-stops {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .journey-stops::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--color-terracotta), var(--color-gold));
+            z-index: 0;
+        }
+
+        .journey-stop {
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .journey-stop-icon {
+            width: 60px;
+            height: 60px;
+            background: var(--color-white);
+            border: 4px solid var(--color-terracotta);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin: 0 auto 0.5rem;
+        }
+
+        .journey-stop.current .journey-stop-icon {
+            background: var(--color-terracotta);
+            animation: pulse 2s infinite;
+        }
+
+        .journey-stop.completed .journey-stop-icon {
+            background: var(--color-gold);
+            border-color: var(--color-gold);
+        }
+
+        .journey-stop-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .journey-stop-date {
+            font-size: 0.8rem;
+            color: var(--color-warm-gray);
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(196, 92, 38, 0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(196, 92, 38, 0); }
+        }
+
+        /* Updates Feed */
+        .updates-feed {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .update-card {
+            background: var(--color-white);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 2rem;
+        }
+
+        .update-image {
+            height: 250px;
+            background: var(--color-cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+        }
+
+        .update-content {
+            padding: 1.5rem;
+        }
+
+        .update-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .update-location {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--color-terracotta);
+            font-weight: 600;
+        }
+
+        .update-date {
+            color: var(--color-warm-gray);
+            font-size: 0.85rem;
+        }
+
+        .update-text {
+            color: var(--color-charcoal);
+            line-height: 1.7;
+        }
+
+        /* Coming Soon State */
+        .coming-soon {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .coming-soon-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+        }
+
+        .coming-soon h3 {
+            color: var(--color-terracotta);
+            margin-bottom: 1rem;
+        }
+
+        /* Anniversary Counter */
+        .anniversary-section {
+            background: linear-gradient(135deg, var(--color-terracotta), var(--color-gold));
+            color: white;
+            padding: 3rem;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .anniversary-section h3 {
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .anniversary-counter {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+
+        .anniversary-item {
+            text-align: center;
+        }
+
+        .anniversary-number {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            display: block;
+        }
+
+        .anniversary-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <div class="honeymoon-hero">
+        <div>
+            <h1>&#127796; Honeymoon Adventures</h1>
+            <p>Follow our journey as newlyweds!</p>
+            <div class="honeymoon-status" id="honeymoonStatus">
+                Status: Planning Stage
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Card -->
+    <section class="section">
+        <div class="container">
+            <div class="status-card">
+                <div class="status-icon">&#9992;</div>
+                <div class="status-title">Honeymoon Coming Soon!</div>
+                <p>We'll be heading off on our honeymoon adventure right after the wedding. Check back here for live updates, photos, and stories from the trip!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Journey Map -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>&#128506; Our Route</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="journey-map">
+                <div class="journey-stops">
+                    <div class="journey-stop">
+                        <div class="journey-stop-icon">&#128141;</div>
+                        <div class="journey-stop-name">Tuscany</div>
+                        <div class="journey-stop-date">Wedding!</div>
+                    </div>
+                    <div class="journey-stop">
+                        <div class="journey-stop-icon">&#127796;</div>
+                        <div class="journey-stop-name">Destination 1</div>
+                        <div class="journey-stop-date">May 26-30</div>
+                    </div>
+                    <div class="journey-stop">
+                        <div class="journey-stop-icon">&#127754;</div>
+                        <div class="journey-stop-name">Destination 2</div>
+                        <div class="journey-stop-date">May 31 - Jun 3</div>
+                    </div>
+                    <div class="journey-stop">
+                        <div class="journey-stop-icon">&#127968;</div>
+                        <div class="journey-stop-name">Home</div>
+                        <div class="journey-stop-date">June 4</div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="text-center" style="color: var(--color-warm-gray); font-style: italic;">
+                We're keeping the exact destination a surprise... even from ourselves! Thanks to your generous honeymoon fund contributions, we can't wait to explore somewhere amazing.
+            </p>
+        </div>
+    </section>
+
+    <!-- Coming Soon / Updates -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>&#128247; Trip Updates</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="updates-feed">
+                <div class="coming-soon">
+                    <div class="coming-soon-icon">&#128247;</div>
+                    <h3>Updates Coming After the Wedding!</h3>
+                    <p style="max-width: 500px; margin: 0 auto; color: var(--color-warm-gray);">
+                        Once we're on our honeymoon, we'll share photos, stories, and adventures here. Check back after May 24th for live updates from the trip!
+                    </p>
+                </div>
+
+                <!-- Sample update (hidden for now) -->
+                <div class="update-card" style="display: none;">
+                    <div class="update-image">&#127796;</div>
+                    <div class="update-content">
+                        <div class="update-meta">
+                            <span class="update-location">&#128205; Paradise Beach</span>
+                            <span class="update-date">Day 2 - May 27, 2027</span>
+                        </div>
+                        <p class="update-text">
+                            We made it! Currently watching the sunset with cocktails in hand. Still can't believe we're actually married! The view here is incredible - photos don't do it justice. Missing everyone already but also very much enjoying being just the two of us. Love, Mr & Mrs O'Brien x
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Anniversary Counter -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="anniversary-section">
+                <h3>&#128149; Counting the Moments</h3>
+                <p>Days since we said "I do"...</p>
+                <div class="anniversary-counter">
+                    <div class="anniversary-item">
+                        <span class="anniversary-number" id="married-days">--</span>
+                        <span class="anniversary-label">Days</span>
+                    </div>
+                    <div class="anniversary-item">
+                        <span class="anniversary-number" id="married-hours">--</span>
+                        <span class="anniversary-label">Hours</span>
+                    </div>
+                    <div class="anniversary-item">
+                        <span class="anniversary-number" id="married-minutes">--</span>
+                        <span class="anniversary-label">Minutes</span>
+                    </div>
+                </div>
+                <p style="margin-top: 1.5rem; opacity: 0.9; font-size: 0.9rem;">
+                    (This will start counting after May 24th, 2027!)
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Thank You -->
+    <section class="section">
+        <div class="container text-center">
+            <div style="font-size: 4rem; margin-bottom: 1rem;">&#10084;</div>
+            <h2>Thank You!</h2>
+            <div class="section-divider"></div>
+            <p style="max-width: 600px; margin: 0 auto;">
+                A huge thank you to everyone who contributed to our honeymoon fund. Because of your generosity, we're able to go on this incredible adventure. We'll be thinking of you all!
+            </p>
+            <a href="gifts.html" class="btn btn-outline" style="margin-top: 1.5rem;">View Honeymoon Fund</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Calculate days since wedding
+        function updateMarriedCounter() {
+            const weddingDate = new Date('2027-05-24T15:30:00').getTime();
+            const now = new Date().getTime();
+            const diff = now - weddingDate;
+
+            if (diff < 0) {
+                document.getElementById('married-days').textContent = '0';
+                document.getElementById('married-hours').textContent = '0';
+                document.getElementById('married-minutes').textContent = '0';
+                return;
+            }
+
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+            document.getElementById('married-days').textContent = days;
+            document.getElementById('married-hours').textContent = hours;
+            document.getElementById('married-minutes').textContent = minutes;
+        }
+
+        updateMarriedCounter();
+        setInterval(updateMarriedCounter, 60000);
+    </script>
+</body>
+</html>

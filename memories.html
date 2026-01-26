@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Jar | Sophie & Joe</title>
+    <meta name="description" content="Share your favorite memories of Sophie and Joe">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .jar-hero {
+            text-align: center;
+            padding: 3rem 0;
+        }
+
+        .jar-icon {
+            font-size: 6rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .memory-form-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .memory-form {
+            background: var(--color-white);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .memory-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .memory-form label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--color-charcoal);
+        }
+
+        .memory-form input,
+        .memory-form textarea,
+        .memory-form select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--color-cream);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: var(--font-body);
+        }
+
+        .memory-form textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .memory-form input:focus,
+        .memory-form textarea:focus {
+            outline: none;
+            border-color: var(--color-terracotta);
+        }
+
+        /* Memory display */
+        .memories-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .memory-note {
+            background: #fff9e6;
+            padding: 1.5rem;
+            border-radius: 4px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+            transform: rotate(-1deg);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .memory-note:nth-child(even) {
+            transform: rotate(1deg);
+            background: #e6f4ff;
+        }
+
+        .memory-note:nth-child(3n) {
+            background: #ffe6f0;
+        }
+
+        .memory-note:hover {
+            transform: rotate(0deg) scale(1.02);
+        }
+
+        .memory-note::before {
+            content: '&#128204;';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+        }
+
+        .memory-note-about {
+            display: inline-block;
+            background: rgba(0,0,0,0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .memory-note-content {
+            font-style: italic;
+            color: var(--color-charcoal);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .memory-note-from {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--color-warm-gray);
+        }
+
+        /* Filter tabs */
+        .memory-filters {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .memory-filter {
+            padding: 0.5rem 1.5rem;
+            background: var(--color-cream);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .memory-filter.active,
+        .memory-filter:hover {
+            background: var(--color-terracotta);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Memory Jar</h1>
+        <p>Share your favorite memories of Sophie & Joe</p>
+    </header>
+
+    <!-- Hero -->
+    <div class="jar-hero">
+        <span class="jar-icon">&#127874;</span>
+        <p style="max-width: 600px; margin: 0 auto; color: var(--color-warm-gray);">
+            Help us fill our memory jar! Share a favorite memory, funny story, or special moment you've had with either of us. We'll read these on our honeymoon!
+        </p>
+    </div>
+
+    <!-- Form Section -->
+    <section class="section">
+        <div class="container">
+            <div class="memory-form-container">
+                <form class="memory-form" id="memoryForm">
+                    <div class="form-group">
+                        <label for="memory-name">Your Name *</label>
+                        <input type="text" id="memory-name" name="name" required placeholder="Who's sharing this memory?">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="memory-about">This memory is about... *</label>
+                        <select id="memory-about" name="about" required>
+                            <option value="">Select...</option>
+                            <option value="sophie">Sophie</option>
+                            <option value="joe">Joe</option>
+                            <option value="both">Both of them</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="memory-content">Your Memory *</label>
+                        <textarea id="memory-content" name="memory" required placeholder="Share your favorite memory, funny story, or special moment..."></textarea>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">&#127874; Add to Memory Jar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Memories Display -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>Memories So Far</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <!-- Filters -->
+            <div class="memory-filters">
+                <button class="memory-filter active" data-filter="all">All Memories</button>
+                <button class="memory-filter" data-filter="sophie">About Sophie</button>
+                <button class="memory-filter" data-filter="joe">About Joe</button>
+                <button class="memory-filter" data-filter="both">About Both</button>
+            </div>
+
+            <div class="memories-display">
+                <div class="memory-note" data-about="sophie">
+                    <span class="memory-note-about">About Sophie</span>
+                    <p class="memory-note-content">"I'll never forget when Sophie called me at 3am just to tell me she'd finally finished her dissertation. She was crying happy tears and I couldn't have been prouder!"</p>
+                    <p class="memory-note-from">- Emma (Uni friend)</p>
+                </div>
+
+                <div class="memory-note" data-about="joe">
+                    <span class="memory-note-about">About Joe</span>
+                    <p class="memory-note-content">"Joe once tried to impress everyone by cooking a 'fancy' dinner. He somehow managed to set off every smoke alarm in the building. We ordered pizza. Legend."</p>
+                    <p class="memory-note-from">- Dave (Best Man)</p>
+                </div>
+
+                <div class="memory-note" data-about="both">
+                    <span class="memory-note-about">About Both</span>
+                    <p class="memory-note-content">"Watching these two at Sarah's wedding last year, I knew they were next. The way they look at each other... pure magic. So happy for you both!"</p>
+                    <p class="memory-note-from">- Claire & Mark</p>
+                </div>
+
+                <div class="memory-note" data-about="sophie">
+                    <span class="memory-note-about">About Sophie</span>
+                    <p class="memory-note-content">"My favorite memory is Sophie performing in the school play aged 8. She forgot her lines, made something up, and got the biggest laugh of the night. True star quality!"</p>
+                    <p class="memory-note-from">- Mum</p>
+                </div>
+
+                <div class="memory-note" data-about="joe">
+                    <span class="memory-note-about">About Joe</span>
+                    <p class="memory-note-content">"Joe insisting he knew the way without GPS and getting us completely lost in the Lake District for 4 hours. Best accidental adventure ever though!"</p>
+                    <p class="memory-note-from">- Tom (Brother)</p>
+                </div>
+
+                <div class="memory-note" data-about="both">
+                    <span class="memory-note-about">About Both</span>
+                    <p class="memory-note-content">"Their karaoke duet of 'Don't Go Breaking My Heart' at the office Christmas party is STILL talked about. You two are made for each other!"</p>
+                    <p class="memory-note-from">- The Work Gang</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Filter functionality
+        document.querySelectorAll('.memory-filter').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.memory-filter').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+
+                const filter = this.dataset.filter;
+                document.querySelectorAll('.memory-note').forEach(note => {
+                    if (filter === 'all' || note.dataset.about === filter) {
+                        note.style.display = 'block';
+                    } else {
+                        note.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Form submission
+        document.getElementById('memoryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('memory-name').value;
+
+            this.innerHTML = `
+                <div class="text-center">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">&#127874;&#10084;</div>
+                    <h3>Memory Added!</h3>
+                    <p>Thanks ${name}! Your memory has been added to the jar. Sophie & Joe will love reading it!</p>
+                    <a href="index.html" class="btn btn-outline" style="margin-top: 1rem;">Back to Home</a>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Party | Sophie & Joe</title>
+    <meta name="description" content="Meet the wedding party - the amazing people standing by Sophie and Joe's side.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Open Graph / Social Preview -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Wedding Party | Sophie & Joe">
+    <meta property="og:description" content="Meet the wedding party - the amazing people standing by Sophie and Joe's side.">
+    <meta property="og:image" content="images/hero-bg.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .party-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        .party-member {
+            text-align: center;
+            background: var(--color-white);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow-soft);
+            transition: var(--transition);
+        }
+        .party-member:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-medium);
+        }
+        .party-photo {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            background: linear-gradient(135deg, var(--color-terracotta-light), var(--color-gold-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.85rem;
+            overflow: hidden;
+        }
+        .party-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .party-member h3 {
+            color: var(--color-charcoal);
+            margin-bottom: 0.25rem;
+        }
+        .party-role {
+            color: var(--color-terracotta);
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+        .party-member p {
+            color: var(--color-warm-gray);
+            font-size: 0.95rem;
+        }
+        .party-section-title {
+            text-align: center;
+            margin: 3rem 0 1rem;
+        }
+        .party-section-title h3 {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            color: var(--color-terracotta);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Wedding Party</h1>
+        <p>The wonderful people by our side</p>
+    </header>
+
+    <!-- The Couple -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>The Happy Couple</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="party-grid" style="max-width: 600px; margin: 0 auto;">
+                <div class="party-member">
+                    <div class="party-photo">
+                        <p>Add photo</p>
+                    </div>
+                    <h3>Sophie Geen</h3>
+                    <p class="party-role">The Bride</p>
+                    <p>Add a fun bio about Sophie - hobbies, personality, what she's most excited about for the wedding!</p>
+                </div>
+
+                <div class="party-member">
+                    <div class="party-photo">
+                        <p>Add photo</p>
+                    </div>
+                    <h3>Joe O'Brien</h3>
+                    <p class="party-role">The Groom</p>
+                    <p>Add a fun bio about Joe - interests, quirks, why he can't wait to marry Sophie!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Bridesmaids -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="party-section-title">
+                <h3>Sophie's Side</h3>
+            </div>
+
+            <div class="party-grid">
+                <div class="party-member">
+                    <div class="party-photo">
+                        <p>Add photo</p>
+                    </div>
+                    <h3>Name TBC</h3>
+                    <p class="party-role">Maid of Honour</p>
+                    <p>Add how they know Sophie and a fun fact about them!</p>
+                </div>
+
+                <div class="party-member">
+                    <div class="party-photo">
+                        <p>Add photo</p>
+                    </div>
+                    <h3>Name TBC</h3>
+                    <p class="party-role">Bridesmaid</p>
+                    <p>Add how they know Sophie and a fun fact about them!</p>
+                </div>
+
+                <div class="party-member">
+                    <div class="party-photo">
+                        <p>Add photo</p>
+                    </div>
+                    <h3>Name TBC</h3>
+                    <p class="party-role">Bridesmaid</p>
+                    <p>Add how they know Sophie and a fun fact about them!</p>
+                </div>
+
+                <div class="party-member">
+                    <div class="party-photo">
+                        <p>Add photo</p>
+                    </div>
+                    <h3>Name TBC</h3>
+                    <p class="party-role">Bridesmaid</p>
+                    <p>Add how they know Sophie and a fun fact about them!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Groomsmen -->
+    <section class="section">
+        <div class="container">
+            <div class="party-section-title">
+                <h3>Joe's Side</h3>
+            </div>
+
+            <div class="party-grid">
+                <div class="party-member">
+                    <div class="party-photo">
+                        <p>Add photo</p>
+                    </div>
+                    <h3>Name TBC</h3>
+                    <p class="party-role">Best Man</p>
+                    <p>Add how they know Joe and a fun fact about them!</p>
+                </div>
+
+                <div class="party-member">
+                    <div class="party-photo">
+                        <p>Add photo</p>
+                    </div>
+                    <h3>Name TBC</h3>
+                    <p class="party-role">Groomsman</p>
+                    <p>Add how they know Joe and a fun fact about them!</p>
+                </div>
+
+                <div class="party-member">
+                    <div class="party-photo">
+                        <p>Add photo</p>
+                    </div>
+                    <h3>Name TBC</h3>
+                    <p class="party-role">Groomsman</p>
+                    <p>Add how they know Joe and a fun fact about them!</p>
+                </div>
+
+                <div class="party-member">
+                    <div class="party-photo">
+                        <p>Add photo</p>
+                    </div>
+                    <h3>Name TBC</h3>
+                    <p class="party-role">Groomsman</p>
+                    <p>Add how they know Joe and a fun fact about them!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Special Mentions -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>Special Mentions</h2>
+                <div class="section-divider"></div>
+                <p>Other important people helping make our day special.</p>
+            </div>
+
+            <div class="party-grid" style="max-width: 800px; margin: 0 auto;">
+                <div class="party-member">
+                    <div class="party-photo" style="background: linear-gradient(135deg, var(--color-olive-light), var(--color-olive));">
+                        <p>Add photo</p>
+                    </div>
+                    <h3>Name TBC</h3>
+                    <p class="party-role">Officiant / Reader / Other</p>
+                    <p>Add details about their role in the ceremony.</p>
+                </div>
+
+                <div class="party-member">
+                    <div class="party-photo" style="background: linear-gradient(135deg, var(--color-olive-light), var(--color-olive));">
+                        <p>Add photo</p>
+                    </div>
+                    <h3>Name TBC</h3>
+                    <p class="party-role">Parents / Other Special Role</p>
+                    <p>Add details about what makes them special to you.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

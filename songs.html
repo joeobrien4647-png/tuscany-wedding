@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Song Requests | Sophie & Joe</title>
+    <meta name="description" content="Request and vote for songs to play at Sophie and Joe's wedding!">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Song Requests | Sophie & Joe">
+    <meta property="og:description" content="Request and vote for songs to play at Sophie and Joe's wedding!">
+    <meta property="og:image" content="images/hero-bg.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Request Form */
+        .song-form {
+            background: linear-gradient(135deg, var(--color-terracotta), #d4714d);
+            border-radius: 20px;
+            padding: 2.5rem;
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            color: white;
+            text-align: center;
+        }
+        .song-form h3 {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .song-form p {
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+        }
+        .song-form-inputs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 500px) {
+            .song-form-inputs {
+                flex-direction: column;
+            }
+        }
+        .song-form input {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-family: var(--font-body);
+        }
+        .song-form input:focus {
+            outline: 3px solid var(--color-gold);
+        }
+        .song-form button {
+            padding: 1rem 2rem;
+            background: var(--color-gold);
+            color: var(--color-charcoal);
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .song-form button:hover {
+            background: white;
+            transform: scale(1.05);
+        }
+        .song-form-note {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 1rem;
+        }
+
+        /* Song Categories */
+        .song-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .song-tab {
+            padding: 0.75rem 1.5rem;
+            background: var(--color-white);
+            border: 2px solid var(--color-cream);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.95rem;
+        }
+        .song-tab:hover {
+            border-color: var(--color-gold);
+        }
+        .song-tab.active {
+            background: var(--color-terracotta);
+            border-color: var(--color-terracotta);
+            color: white;
+        }
+
+        /* Song List */
+        .song-list {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Song Card */
+        .song-card {
+            background: var(--color-white);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-soft);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: var(--transition);
+        }
+        .song-card:hover {
+            box-shadow: var(--shadow-medium);
+            transform: translateX(5px);
+        }
+        .song-rank {
+            width: 40px;
+            height: 40px;
+            background: var(--color-cream);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--color-terracotta);
+            flex-shrink: 0;
+        }
+        .song-rank.top-3 {
+            background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold));
+            color: var(--color-charcoal);
+        }
+        .song-info {
+            flex: 1;
+        }
+        .song-title {
+            font-weight: 600;
+            color: var(--color-charcoal);
+            margin-bottom: 0.25rem;
+        }
+        .song-artist {
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+        }
+        .song-requester {
+            font-size: 0.8rem;
+            color: var(--color-terracotta);
+            margin-top: 0.25rem;
+        }
+        .song-votes {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .vote-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 2px solid var(--color-cream);
+            background: white;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+        .vote-btn:hover {
+            border-color: var(--color-terracotta);
+            background: var(--color-terracotta-light);
+            transform: scale(1.1);
+        }
+        .vote-btn.voted {
+            background: var(--color-terracotta);
+            border-color: var(--color-terracotta);
+            color: white;
+        }
+        .vote-count {
+            font-weight: bold;
+            color: var(--color-charcoal);
+            min-width: 30px;
+            text-align: center;
+        }
+
+        /* Genre Tags */
+        .genre-tag {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            background: var(--color-cream);
+            border-radius: 10px;
+            font-size: 0.7rem;
+            color: var(--color-warm-gray);
+            margin-left: 0.5rem;
+        }
+
+        /* Stats */
+        .song-stats {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .song-stat {
+            background: var(--color-white);
+            padding: 1.5rem 2rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+        }
+        .song-stat-number {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            color: var(--color-terracotta);
+        }
+        .song-stat-label {
+            color: var(--color-warm-gray);
+            font-size: 0.85rem;
+        }
+
+        /* Spotify Preview */
+        .spotify-preview {
+            margin-top: 3rem;
+            text-align: center;
+        }
+        .spotify-preview h3 {
+            font-family: var(--font-heading);
+            color: var(--color-terracotta);
+            margin-bottom: 1rem;
+        }
+
+        /* Success toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--color-charcoal);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            box-shadow: var(--shadow-medium);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Song Requests</h1>
+        <p>Help us build the perfect playlist!</p>
+    </header>
+
+    <!-- Songs Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Request a Song</h2>
+                <div class="section-divider"></div>
+                <p>What song will get YOU on the dance floor? Request it below and vote for your favourites!</p>
+            </div>
+
+            <!-- Request Form -->
+            <div class="song-form">
+                <h3>Add to the Playlist</h3>
+                <p>Tell us what song you want to hear at the wedding!</p>
+                <form id="song-request-form">
+                    <div class="song-form-inputs">
+                        <input type="text" id="song-title" placeholder="Song title" required>
+                        <input type="text" id="song-artist" placeholder="Artist">
+                    </div>
+                    <div class="song-form-inputs">
+                        <input type="text" id="your-name" placeholder="Your name" required>
+                        <button type="submit">Request Song</button>
+                    </div>
+                </form>
+                <p class="song-form-note">Top voted songs are guaranteed to be played!</p>
+            </div>
+
+            <!-- Stats -->
+            <div class="song-stats">
+                <div class="song-stat">
+                    <div class="song-stat-number" id="total-songs">24</div>
+                    <div class="song-stat-label">Songs Requested</div>
+                </div>
+                <div class="song-stat">
+                    <div class="song-stat-number" id="total-votes">156</div>
+                    <div class="song-stat-label">Total Votes</div>
+                </div>
+                <div class="song-stat">
+                    <div class="song-stat-number" id="top-genre">Pop</div>
+                    <div class="song-stat-label">Top Genre</div>
+                </div>
+            </div>
+
+            <!-- Category Tabs -->
+            <div class="song-tabs">
+                <button class="song-tab active" data-category="all">All Songs</button>
+                <button class="song-tab" data-category="top">Top Voted</button>
+                <button class="song-tab" data-category="pop">Pop</button>
+                <button class="song-tab" data-category="classic">Classics</button>
+                <button class="song-tab" data-category="dance">Dance</button>
+                <button class="song-tab" data-category="romantic">Romantic</button>
+            </div>
+
+            <!-- Song List -->
+            <div class="song-list" id="song-list">
+                <div class="song-card" data-category="pop dance" data-votes="32">
+                    <div class="song-rank top-3">1</div>
+                    <div class="song-info">
+                        <div class="song-title">Uptown Funk <span class="genre-tag">Pop</span></div>
+                        <div class="song-artist">Bruno Mars ft. Mark Ronson</div>
+                        <div class="song-requester">Requested by Mike J.</div>
+                    </div>
+                    <div class="song-votes">
+                        <span class="vote-count">32</span>
+                        <button class="vote-btn" onclick="vote(this)">&#10084;</button>
+                    </div>
+                </div>
+
+                <div class="song-card" data-category="romantic classic" data-votes="28">
+                    <div class="song-rank top-3">2</div>
+                    <div class="song-info">
+                        <div class="song-title">Thinking Out Loud <span class="genre-tag">Romantic</span></div>
+                        <div class="song-artist">Ed Sheeran</div>
+                        <div class="song-requester">Requested by Sarah G.</div>
+                    </div>
+                    <div class="song-votes">
+                        <span class="vote-count">28</span>
+                        <button class="vote-btn" onclick="vote(this)">&#10084;</button>
+                    </div>
+                </div>
+
+                <div class="song-card" data-category="dance" data-votes="25">
+                    <div class="song-rank top-3">3</div>
+                    <div class="song-info">
+                        <div class="song-title">Mr Brightside <span class="genre-tag">Classic</span></div>
+                        <div class="song-artist">The Killers</div>
+                        <div class="song-requester">Requested by Tom M.</div>
+                    </div>
+                    <div class="song-votes">
+                        <span class="vote-count">25</span>
+                        <button class="vote-btn" onclick="vote(this)">&#10084;</button>
+                    </div>
+                </div>
+
+                <div class="song-card" data-category="pop dance" data-votes="22">
+                    <div class="song-rank">4</div>
+                    <div class="song-info">
+                        <div class="song-title">Dancing Queen <span class="genre-tag">Classic</span></div>
+                        <div class="song-artist">ABBA</div>
+                        <div class="song-requester">Requested by Emma W.</div>
+                    </div>
+                    <div class="song-votes">
+                        <span class="vote-count">22</span>
+                        <button class="vote-btn" onclick="vote(this)">&#10084;</button>
+                    </div>
+                </div>
+
+                <div class="song-card" data-category="pop" data-votes="19">
+                    <div class="song-rank">5</div>
+                    <div class="song-info">
+                        <div class="song-title">Shake It Off <span class="genre-tag">Pop</span></div>
+                        <div class="song-artist">Taylor Swift</div>
+                        <div class="song-requester">Requested by Lucy B.</div>
+                    </div>
+                    <div class="song-votes">
+                        <span class="vote-count">19</span>
+                        <button class="vote-btn" onclick="vote(this)">&#10084;</button>
+                    </div>
+                </div>
+
+                <div class="song-card" data-category="romantic" data-votes="18">
+                    <div class="song-rank">6</div>
+                    <div class="song-info">
+                        <div class="song-title">Perfect <span class="genre-tag">Romantic</span></div>
+                        <div class="song-artist">Ed Sheeran</div>
+                        <div class="song-requester">Requested by Rachel H.</div>
+                    </div>
+                    <div class="song-votes">
+                        <span class="vote-count">18</span>
+                        <button class="vote-btn" onclick="vote(this)">&#10084;</button>
+                    </div>
+                </div>
+
+                <div class="song-card" data-category="dance classic" data-votes="16">
+                    <div class="song-rank">7</div>
+                    <div class="song-info">
+                        <div class="song-title">September <span class="genre-tag">Classic</span></div>
+                        <div class="song-artist">Earth, Wind & Fire</div>
+                        <div class="song-requester">Requested by David O.</div>
+                    </div>
+                    <div class="song-votes">
+                        <span class="vote-count">16</span>
+                        <button class="vote-btn" onclick="vote(this)">&#10084;</button>
+                    </div>
+                </div>
+
+                <div class="song-card" data-category="pop dance" data-votes="15">
+                    <div class="song-rank">8</div>
+                    <div class="song-info">
+                        <div class="song-title">Can't Stop the Feeling <span class="genre-tag">Pop</span></div>
+                        <div class="song-artist">Justin Timberlake</div>
+                        <div class="song-requester">Requested by Chris T.</div>
+                    </div>
+                    <div class="song-votes">
+                        <span class="vote-count">15</span>
+                        <button class="vote-btn" onclick="vote(this)">&#10084;</button>
+                    </div>
+                </div>
+
+                <div class="song-card" data-category="romantic" data-votes="14">
+                    <div class="song-rank">9</div>
+                    <div class="song-info">
+                        <div class="song-title">At Last <span class="genre-tag">Romantic</span></div>
+                        <div class="song-artist">Etta James</div>
+                        <div class="song-requester">Requested by Mum Green</div>
+                    </div>
+                    <div class="song-votes">
+                        <span class="vote-count">14</span>
+                        <button class="vote-btn" onclick="vote(this)">&#10084;</button>
+                    </div>
+                </div>
+
+                <div class="song-card" data-category="dance" data-votes="12">
+                    <div class="song-rank">10</div>
+                    <div class="song-info">
+                        <div class="song-title">Shut Up and Dance <span class="genre-tag">Dance</span></div>
+                        <div class="song-artist">Walk the Moon</div>
+                        <div class="song-requester">Requested by Alex D.</div>
+                    </div>
+                    <div class="song-votes">
+                        <span class="vote-count">12</span>
+                        <button class="vote-btn" onclick="vote(this)">&#10084;</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spotify Preview -->
+            <div class="spotify-preview">
+                <h3>Preview Our Playlist</h3>
+                <p style="color: var(--color-warm-gray); margin-bottom: 1rem;">Listen to some of our favourite tunes that will definitely be played!</p>
+                <div style="max-width: 600px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-soft);">
+                    <iframe
+                        style="border-radius:12px"
+                        src="https://open.spotify.com/embed/playlist/PLAYLIST_ID?utm_source=generator&theme=0"
+                        width="100%"
+                        height="352"
+                        frameBorder="0"
+                        allowfullscreen=""
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        loading="lazy">
+                    </iframe>
+                </div>
+                <p style="color: var(--color-warm-gray); font-size: 0.85rem; margin-top: 1rem; font-style: italic;">Replace PLAYLIST_ID with your actual Spotify playlist</p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">Song added! Thanks for the suggestion!</div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Vote function
+        function vote(btn) {
+            const card = btn.closest('.song-card');
+            const countEl = card.querySelector('.vote-count');
+            let count = parseInt(countEl.textContent);
+
+            if (btn.classList.contains('voted')) {
+                btn.classList.remove('voted');
+                count--;
+            } else {
+                btn.classList.add('voted');
+                count++;
+            }
+
+            countEl.textContent = count;
+            card.dataset.votes = count;
+
+            // Re-sort the list
+            sortSongs();
+        }
+
+        // Sort songs by votes
+        function sortSongs() {
+            const list = document.getElementById('song-list');
+            const cards = Array.from(list.querySelectorAll('.song-card'));
+
+            cards.sort((a, b) => parseInt(b.dataset.votes) - parseInt(a.dataset.votes));
+
+            cards.forEach((card, i) => {
+                const rank = card.querySelector('.song-rank');
+                rank.textContent = i + 1;
+                rank.classList.toggle('top-3', i < 3);
+                list.appendChild(card);
+            });
+        }
+
+        // Category filtering
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.song-tab');
+            const cards = document.querySelectorAll('.song-card');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const category = this.dataset.category;
+
+                    tabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    cards.forEach(card => {
+                        if (category === 'all') {
+                            card.style.display = 'flex';
+                        } else if (category === 'top') {
+                            const votes = parseInt(card.dataset.votes);
+                            card.style.display = votes >= 15 ? 'flex' : 'none';
+                        } else if (card.dataset.category.includes(category)) {
+                            card.style.display = 'flex';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+
+            // Form submission
+            const form = document.getElementById('song-request-form');
+            const toast = document.getElementById('toast');
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const title = document.getElementById('song-title').value;
+                const artist = document.getElementById('song-artist').value || 'Unknown Artist';
+                const name = document.getElementById('your-name').value;
+
+                // Create new song card
+                const list = document.getElementById('song-list');
+                const newCard = document.createElement('div');
+                newCard.className = 'song-card';
+                newCard.dataset.category = 'pop';
+                newCard.dataset.votes = '1';
+                newCard.innerHTML = `
+                    <div class="song-rank">${list.children.length + 1}</div>
+                    <div class="song-info">
+                        <div class="song-title">${title} <span class="genre-tag">New</span></div>
+                        <div class="song-artist">${artist}</div>
+                        <div class="song-requester">Requested by ${name}</div>
+                    </div>
+                    <div class="song-votes">
+                        <span class="vote-count">1</span>
+                        <button class="vote-btn voted" onclick="vote(this)">&#10084;</button>
+                    </div>
+                `;
+
+                list.appendChild(newCard);
+
+                // Update count
+                document.getElementById('total-songs').textContent =
+                    parseInt(document.getElementById('total-songs').textContent) + 1;
+
+                // Show toast
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3000);
+
+                // Reset form
+                form.reset();
+            });
+        });
+    </script>
+</body>
+</html>

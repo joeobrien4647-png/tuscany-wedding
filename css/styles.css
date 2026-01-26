@@ -1,0 +1,1756 @@
+/* ============================================
+   Sophie & Joe - Tuscany Wedding 2027
+   ============================================ */
+
+/* CSS Variables - Tuscan Color Palette */
+:root {
+    --color-terracotta: #C45C26;
+    --color-terracotta-light: #D4845C;
+    --color-olive: #5C6B4A;
+    --color-olive-light: #7A8B68;
+    --color-cream: #FAF6F0;
+    --color-gold: #C9A961;
+    --color-gold-light: #E0C988;
+    --color-charcoal: #2C2C2C;
+    --color-warm-gray: #6B6460;
+    --color-white: #FFFFFF;
+
+    --font-heading: 'Playfair Display', Georgia, serif;
+    --font-body: 'Lato', 'Segoe UI', sans-serif;
+
+    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.08);
+    --shadow-medium: 0 8px 30px rgba(0, 0, 0, 0.12);
+    --transition: all 0.3s ease;
+}
+
+/* Reset & Base */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--color-charcoal);
+    background-color: var(--color-cream);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--color-charcoal);
+}
+
+h1 { font-size: 3.5rem; }
+h2 { font-size: 2.5rem; }
+h3 { font-size: 1.75rem; }
+h4 { font-size: 1.25rem; }
+
+p { margin-bottom: 1rem; }
+
+a {
+    color: var(--color-terracotta);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+a:hover {
+    color: var(--color-terracotta-light);
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Container */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* ============================================
+   Navigation
+   ============================================ */
+.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--color-white);
+    box-shadow: var(--shadow-soft);
+    z-index: 1000;
+    padding: 1rem 0;
+}
+
+.nav .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-logo {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--color-terracotta);
+}
+
+.nav-logo span {
+    color: var(--color-gold);
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+}
+
+.nav-links a {
+    color: var(--color-charcoal);
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0.5rem 0;
+    position: relative;
+}
+
+.nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--color-terracotta);
+    transition: var(--transition);
+}
+
+.nav-links a:hover::after,
+.nav-links a.active::after {
+    width: 100%;
+}
+
+.nav-toggle {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.nav-toggle span {
+    width: 25px;
+    height: 2px;
+    background: var(--color-charcoal);
+    transition: var(--transition);
+}
+
+/* ============================================
+   Hero Section
+   ============================================ */
+.hero {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+                url('../images/hero-bg.jpg') center/cover no-repeat;
+    background-color: var(--color-olive);
+    color: var(--color-white);
+    padding: 2rem;
+}
+
+.hero-content {
+    max-width: 800px;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.hero h1 {
+    font-size: 4.5rem;
+    color: var(--color-white);
+    margin-bottom: 1.5rem;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.hero-date {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.hero-venue {
+    font-size: 1.25rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+}
+
+/* Countdown Timer */
+.countdown {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 3rem 0;
+}
+
+.countdown-item {
+    text-align: center;
+}
+
+.countdown-number {
+    font-family: var(--font-heading);
+    font-size: 3rem;
+    display: block;
+    line-height: 1;
+}
+
+.countdown-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.8;
+}
+
+/* ============================================
+   Section Styles
+   ============================================ */
+.section {
+    padding: 6rem 0;
+}
+
+.section-alt {
+    background: var(--color-white);
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 4rem;
+}
+
+.section-header h2 {
+    margin-bottom: 1rem;
+}
+
+.section-header p {
+    color: var(--color-warm-gray);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.section-divider {
+    width: 60px;
+    height: 2px;
+    background: var(--color-gold);
+    margin: 1.5rem auto;
+}
+
+/* ============================================
+   Cards
+   ============================================ */
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.card {
+    background: var(--color-white);
+    border-radius: 8px;
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.card-image {
+    height: 200px;
+    background: var(--color-olive-light);
+    background-size: cover;
+    background-position: center;
+}
+
+.card-content {
+    padding: 1.5rem;
+}
+
+.card-content h3 {
+    margin-bottom: 0.75rem;
+    color: var(--color-terracotta);
+}
+
+.card-content p {
+    color: var(--color-warm-gray);
+    font-size: 0.95rem;
+}
+
+/* ============================================
+   Timeline (Schedule)
+   ============================================ */
+.timeline {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.timeline::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 100%;
+    background: var(--color-gold);
+}
+
+.timeline-item {
+    position: relative;
+    padding: 2rem 0;
+    display: flex;
+    align-items: flex-start;
+}
+
+.timeline-item:nth-child(odd) {
+    flex-direction: row-reverse;
+}
+
+.timeline-dot {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 16px;
+    background: var(--color-terracotta);
+    border: 3px solid var(--color-gold);
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.timeline-content {
+    width: 45%;
+    background: var(--color-white);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow-soft);
+}
+
+.timeline-date {
+    font-family: var(--font-heading);
+    color: var(--color-terracotta);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.timeline-content h3 {
+    margin-bottom: 0.5rem;
+}
+
+.timeline-content p {
+    color: var(--color-warm-gray);
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+.timeline-meta {
+    font-size: 0.85rem;
+    color: var(--color-olive);
+}
+
+/* ============================================
+   Page Header
+   ============================================ */
+.page-header {
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+                url('../images/tuscany-bg.jpg') center/cover no-repeat;
+    background-color: var(--color-olive);
+    color: var(--color-white);
+    text-align: center;
+    padding: 10rem 2rem 4rem;
+    margin-top: 70px;
+}
+
+.page-header h1 {
+    color: var(--color-white);
+    margin-bottom: 0.5rem;
+}
+
+.page-header p {
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ============================================
+   Accommodation Cards
+   ============================================ */
+.accommodation-card {
+    display: flex;
+    background: var(--color-white);
+    border-radius: 8px;
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.accommodation-card-image {
+    width: 300px;
+    min-height: 250px;
+    background: var(--color-olive-light);
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+}
+
+.accommodation-card-content {
+    padding: 2rem;
+    flex: 1;
+}
+
+.accommodation-card-content h3 {
+    color: var(--color-terracotta);
+    margin-bottom: 0.5rem;
+}
+
+.accommodation-meta {
+    display: flex;
+    gap: 1.5rem;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+    color: var(--color-olive);
+}
+
+.price-tag {
+    background: var(--color-gold-light);
+    color: var(--color-charcoal);
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+/* ============================================
+   RSVP Form
+   ============================================ */
+.rsvp-form {
+    max-width: 600px;
+    margin: 0 auto;
+    background: var(--color-white);
+    padding: 3rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow-soft);
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--color-charcoal);
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.875rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-terracotta);
+    box-shadow: 0 0 0 3px rgba(196, 92, 38, 0.1);
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.radio-group {
+    display: flex;
+    gap: 2rem;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.radio-option input[type="radio"] {
+    width: auto;
+    accent-color: var(--color-terracotta);
+}
+
+/* ============================================
+   Buttons
+   ============================================ */
+.btn {
+    display: inline-block;
+    padding: 1rem 2.5rem;
+    font-family: var(--font-body);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-primary {
+    background: var(--color-terracotta);
+    color: var(--color-white);
+}
+
+.btn-primary:hover {
+    background: var(--color-terracotta-light);
+    color: var(--color-white);
+}
+
+.btn-outline {
+    background: transparent;
+    color: var(--color-terracotta);
+    border: 2px solid var(--color-terracotta);
+}
+
+.btn-outline:hover {
+    background: var(--color-terracotta);
+    color: var(--color-white);
+}
+
+/* ============================================
+   Gallery
+   ============================================ */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.gallery-item {
+    position: relative;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: var(--transition);
+}
+
+.gallery-item:hover img {
+    transform: scale(1.05);
+}
+
+.gallery-item-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.gallery-item:hover .gallery-item-overlay {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Lightbox */
+.lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+}
+
+.lightbox.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.lightbox img {
+    max-width: 90%;
+    max-height: 90vh;
+    border-radius: 4px;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 2rem;
+    right: 2rem;
+    color: var(--color-white);
+    font-size: 2rem;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: var(--transition);
+}
+
+.lightbox-close:hover {
+    opacity: 1;
+}
+
+/* ============================================
+   FAQ Accordion
+   ============================================ */
+.faq-list {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.faq-item {
+    background: var(--color-white);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+}
+
+.faq-question {
+    padding: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.faq-question:hover {
+    color: var(--color-terracotta);
+}
+
+.faq-icon {
+    font-size: 1.5rem;
+    color: var(--color-gold);
+    transition: var(--transition);
+}
+
+.faq-item.active .faq-icon {
+    transform: rotate(45deg);
+}
+
+.faq-answer {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.faq-answer-content {
+    padding: 0 1.5rem 1.5rem;
+    color: var(--color-warm-gray);
+}
+
+.faq-item.active .faq-answer {
+    max-height: 500px;
+}
+
+/* ============================================
+   Honeymoon Fund
+   ============================================ */
+.honeymoon-section {
+    background: linear-gradient(135deg, var(--color-olive) 0%, var(--color-olive-light) 100%);
+    color: var(--color-white);
+    text-align: center;
+    padding: 4rem 2rem;
+    border-radius: 8px;
+    margin-top: 4rem;
+}
+
+.honeymoon-section h2 {
+    color: var(--color-white);
+    margin-bottom: 1rem;
+}
+
+.honeymoon-section p {
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto 2rem;
+}
+
+/* ============================================
+   Footer
+   ============================================ */
+.footer {
+    background: var(--color-charcoal);
+    color: var(--color-white);
+    text-align: center;
+    padding: 3rem 2rem;
+}
+
+.footer-names {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.footer-names span {
+    color: var(--color-gold);
+}
+
+.footer p {
+    opacity: 0.7;
+    font-size: 0.9rem;
+}
+
+/* ============================================
+   Utility Classes
+   ============================================ */
+.text-center { text-align: center; }
+.text-gold { color: var(--color-gold); }
+.text-terracotta { color: var(--color-terracotta); }
+.mt-2 { margin-top: 2rem; }
+.mb-2 { margin-bottom: 2rem; }
+
+/* ============================================
+   Responsive Design
+   ============================================ */
+@media (max-width: 992px) {
+    h1 { font-size: 2.75rem; }
+    h2 { font-size: 2rem; }
+
+    .hero h1 { font-size: 3.5rem; }
+
+    .timeline::before {
+        left: 20px;
+    }
+
+    .timeline-item,
+    .timeline-item:nth-child(odd) {
+        flex-direction: row;
+        padding-left: 60px;
+    }
+
+    .timeline-dot {
+        left: 20px;
+    }
+
+    .timeline-content {
+        width: 100%;
+    }
+
+    .accommodation-card {
+        flex-direction: column;
+    }
+
+    .accommodation-card-image {
+        width: 100%;
+        height: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .nav-links {
+        position: fixed;
+        top: 70px;
+        left: 0;
+        right: 0;
+        background: var(--color-white);
+        flex-direction: column;
+        padding: 2rem;
+        gap: 1rem;
+        box-shadow: var(--shadow-medium);
+        transform: translateY(-100%);
+        opacity: 0;
+        visibility: hidden;
+        transition: var(--transition);
+    }
+
+    .nav-links.active {
+        transform: translateY(0);
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .nav-toggle {
+        display: flex;
+    }
+
+    .hero h1 { font-size: 2.5rem; }
+
+    .countdown {
+        gap: 1rem;
+    }
+
+    .countdown-number {
+        font-size: 2rem;
+    }
+
+    .section {
+        padding: 4rem 0;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .rsvp-form {
+        padding: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 1rem;
+    }
+
+    h1 { font-size: 2rem; }
+    .hero h1 { font-size: 2rem; }
+
+    .countdown-item {
+        padding: 0 0.5rem;
+    }
+}
+
+/* ============================================
+   Back to Top Button
+   ============================================ */
+.back-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 50px;
+    height: 50px;
+    background: var(--color-terracotta);
+    color: var(--color-white);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-medium);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: var(--transition);
+    z-index: 999;
+}
+
+.back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.back-to-top:hover {
+    background: var(--color-terracotta-light);
+    transform: translateY(-3px);
+}
+
+/* ============================================
+   Page Transitions
+   ============================================ */
+.page-transition {
+    animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.section {
+    animation: slideUp 0.6s ease-out;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ============================================
+   Spotify Embed
+   ============================================ */
+.spotify-embed {
+    max-width: 400px;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+}
+
+/* ============================================
+   Photo Sharing Section
+   ============================================ */
+.photo-share-section {
+    background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-terracotta) 100%);
+    color: var(--color-white);
+    text-align: center;
+    padding: 4rem 2rem;
+    border-radius: 8px;
+}
+
+.photo-share-section h2 {
+    color: var(--color-white);
+}
+
+.hashtag-display {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    margin: 1.5rem 0;
+    padding: 1rem 2rem;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    display: inline-block;
+}
+
+/* ============================================
+   Info Cards (Emergency, Currency, etc.)
+   ============================================ */
+.info-card {
+    background: var(--color-white);
+    border-left: 4px solid var(--color-terracotta);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: 0 8px 8px 0;
+    box-shadow: var(--shadow-soft);
+}
+
+.info-card h4 {
+    color: var(--color-terracotta);
+    margin-bottom: 0.5rem;
+}
+
+.info-card p {
+    margin-bottom: 0.5rem;
+    color: var(--color-warm-gray);
+}
+
+.info-card a {
+    color: var(--color-terracotta);
+    font-weight: 600;
+}
+
+/* ============================================
+   Flight Search Links
+   ============================================ */
+.flight-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1.5rem;
+}
+
+.flight-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-white);
+    border: 2px solid var(--color-terracotta);
+    color: var(--color-terracotta);
+    border-radius: 8px;
+    font-weight: 600;
+    transition: var(--transition);
+}
+
+.flight-link:hover {
+    background: var(--color-terracotta);
+    color: var(--color-white);
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+@media print {
+    .nav,
+    .back-to-top,
+    .btn,
+    .hero,
+    .page-header,
+    footer,
+    .honeymoon-section,
+    .photo-share-section {
+        display: none !important;
+    }
+
+    body {
+        background: white;
+        color: black;
+        font-size: 12pt;
+    }
+
+    .section {
+        padding: 1rem 0;
+        page-break-inside: avoid;
+    }
+
+    .card,
+    .accommodation-card,
+    .timeline-content,
+    .faq-item {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+
+    .card-grid {
+        display: block;
+    }
+
+    .card {
+        margin-bottom: 1rem;
+        page-break-inside: avoid;
+    }
+
+    a {
+        color: black;
+        text-decoration: underline;
+    }
+
+    a[href]::after {
+        content: " (" attr(href) ")";
+        font-size: 0.8em;
+        color: #666;
+    }
+
+    .faq-answer {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    h1, h2, h3 {
+        page-break-after: avoid;
+    }
+}
+
+/* ============================================
+   Dark Mode
+   ============================================ */
+.dark-mode-toggle {
+    position: fixed;
+    bottom: 2rem;
+    left: 2rem;
+    width: 50px;
+    height: 50px;
+    background: var(--color-charcoal);
+    color: var(--color-gold);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-medium);
+    transition: var(--transition);
+    z-index: 999;
+}
+
+.dark-mode-toggle:hover {
+    transform: scale(1.1);
+}
+
+body.dark-mode {
+    --color-cream: #1a1a1a;
+    --color-white: #2c2c2c;
+    --color-charcoal: #f0f0f0;
+    --color-warm-gray: #a0a0a0;
+    background-color: #121212;
+}
+
+body.dark-mode .nav {
+    background: #1a1a1a;
+}
+
+body.dark-mode .card,
+body.dark-mode .message-card,
+body.dark-mode .song-card,
+body.dark-mode .event-card,
+body.dark-mode .guest-card {
+    background: #2c2c2c;
+}
+
+body.dark-mode .footer {
+    background: #0a0a0a;
+}
+
+body.dark-mode .hero {
+    background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), var(--hero-bg);
+}
+
+/* ============================================
+   Confetti Animation
+   ============================================ */
+.confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    opacity: 0;
+    animation: confetti-fall 4s ease-out forwards;
+}
+
+@keyframes confetti-fall {
+    0% {
+        opacity: 1;
+        transform: translateY(-100px) rotate(0deg);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(100vh) rotate(720deg);
+    }
+}
+
+/* ============================================
+   Loading Screen
+   ============================================ */
+.loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--color-cream);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.loading-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+}
+
+.loading-logo {
+    font-family: var(--font-heading);
+    font-size: 2.5rem;
+    color: var(--color-terracotta);
+    margin-bottom: 2rem;
+}
+
+.loading-logo span {
+    color: var(--color-gold);
+}
+
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid var(--color-cream);
+    border-top-color: var(--color-terracotta);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.loading-text {
+    margin-top: 1rem;
+    color: var(--color-warm-gray);
+    font-size: 0.9rem;
+}
+
+/* ============================================
+   Animated Hero (Parallax & Floating Elements)
+   ============================================ */
+.hero {
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    z-index: -1;
+}
+
+.hero-floating {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.floating-heart {
+    font-size: 2rem;
+    color: rgba(255, 255, 255, 0.2);
+    animation: float 6s ease-in-out infinite;
+}
+
+.floating-heart:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; }
+.floating-heart:nth-child(2) { left: 80%; top: 30%; animation-delay: 1s; }
+.floating-heart:nth-child(3) { left: 20%; top: 70%; animation-delay: 2s; }
+.floating-heart:nth-child(4) { left: 70%; top: 60%; animation-delay: 3s; }
+.floating-heart:nth-child(5) { left: 50%; top: 40%; animation-delay: 1.5s; }
+
+@keyframes float {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(10deg); }
+}
+
+/* ============================================
+   WhatsApp Button
+   ============================================ */
+.whatsapp-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    background: #25D366;
+    color: white;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.whatsapp-btn:hover {
+    background: #128C7E;
+    color: white;
+    transform: scale(1.05);
+}
+
+.whatsapp-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
+}
+
+/* ============================================
+   Gift Registry Cards
+   ============================================ */
+.gift-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.gift-card {
+    background: var(--color-white);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: var(--shadow-soft);
+    transition: var(--transition);
+}
+
+.gift-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-medium);
+}
+
+.gift-image {
+    height: 180px;
+    background: linear-gradient(135deg, var(--color-terracotta-light), var(--color-gold-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+}
+
+.gift-content {
+    padding: 1.5rem;
+}
+
+.gift-content h4 {
+    color: var(--color-charcoal);
+    margin-bottom: 0.5rem;
+}
+
+.gift-content p {
+    color: var(--color-warm-gray);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.gift-price {
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    color: var(--color-terracotta);
+    margin-bottom: 1rem;
+}
+
+.gift-progress {
+    background: var(--color-cream);
+    border-radius: 10px;
+    height: 10px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.gift-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-terracotta), var(--color-gold));
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+.gift-funded {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--color-warm-gray);
+}
+
+/* ============================================
+   RSVP Deadline Countdown
+   ============================================ */
+.rsvp-deadline-section {
+    background: linear-gradient(135deg, var(--color-terracotta) 0%, var(--color-gold) 100%);
+    padding: 2rem 0;
+}
+
+.rsvp-deadline-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    color: white;
+    text-align: center;
+    flex-wrap: wrap;
+}
+
+.rsvp-deadline-icon {
+    font-size: 3rem;
+}
+
+.rsvp-deadline-content h3 {
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.rsvp-deadline-content p {
+    opacity: 0.9;
+    margin-bottom: 1rem;
+}
+
+.rsvp-countdown {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+}
+
+.rsvp-countdown-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.rsvp-countdown-number {
+    font-family: var(--font-heading);
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    min-width: 60px;
+}
+
+.rsvp-countdown-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 0.5rem;
+    opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+    .rsvp-deadline-card {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .rsvp-countdown {
+        gap: 1rem;
+    }
+
+    .rsvp-countdown-number {
+        font-size: 1.5rem;
+        padding: 0.5rem 0.75rem;
+        min-width: 50px;
+    }
+}
+
+/* ============================================
+   Printable Itinerary
+   ============================================ */
+.itinerary-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.print-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: var(--color-charcoal);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.print-btn:hover {
+    background: var(--color-terracotta);
+    transform: translateY(-2px);
+}
+
+.itinerary-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-soft);
+}
+
+.itinerary-header {
+    text-align: center;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid var(--color-cream);
+    margin-bottom: 2rem;
+}
+
+.itinerary-header h2 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.itinerary-header p {
+    color: var(--color-warm-gray);
+}
+
+.itinerary-day {
+    margin-bottom: 2rem;
+    page-break-inside: avoid;
+}
+
+.itinerary-day h3 {
+    color: var(--color-terracotta);
+    border-bottom: 1px solid var(--color-cream);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.itinerary-event {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px dashed var(--color-cream);
+}
+
+.itinerary-event:last-child {
+    border-bottom: none;
+}
+
+.itinerary-time {
+    min-width: 80px;
+    font-weight: 600;
+    color: var(--color-terracotta);
+}
+
+.itinerary-details h4 {
+    margin-bottom: 0.25rem;
+}
+
+.itinerary-details p {
+    color: var(--color-warm-gray);
+    font-size: 0.9rem;
+    margin-bottom: 0;
+}
+
+@media print {
+    .itinerary-actions,
+    .nav,
+    .page-header,
+    footer {
+        display: none !important;
+    }
+
+    .itinerary-container {
+        box-shadow: none;
+        padding: 0;
+    }
+
+    .itinerary-day {
+        page-break-inside: avoid;
+    }
+}
+
+/* ============================================
+   Accessibility Info Section
+   ============================================ */
+.accessibility-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.accessibility-card {
+    background: var(--color-white);
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: var(--shadow-soft);
+}
+
+.accessibility-card .icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.accessibility-card h4 {
+    color: var(--color-terracotta);
+    margin-bottom: 0.75rem;
+}
+
+.accessibility-card p {
+    color: var(--color-warm-gray);
+    margin-bottom: 0;
+}
+
+.accessibility-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.accessibility-card li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-cream);
+    color: var(--color-warm-gray);
+}
+
+.accessibility-card li:last-child {
+    border-bottom: none;
+}
+
+/* ============================================
+   Photo Booth Props Preview
+   ============================================ */
+.props-preview {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.prop-item {
+    background: var(--color-white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-soft);
+    transition: var(--transition);
+    min-width: 120px;
+}
+
+.prop-item:hover {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.prop-item .prop-icon {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.prop-item span:last-child {
+    font-size: 0.85rem;
+    color: var(--color-warm-gray);
+}
+
+/* ============================================
+   Italian Pronunciation Guide
+   ============================================ */
+.pronunciation-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.pronunciation-item {
+    background: var(--color-white);
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-soft);
+}
+
+.pronunciation-item .italian {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--color-terracotta);
+}
+
+.pronunciation-item .english {
+    color: var(--color-warm-gray);
+    font-size: 0.9rem;
+}
+
+.pronunciation-item .phonetic {
+    font-style: italic;
+    color: var(--color-olive);
+    font-size: 0.85rem;
+}
+
+.play-audio-btn {
+    background: var(--color-cream);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 1rem;
+}
+
+.play-audio-btn:hover {
+    background: var(--color-gold);
+}
+
+/* ============================================
+   Music Taste Section
+   ============================================ */
+.music-taste-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.music-person {
+    text-align: center;
+}
+
+.music-person h4 {
+    color: var(--color-terracotta);
+    margin-bottom: 1rem;
+}
+
+.music-genres {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.genre-tag {
+    background: var(--color-cream);
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    color: var(--color-charcoal);
+}
+
+.favorite-artists {
+    background: var(--color-white);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-soft);
+}
+
+.favorite-artists h5 {
+    font-size: 0.9rem;
+    color: var(--color-warm-gray);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.favorite-artists ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.favorite-artists li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-cream);
+    color: var(--color-charcoal);
+}
+
+.favorite-artists li:last-child {
+    border-bottom: none;
+}

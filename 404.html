@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found | Sophie & Joe</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .error-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+            background: var(--color-cream);
+        }
+
+        .error-content {
+            max-width: 500px;
+        }
+
+        .error-icon {
+            font-size: 6rem;
+            margin-bottom: 1rem;
+        }
+
+        .error-code {
+            font-family: var(--font-heading);
+            font-size: 8rem;
+            color: var(--color-terracotta);
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+
+        .error-title {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            color: var(--color-charcoal);
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            color: var(--color-warm-gray);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .error-links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .error-decoration {
+            margin-top: 3rem;
+            font-size: 2rem;
+            color: var(--color-gold);
+        }
+    </style>
+</head>
+<body>
+    <div class="error-page">
+        <div class="error-content">
+            <div class="error-icon">&#128139;</div>
+            <div class="error-code">404</div>
+            <h1 class="error-title">Oops! Lost in Tuscany?</h1>
+            <p class="error-message">
+                Don't worry, even the best explorers take a wrong turn sometimes! The page you're looking for seems to have wandered off into the Tuscan hills.
+            </p>
+            <div class="error-links">
+                <a href="index.html" class="btn btn-primary">Go Home</a>
+                <a href="schedule.html" class="btn btn-outline">View Schedule</a>
+            </div>
+            <div class="error-decoration">
+                &#127815; &#127803; &#127815;
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

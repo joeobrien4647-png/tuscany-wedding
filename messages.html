@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guest Messages | Sophie & Joe</title>
+    <meta name="description" content="Leave your well-wishes for Sophie and Joe's wedding celebration.">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Guest Messages | Sophie & Joe">
+    <meta property="og:description" content="Leave your well-wishes for Sophie and Joe's wedding celebration.">
+    <meta property="og:image" content="images/hero-bg.jpg">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Message Form */
+        .message-form {
+            background: var(--color-white);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--shadow-soft);
+            max-width: 600px;
+            margin: 0 auto 3rem;
+        }
+        .message-form h3 {
+            font-family: var(--font-heading);
+            color: var(--color-terracotta);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        @media (max-width: 500px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        .message-form input,
+        .message-form textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid var(--color-cream);
+            border-radius: 8px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        .message-form input:focus,
+        .message-form textarea:focus {
+            outline: none;
+            border-color: var(--color-gold);
+        }
+        .message-form textarea {
+            min-height: 120px;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+        .message-form button {
+            width: 100%;
+        }
+        .char-count {
+            text-align: right;
+            font-size: 0.8rem;
+            color: var(--color-warm-gray);
+            margin-top: -0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Messages Wall */
+        .messages-wall {
+            column-count: 3;
+            column-gap: 1.5rem;
+        }
+        @media (max-width: 900px) {
+            .messages-wall {
+                column-count: 2;
+            }
+        }
+        @media (max-width: 600px) {
+            .messages-wall {
+                column-count: 1;
+            }
+        }
+
+        /* Message Card */
+        .message-card {
+            background: var(--color-white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-soft);
+            break-inside: avoid;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .message-card::before {
+            content: '"';
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            font-size: 5rem;
+            font-family: var(--font-heading);
+            color: var(--color-cream);
+            line-height: 1;
+            z-index: 0;
+        }
+        .message-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-medium);
+        }
+        .message-content {
+            position: relative;
+            z-index: 1;
+            color: var(--color-charcoal);
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+        .message-author {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-terracotta-light), var(--color-gold-light));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+        .message-name {
+            font-weight: 600;
+            color: var(--color-charcoal);
+        }
+        .message-date {
+            font-size: 0.8rem;
+            color: var(--color-warm-gray);
+        }
+
+        /* Different card colors */
+        .message-card:nth-child(3n+1) .message-avatar {
+            background: linear-gradient(135deg, var(--color-terracotta-light), var(--color-terracotta));
+        }
+        .message-card:nth-child(3n+2) .message-avatar {
+            background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold));
+        }
+        .message-card:nth-child(3n+3) .message-avatar {
+            background: linear-gradient(135deg, var(--color-olive-light), var(--color-olive));
+        }
+
+        /* Stats */
+        .message-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-number {
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            color: var(--color-terracotta);
+        }
+        .stat-label {
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Success message */
+        .success-message {
+            background: #E8F5E9;
+            color: #2E7D32;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .success-message.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        /* Filter tabs */
+        .filter-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .filter-tab {
+            padding: 0.5rem 1rem;
+            background: var(--color-cream);
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+            color: var(--color-warm-gray);
+        }
+        .filter-tab:hover,
+        .filter-tab.active {
+            background: var(--color-terracotta);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Guest Messages</h1>
+        <p>Share your love and well-wishes</p>
+    </header>
+
+    <!-- Messages Section -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Leave Us a Message</h2>
+                <div class="section-divider"></div>
+                <p>We'd love to hear from you! Leave a message that we'll treasure forever.</p>
+            </div>
+
+            <!-- Message Form -->
+            <div class="message-form">
+                <h3>Write Your Message</h3>
+                <div class="success-message" id="success-message">
+                    Thank you for your beautiful message! It means the world to us.
+                </div>
+                <form id="message-form">
+                    <div class="form-row">
+                        <input type="text" id="msg-name" placeholder="Your Name" required>
+                        <input type="text" id="msg-relation" placeholder="How do you know us?">
+                    </div>
+                    <textarea id="msg-content" placeholder="Write your message here..." maxlength="500" required></textarea>
+                    <div class="char-count"><span id="char-count">0</span>/500</div>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </form>
+            </div>
+
+            <!-- Stats -->
+            <div class="message-stats">
+                <div class="stat">
+                    <div class="stat-number" id="message-count">12</div>
+                    <div class="stat-label">Messages</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="love-count">156</div>
+                    <div class="stat-label">Hearts Shared</div>
+                </div>
+            </div>
+
+            <!-- Filter -->
+            <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All Messages</button>
+                <button class="filter-tab" data-filter="recent">Most Recent</button>
+                <button class="filter-tab" data-filter="family">Family</button>
+                <button class="filter-tab" data-filter="friends">Friends</button>
+            </div>
+
+            <!-- Messages Wall -->
+            <div class="messages-wall" id="messages-wall">
+                <!-- Sample messages - these would be dynamically loaded in a real app -->
+                <div class="message-card" data-type="family">
+                    <p class="message-content">We are so incredibly proud of you both! Watching your love grow has been one of our greatest joys. Here's to a lifetime of happiness together. We love you!</p>
+                    <div class="message-author">
+                        <div class="message-avatar">MG</div>
+                        <div>
+                            <div class="message-name">Mum & Dad Green</div>
+                            <div class="message-date">Sophie's Parents</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-card" data-type="family">
+                    <p class="message-content">Joe, we couldn't have asked for a better person to join our family. Sophie, welcome to the O'Brien clan! Can't wait to celebrate with you in Tuscany!</p>
+                    <div class="message-author">
+                        <div class="message-avatar">OB</div>
+                        <div>
+                            <div class="message-name">The O'Brien Family</div>
+                            <div class="message-date">Joe's Parents</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-card" data-type="friends">
+                    <p class="message-content">From freshers week to forever! I always knew you'd find your person, Soph. Joe, you're a lucky man. See you on the dance floor in Italy!</p>
+                    <div class="message-author">
+                        <div class="message-avatar">JT</div>
+                        <div>
+                            <div class="message-name">Jane Thompson</div>
+                            <div class="message-date">University Friend</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-card" data-type="friends">
+                    <p class="message-content">Mate, you've done well! Sophie's way out of your league but somehow you pulled it off. Proud to be your best man. Let's make it a weekend to remember!</p>
+                    <div class="message-author">
+                        <div class="message-avatar">MJ</div>
+                        <div>
+                            <div class="message-name">Mike Johnson</div>
+                            <div class="message-date">Best Man</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-card" data-type="friends">
+                    <p class="message-content">You two are absolute couple goals. The way you look at each other gives me hope! Wishing you all the love and happiness in the world.</p>
+                    <div class="message-author">
+                        <div class="message-avatar">EW</div>
+                        <div>
+                            <div class="message-name">Emma Wilson</div>
+                            <div class="message-date">Work Colleague</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-card" data-type="family">
+                    <p class="message-content">My little sis is getting married! Still can't believe it. Joe, take care of her or you'll have me to answer to. Just kidding... sort of. Love you both!</p>
+                    <div class="message-author">
+                        <div class="message-avatar">SG</div>
+                        <div>
+                            <div class="message-name">Sarah Green</div>
+                            <div class="message-date">Sophie's Sister</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-card" data-type="friends">
+                    <p class="message-content">So happy for you both! Italy is going to be AMAZING. Already practising my Aperol Spritz ordering skills. Congratulations!!</p>
+                    <div class="message-author">
+                        <div class="message-avatar">CT</div>
+                        <div>
+                            <div class="message-name">Chris Taylor</div>
+                            <div class="message-date">Friend</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-card" data-type="friends">
+                    <p class="message-content">To the couple who restored my faith in love - may your marriage be as beautiful as your relationship. Cheers to love, laughter, and happily ever after!</p>
+                    <div class="message-author">
+                        <div class="message-avatar">LB</div>
+                        <div>
+                            <div class="message-name">Lucy Brown</div>
+                            <div class="message-date">Sophie's Colleague</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-card" data-type="family">
+                    <p class="message-content">Brother, you found your person and she's brilliant. Welcome to married life - it's the best! Can't wait to party with you both in Tuscany.</p>
+                    <div class="message-author">
+                        <div class="message-avatar">DO</div>
+                        <div>
+                            <div class="message-name">David O'Brien</div>
+                            <div class="message-date">Joe's Brother</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-card" data-type="friends">
+                    <p class="message-content">Remember when we all thought Joe would never settle down? Well, look at him now! Sophie, you're a miracle worker. Congratulations to you both!</p>
+                    <div class="message-author">
+                        <div class="message-avatar">TM</div>
+                        <div>
+                            <div class="message-name">Tom Mitchell</div>
+                            <div class="message-date">School Friend</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-card" data-type="friends">
+                    <p class="message-content">You two are proof that good things come to those who wait. Your love story is beautiful and I'm so honoured to be part of your special day!</p>
+                    <div class="message-author">
+                        <div class="message-avatar">RH</div>
+                        <div>
+                            <div class="message-name">Rachel Hughes</div>
+                            <div class="message-date">Bridesmaid</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="message-card" data-type="friends">
+                    <p class="message-content">Congratulations! I've never seen two people more perfect for each other. Here's to a lifetime of adventures together. See you in Italy!</p>
+                    <div class="message-author">
+                        <div class="message-avatar">AD</div>
+                        <div>
+                            <div class="message-name">Alex Davies</div>
+                            <div class="message-date">Friend</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Character count
+            const textarea = document.getElementById('msg-content');
+            const charCount = document.getElementById('char-count');
+
+            textarea.addEventListener('input', function() {
+                charCount.textContent = this.value.length;
+            });
+
+            // Form submission
+            const form = document.getElementById('message-form');
+            const successMessage = document.getElementById('success-message');
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const name = document.getElementById('msg-name').value;
+                const relation = document.getElementById('msg-relation').value || 'Guest';
+                const content = document.getElementById('msg-content').value;
+
+                // Get initials
+                const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
+                // Create new message card
+                const newCard = document.createElement('div');
+                newCard.className = 'message-card';
+                newCard.dataset.type = 'friends';
+                newCard.innerHTML = `
+                    <p class="message-content">${content}</p>
+                    <div class="message-author">
+                        <div class="message-avatar">${initials}</div>
+                        <div>
+                            <div class="message-name">${name}</div>
+                            <div class="message-date">${relation}</div>
+                        </div>
+                    </div>
+                `;
+
+                // Add to wall
+                const wall = document.getElementById('messages-wall');
+                wall.insertBefore(newCard, wall.firstChild);
+
+                // Update count
+                const countEl = document.getElementById('message-count');
+                countEl.textContent = parseInt(countEl.textContent) + 1;
+
+                // Show success
+                successMessage.classList.add('show');
+
+                // Reset form
+                form.reset();
+                charCount.textContent = '0';
+
+                // Hide success after 3s
+                setTimeout(() => {
+                    successMessage.classList.remove('show');
+                }, 3000);
+            });
+
+            // Filter tabs
+            const filterTabs = document.querySelectorAll('.filter-tab');
+            const messageCards = document.querySelectorAll('.message-card');
+
+            filterTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const filter = this.dataset.filter;
+
+                    filterTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+
+                    messageCards.forEach(card => {
+                        if (filter === 'all' || filter === 'recent') {
+                            card.style.display = 'block';
+                        } else if (card.dataset.type === filter) {
+                            card.style.display = 'block';
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

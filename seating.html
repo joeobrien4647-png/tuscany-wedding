@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Your Seat | Sophie & Joe</title>
+    <meta name="description" content="Find your table for Sophie and Joe's wedding reception">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .seating-search {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .search-container {
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 1.25rem 1.5rem;
+            padding-left: 3.5rem;
+            font-size: 1.2rem;
+            border: 3px solid var(--color-cream);
+            border-radius: 50px;
+            font-family: var(--font-body);
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--color-terracotta);
+            box-shadow: 0 0 0 4px rgba(196, 92, 38, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.25rem;
+            color: var(--color-warm-gray);
+        }
+
+        /* Result Card */
+        .seat-result {
+            display: none;
+            background: linear-gradient(135deg, var(--color-terracotta), var(--color-gold));
+            color: white;
+            padding: 3rem;
+            border-radius: 20px;
+            margin-top: 2rem;
+            text-align: center;
+            animation: slideUp 0.5s ease;
+        }
+
+        .seat-result.visible {
+            display: block;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .seat-result h3 {
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .table-name {
+            font-family: var(--font-heading);
+            font-size: 4rem;
+            display: block;
+            margin: 1rem 0;
+        }
+
+        .table-location {
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+        }
+
+        .tablemates {
+            background: rgba(255,255,255,0.2);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-top: 1.5rem;
+        }
+
+        .tablemates h4 {
+            color: white;
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.9;
+        }
+
+        .tablemates ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .tablemates li {
+            background: rgba(255,255,255,0.2);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        /* No Result */
+        .no-result {
+            display: none;
+            background: var(--color-cream);
+            padding: 2rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        .no-result.visible {
+            display: block;
+        }
+
+        /* Table Overview */
+        .tables-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 3rem;
+        }
+
+        .table-card {
+            background: var(--color-white);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .table-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .table-card-name {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            color: var(--color-terracotta);
+            margin-bottom: 0.5rem;
+        }
+
+        .table-card-theme {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .table-card-guests {
+            font-size: 0.85rem;
+            color: var(--color-warm-gray);
+        }
+
+        /* Floor plan */
+        .floor-plan {
+            background: var(--color-cream);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 3rem 0;
+            text-align: center;
+        }
+
+        .floor-plan h3 {
+            margin-bottom: 1.5rem;
+        }
+
+        .floor-plan-visual {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .floor-table {
+            background: var(--color-white);
+            border-radius: 50%;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-heading);
+            color: var(--color-terracotta);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .floor-table.top-table {
+            grid-column: span 4;
+            border-radius: 12px;
+            aspect-ratio: auto;
+            padding: 1rem;
+            background: linear-gradient(135deg, var(--color-terracotta), var(--color-gold));
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Find Your Seat</h1>
+        <p>Search for your name to find your table</p>
+    </header>
+
+    <!-- Search Section -->
+    <section class="section">
+        <div class="container">
+            <div class="seating-search">
+                <p style="color: var(--color-warm-gray); margin-bottom: 1rem;">
+                    Type your name below to find out where you'll be sitting for the wedding breakfast.
+                </p>
+
+                <div class="search-container">
+                    <span class="search-icon">&#128269;</span>
+                    <input
+                        type="text"
+                        class="search-input"
+                        id="guestSearch"
+                        placeholder="Enter your name..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <!-- Result Display -->
+                <div class="seat-result" id="seatResult">
+                    <h3>&#127881; <span id="guestName"></span>, you're at...</h3>
+                    <span class="table-name" id="tableName"></span>
+                    <p class="table-location" id="tableLocation"></p>
+                    <div class="tablemates">
+                        <h4>You'll be seated with:</h4>
+                        <ul id="tablemates"></ul>
+                    </div>
+                </div>
+
+                <!-- No Result -->
+                <div class="no-result" id="noResult">
+                    <p>&#128533; We couldn't find that name. Please check the spelling or try a different variation of your name.</p>
+                    <p style="font-size: 0.9rem; color: var(--color-warm-gray); margin-top: 1rem;">If you're still having trouble, please ask one of the ushers or contact Sophie & Joe.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Floor Plan -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="floor-plan">
+                <h3>&#127963; Reception Floor Plan</h3>
+                <div class="floor-plan-visual">
+                    <div class="floor-table top-table">Top Table - Sophie & Joe</div>
+                    <div class="floor-table">Chianti</div>
+                    <div class="floor-table">Brunello</div>
+                    <div class="floor-table">Montepulciano</div>
+                    <div class="floor-table">Vernaccia</div>
+                    <div class="floor-table">Sangiovese</div>
+                    <div class="floor-table">Vino Santo</div>
+                    <div class="floor-table">Rosso</div>
+                    <div class="floor-table">Bianco</div>
+                </div>
+                <p style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--color-warm-gray);">
+                    Tables are named after famous Tuscan wines
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tables Overview -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Our Tables</h2>
+                <div class="section-divider"></div>
+                <p>Click a table to see who's sitting there</p>
+            </div>
+
+            <div class="tables-overview">
+                <div class="table-card" onclick="showTable('Chianti')">
+                    <div class="table-card-theme">&#127863;</div>
+                    <div class="table-card-name">Chianti</div>
+                    <div class="table-card-guests">8 guests</div>
+                </div>
+
+                <div class="table-card" onclick="showTable('Brunello')">
+                    <div class="table-card-theme">&#127863;</div>
+                    <div class="table-card-name">Brunello</div>
+                    <div class="table-card-guests">8 guests</div>
+                </div>
+
+                <div class="table-card" onclick="showTable('Montepulciano')">
+                    <div class="table-card-theme">&#127863;</div>
+                    <div class="table-card-name">Montepulciano</div>
+                    <div class="table-card-guests">10 guests</div>
+                </div>
+
+                <div class="table-card" onclick="showTable('Vernaccia')">
+                    <div class="table-card-theme">&#129346;</div>
+                    <div class="table-card-name">Vernaccia</div>
+                    <div class="table-card-guests">8 guests</div>
+                </div>
+
+                <div class="table-card" onclick="showTable('Sangiovese')">
+                    <div class="table-card-theme">&#127863;</div>
+                    <div class="table-card-name">Sangiovese</div>
+                    <div class="table-card-guests">10 guests</div>
+                </div>
+
+                <div class="table-card" onclick="showTable('Vino Santo')">
+                    <div class="table-card-theme">&#127942;</div>
+                    <div class="table-card-name">Vino Santo</div>
+                    <div class="table-card-guests">8 guests</div>
+                </div>
+
+                <div class="table-card" onclick="showTable('Rosso')">
+                    <div class="table-card-theme">&#127863;</div>
+                    <div class="table-card-name">Rosso</div>
+                    <div class="table-card-guests">8 guests</div>
+                </div>
+
+                <div class="table-card" onclick="showTable('Bianco')">
+                    <div class="table-card-theme">&#129346;</div>
+                    <div class="table-card-name">Bianco</div>
+                    <div class="table-card-guests">8 guests</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Guest seating data (replace with actual data)
+        const seatingData = {
+            'Chianti': {
+                location: 'Near the dance floor',
+                guests: ['John Smith', 'Jane Smith', 'Mike Johnson', 'Sarah Johnson', 'Tom Williams', 'Lisa Williams', 'Chris Brown', 'Emma Brown']
+            },
+            'Brunello': {
+                location: 'By the garden view',
+                guests: ['David Wilson', 'Amy Wilson', 'James Taylor', 'Kate Taylor', 'Robert Davis', 'Helen Davis', 'Paul Miller', 'Claire Miller']
+            },
+            'Montepulciano': {
+                location: 'Center of the room',
+                guests: ['Mark Thompson', 'Laura Thompson', 'Steve Moore', 'Julie Moore', 'Andrew White', 'Rachel White', 'Daniel Harris', 'Sophie Harris', 'Ben Clark', 'Olivia Clark']
+            },
+            'Vernaccia': {
+                location: 'Near the bar',
+                guests: ['Peter Lewis', 'Mary Lewis', 'George Walker', 'Anna Walker', 'Frank Hall', 'Grace Hall', 'Henry Young', 'Ella Young']
+            },
+            'Sangiovese': {
+                location: 'Under the fairy lights',
+                guests: ['Jack King', 'Sophia King', 'Oscar Wright', 'Mia Wright', 'Charlie Green', 'Emily Green', 'Alfie Baker', 'Amelia Baker', 'Archie Adams', 'Lily Adams']
+            },
+            'Vino Santo': {
+                location: 'By the olive tree',
+                guests: ['William Nelson', 'Ava Nelson', 'Harry Hill', 'Chloe Hill', 'Leo Scott', 'Zoe Scott', 'Max Carter', 'Ruby Carter']
+            },
+            'Rosso': {
+                location: 'Near the entrance',
+                guests: ['Noah Mitchell', 'Isla Mitchell', 'Ethan Roberts', 'Lucy Roberts', 'Mason Turner', 'Hannah Turner', 'Logan Phillips', 'Daisy Phillips']
+            },
+            'Bianco': {
+                location: 'Window view',
+                guests: ['Lucas Evans', 'Freya Evans', 'Theo Collins', 'Poppy Collins', 'Finn Edwards', 'Scarlett Edwards', 'Ollie Morris', 'Florence Morris']
+            }
+        };
+
+        const searchInput = document.getElementById('guestSearch');
+        const seatResult = document.getElementById('seatResult');
+        const noResult = document.getElementById('noResult');
+
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+
+            if (searchTerm.length < 2) {
+                seatResult.classList.remove('visible');
+                noResult.classList.remove('visible');
+                return;
+            }
+
+            let found = false;
+            let foundGuest = '';
+            let foundTable = '';
+
+            for (const [table, data] of Object.entries(seatingData)) {
+                for (const guest of data.guests) {
+                    if (guest.toLowerCase().includes(searchTerm)) {
+                        found = true;
+                        foundGuest = guest;
+                        foundTable = table;
+                        break;
+                    }
+                }
+                if (found) break;
+            }
+
+            if (found) {
+                document.getElementById('guestName').textContent = foundGuest;
+                document.getElementById('tableName').textContent = foundTable;
+                document.getElementById('tableLocation').textContent = seatingData[foundTable].location;
+
+                const tablemates = seatingData[foundTable].guests.filter(g => g !== foundGuest);
+                document.getElementById('tablemates').innerHTML = tablemates.map(g => `<li>${g}</li>`).join('');
+
+                seatResult.classList.add('visible');
+                noResult.classList.remove('visible');
+            } else {
+                seatResult.classList.remove('visible');
+                noResult.classList.add('visible');
+            }
+        });
+
+        function showTable(tableName) {
+            const data = seatingData[tableName];
+            document.getElementById('guestName').textContent = 'Guest';
+            document.getElementById('tableName').textContent = tableName;
+            document.getElementById('tableLocation').textContent = data.location;
+            document.getElementById('tablemates').innerHTML = data.guests.map(g => `<li>${g}</li>`).join('');
+
+            seatResult.classList.add('visible');
+            noResult.classList.remove('visible');
+
+            document.querySelector('.seating-search').scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>First Dance | Sophie & Joe</title>
+    <meta name="description" content="A preview of Sophie and Joe's first dance song">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .dance-hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dance-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(201, 169, 97, 0.1) 0%, transparent 50%);
+        }
+
+        .disco-ball {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 4rem;
+            animation: spin 10s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: translateX(-50%) rotate(0deg); }
+            to { transform: translateX(-50%) rotate(360deg); }
+        }
+
+        .sparkles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--color-gold);
+            border-radius: 50%;
+            animation: twinkle 2s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        .dance-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .dance-content h2 {
+            color: var(--color-gold);
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .song-title {
+            font-family: var(--font-heading);
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        .song-artist {
+            font-size: 1.5rem;
+            opacity: 0.8;
+            margin-bottom: 2rem;
+        }
+
+        .vinyl-record {
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, #1a1a1a 30%, #2a2a2a 30%, #2a2a2a 50%, #1a1a1a 50%, #1a1a1a 70%, #2a2a2a 70%);
+            border-radius: 50%;
+            margin: 2rem auto;
+            position: relative;
+            animation: rotate 8s linear infinite;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .vinyl-record::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--color-terracotta), var(--color-gold));
+            border-radius: 50%;
+        }
+
+        .vinyl-record::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 15px;
+            height: 15px;
+            background: #1a1a2e;
+            border-radius: 50%;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .play-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-top: 2rem;
+        }
+
+        /* Why this song */
+        .song-story {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .song-story blockquote {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--color-charcoal);
+            font-style: italic;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .lyrics-preview {
+            background: var(--color-cream);
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .lyrics-preview p {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            color: var(--color-charcoal);
+            font-style: italic;
+            line-height: 2;
+            margin: 0;
+        }
+
+        .lyrics-preview cite {
+            display: block;
+            margin-top: 1rem;
+            font-style: normal;
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+        }
+
+        /* Schedule teaser */
+        .schedule-teaser {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .schedule-item {
+            text-align: center;
+        }
+
+        .schedule-item-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .schedule-item-time {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--color-terracotta);
+        }
+
+        .schedule-item-label {
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dance Hero -->
+    <div class="dance-hero">
+        <div class="disco-ball">&#129665;</div>
+        <div class="sparkles" id="sparkles"></div>
+
+        <div class="dance-content">
+            <h2>Our First Dance</h2>
+            <div class="song-title">"At Last"</div>
+            <div class="song-artist">Etta James</div>
+
+            <div class="vinyl-record"></div>
+
+            <div class="play-hint">
+                <span>&#127925;</span>
+                <span>A timeless classic for a timeless love</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Why This Song -->
+    <section class="section">
+        <div class="container">
+            <div class="song-story">
+                <div class="section-header">
+                    <h2>Why This Song?</h2>
+                    <div class="section-divider"></div>
+                </div>
+
+                <blockquote>
+                    "We knew immediately. The first time we heard it together, we looked at each other and just... knew. It perfectly captures that feeling of finally finding your person after all the waiting, all the wondering. 'At last, my love has come along.' That's exactly how we feel."
+                </blockquote>
+
+                <p style="color: var(--color-warm-gray); text-align: right;">- Sophie & Joe</p>
+
+                <div class="lyrics-preview">
+                    <p>
+                        "At last, my love has come along<br>
+                        My lonely days are over<br>
+                        And life is like a song"
+                    </p>
+                    <cite>- Etta James, "At Last" (1960)</cite>
+                </div>
+
+                <p style="text-align: center; color: var(--color-warm-gray);">
+                    We've been practicing our moves (sort of). No promises we won't step on each other's toes, but we'll definitely be smiling the whole time!
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dance Schedule -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>&#128131; The Evening Dancing</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="schedule-teaser">
+                <div class="schedule-item">
+                    <div class="schedule-item-icon">&#128141;</div>
+                    <div class="schedule-item-time">9:00pm</div>
+                    <div class="schedule-item-label">First Dance</div>
+                </div>
+                <div class="schedule-item">
+                    <div class="schedule-item-icon">&#128106;</div>
+                    <div class="schedule-item-time">9:05pm</div>
+                    <div class="schedule-item-label">Parent Dances</div>
+                </div>
+                <div class="schedule-item">
+                    <div class="schedule-item-icon">&#127881;</div>
+                    <div class="schedule-item-time">9:15pm</div>
+                    <div class="schedule-item-label">Everyone join in!</div>
+                </div>
+                <div class="schedule-item">
+                    <div class="schedule-item-icon">&#127829;</div>
+                    <div class="schedule-item-time">12:00am</div>
+                    <div class="schedule-item-label">Late Night Snacks</div>
+                </div>
+            </div>
+
+            <div class="text-center" style="margin-top: 2rem;">
+                <a href="songs.html" class="btn btn-primary">Request a Song</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Fun Facts -->
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>&#128131; Dance Floor Fun Facts</h2>
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="card-grid" style="max-width: 800px; margin: 0 auto;">
+                <div class="card">
+                    <div class="card-content text-center">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">&#129318;</div>
+                        <h4>Sophie's Move</h4>
+                        <p style="margin: 0;">The "enthusiastic arm wave" - best deployed during any 80s power ballad</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content text-center">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">&#128378;</div>
+                        <h4>Joe's Move</h4>
+                        <p style="margin: 0;">The "confident head nod" - works for literally any genre</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content text-center">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">&#127925;</div>
+                        <h4>Guaranteed Floor Filler</h4>
+                        <p style="margin: 0;">Mr. Brightside - it's the law</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-content text-center">
+                        <div style="font-size: 2rem; margin-bottom: 1rem;">&#128683;</div>
+                        <h4>Banned Song</h4>
+                        <p style="margin: 0;">The Macarena. We're sorry. Some wounds never heal.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Create sparkles
+        const sparklesContainer = document.getElementById('sparkles');
+        for (let i = 0; i < 50; i++) {
+            const sparkle = document.createElement('div');
+            sparkle.className = 'sparkle';
+            sparkle.style.left = Math.random() * 100 + '%';
+            sparkle.style.top = Math.random() * 100 + '%';
+            sparkle.style.animationDelay = Math.random() * 2 + 's';
+            sparklesContainer.appendChild(sparkle);
+        }
+    </script>
+</body>
+</html>

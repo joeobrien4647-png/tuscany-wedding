@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Save the Date | Sophie & Joe</title>
+    <meta name="description" content="Save the Date - Sophie & Joe are getting married in Tuscany, May 2027!">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .save-date-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Digital Card */
+        .save-date-card {
+            background: linear-gradient(135deg, #2C2C2C 0%, #1a1a1a 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            color: white;
+            position: relative;
+        }
+
+        .save-date-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('images/hero-bg.jpg') center/cover;
+            opacity: 0.2;
+        }
+
+        .save-date-inner {
+            position: relative;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .save-date-header {
+            font-size: 0.9rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--color-gold);
+            margin-bottom: 1.5rem;
+        }
+
+        .save-date-names {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+
+        .save-date-names span {
+            color: var(--color-gold);
+        }
+
+        .save-date-are {
+            font-style: italic;
+            opacity: 0.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .save-date-main {
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            color: var(--color-gold);
+            margin-bottom: 2rem;
+            letter-spacing: 2px;
+        }
+
+        .save-date-details {
+            border-top: 1px solid rgba(255,255,255,0.2);
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            padding: 1.5rem 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .save-date-date {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .save-date-location {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .save-date-footer {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        /* Decorative Elements */
+        .save-date-decor {
+            color: var(--color-gold);
+            font-size: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        /* Actions */
+        .save-date-actions {
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            background: var(--color-terracotta);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .download-btn:hover {
+            background: var(--color-terracotta-light);
+            transform: translateY(-2px);
+        }
+
+        /* Share Section */
+        .share-section {
+            margin-top: 3rem;
+            text-align: center;
+        }
+
+        .share-section h3 {
+            color: var(--color-charcoal);
+            margin-bottom: 1rem;
+        }
+
+        .share-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .share-btn.whatsapp {
+            background: #25D366;
+            color: white;
+        }
+
+        .share-btn.email {
+            background: var(--color-charcoal);
+            color: white;
+        }
+
+        .share-btn.copy {
+            background: var(--color-cream);
+            color: var(--color-charcoal);
+            border: 2px solid var(--color-charcoal);
+            cursor: pointer;
+        }
+
+        .share-btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+        /* Calendar Links */
+        .calendar-links {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: var(--color-cream);
+            border-radius: 12px;
+        }
+
+        .calendar-links h4 {
+            margin-bottom: 1rem;
+            color: var(--color-charcoal);
+        }
+
+        .calendar-btns {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .calendar-btn {
+            padding: 0.5rem 1rem;
+            background: white;
+            border: 1px solid var(--color-cream);
+            border-radius: 8px;
+            color: var(--color-charcoal);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: var(--transition);
+        }
+
+        .calendar-btn:hover {
+            border-color: var(--color-terracotta);
+            color: var(--color-terracotta);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Save the Date</h1>
+        <p>Download and share our digital invite</p>
+    </header>
+
+    <!-- Save the Date Section -->
+    <section class="section">
+        <div class="container">
+            <div class="save-date-container">
+
+                <!-- Digital Card -->
+                <div class="save-date-card" id="save-date-card">
+                    <div class="save-date-inner">
+                        <div class="save-date-header">You're Invited</div>
+                        <div class="save-date-names">Sophie <span>&</span> Joe</div>
+                        <div class="save-date-are">are getting married</div>
+
+                        <div class="save-date-decor">&#10084; &#128141; &#10084;</div>
+
+                        <div class="save-date-main">SAVE THE DATE</div>
+
+                        <div class="save-date-details">
+                            <div class="save-date-date">24th May 2027</div>
+                            <div class="save-date-location">La Conca Agriturismo, Tuscany, Italy</div>
+                        </div>
+
+                        <div class="save-date-footer">
+                            Formal invitation to follow<br>
+                            Please mark your calendars!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Download Button -->
+                <div class="save-date-actions">
+                    <button class="download-btn" onclick="downloadCard()">
+                        &#128229; Download Image
+                    </button>
+                    <p style="color: var(--color-warm-gray); font-size: 0.85rem;">
+                        Save to your phone or share with friends!
+                    </p>
+                </div>
+
+                <!-- Share Section -->
+                <div class="share-section">
+                    <h3>Share the News!</h3>
+                    <div class="share-buttons">
+                        <a href="https://wa.me/?text=Sophie%20and%20Joe%20are%20getting%20married%20in%20Tuscany!%20Save%20the%20date%3A%2024th%20May%202027%20%F0%9F%92%8D" target="_blank" class="share-btn whatsapp">
+                            &#128172; WhatsApp
+                        </a>
+                        <a href="mailto:?subject=Save%20the%20Date%20-%20Sophie%20%26%20Joe&body=Sophie%20and%20Joe%20are%20getting%20married%20in%20Tuscany!%0A%0ASave%20the%20date%3A%2024th%20May%202027%0ALa%20Conca%20Agriturismo%2C%20Tuscany%2C%20Italy" class="share-btn email">
+                            &#128231; Email
+                        </a>
+                        <button class="share-btn copy" onclick="copyLink()">
+                            &#128203; Copy Link
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Calendar Links -->
+                <div class="calendar-links">
+                    <h4>&#128197; Add to Your Calendar</h4>
+                    <div class="calendar-btns">
+                        <a href="sophie-joe-wedding.ics" download class="calendar-btn">Apple Calendar</a>
+                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=Sophie%20%26%20Joe%27s%20Wedding&dates=20270524T150000/20270524T235900&location=La%20Conca%20Agriturismo%2C%20Tuscany%2C%20Italy&details=Join%20us%20for%20our%20wedding%20celebration%20in%20beautiful%20Tuscany!" target="_blank" class="calendar-btn">Google Calendar</a>
+                        <a href="sophie-joe-wedding.ics" download class="calendar-btn">Outlook</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- RSVP Reminder -->
+    <section class="section section-alt">
+        <div class="container text-center">
+            <h2>Ready to RSVP?</h2>
+            <div class="section-divider"></div>
+            <p style="max-width: 600px; margin: 0 auto 2rem;">
+                We'd love to have you celebrate with us in Tuscany! Let us know if you can make it.
+            </p>
+            <a href="rsvp.html" class="btn btn-primary">RSVP Now</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        function downloadCard() {
+            // In a real implementation, this would use html2canvas or similar
+            // For now, we'll show a message
+            alert('To save this image:\n\n1. Take a screenshot of the card above\n2. Or right-click and "Save as image"\n\nTip: On mobile, press and hold on the card to save!');
+        }
+
+        function copyLink() {
+            const url = window.location.origin + '/save-the-date.html';
+            navigator.clipboard.writeText(url).then(() => {
+                alert('Link copied to clipboard!');
+            }).catch(() => {
+                prompt('Copy this link:', url);
+            });
+        }
+    </script>
+</body>
+</html>

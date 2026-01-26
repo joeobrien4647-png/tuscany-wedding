@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Time Capsule | Sophie & Joe</title>
+    <meta name="description" content="Leave a message for Sophie and Joe to open on their 1st anniversary">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .capsule-hero {
+            background: linear-gradient(135deg, #2C2C2C 0%, #1a1a1a 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .capsule-hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23C9A961" opacity="0.3"/></svg>');
+            background-size: 30px 30px;
+            opacity: 0.5;
+        }
+
+        .capsule-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .capsule-hero h2 {
+            color: var(--color-gold);
+            font-size: 2.5rem;
+            position: relative;
+        }
+
+        .capsule-hero p {
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 1rem auto;
+            position: relative;
+        }
+
+        .open-date {
+            display: inline-block;
+            background: var(--color-gold);
+            color: var(--color-charcoal);
+            padding: 0.75rem 2rem;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+            position: relative;
+        }
+
+        /* Countdown to opening */
+        .capsule-countdown {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+            position: relative;
+        }
+
+        .capsule-countdown-item {
+            text-align: center;
+        }
+
+        .capsule-countdown-number {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            color: var(--color-gold);
+            display: block;
+        }
+
+        .capsule-countdown-label {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Form Styles */
+        .capsule-form-container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .capsule-form {
+            background: var(--color-white);
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow-medium);
+        }
+
+        .capsule-form .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .capsule-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--color-charcoal);
+        }
+
+        .capsule-form input,
+        .capsule-form textarea,
+        .capsule-form select {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--color-cream);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: var(--font-body);
+            transition: border-color 0.3s ease;
+        }
+
+        .capsule-form input:focus,
+        .capsule-form textarea:focus {
+            outline: none;
+            border-color: var(--color-terracotta);
+        }
+
+        .capsule-form textarea {
+            min-height: 200px;
+            resize: vertical;
+        }
+
+        .message-prompts {
+            background: var(--color-cream);
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .message-prompts h4 {
+            margin-bottom: 1rem;
+            color: var(--color-charcoal);
+        }
+
+        .message-prompts ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .message-prompts li {
+            padding: 0.5rem 0;
+            color: var(--color-warm-gray);
+            font-size: 0.9rem;
+        }
+
+        .message-prompts li::before {
+            content: '&#128161; ';
+        }
+
+        .privacy-note {
+            background: var(--color-cream);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+        }
+
+        .privacy-note span:first-child {
+            font-size: 1.5rem;
+        }
+
+        .privacy-note p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--color-warm-gray);
+        }
+
+        /* Sealed Messages Preview */
+        .sealed-messages {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .sealed-envelope {
+            background: linear-gradient(135deg, #f5e6d3 0%, #e8d4bc 100%);
+            padding: 2rem 1rem;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: var(--shadow-soft);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sealed-envelope::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 60px solid transparent;
+            border-right: 60px solid transparent;
+            border-top: 40px solid #d4c4a8;
+        }
+
+        .sealed-envelope .seal {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .sealed-envelope .from {
+            font-size: 0.85rem;
+            color: var(--color-charcoal);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="container">
+            <a href="index.html" class="nav-logo">Sophie <span>&</span> Joe</a>
+            <ul class="nav-links">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="our-story.html">Our Story</a></li>
+                <li><a href="schedule.html">Schedule</a></li>
+                <li><a href="travel.html">Travel</a></li>
+                <li><a href="accommodation.html">Stay</a></li>
+                <li><a href="things-to-do.html">Explore</a></li>
+                <li><a href="guests.html">Guests</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+            </ul>
+            <div class="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <header class="page-header">
+        <h1>Digital Time Capsule</h1>
+        <p>Messages sealed until our 1st anniversary</p>
+    </header>
+
+    <!-- Capsule Hero -->
+    <div class="capsule-hero">
+        <div class="capsule-icon">&#128232;</div>
+        <h2>Seal Your Message</h2>
+        <p>Write a message for Sophie & Joe that will remain sealed until they open it on their 1st wedding anniversary. Share your hopes, predictions, advice, or just a heartfelt note!</p>
+        <div class="open-date">Opens: 24th May 2028</div>
+
+        <div class="capsule-countdown">
+            <div class="capsule-countdown-item">
+                <span class="capsule-countdown-number" id="capsule-days">---</span>
+                <span class="capsule-countdown-label">Days</span>
+            </div>
+            <div class="capsule-countdown-item">
+                <span class="capsule-countdown-number" id="capsule-hours">--</span>
+                <span class="capsule-countdown-label">Hours</span>
+            </div>
+            <div class="capsule-countdown-item">
+                <span class="capsule-countdown-number" id="capsule-minutes">--</span>
+                <span class="capsule-countdown-label">Minutes</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Section -->
+    <section class="section">
+        <div class="container">
+            <div class="capsule-form-container">
+                <div class="message-prompts">
+                    <h4>&#128161; Need inspiration? Try these prompts:</h4>
+                    <ul>
+                        <li>A prediction for their first year of marriage</li>
+                        <li>Your best piece of marriage advice</li>
+                        <li>A memory you want them to remember</li>
+                        <li>What you hope they'll have achieved by their anniversary</li>
+                        <li>A funny reminder of something from the wedding</li>
+                        <li>Words of encouragement for tough times</li>
+                    </ul>
+                </div>
+
+                <form class="capsule-form" id="timeCapsuleForm">
+                    <div class="form-group">
+                        <label for="capsule-name">Your Name *</label>
+                        <input type="text" id="capsule-name" name="name" required placeholder="Who is this message from?">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="capsule-relationship">Your Relationship to Sophie & Joe</label>
+                        <select id="capsule-relationship" name="relationship">
+                            <option value="">Select...</option>
+                            <option value="family-sophie">Sophie's Family</option>
+                            <option value="family-joe">Joe's Family</option>
+                            <option value="friend-sophie">Sophie's Friend</option>
+                            <option value="friend-joe">Joe's Friend</option>
+                            <option value="friend-both">Friend of Both</option>
+                            <option value="colleague">Colleague</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="capsule-message">Your Message *</label>
+                        <textarea id="capsule-message" name="message" required placeholder="Write your message here... Remember, this won't be read until May 2028!"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="capsule-prediction">Fun Prediction (Optional)</label>
+                        <input type="text" id="capsule-prediction" name="prediction" placeholder="e.g., By your anniversary, you'll have visited 5 new countries!">
+                    </div>
+
+                    <div class="privacy-note">
+                        <span>&#128274;</span>
+                        <p><strong>Privacy Promise:</strong> Your message will be kept sealed and private. Sophie & Joe won't read any messages until their 1st anniversary on 24th May 2028. Only then will they open the time capsule together!</p>
+                    </div>
+
+                    <div class="text-center" style="margin-top: 2rem;">
+                        <button type="submit" class="btn btn-primary">&#128232; Seal My Message</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sealed Messages Preview -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <h2>&#128230; Messages Already Sealed</h2>
+                <div class="section-divider"></div>
+                <p>These envelopes are waiting to be opened...</p>
+            </div>
+
+            <div class="sealed-messages">
+                <div class="sealed-envelope">
+                    <span class="seal">&#128274;</span>
+                    <span class="from">From: Mum & Dad G</span>
+                </div>
+                <div class="sealed-envelope">
+                    <span class="seal">&#128274;</span>
+                    <span class="from">From: The O'Briens</span>
+                </div>
+                <div class="sealed-envelope">
+                    <span class="seal">&#128274;</span>
+                    <span class="from">From: Emma & Tom</span>
+                </div>
+                <div class="sealed-envelope">
+                    <span class="seal">&#128274;</span>
+                    <span class="from">From: Best Man Dave</span>
+                </div>
+                <div class="sealed-envelope">
+                    <span class="seal">&#128274;</span>
+                    <span class="from">From: Aunt Linda</span>
+                </div>
+                <div class="sealed-envelope">
+                    <span class="seal">&#128274;</span>
+                    <span class="from">From: The London Crew</span>
+                </div>
+            </div>
+
+            <p class="text-center" style="margin-top: 2rem; color: var(--color-warm-gray);">
+                <strong>12 messages</strong> sealed so far. Add yours above!
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-names">Sophie <span>&</span> Joe</p>
+            <p>May 2027 | La Conca Agriturismo, Tuscany</p>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        // Countdown to anniversary
+        function initCapsuleCountdown() {
+            const anniversaryDate = new Date('2028-05-24T00:00:00').getTime();
+
+            function update() {
+                const now = new Date().getTime();
+                const distance = anniversaryDate - now;
+
+                if (distance < 0) {
+                    document.querySelector('.capsule-countdown').innerHTML = '<p style="color: var(--color-gold);">The time capsule is now open!</p>';
+                    return;
+                }
+
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+
+                document.getElementById('capsule-days').textContent = days;
+                document.getElementById('capsule-hours').textContent = hours.toString().padStart(2, '0');
+                document.getElementById('capsule-minutes').textContent = minutes.toString().padStart(2, '0');
+            }
+
+            update();
+            setInterval(update, 60000);
+        }
+
+        initCapsuleCountdown();
+
+        // Form submission
+        document.getElementById('timeCapsuleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('capsule-name').value;
+
+            // Show success message
+            this.innerHTML = `
+                <div class="text-center">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">&#128232;&#10004;</div>
+                    <h3>Message Sealed!</h3>
+                    <p>Thank you, ${name}! Your message has been sealed in the time capsule.</p>
+                    <p style="color: var(--color-warm-gray);">Sophie & Joe will read it on their 1st anniversary - 24th May 2028.</p>
+                    <a href="index.html" class="btn btn-outline" style="margin-top: 1rem;">Back to Home</a>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>
