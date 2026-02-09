@@ -189,11 +189,50 @@
       ]}}), {}),
       guests: [],
       vendors: [
+        // Wedding Planner
         { id: 1, name: "Serena \u2014 Tuscan Tours & Weddings", category: "Wedding Planner", status: "Researching", phone: "", email: "", website: "tuscantoursandweddings.com", notes: "Based Arezzo/Cortona. 20 yrs, fluent English.", starred: true },
+        // Caterer
         { id: 2, name: "I Vecchi Amici", category: "Caterer", status: "Researching", phone: "", email: "", website: "", notes: "Local \u2014 confirm availability", starred: false },
-        { id: 3, name: "Azienda Agricola Leuta", category: "Other", status: "Researching", phone: "", email: "", website: "", notes: "Vineyard, Cortona (~45 min)", starred: false },
-        { id: 4, name: "Cantina Tanagatta", category: "Other", status: "Researching", phone: "", email: "", website: "", notes: "Local to Sansepolcro", starred: false },
-        { id: 5, name: "Podere di Pomaio", category: "Other", status: "Researching", phone: "", email: "", website: "pomaio.it/en", notes: "Arezzo (~40 min). Organic.", starred: false },
+        // Photographers
+        { id: 10, name: "Federico Pannacci", category: "Photographer", status: "Researching", phone: "", email: "", website: "federicopannacci.com", notes: "Umbria/Tuscany border \u2014 closest to La Conca. Fine art, natural light. Fluent English. Shoots at agriturismos.", starred: true },
+        { id: 11, name: "Stefano Santucci", category: "Photographer", status: "Researching", phone: "", email: "", website: "stefanosantucci.com", notes: "Florence. Documentary + fine art. Featured Junebug, Style Me Pretty. Calm & unobtrusive.", starred: false },
+        { id: 12, name: "Laura Barbera", category: "Photographer", status: "Researching", phone: "", email: "", website: "laurabarbera.com", notes: "Florence. Fine art, editorial, film-like. Vogue, Martha Stewart. Sweet spot ~50 guests.", starred: false },
+        { id: 13, name: "Lelia Scarfiotti", category: "Photographer", status: "Researching", phone: "", email: "", website: "leliascarfiotti.com", notes: "Tuscany. Painterly, Renaissance quality. Most distinctive style \u2014 photos feel like fine art prints.", starred: false },
+        // Videographers
+        { id: 20, name: "Gattotigre (Matteo Castelluccia)", category: "Videographer", status: "Researching", phone: "", email: "", website: "gattotigre.it", notes: "Tuscany. Cinematic storytelling \u2014 feels like short docs not highlight reels. Top reputation in Tuscany.", starred: true },
+        { id: 21, name: "Waterfall Visuals", category: "Videographer", status: "Researching", phone: "", email: "", website: "waterfallvisuals.com", notes: "Tuscany. Cinematic + romantic. Great drone work for landscape. Regular British/American clients.", starred: false },
+        { id: 22, name: "Facibeni Fotografia", category: "Videographer", status: "Researching", phone: "", email: "", website: "facibenifotografia.it", notes: "Florence. Cinematic documentary. Also do photography \u2014 could be coordinated photo+video team.", starred: false },
+        // Florists
+        { id: 30, name: "Tuscany Flowers", category: "Florist", status: "Researching", phone: "", email: "", website: "tuscanyflowers.com", notes: "Arezzo area \u2014 closest to La Conca. Specialises in eastern Tuscany. Lower travel costs. Knows local May blooms.", starred: true },
+        { id: 31, name: "La Rosa Canina Firenze", category: "Florist", status: "Researching", phone: "", email: "", website: "larosacaninafirenze.it", notes: "Florence. Premium. Olive branches, wild roses, peonies. Featured Vogue Sposa. Considered the best in Italy.", starred: false },
+        { id: 32, name: "Jardin Divers", category: "Florist", status: "Researching", phone: "", email: "", website: "jardindivers.it", notes: "Florence. Wildflower-inspired, whimsical, 'gathered from the garden' feel. English + French. Mid-to-premium.", starred: false },
+        { id: 33, name: "Stiatti Fiori", category: "Florist", status: "Researching", phone: "", email: "", website: "stiattifiori.it", notes: "Arezzo (~40 min). Classic to rustic. English may be limited \u2014 planner could help.", starred: false },
+        // DJ / Band
+        { id: 40, name: "Romadjpianobar (Guido Belli)", category: "DJ / Band", status: "Researching", phone: "", email: "", website: "romadjpianobar.com", notes: "English-speaking. Full-day: ceremony, aperitivo, dinner, evening. Can add sax/violin. Knows Arezzo/Cortona.", starred: true },
+        { id: 41, name: "Alma Project Music", category: "DJ / Band", status: "Researching", phone: "", email: "", website: "almaprojectmusic.com", notes: "Florence. Premium agency \u2014 bands, DJs, string quartets. Full production inc. lighting. Higher-end.", starred: false },
+        { id: 42, name: "Musica Per Matrimoni Toscana", category: "DJ / Band", status: "Researching", phone: "", email: "", website: "musicapermatrimonitoscana.it", notes: "Tuscany. Acoustic ceremony + DJ. Bilingual. Great for intimate weddings. Budget-friendly.", starred: false },
+        // Hair & Makeup
+        { id: 50, name: "Janita Helova", category: "Hair & Makeup", status: "Researching", phone: "", email: "", website: "janitahelova.com", notes: "Tuscany. Top choice for British brides \u2014 native-level English. Natural 'you-but-better' style. Travels to villas.", starred: true },
+        { id: 51, name: "Giulia Cresci", category: "Hair & Makeup", status: "Researching", phone: "", email: "", website: "giuliacresci.com", notes: "Florence. Bridal trials + party makeup. Classic glamour to soft natural. Travels to rural villas.", starred: false },
+        { id: 52, name: "Gabriella De Girolamo", category: "Hair & Makeup", status: "Researching", phone: "", email: "", website: "gabriellamakeupartist.com", notes: "Tuscany. Covers Arezzo/Cortona. Fresh, romantic. Can recommend trusted hair stylist partner.", starred: false },
+        // Celebrant
+        { id: 60, name: "Katy McEwen \u2014 Tuscany Celebrants", category: "Celebrant", status: "Researching", phone: "", email: "", website: "tuscanycelebrants.com", notes: "British, based in Tuscany. Symbolic/humanist. Knows Sansepolcro area. Personalised vows, readings, handfasting.", starred: true },
+        { id: 61, name: "Lisa Sheridan \u2014 Italian Celebrants", category: "Celebrant", status: "Researching", phone: "", email: "", website: "italiancelebrants.com", notes: "Trained celebrant (Celebrants Network). English or bilingual. Experienced outdoor agriturismo ceremonies.", starred: false },
+        { id: 62, name: "Ade Rogers", category: "Celebrant", status: "Researching", phone: "", email: "", website: "englishtuscanycelebrant.com", notes: "British Humanist in Tuscany. Warm, relaxed, humorous. Natural not-too-formal. Well-reviewed by British couples.", starred: false },
+        // Transport
+        { id: 70, name: "PrimaCar (NCC Arezzo)", category: "Transport", status: "Researching", phone: "", email: "", website: "primacar.it", notes: "Local to Arezzo province \u2014 knows Sansepolcro/Valtiberina roads. Competitive pricing. English drivers available.", starred: true },
+        { id: 71, name: "Tuscany Transfers", category: "Transport", status: "Researching", phone: "", email: "", website: "tuscanytransfers.com", notes: "Large, established. Sedans, minivans (8 pax), minibuses (20 pax). Airport pickups + wedding day shuttles. Fixed pricing.", starred: false },
+        { id: 72, name: "Italy Limousine", category: "Transport", status: "Researching", phone: "", email: "", website: "italylimousine.com", notes: "Premium. Vintage Fiat 500 & classic cars for ceremony. Modern minibuses for guests. Full timeline coordination.", starred: false },
+        // Cake
+        { id: 80, name: "Delizie di Mamma (Melina Kelekis)", category: "Cake", status: "Researching", phone: "", email: "", website: "deliziemamma.com", notes: "Cortona (~45 min). English-speaking. Semi-naked to tiered. Blends British & Italian flavours.", starred: true },
+        { id: 81, name: "Sugar Couture (Ilaria Trasi)", category: "Cake", status: "Researching", phone: "", email: "", website: "sugarcouture.it", notes: "Arezzo. Artisan cakes, Italian flavours. Fondant, semi-naked, buttercream. Close to La Conca.", starred: false },
+        // Activities (vineyards + experiences)
+        { id: 90, name: "Savini Tartufi", category: "Activities", status: "Researching", phone: "", email: "", website: "savinitartufi.com", notes: "Truffle hunting experiences. Check if they cover Arezzo/Valtiberina or just Palaia area.", starred: false },
+        { id: 91, name: "Azienda Agricola Leuta", category: "Activities", status: "Researching", phone: "", email: "", website: "", notes: "Vineyard visit + tasting. Cortona (~45 min).", starred: false },
+        { id: 92, name: "Cantina Tanagatta", category: "Activities", status: "Researching", phone: "", email: "", website: "", notes: "Wine tasting. Local to Sansepolcro.", starred: false },
+        { id: 93, name: "Podere di Pomaio", category: "Activities", status: "Researching", phone: "", email: "", website: "pomaio.it/en", notes: "Organic vineyard + wine tasting. Arezzo (~40 min).", starred: false },
+        // Stationery
+        { id: 95, name: "Papier", category: "Stationery", status: "Researching", phone: "", email: "", website: "papier.com", notes: "UK-based online. Customisable suites \u2014 save the dates, invites, menus, place cards. Italian/Mediterranean templates.", starred: false },
       ],
       timeline: TIMELINE_DAYS.map(d => ({ ...d, items: d.items.map(i => ({ ...i })) })),
       milestones: [
