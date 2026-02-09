@@ -267,20 +267,26 @@
     const lb = { fontSize: 11, color: P.txtL, display: "block", marginBottom: 3 };
 
     function useStorage(key, def) {
-      const [d, setD] = useState(def);
-      const [ok, setOk] = useState(false);
+      const [d, setD] = useState(() => {
+        try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : def; } catch { return def; }
+      });
+      const [ok, setOk] = useState(true);
+      const fbOk = React.useRef(false);
       useEffect(() => {
         const ref = db.ref(key);
         const handler = ref.on("value", (snap) => {
-          if (snap.exists()) { setD(snap.val()); }
-          else { ref.set(def); }
-          setOk(true);
-        });
+          fbOk.current = true;
+          const val = snap.exists() ? snap.val() : def;
+          if (!snap.exists()) ref.set(def);
+          setD(val);
+          try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+        }, () => { fbOk.current = false; });
         return () => ref.off("value", handler);
       }, [key]);
       const save = useCallback((n) => {
         setD(n);
-        db.ref(key).set(n);
+        try { localStorage.setItem(key, JSON.stringify(n)); } catch {}
+        if (fbOk.current) db.ref(key).set(n);
       }, [key]);
       return [d, save, ok];
     }
@@ -964,7 +970,7 @@
       const [tab, setTab] = useState("dash");
       const [budget, saveBudget, b1] = useStorage("wedding-budget-v3", DEFAULT_DATA.budget);
       const [guests, saveGuests, b2] = useStorage("wedding-guests-v3", DEFAULT_DATA.guests);
-      const [vendors, saveVendors, b3] = useStorage("wedding-vendors-v3", DEFAULT_DATA.vendors);
+      const [vendors, saveVendors, b3] = useStorage("wedding-vendors-v4", DEFAULT_DATA.vendors);
       const [timeline, saveTimeline, b4] = useStorage("wedding-timeline-v3", DEFAULT_DATA.timeline);
       const [milestones, saveMilestones, b5] = useStorage("wedding-milestones-v3", DEFAULT_DATA.milestones);
       const [decisions, saveDecisions, b6] = useStorage("wedding-decisions-v3", DEFAULT_DATA.decisions);
