@@ -797,8 +797,22 @@
 
     /* ========== SEATING ========== */
     function SeatingTab({ seating, saveSeating, guests }) {
-      const [form, setForm] = useState({ name: "", seats: 8 });
-      const addTable = () => { if (!form.name.trim()) return; saveSeating({ ...seating, tables: [...seating.tables, { id: Date.now(), name: form.name, seats: form.seats, guests: [] }] }); setForm({ name: "", seats: 8 }); };
+      const [form, setForm] = useState({ name: "", seats: 8, shape: "round" });
+      const [dragOverId, setDragOverId] = useState(null);
+      const [dragging, setDragging] = useState(null);
+
+      const tables = seating.tables.map(t => ({ ...t, shape: t.shape || "round" }));
+      const seated = tables.flatMap(t => t.guests);
+      const confirmed = guests.filter(g => g.status === "Confirmed");
+      const unseated = confirmed.filter(g => !seated.includes(g.name)).map(g => g.name);
+
+      const getInitials = (name) => { const p = name.trim().split(/\s+/); return p.length === 1 ? p[0][0].toUpperCase() : (p[0][0] + p[p.length-1][0]).toUpperCase(); };
+
+      const addTable = () => {
+        if (!form.name.trim()) return;
+        saveSeating({ ...seating, tables: [...seating.tables, { id: Date.now(), name: form.name, seats: form.seats, shape: form.shape, guests: [] }] });
+        setForm({ name: "", seats: 8, shape: form.shape });
+      };
       const rmTable = (id) => saveSeating({ ...seating, tables: seating.tables.filter(t => t.id !== id) });
       const addToTable = (tid, gName) => {
         if (!gName) return;
@@ -807,52 +821,201 @@
       const rmFromTable = (tid, gName) => {
         saveSeating({ ...seating, tables: seating.tables.map(t => t.id === tid ? { ...t, guests: t.guests.filter(g => g !== gName) } : t) });
       };
-      const seated = seating.tables.flatMap(t => t.guests);
-      const confirmed = guests.filter(g => g.status === "Confirmed");
-      const unseated = confirmed.filter(g => !seated.includes(g.name)).map(g => g.name);
+      const moveGuest = (gName, fromId, toId) => {
+        if (fromId === toId) return;
+        let newTables = [...seating.tables];
+        if (fromId !== "pool") newTables = newTables.map(t => t.id === fromId ? { ...t, guests: t.guests.filter(g => g !== gName) } : t);
+        if (toId !== "pool") newTables = newTables.map(t => t.id === toId ? { ...t, guests: [...t.guests, gName] } : t);
+        saveSeating({ ...seating, tables: newTables });
+      };
+
+      const dropHandlers = (targetId) => ({
+        onDragOver: e => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; },
+        onDragEnter: e => { e.preventDefault(); setDragOverId(targetId); },
+        onDragLeave: e => { if (e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) return; setDragOverId(null); },
+        onDrop: e => {
+          e.preventDefault();
+          const gName = e.dataTransfer.getData("text/plain");
+          const from = e.dataTransfer.getData("application/x-source-table");
+          moveGuest(gName, from === "pool" ? "pool" : parseInt(from), targetId);
+          setDragOverId(null); setDragging(null);
+        },
+      });
+
+      const dragProps = (gName, sourceId) => ({
+        draggable: true,
+        onDragStart: e => { e.dataTransfer.setData("text/plain", gName); e.dataTransfer.setData("application/x-source-table", String(sourceId)); e.dataTransfer.effectAllowed = "move"; setDragging(gName); },
+        onDragEnd: () => setDragging(null),
+      });
+
+      const seatStyle = (guest) => ({
+        display: "flex", alignItems: "center", justifyContent: "center",
+        fontSize: 10, fontWeight: 600,
+        background: guest ? P.oliveP : "transparent",
+        border: guest ? `2px solid ${P.oliveL}` : `2px dashed ${P.stoneL}`,
+        color: guest ? P.olive : P.txtL,
+        cursor: guest ? "grab" : "default",
+        opacity: dragging === guest ? 0.4 : 1,
+        transition: "opacity 0.15s",
+      });
+
+      const tableCard = (t, isOver) => ({
+        background: isOver ? P.terraP : P.card, borderRadius: 16, padding: 14,
+        boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
+        border: isOver ? `2px solid ${P.terra}` : "2px solid transparent",
+        transition: "border-color 0.15s, background-color 0.15s",
+      });
+
+      const renderRoundTable = (t) => {
+        const sz = 250, cx = sz/2, cy = sz/2, tR = 42, oR = 90, sS = 34;
+        const isOver = dragOverId === t.id;
+        const slots = Array.from({ length: t.seats }, (_, i) => ({
+          guest: t.guests[i] || null,
+          angle: (2 * Math.PI * i / t.seats) - Math.PI / 2,
+        }));
+        return (
+          <div key={t.id} {...dropHandlers(t.id)} style={tableCard(t, isOver)}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <div><span style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>{t.name}</span><span style={{ fontSize: 10, color: t.guests.length > t.seats ? P.red : P.txtL, marginLeft: 6 }}>{t.guests.length}/{t.seats}</span></div>
+              <button onClick={() => rmTable(t.id)} style={{...bS, background: P.redP, color: P.red, fontSize: 10}}>Remove</button>
+            </div>
+            <div style={{ position: "relative", width: sz, height: sz, margin: "0 auto" }}>
+              <div style={{ position: "absolute", left: cx-tR, top: cy-tR, width: tR*2, height: tR*2, borderRadius: "50%", background: P.bgD, border: `1px solid ${P.stoneP}`, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: P.txtM, textAlign: "center", padding: "0 4px", lineHeight: 1.2 }}>{t.name}</div>
+              </div>
+              {slots.map((s, i) => {
+                const x = cx + oR * Math.cos(s.angle) - sS/2;
+                const y = cy + oR * Math.sin(s.angle) - sS/2;
+                return (
+                  <div key={i} {...(s.guest ? dragProps(s.guest, t.id) : {})} title={s.guest || "Empty seat"}
+                    style={{ position: "absolute", left: x, top: y, width: sS, height: sS, borderRadius: "50%", ...seatStyle(s.guest) }}>
+                    {s.guest ? getInitials(s.guest) : "+"}
+                  </div>
+                );
+              })}
+            </div>
+            {t.guests.length < t.seats && (
+              <select onChange={e => { addToTable(t.id, e.target.value); e.target.value = ""; }} style={{ ...iS, fontSize: 11, padding: "4px 8px", background: "#fff", marginTop: 6 }} defaultValue="">
+                <option value="" disabled>+ Add guest{"\u2026"}</option>
+                {unseated.filter(n => !t.guests.includes(n)).map(n => <option key={n}>{n}</option>)}
+              </select>
+            )}
+            {t.guests.length > 0 && (
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 8 }}>
+                {t.guests.map(g => (
+                  <span key={g} style={{ padding: "2px 8px", borderRadius: 12, background: P.oliveP, fontSize: 10, color: P.olive, display: "flex", alignItems: "center", gap: 3 }}>
+                    {g} <button onClick={() => rmFromTable(t.id, g)} style={{ background: "none", border: "none", cursor: "pointer", color: P.olive, fontSize: 11, padding: 0, lineHeight: 1 }}>{"\u00D7"}</button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      const renderLongTable = (t) => {
+        const cW = 260, cH = 180, tW = 190, tH = 44, sS = 30;
+        const tL = (cW - tW) / 2, tT = (cH - tH) / 2;
+        const isOver = dragOverId === t.id;
+        const topN = Math.ceil(t.seats / 2), botN = Math.floor(t.seats / 2);
+        const mkRow = (count, yPos, startIdx) => Array.from({ length: count }, (_, i) => ({
+          x: tL + (tW / (count + 1)) * (i + 1) - sS/2,
+          y: yPos,
+          guest: t.guests[startIdx + i] || null,
+        }));
+        const allSeats = [...mkRow(topN, tT - sS - 6, 0), ...mkRow(botN, tT + tH + 6, topN)];
+        return (
+          <div key={t.id} {...dropHandlers(t.id)} style={tableCard(t, isOver)}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <div><span style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>{t.name}</span><span style={{ fontSize: 10, color: t.guests.length > t.seats ? P.red : P.txtL, marginLeft: 6 }}>{t.guests.length}/{t.seats}</span></div>
+              <button onClick={() => rmTable(t.id)} style={{...bS, background: P.redP, color: P.red, fontSize: 10}}>Remove</button>
+            </div>
+            <div style={{ position: "relative", width: cW, height: cH, margin: "0 auto" }}>
+              <div style={{ position: "absolute", left: tL, top: tT, width: tW, height: tH, borderRadius: 8, background: P.bgD, border: `1px solid ${P.stoneP}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: P.txtM }}>{t.name}</div>
+              </div>
+              {allSeats.map((s, i) => (
+                <div key={i} {...(s.guest ? dragProps(s.guest, t.id) : {})} title={s.guest || "Empty seat"}
+                  style={{ position: "absolute", left: s.x, top: s.y, width: sS, height: sS, borderRadius: 6, ...seatStyle(s.guest) }}>
+                  {s.guest ? getInitials(s.guest) : "+"}
+                </div>
+              ))}
+            </div>
+            {t.guests.length < t.seats && (
+              <select onChange={e => { addToTable(t.id, e.target.value); e.target.value = ""; }} style={{ ...iS, fontSize: 11, padding: "4px 8px", background: "#fff", marginTop: 6 }} defaultValue="">
+                <option value="" disabled>+ Add guest{"\u2026"}</option>
+                {unseated.filter(n => !t.guests.includes(n)).map(n => <option key={n}>{n}</option>)}
+              </select>
+            )}
+            {t.guests.length > 0 && (
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 8 }}>
+                {t.guests.map(g => (
+                  <span key={g} style={{ padding: "2px 8px", borderRadius: 12, background: P.oliveP, fontSize: 10, color: P.olive, display: "flex", alignItems: "center", gap: 3 }}>
+                    {g} <button onClick={() => rmFromTable(t.id, g)} style={{ background: "none", border: "none", cursor: "pointer", color: P.olive, fontSize: 11, padding: 0, lineHeight: 1 }}>{"\u00D7"}</button>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      };
 
       return (
         <div>
           <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>Seating Plan</div>
-          <div style={{ fontSize: 12, color: P.txtL, marginBottom: 18 }}>Assign confirmed guests to tables {"\u00B7"} {seated.length} seated / {confirmed.length} confirmed</div>
+          <div style={{ fontSize: 12, color: P.txtL, marginBottom: 18 }}>Drag guests to tables {"\u00B7"} {seated.length} seated / {confirmed.length} confirmed</div>
 
-          {unseated.length > 0 && (
-            <div style={{ background: P.goldP, borderRadius: 12, padding: 14, marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: P.gold, marginBottom: 6 }}>Unseated ({unseated.length})</div>
-              <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                {unseated.map(n => (<span key={n} style={{ padding: "3px 10px", borderRadius: 14, background: "#fff", fontSize: 11, color: P.txt }}>{n}</span>))}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: 7, marginBottom: 14 }}>
+            {[{ l: "Confirmed", v: confirmed.length, c: P.green },{ l: "Seated", v: seated.length, c: P.olive },{ l: "Unseated", v: unseated.length, c: unseated.length > 0 ? P.gold : P.stone },{ l: "Tables", v: tables.length, c: P.terra }].map((s,i) => (
+              <div key={i} style={{ background: P.card, borderRadius: 12, padding: "10px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: `3px solid ${s.c}` }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: P.txt }}>{s.v}</div>
+                <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>{s.l}</div>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
 
-          <div style={{ display: "flex", gap: 5, marginBottom: 14, flexWrap: "wrap" }}>
-            <input placeholder="Table name (e.g. Top Table)" value={form.name} onChange={e => setForm({...form,name:e.target.value})} style={{ ...iS, flex: 2, minWidth: 140 }} />
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}><label style={{ fontSize: 11, color: P.txtL }}>Seats</label><input type="number" value={form.seats} onChange={e => setForm({...form,seats:parseInt(e.target.value)||8})} style={{ ...iS, width: 55 }} /></div>
+          <div {...dropHandlers("pool")} style={{
+            background: dragOverId === "pool" ? P.terraP : P.goldP, borderRadius: 12, padding: 14, marginBottom: 16,
+            border: dragOverId === "pool" ? `2px dashed ${P.terra}` : "2px solid transparent", transition: "all 0.15s",
+            minHeight: 48
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: P.gold, marginBottom: 6 }}>
+              {unseated.length > 0 ? `Unseated (${unseated.length}) \u2014 drag to a table` : "All confirmed guests are seated"}
+            </div>
+            <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+              {unseated.map(n => (
+                <span key={n} {...dragProps(n, "pool")} style={{ padding: "4px 11px", borderRadius: 14, background: "#fff", fontSize: 11, color: P.txt, cursor: "grab", opacity: dragging === n ? 0.4 : 1, transition: "opacity 0.15s", boxShadow: "0 1px 3px rgba(0,0,0,0.06)" }}>{n}</span>
+              ))}
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 5, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+            <input placeholder="Table name (e.g. Top Table)" value={form.name} onChange={e => setForm({...form,name:e.target.value})} onKeyDown={e => e.key === "Enter" && addTable()} style={{ ...iS, flex: 2, minWidth: 120 }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <label style={{ fontSize: 11, color: P.txtL }}>Seats</label>
+              <input type="number" value={form.seats} min={2} max={20} onChange={e => setForm({...form,seats:parseInt(e.target.value)||8})} style={{ ...iS, width: 55 }} />
+            </div>
+            <div style={{ display: "flex", gap: 2, background: P.bgD, borderRadius: 8, padding: 2 }}>
+              {["round","long"].map(s => (
+                <button key={s} onClick={() => setForm({...form,shape:s})} style={{ ...bS, padding: "5px 10px", background: form.shape===s?P.terra:"transparent", color: form.shape===s?"#fff":P.txtM, borderRadius: 6, textTransform: "capitalize" }}>
+                  {s === "round" ? "\u25CB" : "\u25AD"} {s}
+                </button>
+              ))}
+            </div>
             <button onClick={addTable} style={bP}>+ Table</button>
           </div>
 
-          {seating.tables.map(t => (
-            <div key={t.id} style={{ background: P.card, borderRadius: 12, padding: 14, marginBottom: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <div><div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>{t.name}</div><div style={{ fontSize: 10, color: t.guests.length > t.seats ? P.red : P.txtL }}>{t.guests.length}/{t.seats} seats {t.guests.length > t.seats ? "\u26A0\uFE0F" : ""}</div></div>
-                <button onClick={() => rmTable(t.id)} style={{...bS,background:P.redP,color:P.red,fontSize:10}}>Remove</button>
-              </div>
-              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 8 }}>
-                {t.guests.map(g => (
-                  <span key={g} style={{ padding: "3px 8px", borderRadius: 14, background: P.oliveP, fontSize: 11, color: P.olive, display: "flex", alignItems: "center", gap: 4 }}>
-                    {g} <button onClick={() => rmFromTable(t.id, g)} style={{ background: "none", border: "none", cursor: "pointer", color: P.olive, fontSize: 12, padding: 0, lineHeight: 1 }}>{"\u00D7"}</button>
-                  </span>
-                ))}
-              </div>
-              {t.guests.length < t.seats && (
-                <select onChange={e => { addToTable(t.id, e.target.value); e.target.value = ""; }} style={{ ...iS, fontSize: 11, padding: "4px 8px", background: "#fff" }} defaultValue="">
-                  <option value="" disabled>+ Add guest{"\u2026"}</option>
-                  {unseated.filter(n => !t.guests.includes(n)).map(n => <option key={n}>{n}</option>)}
-                </select>
-              )}
+          {tables.length > 0 ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+              {tables.map(t => t.shape === "long" ? renderLongTable(t) : renderRoundTable(t))}
             </div>
-          ))}
-          {seating.tables.length === 0 && <div style={{ textAlign: "center", padding: 36, color: P.txtL, fontSize: 12 }}>No tables yet {"\u2014"} add your first table above</div>}
+          ) : (
+            <div style={{ textAlign: "center", padding: 50, color: P.txtL }}>
+              <div style={{ fontSize: 40, marginBottom: 10, opacity: 0.3 }}>{"\u2B21"}</div>
+              <div style={{ fontSize: 13 }}>No tables yet {"\u2014"} create your first table above</div>
+              <div style={{ fontSize: 11, marginTop: 4 }}>Choose round for dinner tables or long for banquet-style seating</div>
+            </div>
+          )}
         </div>
       );
     }
