@@ -57,6 +57,7 @@
       { id: "vendors", label: "Vendors", icon: "\u260E" },
       { id: "guests", label: "Guests", icon: "\u2661" },
       { id: "seating", label: "Seating", icon: "\u2B21" },
+      { id: "rooms", label: "Rooms", icon: "\uD83C\uDFE0" },
       { id: "timeline", label: "Week-of", icon: "\u25F7" },
       { id: "music", label: "Music", icon: "\u266B" },
       { id: "packing", label: "Packing", icon: "\u2713" },
@@ -300,9 +301,10 @@
     }
 
     /* ========== COUNTDOWN ========== */
-    function DashTab({ data, saveMilestones, gC, cC, upPay }) {
+    function DashTab({ data, saveMilestones, gC, cC, upPay, vendors, guests, allData, saveFns }) {
       const { budget, milestones } = data;
       const [showDone, setShowDone] = useState(false);
+      const fileRef = React.useRef(null);
       const now = new Date();
       const diff = WEDDING_DATE - now;
       const days = Math.floor(diff / 86400000);
@@ -383,6 +385,96 @@
                 </div>
               );
             })}
+          </div>
+
+          {/* RSVP Tracker */}
+          {(() => {
+            const invited = (guests||[]).filter(g => g.status === "Invited");
+            const pending = (guests||[]).filter(g => g.status === "Pending");
+            const confirmed = (guests||[]).filter(g => g.status === "Confirmed");
+            const declined = (guests||[]).filter(g => g.status === "Declined");
+            const awaiting = [...invited, ...pending];
+            const rsvpM = milestones.find(m => m.task.toLowerCase().includes("rsvp"));
+            const rsvpDue = rsvpM ? new Date(rsvpM.due) : null;
+            const rsvpDays = rsvpDue ? Math.ceil((rsvpDue - now) / 86400000) : null;
+            return (guests||[]).length > 0 ? (
+              <div style={{ background: P.card, borderRadius: 14, padding: 18, marginTop: 18, boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `4px solid ${P.blue}` }}>
+                <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15, fontWeight: 700, color: P.txt, marginBottom: 10 }}>{"\u2709"} RSVP Tracker</div>
+                <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+                  {[{ l: "Confirmed", v: confirmed.length, bg: P.greenP, c: P.green }, { l: "Invited", v: invited.length, bg: P.goldP, c: P.gold }, { l: "Pending", v: pending.length, bg: P.blueP, c: P.blue }, { l: "Declined", v: declined.length, bg: P.redP, c: P.red }].map((s, i) => (
+                    <span key={i} style={{ padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 600, background: s.bg, color: s.c }}>{s.v} {s.l}</span>
+                  ))}
+                </div>
+                {rsvpDue && <div style={{ fontSize: 11, color: rsvpDays < 0 ? P.red : P.txtM, marginBottom: 8 }}>{rsvpDays > 0 ? `${rsvpDays} days until RSVP deadline` : rsvpDays === 0 ? "RSVP deadline is today" : `RSVP deadline was ${Math.abs(rsvpDays)} days ago`} ({rsvpDue.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })})</div>}
+                {awaiting.length > 0 && (
+                  <div>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: P.gold, marginBottom: 5 }}>Awaiting response ({awaiting.length})</div>
+                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                      {awaiting.slice(0, 12).map(g => (<span key={g.id} style={{ padding: "2px 8px", borderRadius: 10, background: P.goldP, fontSize: 10, color: P.gold }}>{g.name}</span>))}
+                      {awaiting.length > 12 && <span style={{ fontSize: 10, color: P.txtL, padding: "2px 4px" }}>+{awaiting.length - 12} more</span>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : null;
+          })()}
+
+          {/* Quick Contacts */}
+          {(() => {
+            const keyVendors = (vendors||[]).filter(v => v.starred || ["Booked","Paid Deposit","Paid in Full"].includes(v.status)).slice(0, 8);
+            return keyVendors.length > 0 ? (
+              <div style={{ background: P.card, borderRadius: 14, padding: 18, marginTop: 18, boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `4px solid ${P.olive}` }}>
+                <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15, fontWeight: 700, color: P.txt, marginBottom: 10 }}>{"\u260E"} Key Contacts</div>
+                {keyVendors.map((v, i) => (
+                  <div key={v.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: i < keyVendors.length - 1 ? `1px solid ${P.bgD}` : "none" }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{v.starred ? "\u2B50 " : ""}{v.name}</div>
+                      <div style={{ fontSize: 10, color: P.txtL }}>{v.category}</div>
+                    </div>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                      {v.phone && <a href={`tel:${v.phone}`} style={{ fontSize: 10, color: P.blue, textDecoration: "none" }}>{v.phone}</a>}
+                      {v.email && <a href={`mailto:${v.email}`} style={{ fontSize: 10, color: P.blue, textDecoration: "none" }}>{v.email}</a>}
+                      {v.website && <a href={`https://${v.website.replace(/^https?:\/\//, "")}`} target="_blank" rel="noopener" style={{ fontSize: 10, color: P.blue, textDecoration: "none" }}>{"\uD83C\uDF10"}</a>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : null;
+          })()}
+
+          {/* Backup & Export */}
+          <div style={{ background: P.card, borderRadius: 14, padding: 18, marginTop: 18, boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `4px solid ${P.stone}` }}>
+            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15, fontWeight: 700, color: P.txt, marginBottom: 10 }}>{"\uD83D\uDCBE"} Backup & Restore</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button onClick={() => {
+                const blob = new Blob([JSON.stringify(allData, null, 2)], { type: "application/json" });
+                const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `wedding-backup-${new Date().toISOString().split("T")[0]}.json`; a.click();
+              }} style={{ ...bP, background: P.olive }}>{"\u2B07"} Export All Data</button>
+              <button onClick={() => fileRef.current?.click()} style={{ ...bP, background: P.stone }}>{"\u2B06"} Import Backup</button>
+              <input ref={fileRef} type="file" accept=".json" style={{ display: "none" }} onChange={e => {
+                const file = e.target.files?.[0]; if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                  try {
+                    const d = JSON.parse(reader.result);
+                    if (d.budget) saveFns.saveBudget(d.budget);
+                    if (d.guests) saveFns.saveGuests(d.guests);
+                    if (d.vendors) saveFns.saveVendors(d.vendors);
+                    if (d.timeline) saveFns.saveTimeline(d.timeline);
+                    if (d.milestones) saveFns.saveMilestones(d.milestones);
+                    if (d.decisions) saveFns.saveDecisions(d.decisions);
+                    if (d.music) saveFns.saveMusic(d.music);
+                    if (d.packing) saveFns.savePacking(d.packing);
+                    if (d.seating) saveFns.saveSeating(d.seating);
+                    if (d.rooms) saveFns.saveRooms(d.rooms);
+                    alert("Backup restored successfully!");
+                  } catch { alert("Invalid backup file"); }
+                };
+                reader.readAsText(file);
+                e.target.value = "";
+              }} />
+            </div>
+            <div style={{ fontSize: 10, color: P.txtL, marginTop: 6 }}>Export saves all tabs to a JSON file. Import restores from a previous backup.</div>
           </div>
         </div>
       );
@@ -965,6 +1057,102 @@
       );
     }
 
+    /* ========== ROOMS ========== */
+    function RoomsTab({ rooms, saveRooms, guests }) {
+      const confirmed = guests.filter(g => g.status !== "Declined");
+      const allAssigned = [...(rooms.santarsa||[]), ...(rooms.vallorsaia||[])].flatMap(r => r.guests || []);
+      const unassigned = confirmed.filter(g => !allAssigned.includes(g.name)).map(g => g.name);
+
+      const assign = (villa, ri, gName) => {
+        if (!gName) return;
+        const u = { ...rooms, [villa]: rooms[villa].map((r, i) => i === ri ? { ...r, guests: [...(r.guests||[]), gName] } : r) };
+        saveRooms(u);
+      };
+      const remove = (villa, ri, gName) => {
+        const u = { ...rooms, [villa]: rooms[villa].map((r, i) => i === ri ? { ...r, guests: (r.guests||[]).filter(g => g !== gName) } : r) };
+        saveRooms(u);
+      };
+
+      const villaStats = (key) => {
+        const rs = rooms[key] || [];
+        const beds = rs.reduce((s, r) => s + r.sleeps, 0);
+        const used = rs.reduce((s, r) => s + (r.guests||[]).length, 0);
+        return { beds, used, free: beds - used };
+      };
+      const sS = villaStats("santarsa"), vS = villaStats("vallorsaia");
+
+      const VillaSection = ({ title, villa, stats, color }) => (
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: P.txt, fontFamily: "'Playfair Display', Georgia, serif" }}>{title}</div>
+            <div style={{ display: "flex", gap: 10, fontSize: 10 }}>
+              <span style={{ color: P.txtM }}>{stats.beds} beds</span>
+              <span style={{ color: P.olive }}>{stats.used} assigned</span>
+              <span style={{ color: stats.free > 0 ? P.txtL : P.red }}>{stats.free} free</span>
+            </div>
+          </div>
+          <div style={{ background: P.bgD, borderRadius: 8, height: 5, marginBottom: 12, overflow: "hidden" }}>
+            <div style={{ height: "100%", borderRadius: 8, width: `${stats.beds ? Math.min(stats.used/stats.beds*100,100) : 0}%`, background: stats.used > stats.beds ? P.red : color, transition: "width 0.3s" }} />
+          </div>
+          {(rooms[villa]||[]).map((r, ri) => {
+            const full = (r.guests||[]).length >= r.sleeps;
+            const available = unassigned.filter(n => !(r.guests||[]).includes(n));
+            return (
+              <div key={ri} style={{ background: P.card, borderRadius: 10, padding: "10px 12px", marginBottom: 5, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderLeft: `3px solid ${full ? P.olive : P.stoneL}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: (r.guests||[]).length > 0 || !full ? 6 : 0 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{r.name}</div>
+                  <div style={{ fontSize: 10, color: full ? P.olive : P.txtL }}>{(r.guests||[]).length}/{r.sleeps}</div>
+                </div>
+                {(r.guests||[]).length > 0 && (
+                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: !full ? 6 : 0 }}>
+                    {(r.guests||[]).map(g => (
+                      <span key={g} style={{ padding: "2px 8px", borderRadius: 12, background: P.oliveP, fontSize: 11, color: P.olive, display: "flex", alignItems: "center", gap: 4 }}>
+                        {g} <button onClick={() => remove(villa, ri, g)} style={{ background: "none", border: "none", cursor: "pointer", color: P.olive, fontSize: 12, padding: 0, lineHeight: 1 }}>{"\u00D7"}</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {!full && available.length > 0 && (
+                  <select onChange={e => { assign(villa, ri, e.target.value); e.target.value = ""; }} style={{ ...iS, fontSize: 11, padding: "4px 8px", background: "#fff" }} defaultValue="">
+                    <option value="" disabled>+ Assign guest{"\u2026"}</option>
+                    {available.map(n => <option key={n}>{n}</option>)}
+                  </select>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+
+      return (
+        <div>
+          <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>Room Allocation</div>
+          <div style={{ fontSize: 12, color: P.txtL, marginBottom: 18 }}>Assign guests to villa rooms {"\u00B7"} {allAssigned.length} assigned / {confirmed.length} guests</div>
+
+          {unassigned.length > 0 && (
+            <div style={{ background: P.goldP, borderRadius: 12, padding: 14, marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: P.gold, marginBottom: 6 }}>Unassigned ({unassigned.length})</div>
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                {unassigned.map(n => (<span key={n} style={{ padding: "3px 10px", borderRadius: 14, background: "#fff", fontSize: 11, color: P.txt }}>{n}</span>))}
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
+            {[{ l: "Santarsa", v: `${sS.used}/${sS.beds}`, c: P.terra }, { l: "Vallorsaia", v: `${vS.used}/${vS.beds}`, c: P.olive }, { l: "Total", v: `${sS.used+vS.used}/${sS.beds+vS.beds}`, c: P.stone }].map((s,i) => (
+              <div key={i} style={{ flex: 1, background: P.card, borderRadius: 12, padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: `3px solid ${s.c}` }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: P.txt }}>{s.v}</div>
+                <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>{s.l}</div>
+              </div>
+            ))}
+          </div>
+
+          <VillaSection title="Villa Santarsa" villa="santarsa" stats={sS} color={P.terra} />
+          <VillaSection title="Villa Vallorsaia" villa="vallorsaia" stats={vS} color={P.olive} />
+        </div>
+      );
+    }
+
     /* ========== MAIN ========== */
     function WeddingDashboard() {
       const [tab, setTab] = useState("dash");
@@ -977,8 +1165,9 @@
       const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music);
       const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing);
       const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating);
+      const [rooms, saveRooms, b10] = useStorage("wedding-rooms-v3", DEFAULT_DATA.rooms);
 
-      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9)) return (
+      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10)) return (
         <div style={{ minHeight: "100vh", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\uD83D\uDC8D"}</div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15 }}>Loading...</div></div>
         </div>
@@ -1006,11 +1195,12 @@
             </div>
           </div>
           <div style={{ maxWidth: 840, margin: "0 auto", padding: "18px 10px 50px" }}>
-            {tab === "dash" && <DashTab data={{ budget, milestones }} saveMilestones={saveMilestones} gC={gC} cC={cC} upPay={upPay} />}
+            {tab === "dash" && <DashTab data={{ budget, milestones }} saveMilestones={saveMilestones} gC={gC} cC={cC} upPay={upPay} vendors={vendors} guests={guests} allData={{ budget, guests, vendors, timeline, milestones, decisions, music, packing, seating, rooms }} saveFns={{ saveBudget, saveGuests, saveVendors, saveTimeline, saveMilestones, saveDecisions, saveMusic, savePacking, saveSeating, saveRooms }} />}
             {tab === "budget" && <BudgetTab budget={budget} saveBudget={saveBudget} />}
             {tab === "vendors" && <VendorsTab vendors={vendors} saveVendors={saveVendors} />}
             {tab === "guests" && <GuestsTab guests={guests} saveGuests={saveGuests} />}
             {tab === "seating" && <SeatingTab seating={seating} saveSeating={saveSeating} guests={guests} />}
+            {tab === "rooms" && <RoomsTab rooms={rooms} saveRooms={saveRooms} guests={guests} />}
             {tab === "timeline" && <TimelineTab timeline={timeline} saveTimeline={saveTimeline} />}
             {tab === "music" && <MusicTab music={music} saveMusic={saveMusic} />}
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} />}
