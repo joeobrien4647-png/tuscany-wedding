@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sophie & Joe — Wedding Dashboard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💍</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyAbEpCIPFFqiuElH0DK1dkkl7JBbNyZTc8",
+      authDomain: "tuscany-wedding.firebaseapp.com",
+      databaseURL: "https://tuscany-wedding-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "tuscany-wedding",
+      storageBucket: "tuscany-wedding.firebasestorage.app",
+      messagingSenderId: "215551026806",
+      appId: "1:215551026806:web:c3520487c4ff794fe0e157",
+    });
+    var db = firebase.database();
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    input, select, textarea, button { font-family: inherit; }
+    ::-webkit-scrollbar { height: 4px; width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useCallback } = React;
+
+    const WEDDING_DATE = new Date("2027-05-29T14:00:00");
+    const EUR_RATE = 1.17;
+
+    const P = {
+      bg: "#FAF7F2", bgD: "#F0EBE3", card: "#FFFFFF",
+      terra: "#C4704B", terraL: "#E8A882", terraP: "#FDF0E9",
+      olive: "#6B7F4E", oliveL: "#8FA86E", oliveP: "#EFF4E8",
+      stone: "#8C8377", stoneL: "#B5AFA7", stoneP: "#E8E5E1",
+      txt: "#3D3228", txtM: "#6B5E52", txtL: "#9C8E82",
+      gold: "#C9A84C", goldP: "#FFF8E7", red: "#C45050", redP: "#FDECEC",
+      green: "#4E8C5E", greenP: "#E8F5EC", blue: "#4A90A8", blueP: "#E8F4F8",
+    };
+
+    const TABS = [
+      { id: "dash", label: "Dashboard", icon: "\u25C8" },
+      { id: "budget", label: "Budget", icon: "\u00A3" },
+      { id: "vendors", label: "Vendors", icon: "\u260E" },
+      { id: "guests", label: "Guests", icon: "\u2661" },
+      { id: "seating", label: "Seating", icon: "\u2B21" },
+      { id: "timeline", label: "Week-of", icon: "\u25F7" },
+      { id: "music", label: "Music", icon: "\u266B" },
+      { id: "packing", label: "Packing", icon: "\u2713" },
+      { id: "decisions", label: "Decisions", icon: "\u270E" },
+    ];
+
+    const BUDGET_CATS = [
+      { id: "venue", name: "Venue Hire", estimate: 8000, icon: "\uD83C\uDFE1" },
+      { id: "catering", name: "Catering & Food", estimate: 7000, icon: "\uD83C\uDF7D" },
+      { id: "drinks", name: "Drinks (Self-Supplied)", estimate: 2100, icon: "\uD83E\uDD42" },
+      { id: "photo", name: "Photography", estimate: 3000, icon: "\uD83D\uDCF8" },
+      { id: "video", name: "Videography", estimate: 2000, icon: "\uD83C\uDFAC" },
+      { id: "flowers", name: "Flowers & Styling", estimate: 2500, icon: "\uD83D\uDC90" },
+      { id: "music", name: "Music & Entertainment", estimate: 2000, icon: "\uD83C\uDFB5" },
+      { id: "hair", name: "Hair & Makeup", estimate: 800, icon: "\uD83D\uDC84" },
+      { id: "celebrant", name: "Celebrant", estimate: 500, icon: "\uD83D\uDC8D" },
+      { id: "planner", name: "Wedding Planner", estimate: 3000, icon: "\uD83D\uDCCB" },
+      { id: "transport", name: "Transport & Transfers", estimate: 1500, icon: "\uD83D\uDE90" },
+      { id: "stationery", name: "Stationery & Signage", estimate: 400, icon: "\u2709" },
+      { id: "attire", name: "Wedding Attire", estimate: 2500, icon: "\uD83D\uDC54" },
+      { id: "activities", name: "Guest Activities", estimate: 1000, icon: "\uD83C\uDFA8" },
+      { id: "cake", name: "Cake", estimate: 500, icon: "\uD83C\uDF82" },
+      { id: "flights", name: "Flights (Joe & Sophie)", estimate: 400, icon: "\u2708" },
+      { id: "contingency", name: "Contingency (10%)", estimate: 3700, icon: "\uD83D\uDEE1" },
+    ];
+
+    const VENDOR_CATS = ["Venue","Caterer","Photographer","Videographer","Florist","DJ / Band","Hair & Makeup","Celebrant","Wedding Planner","Transport","Cake","Stationery","Activities","Other"];
+    const VENDOR_STATUSES = ["Researching","Contacted","Quoted","Booked","Paid Deposit","Paid in Full"];
+    const VSC = { Researching:{bg:P.stoneP,c:P.stone}, Contacted:{bg:P.goldP,c:P.gold}, Quoted:{bg:P.blueP,c:P.blue}, Booked:{bg:P.oliveP,c:P.olive}, "Paid Deposit":{bg:P.terraP,c:P.terra}, "Paid in Full":{bg:P.greenP,c:P.green} };
+
+    const AIRPORTS = ["Perugia (PEG)","Florence (FLR)","Rome Fiumicino (FCO)","Rome Ciampino (CIA)","Pisa (PSA)","Bologna (BLQ)","Self-driving","Other"];
+    const GUEST_STATUSES = ["Invited","Confirmed","Declined","Pending"];
+    const VILLA_OPTS = ["Santarsa","Vallorsaia","Off-site"];
+    const DIETARY_OPTS = ["None","Vegetarian","Vegan","Gluten-free","Dairy-free","Other"];
+    const DECISION_CATS = ["General","Venue & Setup","Food & Drinks","Entertainment","Styling","Guest Experience","Budget","Timeline"];
+
+    const SANTARSA_ROOMS = [
+      { name: "Master Suite", sleeps: 2 }, { name: "Room 2", sleeps: 2 }, { name: "Room 3", sleeps: 2 },
+      { name: "Room 4", sleeps: 2 }, { name: "Room 5", sleeps: 2 }, { name: "Room 6", sleeps: 2 },
+      { name: "Room 7", sleeps: 2 }, { name: "Room 8", sleeps: 2 }, { name: "Room 9 (Triple)", sleeps: 3 },
+      { name: "Room 10", sleeps: 2 }, { name: "Room 11", sleeps: 2 }, { name: "Room 12", sleeps: 2 },
+      { name: "Room 13", sleeps: 2 }, { name: "Room 14 (Triple)", sleeps: 3 },
+    ];
+    const VALLORSAIA_ROOMS = [
+      { name: "Room 1 (Suite)", sleeps: 2 }, { name: "Room 2", sleeps: 2 }, { name: "Room 3", sleeps: 2 },
+      { name: "Room 4", sleeps: 2 }, { name: "Room 5", sleeps: 2 }, { name: "Room 6", sleeps: 2 },
+      { name: "Room 7", sleeps: 2 }, { name: "Room 8 (Triple)", sleeps: 3 }, { name: "Room 9", sleeps: 2 },
+      { name: "Room 10", sleeps: 2 }, { name: "Room 11 (Triple)", sleeps: 3 },
+    ];
+
+    const DEFAULT_PACKING = [
+      { cat: "Documents", items: [
+        { text: "Passports", done: false }, { text: "Travel insurance docs", done: false }, { text: "Venue confirmation / contract", done: false },
+        { text: "Vendor contact sheet (printed)", done: false }, { text: "Ceremony script / readings", done: false }, { text: "Guest info packs (spares)", done: false },
+        { text: "Euros (cash for tips)", done: false }, { text: "Marriage certificate (from Oakwood House)", done: false },
+      ]},
+      { cat: "Wedding Attire", items: [
+        { text: "Wedding dress + hanger", done: false }, { text: "Veil / headpiece", done: false }, { text: "Wedding shoes", done: false },
+        { text: "Suit / outfit", done: false }, { text: "Tie / pocket square", done: false }, { text: "Cufflinks", done: false },
+        { text: "Rings", done: false }, { text: "Backup outfit (rehearsal / pool party)", done: false },
+      ]},
+      { cat: "Styling & D\u00E9cor", items: [
+        { text: "Table plan / place cards", done: false }, { text: "Welcome signs", done: false }, { text: "Card box / wishing well", done: false },
+        { text: "Guest book + pen", done: false }, { text: "Polaroid camera + film", done: false }, { text: "Sparklers", done: false },
+        { text: "Fairy lights / candles", done: false }, { text: "Confetti", done: false },
+      ]},
+      { cat: "Guest Experience", items: [
+        { text: "Welcome bags / totes", done: false }, { text: "Hangover kits", done: false }, { text: "Lawn games (bocce, Jenga)", done: false },
+        { text: "Pool inflatables", done: false }, { text: "Bluetooth speaker (backup)", done: false },
+        { text: "Limoncello bottles", done: false }, { text: "Favours", done: false },
+      ]},
+      { cat: "Personal", items: [
+        { text: "Toiletries & SPF", done: false }, { text: "Medications", done: false }, { text: "Phone chargers / power banks", done: false },
+        { text: "Camera / GoPro", done: false }, { text: "Swimwear", done: false }, { text: "Sunglasses", done: false },
+        { text: "Comfortable shoes (for dancing)", done: false }, { text: "Sewing kit / safety pins", done: false },
+      ]},
+    ];
+
+    const TIMELINE_DAYS = [
+      { day: "Thursday 27 May", label: "Setup Day", color: P.stone, items: [
+        { time: "10:00", event: "Joe & Sophie arrive at La Conca", vendor: "", done: false },
+        { time: "11:00", event: "Walk-through with wedding planner", vendor: "Planner", done: false },
+        { time: "13:00", event: "Vineyard visits \u2014 Leuta, Tanagatta, Pomaio", vendor: "", done: false },
+        { time: "17:00", event: "Final venue setup & styling check", vendor: "Florist / Planner", done: false },
+        { time: "19:00", event: "Quiet dinner \u2014 just the two of you", vendor: "", done: false },
+      ]},
+      { day: "Friday 28 May", label: "Welcome Day \uD83C\uDF55", color: P.olive, items: [
+        { time: "All day", event: "Guests arrive \u2014 airport transfers", vendor: "Transport", done: false },
+        { time: "14:00", event: "Welcome drinks by the pool", vendor: "", done: false },
+        { time: "15:00", event: "Lawn games (bocce, giant Jenga)", vendor: "", done: false },
+        { time: "17:00", event: "Aperol spritz station opens", vendor: "", done: false },
+        { time: "19:30", event: "Pizza party welcome dinner", vendor: "Caterer", done: false },
+        { time: "21:00", event: "Relaxed evening \u2014 music, mingling", vendor: "DJ / Playlist", done: false },
+      ]},
+      { day: "Saturday 29 May", label: "Wedding Day \uD83D\uDC8D", color: P.terra, items: [
+        { time: "08:00", event: "Breakfast at both villas", vendor: "Caterer", done: false },
+        { time: "09:00", event: "Hair & makeup begins", vendor: "Hair & Makeup", done: false },
+        { time: "10:00", event: "Photographer \u2014 getting ready shots", vendor: "Photographer", done: false },
+        { time: "12:00", event: "Videographer arrives", vendor: "Videographer", done: false },
+        { time: "13:00", event: "Light lunch for guests", vendor: "Caterer", done: false },
+        { time: "15:00", event: "Ceremony", vendor: "Celebrant / Musician", done: false },
+        { time: "15:45", event: "Drinks reception & group photos", vendor: "Photographer", done: false },
+        { time: "17:30", event: "Wedding breakfast", vendor: "Caterer", done: false },
+        { time: "19:30", event: "Speeches", vendor: "", done: false },
+        { time: "20:30", event: "First dance & evening party", vendor: "DJ / Band", done: false },
+        { time: "21:00", event: "Negroni station opens", vendor: "", done: false },
+        { time: "22:30", event: "Late-night snacks", vendor: "Caterer", done: false },
+        { time: "23:00", event: "Limoncello & sparklers", vendor: "", done: false },
+      ]},
+      { day: "Sunday 30 May", label: "Pool Party \uD83C\uDFCA", color: P.blue, items: [
+        { time: "09:00", event: "Hangover kits outside rooms", vendor: "", done: false },
+        { time: "10:00", event: "Brunch \u2014 Bellinis & pastries", vendor: "Caterer", done: false },
+        { time: "12:00", event: "Pool party \u2014 Hugo spritzes", vendor: "DJ / Playlist", done: false },
+        { time: "14:00", event: "Optional \u2014 cooking class / wine tasting", vendor: "Activity provider", done: false },
+        { time: "18:00", event: "Casual farewell dinner", vendor: "Caterer", done: false },
+        { time: "20:00", event: "Final drinks, Polaroid station", vendor: "", done: false },
+      ]},
+      { day: "Monday 31 May", label: "Departure \uD83D\uDC4B", color: P.txtL, items: [
+        { time: "08:00", event: "Breakfast & packing", vendor: "", done: false },
+        { time: "10:00", event: "Transfers \u2014 staggered departures", vendor: "Transport", done: false },
+        { time: "12:00", event: "Final goodbyes & villa handback", vendor: "", done: false },
+      ]},
+    ];
+
+    const DEFAULT_DATA = {
+      budget: BUDGET_CATS.reduce((a, c) => ({ ...a, [c.id]: { actual: 0, paid: 0, currency: "GBP", notes: "", payments: [
+        { label: "Deposit", amount: 0, date: "", paid: false },
+        { label: "Second payment", amount: 0, date: "", paid: false },
+        { label: "Final payment", amount: 0, date: "", paid: false },
+      ]}}), {}),
+      guests: [],
+      vendors: [
+        { id: 1, name: "Serena \u2014 Tuscan Tours & Weddings", category: "Wedding Planner", status: "Researching", phone: "", email: "", website: "tuscantoursandweddings.com", notes: "Based Arezzo/Cortona. 20 yrs, fluent English.", starred: true },
+        { id: 2, name: "I Vecchi Amici", category: "Caterer", status: "Researching", phone: "", email: "", website: "", notes: "Local \u2014 confirm availability", starred: false },
+        { id: 3, name: "Azienda Agricola Leuta", category: "Other", status: "Researching", phone: "", email: "", website: "", notes: "Vineyard, Cortona (~45 min)", starred: false },
+        { id: 4, name: "Cantina Tanagatta", category: "Other", status: "Researching", phone: "", email: "", website: "", notes: "Local to Sansepolcro", starred: false },
+        { id: 5, name: "Podere di Pomaio", category: "Other", status: "Researching", phone: "", email: "", website: "pomaio.it/en", notes: "Arezzo (~40 min). Organic.", starred: false },
+      ],
+      timeline: TIMELINE_DAYS.map(d => ({ ...d, items: d.items.map(i => ({ ...i })) })),
+      milestones: [
+        { task: "Book wedding planner/coordinator", due: "2026-06-01", done: false },
+        { task: "Legal ceremony at Oakwood House", due: "2026-07-18", done: false },
+        { task: "Book photographer", due: "2026-09-01", done: false },
+        { task: "Book videographer", due: "2026-09-01", done: false },
+        { task: "Book caterer", due: "2026-09-01", done: false },
+        { task: "Book celebrant", due: "2026-09-01", done: false },
+        { task: "Send save-the-dates", due: "2026-09-15", done: false },
+        { task: "Book florist", due: "2026-12-01", done: false },
+        { task: "Book DJ / band", due: "2026-12-01", done: false },
+        { task: "Book hair & makeup", due: "2026-12-01", done: false },
+        { task: "Send formal invitations", due: "2027-01-15", done: false },
+        { task: "RSVP deadline", due: "2027-02-28", done: false },
+        { task: "Finalise menu with caterer", due: "2027-03-15", done: false },
+        { task: "Book airport transfers", due: "2027-03-15", done: false },
+        { task: "Send guest info pack", due: "2027-04-15", done: false },
+        { task: "Final vendor payments", due: "2027-05-15", done: false },
+        { task: "Vineyard visits & drinks shopping", due: "2027-05-27", done: false },
+      ],
+      decisions: [],
+      music: { mustPlay: [], neverPlay: [], requests: [] },
+      packing: DEFAULT_PACKING,
+      seating: { tables: [] },
+      rooms: { santarsa: SANTARSA_ROOMS.map(r => ({ ...r, guests: [] })), vallorsaia: VALLORSAIA_ROOMS.map(r => ({ ...r, guests: [] })) },
+    };
+
+    const iS = { width: "100%", padding: "7px 10px", borderRadius: 8, border: `1px solid ${P.stoneP}`, fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" };
+    const bP = { padding: "8px 18px", borderRadius: 10, border: "none", cursor: "pointer", background: P.terra, color: "#fff", fontSize: 13, fontWeight: 600 };
+    const bS = { padding: "4px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 500 };
+    const lb = { fontSize: 11, color: P.txtL, display: "block", marginBottom: 3 };
+
+    function useStorage(key, def) {
+      const [d, setD] = useState(def);
+      const [ok, setOk] = useState(false);
+      useEffect(() => {
+        const ref = db.ref(key);
+        const handler = ref.on("value", (snap) => {
+          if (snap.exists()) { setD(snap.val()); }
+          else { ref.set(def); }
+          setOk(true);
+        });
+        return () => ref.off("value", handler);
+      }, [key]);
+      const save = useCallback((n) => {
+        setD(n);
+        db.ref(key).set(n);
+      }, [key]);
+      return [d, save, ok];
+    }
+
+    function toGBP(a, c) { return c === "EUR" ? Math.round(a / EUR_RATE) : a; }
+
+    function downloadCSV(filename, rows) {
+      const csv = rows.map(r => r.map(c => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; a.click();
+    }
+
+    /* ========== COUNTDOWN ========== */
+    function DashTab({ data, saveMilestones, gC, cC, upPay }) {
+      const { budget, milestones } = data;
+      const [showDone, setShowDone] = useState(false);
+      const now = new Date();
+      const diff = WEDDING_DATE - now;
+      const days = Math.floor(diff / 86400000);
+      const months = Math.floor(days / 30.44);
+      const weeks = Math.floor(days / 7);
+      const tE = BUDGET_CATS.reduce((s, c) => s + c.estimate, 0);
+      const tA = BUDGET_CATS.reduce((s, c) => s + toGBP(budget[c.id]?.actual || 0, budget[c.id]?.currency || "GBP"), 0);
+      const tP = BUDGET_CATS.reduce((s, c) => s + toGBP(budget[c.id]?.paid || 0, budget[c.id]?.currency || "GBP"), 0);
+      const upcoming = [...milestones].filter(m => !m.done).sort((a, b) => new Date(a.due) - new Date(b.due));
+      const overdue = milestones.filter(m => !m.done && new Date(m.due) < now);
+      const completed = milestones.filter(m => m.done).length;
+      const toggleM = (task) => { const i = milestones.findIndex(m => m.task === task); if (i < 0) return; const u = [...milestones]; u[i] = { ...u[i], done: !u[i].done }; saveMilestones(u); };
+
+      return (
+        <div>
+          <div style={{ background: `linear-gradient(135deg, ${P.terra}, ${P.terraL})`, borderRadius: 20, padding: "34px 26px", marginBottom: 22, color: "#fff", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: -40, right: -20, fontSize: 180, opacity: 0.08, fontFamily: "Georgia" }}>{"\u2661"}</div>
+            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 13, letterSpacing: 3, textTransform: "uppercase", opacity: 0.85, marginBottom: 5 }}>Joe & Sophie {"\u2014"} Tuscany 2027</div>
+            <div style={{ display: "flex", gap: 32, alignItems: "baseline", flexWrap: "wrap" }}>
+              <div><span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 64, fontWeight: 700, lineHeight: 1 }}>{days}</span><span style={{ fontSize: 16, marginLeft: 8, opacity: 0.85 }}>days to go</span></div>
+              <div style={{ display: "flex", gap: 18, fontSize: 13, opacity: 0.9 }}><div><strong>{months}</strong> months</div><div><strong>{weeks}</strong> weeks</div><div>Sat <strong>29 May 2027</strong></div></div>
+            </div>
+            <div style={{ marginTop: 12, fontSize: 12, opacity: 0.75 }}>La Conca, Sansepolcro {"\u00B7"} {gC > 0 ? `${cC} confirmed / ${gC} invited` : "~50 guests"}</div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginBottom: 22 }}>
+            {[
+              { l: "Estimated", v: `\u00A3${tE.toLocaleString()}`, s: "target", c: P.stone },
+              { l: "Committed", v: `\u00A3${tA.toLocaleString()}`, s: `${tE ? Math.round(tA/tE*100) : 0}%`, c: P.terra },
+              { l: "Paid", v: `\u00A3${tP.toLocaleString()}`, s: `\u00A3${(tA-tP).toLocaleString()} due`, c: P.olive },
+              { l: "Milestones", v: `${completed}/${milestones.length}`, s: overdue.length ? `${overdue.length} overdue` : "on track", c: overdue.length ? P.red : P.green },
+            ].map((s, i) => (
+              <div key={i} style={{ background: P.card, borderRadius: 14, padding: "14px 12px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `4px solid ${s.c}` }}>
+                <div style={{ fontSize: 10, color: P.txtL, textTransform: "uppercase", letterSpacing: 1, marginBottom: 2 }}>{s.l}</div>
+                <div style={{ fontSize: 22, fontWeight: 700, color: P.txt, fontFamily: "'Playfair Display', Georgia, serif" }}>{s.v}</div>
+                <div style={{ fontSize: 10, color: s.s?.includes("overdue") ? P.red : P.txtM, marginTop: 1 }}>{s.s}</div>
+              </div>
+            ))}
+          </div>
+
+          {upPay.length > 0 && (
+            <div style={{ background: P.card, borderRadius: 14, padding: 18, marginBottom: 18, boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `4px solid ${P.gold}` }}>
+              <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15, fontWeight: 700, color: P.txt, marginBottom: 10 }}>{"\uD83D\uDCB0"} Upcoming Payments</div>
+              {upPay.slice(0, 4).map((p, i) => {
+                const ov = new Date(p.date) < now;
+                return (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 0", borderBottom: i < Math.min(upPay.length, 4) - 1 ? `1px solid ${P.bgD}` : "none" }}>
+                    <span style={{ fontSize: 15 }}>{BUDGET_CATS.find(c => c.id === p.catId)?.icon}</span>
+                    <div style={{ flex: 1 }}><div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{BUDGET_CATS.find(c => c.id === p.catId)?.name} {"\u2014"} {p.label}</div>
+                    <div style={{ fontSize: 10, color: ov ? P.red : P.txtL }}>{new Date(p.date).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}{ov ? " \u2014 overdue" : ""}</div></div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: ov ? P.red : P.txt }}>{p.currency === "EUR" ? "\u20AC" : "\u00A3"}{p.amount.toLocaleString()}</div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div style={{ background: P.card, borderRadius: 14, padding: 18, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15, fontWeight: 700, color: P.txt }}>Milestones</div>
+              <button onClick={() => setShowDone(!showDone)} style={{ ...bS, background: showDone ? P.oliveP : P.bgD, color: showDone ? P.olive : P.txtM, padding: "3px 10px", fontSize: 11 }}>
+                {showDone ? `Hide done (${completed})` : `Show done (${completed})`}
+              </button>
+            </div>
+            {showDone && milestones.filter(m => m.done).map((m, i) => (
+              <div key={"d"+i} style={{ display: "flex", alignItems: "center", gap: 9, padding: "7px 0", borderBottom: `1px solid ${P.bgD}`, opacity: 0.45 }}>
+                <button onClick={() => toggleM(m.task)} style={{ width: 18, height: 18, borderRadius: 5, border: `2px solid ${P.green}`, background: P.green, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 10, flexShrink: 0 }}>{"\u2713"}</button>
+                <div style={{ fontSize: 12, color: P.txt, textDecoration: "line-through" }}>{m.task}</div>
+              </div>
+            ))}
+            {upcoming.map((m, i) => {
+              const due = new Date(m.due); const ov = due < now; const dU = Math.ceil((due - now) / 86400000);
+              return (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 0", borderBottom: i < upcoming.length - 1 ? `1px solid ${P.bgD}` : "none" }}>
+                  <button onClick={() => toggleM(m.task)} style={{ width: 18, height: 18, borderRadius: 5, border: `2px solid ${ov ? P.red : P.terra}`, background: "transparent", cursor: "pointer", flexShrink: 0 }} />
+                  <div style={{ flex: 1 }}><div style={{ fontSize: 12, color: P.txt }}>{m.task}</div>
+                  <div style={{ fontSize: 10, color: ov ? P.red : P.txtL, marginTop: 1 }}>{due.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}{ov ? ` \u2014 ${Math.abs(dU)}d overdue` : dU <= 60 ? ` \u2014 ${dU}d` : ""}</div></div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    }
+
+    /* ========== BUDGET ========== */
+    function BudgetTab({ budget, saveBudget }) {
+      const [editing, setEditing] = useState(null);
+      const [showEur, setShowEur] = useState(false);
+      const tE = BUDGET_CATS.reduce((s, c) => s + c.estimate, 0);
+      const tA = BUDGET_CATS.reduce((s, c) => s + toGBP(budget[c.id]?.actual || 0, budget[c.id]?.currency || "GBP"), 0);
+      const tP = BUDGET_CATS.reduce((s, c) => s + toGBP(budget[c.id]?.paid || 0, budget[c.id]?.currency || "GBP"), 0);
+      const pct = tE ? Math.round(tA / tE * 100) : 0;
+      const dA = (g) => showEur ? `\u20AC${Math.round(g * EUR_RATE).toLocaleString()}` : `\u00A3${g.toLocaleString()}`;
+
+      const upd = (id, f, v) => saveBudget({ ...budget, [id]: { ...budget[id], [f]: parseFloat(v) || 0 } });
+      const setCur = (id, c) => saveBudget({ ...budget, [id]: { ...budget[id], currency: c } });
+      const setNotes = (id, n) => saveBudget({ ...budget, [id]: { ...budget[id], notes: n } });
+      const updPay = (cid, pi, f, v) => {
+        const b = { ...budget[cid] }; const ps = [...(b.payments || [])];
+        ps[pi] = { ...ps[pi], [f]: f === "amount" ? (parseFloat(v) || 0) : v };
+        const paid = ps.filter(p => p.paid).reduce((s, p) => s + p.amount, 0);
+        saveBudget({ ...budget, [cid]: { ...b, payments: ps, paid } });
+      };
+      const addPay = (cid) => { const b = { ...budget[cid] }; const ps = [...(b.payments || [])]; ps.push({ label: "Payment " + (ps.length + 1), amount: 0, date: "", paid: false }); saveBudget({ ...budget, [cid]: { ...b, payments: ps } }); };
+      const rmPay = (cid, pi) => { const b = { ...budget[cid] }; const ps = [...(b.payments || [])].filter((_, i) => i !== pi); const paid = ps.filter(p => p.paid).reduce((s, p) => s + p.amount, 0); saveBudget({ ...budget, [cid]: { ...b, payments: ps, paid } }); };
+
+      const exportBudget = () => {
+        const rows = [["Category", "Estimate (\u00A3)", "Actual", "Currency", "Actual (\u00A3)", "Paid", "Outstanding (\u00A3)", "Notes"]];
+        BUDGET_CATS.forEach(c => { const b = budget[c.id] || {}; const aG = toGBP(b.actual || 0, b.currency || "GBP"); rows.push([c.name, c.estimate, b.actual || 0, b.currency || "GBP", aG, toGBP(b.paid || 0, b.currency || "GBP"), aG - toGBP(b.paid || 0, b.currency || "GBP"), b.notes || ""]); });
+        rows.push([]); rows.push(["TOTAL", tE, "", "", tA, tP, tA - tP, ""]);
+        downloadCSV("wedding-budget.csv", rows);
+      };
+
+      return (
+        <div>
+          <div style={{ background: P.card, borderRadius: 14, padding: 20, marginBottom: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+              <div>
+                <div style={{ fontSize: 10, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>Total Budget</div>
+                <div style={{ fontSize: 26, fontWeight: 700, color: P.txt, fontFamily: "'Playfair Display', Georgia, serif" }}>{dA(tA)} <span style={{ fontSize: 13, color: P.txtL, fontWeight: 400 }}>/ {dA(tE)}</span></div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 5 }}>
+                <div style={{ display: "flex", gap: 3 }}>
+                  <div style={{ display: "flex", gap: 2, background: P.bgD, borderRadius: 7, padding: 2 }}>
+                    {["GBP","EUR"].map(c => (<button key={c} onClick={() => setShowEur(c==="EUR")} style={{ ...bS, background: (c==="EUR")===showEur?P.terra:"transparent", color: (c==="EUR")===showEur?"#fff":P.txtM, padding: "3px 10px", fontSize: 11 }}>{c==="GBP"?"\u00A3":"\u20AC"}</button>))}
+                  </div>
+                  <button onClick={exportBudget} style={{ ...bS, background: P.oliveP, color: P.olive, padding: "3px 10px", fontSize: 11 }}>{"\u2B07"} CSV</button>
+                </div>
+                <div style={{ textAlign: "right" }}><div style={{ fontSize: 10, color: P.txtL }}>Paid</div><div style={{ fontSize: 16, fontWeight: 600, color: P.olive }}>{dA(tP)}</div></div>
+              </div>
+            </div>
+            <div style={{ background: P.bgD, borderRadius: 8, height: 8, overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: 8, transition: "width 0.5s", width: `${Math.min(pct, 100)}%`, background: pct > 100 ? P.red : `linear-gradient(90deg, ${P.olive}, ${P.oliveL})` }} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}><div style={{ fontSize: 10, color: P.txtL }}>{"\u00A3"}1 = {"\u20AC"}{EUR_RATE}</div><div style={{ fontSize: 10, color: pct > 100 ? P.red : P.txtL }}>{pct}%</div></div>
+          </div>
+
+          {BUDGET_CATS.map(cat => {
+            const b = budget[cat.id] || { actual: 0, paid: 0, currency: "GBP", notes: "", payments: [] };
+            const isE = editing === cat.id; const aG = toGBP(b.actual, b.currency); const cp = cat.estimate ? Math.round(aG / cat.estimate * 100) : 0;
+            const payments = b.payments || []; const next = payments.find(p => !p.paid && p.date); const sym = b.currency === "EUR" ? "\u20AC" : "\u00A3";
+            return (
+              <div key={cat.id} style={{ background: P.card, borderRadius: 12, padding: "11px 13px", marginBottom: 6, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", border: isE ? `2px solid ${P.terra}` : "2px solid transparent" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }} onClick={() => setEditing(isE ? null : cat.id)}>
+                  <span style={{ fontSize: 16 }}>{cat.icon}</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{cat.name}</div>
+                    <div style={{ fontSize: 10, color: P.txtL }}>Est. {showEur ? `\u20AC${Math.round(cat.estimate*EUR_RATE).toLocaleString()}` : `\u00A3${cat.estimate.toLocaleString()}`}{next ? ` \u00B7 Next: ${new Date(next.date).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}` : ""}</div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: b.actual > 0 ? P.txt : P.stoneL }}>{b.actual > 0 ? `${sym}${b.actual.toLocaleString()}` : "\u2014"}</div>
+                    {b.actual > 0 && <div style={{ fontSize: 10, color: cp > 110 ? P.red : P.txtL }}>{b.paid > 0 ? `${sym}${b.paid.toLocaleString()} paid` : "unpaid"}</div>}
+                  </div>
+                </div>
+                {b.notes && !isE && <div style={{ fontSize: 10, color: P.txtM, marginTop: 5, marginLeft: 26, fontStyle: "italic" }}>{"\uD83D\uDCDD"} {b.notes}</div>}
+                {isE && (
+                  <div style={{ marginTop: 10, borderTop: `1px solid ${P.bgD}`, paddingTop: 10 }} onClick={e => e.stopPropagation()}>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
+                      <div style={{ flex: 1, minWidth: 70 }}><label style={lb}>Currency</label>
+                        <div style={{ display: "flex", gap: 2, background: P.bgD, borderRadius: 6, padding: 2 }}>
+                          {["GBP","EUR"].map(c => (<button key={c} onClick={() => setCur(cat.id, c)} style={{ ...bS, flex: 1, background: b.currency===c?P.olive:"transparent", color: b.currency===c?"#fff":P.txtM, padding: "4px", fontSize: 11 }}>{c==="GBP"?"\u00A3":"\u20AC"}</button>))}
+                        </div></div>
+                      <div style={{ flex: 2, minWidth: 90 }}><label style={lb}>Total Cost ({sym})</label><input type="number" value={b.actual||""} onChange={e => upd(cat.id,"actual",e.target.value)} style={iS} placeholder="0" /></div>
+                      <div style={{ flex: 2, minWidth: 90 }}><label style={lb}>Total Paid ({sym})</label><input type="number" value={b.paid||""} style={{ ...iS, background: "#f5f5f5" }} disabled placeholder="Auto" /></div>
+                    </div>
+                    {b.actual > 0 && b.currency === "EUR" && <div style={{ fontSize: 10, color: P.txtM, marginBottom: 6 }}>{"\u2248"} {"\u00A3"}{toGBP(b.actual,"EUR").toLocaleString()}</div>}
+                    <div style={{ marginBottom: 10 }}><label style={lb}>Notes</label><textarea value={b.notes||""} onChange={e => setNotes(cat.id, e.target.value)} placeholder="Payment ref, contract, key dates..." style={{ ...iS, minHeight: 36, resize: "vertical" }} /></div>
+                    <div style={{ background: P.bgD, borderRadius: 10, padding: 10 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                        <div style={{ fontSize: 11, fontWeight: 600, color: P.txt }}>Payment Schedule</div>
+                        <button onClick={() => addPay(cat.id)} style={{ ...bS, background: P.oliveP, color: P.olive, fontSize: 10, padding: "3px 8px" }}>+ Add</button>
+                      </div>
+                      {payments.map((p, pi) => (
+                        <div key={pi} style={{ display: "flex", gap: 5, alignItems: "center", marginBottom: 5, flexWrap: "wrap" }}>
+                          <button onClick={() => updPay(cat.id, pi, "paid", !p.paid)} style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${p.paid?P.green:P.stoneL}`, background: p.paid?P.green:"transparent", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 9 }}>{p.paid&&"\u2713"}</button>
+                          <input value={p.label} onChange={e => updPay(cat.id,pi,"label",e.target.value)} style={{ ...iS, flex: 2, minWidth: 80, fontSize: 11, padding: "4px 7px" }} />
+                          <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1, minWidth: 70 }}><span style={{ fontSize: 11, color: P.txtM }}>{sym}</span><input type="number" value={p.amount||""} onChange={e => updPay(cat.id,pi,"amount",e.target.value)} style={{ ...iS, fontSize: 11, padding: "4px 7px" }} /></div>
+                          <input type="date" value={p.date||""} onChange={e => updPay(cat.id,pi,"date",e.target.value)} style={{ ...iS, flex: 1, minWidth: 100, fontSize: 11, padding: "4px 5px" }} />
+                          <button onClick={() => rmPay(cat.id, pi)} style={{ background: "none", border: "none", cursor: "pointer", color: P.stoneL, fontSize: 13, padding: "0 3px" }}>{"\u00D7"}</button>
+                        </div>
+                      ))}
+                      {payments.length === 0 && <div style={{ fontSize: 10, color: P.txtL, textAlign: "center", padding: 6 }}>No payments {"\u2014"} click + Add</div>}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    /* ========== VENDORS ========== */
+    function VendorsTab({ vendors, saveVendors }) {
+      const [showForm, setShowForm] = useState(false);
+      const [editing, setEditing] = useState(null);
+      const [filter, setFilter] = useState("All");
+      const [form, setForm] = useState({ name: "", category: "Other", status: "Researching", phone: "", email: "", website: "", notes: "", starred: false });
+      const addV = () => { if (!form.name.trim()) return; saveVendors([...vendors, { ...form, id: Date.now() }]); setForm({ name: "", category: "Other", status: "Researching", phone: "", email: "", website: "", notes: "", starred: false }); setShowForm(false); };
+      const upV = (id, u) => saveVendors(vendors.map(v => v.id === id ? { ...v, ...u } : v));
+      const rmV = (id) => saveVendors(vendors.filter(v => v.id !== id));
+      const cats = ["All", ...new Set(vendors.map(v => v.category))];
+      const fil = filter === "All" ? vendors : vendors.filter(v => v.category === filter);
+      const bkd = vendors.filter(v => ["Booked","Paid Deposit","Paid in Full"].includes(v.status)).length;
+
+      return (
+        <div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+            {[{ l: "Total", v: vendors.length, c: P.stone },{ l: "Booked", v: bkd, c: P.green },{ l: "Researching", v: vendors.filter(v => v.status==="Researching").length, c: P.gold }].map((s,i) => (
+              <div key={i} style={{ flex: 1, minWidth: 85, background: P.card, borderRadius: 12, padding: "11px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: `3px solid ${s.c}` }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: P.txt }}>{s.v}</div><div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>{s.l}</div></div>))}
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, flexWrap: "wrap", gap: 5 }}>
+            <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>{cats.map(c => (<button key={c} onClick={() => setFilter(c)} style={{ ...bS, background: filter===c?P.terra:P.bgD, color: filter===c?"#fff":P.txtM, padding: "3px 9px", fontSize: 11 }}>{c}</button>))}</div>
+            <button onClick={() => setShowForm(!showForm)} style={bP}>+ Add</button>
+          </div>
+          {showForm && (
+            <div style={{ background: P.terraP, borderRadius: 14, padding: 14, marginBottom: 10 }}>
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                <input placeholder="Name" value={form.name} onChange={e => setForm({...form,name:e.target.value})} style={{ ...iS, flex: 2, minWidth: 130 }} />
+                <select value={form.category} onChange={e => setForm({...form,category:e.target.value})} style={{ ...iS, flex: 1, minWidth: 110, background: "#fff" }}>{VENDOR_CATS.map(c => <option key={c}>{c}</option>)}</select>
+              </div>
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                <input placeholder="Phone" value={form.phone} onChange={e => setForm({...form,phone:e.target.value})} style={{ ...iS, flex: 1, minWidth: 90 }} />
+                <input placeholder="Email" value={form.email} onChange={e => setForm({...form,email:e.target.value})} style={{ ...iS, flex: 1, minWidth: 110 }} />
+                <input placeholder="Website" value={form.website} onChange={e => setForm({...form,website:e.target.value})} style={{ ...iS, flex: 1, minWidth: 90 }} />
+              </div>
+              <div style={{ display: "flex", gap: 5 }}><input placeholder="Notes" value={form.notes} onChange={e => setForm({...form,notes:e.target.value})} style={{ ...iS, flex: 1 }} /><button onClick={addV} style={bP}>Add</button></div>
+            </div>
+          )}
+          {fil.sort((a,b)=>(b.starred?1:0)-(a.starred?1:0)).map(v => {
+            const isE = editing===v.id; const sc = VSC[v.status]||VSC.Researching;
+            return (
+              <div key={v.id} style={{ background: P.card, borderRadius: 12, padding: "11px 13px", marginBottom: 6, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", border: isE?`2px solid ${P.terra}`:v.starred?`2px solid ${P.goldP}`:"2px solid transparent" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer" }} onClick={() => setEditing(isE?null:v.id)}>
+                  <button onClick={e=>{e.stopPropagation();upV(v.id,{starred:!v.starred})}} style={{ background:"none",border:"none",cursor:"pointer",fontSize:15,padding:0 }}>{v.starred?"\u2B50":"\u2606"}</button>
+                  <div style={{ flex: 1 }}><div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{v.name}</div><div style={{ fontSize: 10, color: P.txtL }}>{v.category}{v.phone?` \u00B7 ${v.phone}`:""}{v.email?` \u00B7 ${v.email}`:""}</div></div>
+                  <span style={{ padding: "2px 8px", borderRadius: 12, fontSize: 10, fontWeight: 600, background: sc.bg, color: sc.c }}>{v.status}</span>
+                </div>
+                {v.notes && !isE && <div style={{ fontSize: 10, color: P.txtM, marginTop: 5, marginLeft: 28 }}>{v.notes}</div>}
+                {isE && (
+                  <div style={{ marginTop: 10, borderTop: `1px solid ${P.bgD}`, paddingTop: 10 }} onClick={e=>e.stopPropagation()}>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                      <div style={{ flex: 2, minWidth: 120 }}><label style={lb}>Name</label><input value={v.name} onChange={e=>upV(v.id,{name:e.target.value})} style={iS} /></div>
+                      <div style={{ flex: 1, minWidth: 100 }}><label style={lb}>Status</label><select value={v.status} onChange={e=>upV(v.id,{status:e.target.value})} style={{...iS,background:"#fff"}}>{VENDOR_STATUSES.map(s=><option key={s}>{s}</option>)}</select></div>
+                    </div>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                      <div style={{ flex: 1, minWidth: 90 }}><label style={lb}>Phone</label><input value={v.phone||""} onChange={e=>upV(v.id,{phone:e.target.value})} style={iS} /></div>
+                      <div style={{ flex: 1, minWidth: 110 }}><label style={lb}>Email</label><input value={v.email||""} onChange={e=>upV(v.id,{email:e.target.value})} style={iS} /></div>
+                      <div style={{ flex: 1, minWidth: 90 }}><label style={lb}>Website</label><input value={v.website||""} onChange={e=>upV(v.id,{website:e.target.value})} style={iS} /></div>
+                    </div>
+                    <div style={{ marginBottom: 6 }}><label style={lb}>Notes</label><textarea value={v.notes||""} onChange={e=>upV(v.id,{notes:e.target.value})} style={{...iS,minHeight:44,resize:"vertical"}} /></div>
+                    <div style={{ display: "flex", gap: 5, justifyContent: "flex-end" }}><button onClick={()=>rmV(v.id)} style={{...bS,background:P.redP,color:P.red}}>Remove</button></div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    /* ========== GUESTS ========== */
+    function GuestsTab({ guests, saveGuests }) {
+      const [showForm, setShowForm] = useState(false);
+      const [editing, setEditing] = useState(null);
+      const [filter, setFilter] = useState("All");
+      const [form, setForm] = useState({ name: "", status: "Invited", villa: "Santarsa", dietary: "None", plusOne: false, partner: "", email: "", phone: "", notes: "", airport: "", flightNo: "", arrivalDate: "", arrivalTime: "", departDate: "", departTime: "" });
+      const addG = () => { if (!form.name.trim()) return; saveGuests([...guests, { ...form, id: Date.now() }]); setForm({ name: "", status: "Invited", villa: "Santarsa", dietary: "None", plusOne: false, partner: "", email: "", phone: "", notes: "", airport: "", flightNo: "", arrivalDate: "", arrivalTime: "", departDate: "", departTime: "" }); setShowForm(false); };
+      const upG = (id, u) => saveGuests(guests.map(g => g.id === id ? { ...g, ...u } : g));
+      const rmG = (id) => saveGuests(guests.filter(g => g.id !== id));
+      const fil = filter === "All" ? guests : guests.filter(g => g.status === filter);
+      const conf = guests.filter(g => g.status === "Confirmed").length;
+      const hc = guests.filter(g => g.status !== "Declined").reduce((s, g) => s + 1 + (g.plusOne ? 1 : 0), 0);
+      const san = guests.filter(g => g.villa === "Santarsa" && g.status !== "Declined").length;
+      const val = guests.filter(g => g.villa === "Vallorsaia" && g.status !== "Declined").length;
+      const noE = guests.filter(g => !g.email && g.status !== "Declined").length;
+      const noTravel = guests.filter(g => g.status === "Confirmed" && !g.airport).length;
+
+      const exportGuests = () => {
+        const rows = [["Name","Partner/+1","Status","Villa","Dietary","Email","Phone","Airport","Flight","Arrival","Departure","Notes"]];
+        guests.forEach(g => rows.push([g.name, g.partner||"", g.status, g.villa, g.dietary, g.email||"", g.phone||"", g.airport||"", g.flightNo||"", g.arrivalDate?`${g.arrivalDate} ${g.arrivalTime||""}`:""  , g.departDate?`${g.departDate} ${g.departTime||""}`:""  , g.notes||""]));
+        downloadCSV("wedding-guests.csv", rows);
+      };
+
+      return (
+        <div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))", gap: 7, marginBottom: 14 }}>
+            {[
+              { l: "Invited", v: guests.length, c: P.stone },
+              { l: "Confirmed", v: conf, c: P.green },
+              { l: "Headcount", v: hc, s: "inc. +1s", c: P.terra },
+              { l: "No Email", v: noE, c: noE ? P.gold : P.stone },
+              { l: "No Travel", v: noTravel, s: "confirmed", c: noTravel ? P.gold : P.stone },
+            ].map((s, i) => (
+              <div key={i} style={{ background: P.card, borderRadius: 12, padding: "10px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: `3px solid ${s.c}` }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: P.txt }}>{s.v}</div>
+                <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>{s.l}</div>
+                {s.s && <div style={{ fontSize: 9, color: P.txtM }}>{s.s}</div>}
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", gap: 7, marginBottom: 14, flexWrap: "wrap" }}>
+            {[{ n: "Santarsa", c: san, m: 31 }, { n: "Vallorsaia", c: val, m: 26 }].map((v, i) => (
+              <div key={i} style={{ flex: 1, minWidth: 130, background: P.card, borderRadius: 12, padding: "8px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: P.txt }}>Villa {v.n}</div>
+                <div style={{ fontSize: 10, color: v.c > v.m ? P.red : P.txtM }}>{v.c}/{v.m} {v.c>v.m?"\u26A0\uFE0F":""}</div>
+                <div style={{ background: P.bgD, borderRadius: 6, height: 4, marginTop: 3, overflow: "hidden" }}><div style={{ height: "100%", borderRadius: 6, width: `${Math.min(v.c/v.m*100,100)}%`, background: v.c>v.m?P.red:P.olive }} /></div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, flexWrap: "wrap", gap: 5 }}>
+            <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>{["All",...GUEST_STATUSES].map(f => (<button key={f} onClick={() => setFilter(f)} style={{ ...bS, background: filter===f?P.terra:P.bgD, color: filter===f?"#fff":P.txtM, padding: "3px 9px", fontSize: 11 }}>{f}</button>))}</div>
+            <div style={{ display: "flex", gap: 4 }}>
+              <button onClick={exportGuests} style={{ ...bS, background: P.oliveP, color: P.olive, padding: "3px 10px", fontSize: 11 }}>{"\u2B07"} CSV</button>
+              <button onClick={() => setShowForm(!showForm)} style={bP}>+ Add</button>
+            </div>
+          </div>
+
+          {showForm && (
+            <div style={{ background: P.terraP, borderRadius: 14, padding: 14, marginBottom: 10 }}>
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                <input placeholder="Name" value={form.name} onChange={e => setForm({...form,name:e.target.value})} style={{ ...iS, flex: 2, minWidth: 130 }} />
+                <select value={form.villa} onChange={e => setForm({...form,villa:e.target.value})} style={{ ...iS, flex: 1, minWidth: 95, background: "#fff" }}>{VILLA_OPTS.map(v => <option key={v}>{v}</option>)}</select>
+                <select value={form.dietary} onChange={e => setForm({...form,dietary:e.target.value})} style={{ ...iS, flex: 1, minWidth: 95, background: "#fff" }}>{DIETARY_OPTS.map(d => <option key={d}>{d}</option>)}</select>
+              </div>
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                <input placeholder="Email" value={form.email} onChange={e => setForm({...form,email:e.target.value})} style={{ ...iS, flex: 1, minWidth: 130 }} />
+                <input placeholder="Phone" value={form.phone} onChange={e => setForm({...form,phone:e.target.value})} style={{ ...iS, flex: 1, minWidth: 100 }} />
+              </div>
+              <div style={{ display: "flex", gap: 5, alignItems: "center", flexWrap: "wrap" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: P.txtM, cursor: "pointer" }}><input type="checkbox" checked={form.plusOne} onChange={e => setForm({...form,plusOne:e.target.checked})} /> +1</label>
+                {form.plusOne && <input placeholder="+1 name" value={form.partner} onChange={e => setForm({...form,partner:e.target.value})} style={{ ...iS, flex: 1, minWidth: 90 }} />}
+                <input placeholder="Notes" value={form.notes} onChange={e => setForm({...form,notes:e.target.value})} style={{ ...iS, flex: 2, minWidth: 90 }} />
+                <button onClick={addG} style={bP}>Add</button>
+              </div>
+            </div>
+          )}
+
+          {fil.length === 0 ? <div style={{ textAlign: "center", padding: 30, color: P.txtL, fontSize: 12 }}>{guests.length === 0 ? "No guests yet" : "No match"}</div>
+          : fil.map(g => {
+            const isE = editing === g.id;
+            return (
+              <div key={g.id} style={{ background: P.card, borderRadius: 10, padding: "10px 12px", marginBottom: 5, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", border: isE ? `2px solid ${P.terra}` : "2px solid transparent" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer" }} onClick={() => setEditing(isE ? null : g.id)}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{g.name}{g.plusOne && g.partner ? ` & ${g.partner}` : g.plusOne ? " +1" : ""}</div>
+                    <div style={{ fontSize: 10, color: P.txtL, marginTop: 1 }}>
+                      {g.villa}{g.dietary !== "None" ? ` \u00B7 ${g.dietary}` : ""}{g.email ? ` \u00B7 ${g.email}` : !isE ? " \u00B7 \u26A0\uFE0F no email" : ""}
+                      {g.airport ? ` \u00B7 \u2708 ${g.airport}` : ""}{g.notes ? ` \u00B7 ${g.notes}` : ""}
+                    </div>
+                  </div>
+                  <select value={g.status} onChange={e => { e.stopPropagation(); upG(g.id, { status: e.target.value }); }} style={{
+                    padding: "2px 7px", borderRadius: 14, fontSize: 10, fontWeight: 600, border: "none", cursor: "pointer",
+                    background: g.status === "Confirmed" ? P.greenP : g.status === "Declined" ? P.redP : P.goldP,
+                    color: g.status === "Confirmed" ? P.green : g.status === "Declined" ? P.red : P.gold
+                  }}>{GUEST_STATUSES.map(s => <option key={s}>{s}</option>)}</select>
+                </div>
+                {isE && (
+                  <div style={{ marginTop: 10, borderTop: `1px solid ${P.bgD}`, paddingTop: 10 }} onClick={e => e.stopPropagation()}>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                      <div style={{ flex: 2, minWidth: 110 }}><label style={lb}>Name</label><input value={g.name} onChange={e => upG(g.id,{name:e.target.value})} style={iS} /></div>
+                      <div style={{ flex: 1, minWidth: 85 }}><label style={lb}>Villa</label><select value={g.villa} onChange={e => upG(g.id,{villa:e.target.value})} style={{...iS,background:"#fff"}}>{VILLA_OPTS.map(v=><option key={v}>{v}</option>)}</select></div>
+                      <div style={{ flex: 1, minWidth: 85 }}><label style={lb}>Dietary</label><select value={g.dietary} onChange={e => upG(g.id,{dietary:e.target.value})} style={{...iS,background:"#fff"}}>{DIETARY_OPTS.map(d=><option key={d}>{d}</option>)}</select></div>
+                    </div>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                      <div style={{ flex: 1, minWidth: 130 }}><label style={lb}>Email</label><input value={g.email||""} onChange={e => upG(g.id,{email:e.target.value})} style={iS} placeholder="email@..." /></div>
+                      <div style={{ flex: 1, minWidth: 100 }}><label style={lb}>Phone</label><input value={g.phone||""} onChange={e => upG(g.id,{phone:e.target.value})} style={iS} placeholder="+44..." /></div>
+                    </div>
+                    <div style={{ background: P.blueP, borderRadius: 10, padding: 10, marginBottom: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: P.blue, marginBottom: 6 }}>{"\u2708"} Travel Details</div>
+                      <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                        <div style={{ flex: 2, minWidth: 120 }}><label style={lb}>Airport</label><select value={g.airport||""} onChange={e => upG(g.id,{airport:e.target.value})} style={{...iS,background:"#fff"}}><option value="">{"\u2014"} Select {"\u2014"}</option>{AIRPORTS.map(a=><option key={a}>{a}</option>)}</select></div>
+                        <div style={{ flex: 1, minWidth: 90 }}><label style={lb}>Flight No.</label><input value={g.flightNo||""} onChange={e => upG(g.id,{flightNo:e.target.value})} style={iS} placeholder="BA1234" /></div>
+                      </div>
+                      <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                        <div style={{ flex: 1, minWidth: 100 }}><label style={lb}>Arrival Date</label><input type="date" value={g.arrivalDate||""} onChange={e => upG(g.id,{arrivalDate:e.target.value})} style={iS} /></div>
+                        <div style={{ flex: 1, minWidth: 70 }}><label style={lb}>Time</label><input type="time" value={g.arrivalTime||""} onChange={e => upG(g.id,{arrivalTime:e.target.value})} style={iS} /></div>
+                        <div style={{ flex: 1, minWidth: 100 }}><label style={lb}>Depart Date</label><input type="date" value={g.departDate||""} onChange={e => upG(g.id,{departDate:e.target.value})} style={iS} /></div>
+                        <div style={{ flex: 1, minWidth: 70 }}><label style={lb}>Time</label><input type="time" value={g.departTime||""} onChange={e => upG(g.id,{departTime:e.target.value})} style={iS} /></div>
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: 5, alignItems: "center", flexWrap: "wrap" }}>
+                      <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: P.txtM, cursor: "pointer" }}><input type="checkbox" checked={g.plusOne||false} onChange={e => upG(g.id,{plusOne:e.target.checked})} /> +1</label>
+                      {g.plusOne && <input value={g.partner||""} onChange={e => upG(g.id,{partner:e.target.value})} placeholder="+1 name" style={{...iS,flex:1,minWidth:85}} />}
+                      <input value={g.notes||""} onChange={e => upG(g.id,{notes:e.target.value})} placeholder="Notes" style={{...iS,flex:2,minWidth:90}} />
+                      <button onClick={() => rmG(g.id)} style={{...bS,background:P.redP,color:P.red}}>Remove</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    /* ========== SEATING ========== */
+    function SeatingTab({ seating, saveSeating, guests }) {
+      const [form, setForm] = useState({ name: "", seats: 8 });
+      const addTable = () => { if (!form.name.trim()) return; saveSeating({ ...seating, tables: [...seating.tables, { id: Date.now(), name: form.name, seats: form.seats, guests: [] }] }); setForm({ name: "", seats: 8 }); };
+      const rmTable = (id) => saveSeating({ ...seating, tables: seating.tables.filter(t => t.id !== id) });
+      const addToTable = (tid, gName) => {
+        if (!gName) return;
+        saveSeating({ ...seating, tables: seating.tables.map(t => t.id === tid ? { ...t, guests: [...t.guests, gName] } : t) });
+      };
+      const rmFromTable = (tid, gName) => {
+        saveSeating({ ...seating, tables: seating.tables.map(t => t.id === tid ? { ...t, guests: t.guests.filter(g => g !== gName) } : t) });
+      };
+      const seated = seating.tables.flatMap(t => t.guests);
+      const confirmed = guests.filter(g => g.status === "Confirmed");
+      const unseated = confirmed.filter(g => !seated.includes(g.name)).map(g => g.name);
+
+      return (
+        <div>
+          <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>Seating Plan</div>
+          <div style={{ fontSize: 12, color: P.txtL, marginBottom: 18 }}>Assign confirmed guests to tables {"\u00B7"} {seated.length} seated / {confirmed.length} confirmed</div>
+
+          {unseated.length > 0 && (
+            <div style={{ background: P.goldP, borderRadius: 12, padding: 14, marginBottom: 16 }}>
+              <div style={{ fontSize: 11, fontWeight: 600, color: P.gold, marginBottom: 6 }}>Unseated ({unseated.length})</div>
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                {unseated.map(n => (<span key={n} style={{ padding: "3px 10px", borderRadius: 14, background: "#fff", fontSize: 11, color: P.txt }}>{n}</span>))}
+              </div>
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 5, marginBottom: 14, flexWrap: "wrap" }}>
+            <input placeholder="Table name (e.g. Top Table)" value={form.name} onChange={e => setForm({...form,name:e.target.value})} style={{ ...iS, flex: 2, minWidth: 140 }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}><label style={{ fontSize: 11, color: P.txtL }}>Seats</label><input type="number" value={form.seats} onChange={e => setForm({...form,seats:parseInt(e.target.value)||8})} style={{ ...iS, width: 55 }} /></div>
+            <button onClick={addTable} style={bP}>+ Table</button>
+          </div>
+
+          {seating.tables.map(t => (
+            <div key={t.id} style={{ background: P.card, borderRadius: 12, padding: 14, marginBottom: 8, boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <div><div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>{t.name}</div><div style={{ fontSize: 10, color: t.guests.length > t.seats ? P.red : P.txtL }}>{t.guests.length}/{t.seats} seats {t.guests.length > t.seats ? "\u26A0\uFE0F" : ""}</div></div>
+                <button onClick={() => rmTable(t.id)} style={{...bS,background:P.redP,color:P.red,fontSize:10}}>Remove</button>
+              </div>
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 8 }}>
+                {t.guests.map(g => (
+                  <span key={g} style={{ padding: "3px 8px", borderRadius: 14, background: P.oliveP, fontSize: 11, color: P.olive, display: "flex", alignItems: "center", gap: 4 }}>
+                    {g} <button onClick={() => rmFromTable(t.id, g)} style={{ background: "none", border: "none", cursor: "pointer", color: P.olive, fontSize: 12, padding: 0, lineHeight: 1 }}>{"\u00D7"}</button>
+                  </span>
+                ))}
+              </div>
+              {t.guests.length < t.seats && (
+                <select onChange={e => { addToTable(t.id, e.target.value); e.target.value = ""; }} style={{ ...iS, fontSize: 11, padding: "4px 8px", background: "#fff" }} defaultValue="">
+                  <option value="" disabled>+ Add guest{"\u2026"}</option>
+                  {unseated.filter(n => !t.guests.includes(n)).map(n => <option key={n}>{n}</option>)}
+                </select>
+              )}
+            </div>
+          ))}
+          {seating.tables.length === 0 && <div style={{ textAlign: "center", padding: 36, color: P.txtL, fontSize: 12 }}>No tables yet {"\u2014"} add your first table above</div>}
+        </div>
+      );
+    }
+
+    /* ========== TIMELINE ========== */
+    function TimelineTab({ timeline, saveTimeline }) {
+      const [exp, setExp] = useState(2);
+      const tog = (di, ii) => { const u = timeline.map((d, i) => i === di ? { ...d, items: d.items.map((it, j) => j === ii ? { ...it, done: !it.done } : it) } : d); saveTimeline(u); };
+      return (
+        <div>
+          <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>Week-of Timeline</div>
+          <div style={{ fontSize: 12, color: P.txtL, marginBottom: 18 }}>Thu 27 {"\u2013"} Mon 31 May 2027</div>
+          {timeline.map((day, di) => {
+            const isE = exp === di; const dc = day.items.filter(i => i.done).length;
+            return (
+              <div key={di} style={{ marginBottom: 7 }}>
+                <div onClick={() => setExp(isE ? -1 : di)} style={{ background: P.card, borderRadius: isE ? "14px 14px 0 0" : 14, padding: "11px 14px", cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${day.color}` }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div><div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>{day.day}</div><div style={{ fontSize: 10, color: P.txtM, marginTop: 1 }}>{day.label}</div></div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ fontSize: 10, color: P.txtL }}>{dc}/{day.items.length}</span><span style={{ fontSize: 13, color: P.stoneL, transform: isE?"rotate(90deg)":"none", transition: "transform 0.2s" }}>{"\u203A"}</span></div>
+                  </div>
+                </div>
+                {isE && (
+                  <div style={{ background: P.card, borderRadius: "0 0 14px 14px", padding: "3px 14px 10px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${day.color}` }}>
+                    {day.items.map((it, ii) => (
+                      <div key={ii} style={{ display: "flex", alignItems: "flex-start", gap: 7, padding: "7px 0", borderBottom: ii < day.items.length-1?`1px solid ${P.bgD}`:"none", opacity: it.done?.4:1 }}>
+                        <button onClick={() => tog(di,ii)} style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${day.color}`, background: it.done?day.color:"transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 9, marginTop: 1, flexShrink: 0 }}>{it.done&&"\u2713"}</button>
+                        <div style={{ width: 44, fontSize: 10, fontWeight: 600, color: P.txtM, flexShrink: 0, marginTop: 1 }}>{it.time}</div>
+                        <div style={{ flex: 1 }}><div style={{ fontSize: 11, color: P.txt, textDecoration: it.done?"line-through":"none" }}>{it.event}</div>{it.vendor && <div style={{ fontSize: 9, color: day.color, marginTop: 1 }}>{"\u21B3"} {it.vendor}</div>}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    /* ========== MUSIC ========== */
+    function MusicTab({ music, saveMusic }) {
+      const [input, setInput] = useState({ must: "", never: "", req: "", reqBy: "" });
+      const add = (list, item) => { if (!item.trim()) return; saveMusic({ ...music, [list]: [...music[list], list === "requests" ? { song: item, by: input.reqBy } : item] }); setInput({ ...input, [list === "mustPlay" ? "must" : list === "neverPlay" ? "never" : "req"]: "", reqBy: list === "requests" ? "" : input.reqBy }); };
+      const rm = (list, idx) => saveMusic({ ...music, [list]: music[list].filter((_, i) => i !== idx) });
+
+      return (
+        <div>
+          <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>Music</div>
+          <div style={{ fontSize: 12, color: P.txtL, marginBottom: 18 }}>Build your playlist brief for the DJ / band</div>
+
+          <div style={{ background: P.card, borderRadius: 14, padding: 16, marginBottom: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderLeft: `4px solid ${P.green}` }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: P.txt, marginBottom: 8 }}>{"\u2705"} Must Play</div>
+            <div style={{ display: "flex", gap: 5, marginBottom: 8 }}>
+              <input placeholder="Song \u2014 Artist" value={input.must} onChange={e => setInput({...input,must:e.target.value})} onKeyDown={e => e.key==="Enter"&&add("mustPlay",input.must)} style={{ ...iS, flex: 1 }} />
+              <button onClick={() => add("mustPlay", input.must)} style={{...bS,background:P.greenP,color:P.green}}>Add</button>
+            </div>
+            {music.mustPlay.map((s, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", borderBottom: i<music.mustPlay.length-1?`1px solid ${P.bgD}`:"none" }}>
+                <span style={{ fontSize: 12, color: P.txt }}>{"\uD83C\uDFB5"} {s}</span>
+                <button onClick={() => rm("mustPlay",i)} style={{ background:"none",border:"none",cursor:"pointer",color:P.stoneL,fontSize:13 }}>{"\u00D7"}</button>
+              </div>
+            ))}
+            {music.mustPlay.length === 0 && <div style={{ fontSize: 11, color: P.txtL, padding: 4 }}>No must-play songs yet</div>}
+          </div>
+
+          <div style={{ background: P.card, borderRadius: 14, padding: 16, marginBottom: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderLeft: `4px solid ${P.red}` }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: P.txt, marginBottom: 8 }}>{"\uD83D\uDEAB"} Do Not Play</div>
+            <div style={{ display: "flex", gap: 5, marginBottom: 8 }}>
+              <input placeholder="Song \u2014 Artist" value={input.never} onChange={e => setInput({...input,never:e.target.value})} onKeyDown={e => e.key==="Enter"&&add("neverPlay",input.never)} style={{ ...iS, flex: 1 }} />
+              <button onClick={() => add("neverPlay", input.never)} style={{...bS,background:P.redP,color:P.red}}>Add</button>
+            </div>
+            {music.neverPlay.map((s, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", borderBottom: i<music.neverPlay.length-1?`1px solid ${P.bgD}`:"none" }}>
+                <span style={{ fontSize: 12, color: P.txt }}>{"\uD83D\uDEAB"} {s}</span>
+                <button onClick={() => rm("neverPlay",i)} style={{ background:"none",border:"none",cursor:"pointer",color:P.stoneL,fontSize:13 }}>{"\u00D7"}</button>
+              </div>
+            ))}
+            {music.neverPlay.length === 0 && <div style={{ fontSize: 11, color: P.txtL, padding: 4 }}>No banned songs (yet!)</div>}
+          </div>
+
+          <div style={{ background: P.card, borderRadius: 14, padding: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderLeft: `4px solid ${P.gold}` }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: P.txt, marginBottom: 8 }}>{"\uD83D\uDC83"} Guest Requests</div>
+            <div style={{ display: "flex", gap: 5, marginBottom: 8, flexWrap: "wrap" }}>
+              <input placeholder="Song \u2014 Artist" value={input.req} onChange={e => setInput({...input,req:e.target.value})} style={{ ...iS, flex: 2, minWidth: 140 }} />
+              <input placeholder="Requested by" value={input.reqBy} onChange={e => setInput({...input,reqBy:e.target.value})} style={{ ...iS, flex: 1, minWidth: 90 }} />
+              <button onClick={() => add("requests", input.req)} style={{...bS,background:P.goldP,color:P.gold}}>Add</button>
+            </div>
+            {music.requests.map((r, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", borderBottom: i<music.requests.length-1?`1px solid ${P.bgD}`:"none" }}>
+                <span style={{ fontSize: 12, color: P.txt }}>{"\uD83C\uDFB6"} {r.song}{r.by ? ` (${r.by})` : ""}</span>
+                <button onClick={() => rm("requests",i)} style={{ background:"none",border:"none",cursor:"pointer",color:P.stoneL,fontSize:13 }}>{"\u00D7"}</button>
+              </div>
+            ))}
+            {music.requests.length === 0 && <div style={{ fontSize: 11, color: P.txtL, padding: 4 }}>No guest requests yet</div>}
+          </div>
+        </div>
+      );
+    }
+
+    /* ========== PACKING ========== */
+    function PackingTab({ packing, savePacking }) {
+      const [adding, setAdding] = useState(null);
+      const [newItem, setNewItem] = useState("");
+
+      const toggle = (ci, ii) => {
+        const u = packing.map((c, i) => i === ci ? { ...c, items: c.items.map((it, j) => j === ii ? { ...it, done: !it.done } : it) } : c);
+        savePacking(u);
+      };
+      const addItem = (ci) => {
+        if (!newItem.trim()) return;
+        const u = packing.map((c, i) => i === ci ? { ...c, items: [...c.items, { text: newItem.trim(), done: false }] } : c);
+        savePacking(u); setNewItem(""); setAdding(null);
+      };
+      const rmItem = (ci, ii) => {
+        const u = packing.map((c, i) => i === ci ? { ...c, items: c.items.filter((_, j) => j !== ii) } : c);
+        savePacking(u);
+      };
+      const total = packing.reduce((s, c) => s + c.items.length, 0);
+      const done = packing.reduce((s, c) => s + c.items.filter(i => i.done).length, 0);
+
+      return (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+            <div>
+              <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt }}>Packing List</div>
+              <div style={{ fontSize: 12, color: P.txtL, marginTop: 2 }}>{done}/{total} packed</div>
+            </div>
+            <div style={{ background: P.bgD, borderRadius: 20, height: 8, width: 120, overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: 20, width: `${total?done/total*100:0}%`, background: P.olive, transition: "width 0.3s" }} />
+            </div>
+          </div>
+
+          {packing.map((cat, ci) => {
+            const catDone = cat.items.filter(i => i.done).length;
+            return (
+              <div key={ci} style={{ background: P.card, borderRadius: 14, padding: 14, marginBottom: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>{cat.cat}</div>
+                  <div style={{ fontSize: 10, color: catDone === cat.items.length && cat.items.length > 0 ? P.green : P.txtL }}>{catDone}/{cat.items.length}</div>
+                </div>
+                {cat.items.map((it, ii) => (
+                  <div key={ii} style={{ display: "flex", alignItems: "center", gap: 8, padding: "5px 0", borderBottom: ii < cat.items.length-1?`1px solid ${P.bgD}`:"none" }}>
+                    <button onClick={() => toggle(ci, ii)} style={{ width: 17, height: 17, borderRadius: 4, border: `2px solid ${it.done?P.green:P.stoneL}`, background: it.done?P.green:"transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 9, flexShrink: 0 }}>{it.done&&"\u2713"}</button>
+                    <span style={{ fontSize: 12, color: P.txt, textDecoration: it.done?"line-through":"none", opacity: it.done?.5:1, flex: 1 }}>{it.text}</span>
+                    <button onClick={() => rmItem(ci, ii)} style={{ background:"none",border:"none",cursor:"pointer",color:P.stoneL,fontSize:12,padding:0 }}>{"\u00D7"}</button>
+                  </div>
+                ))}
+                {adding === ci ? (
+                  <div style={{ display: "flex", gap: 5, marginTop: 6 }}>
+                    <input value={newItem} onChange={e => setNewItem(e.target.value)} onKeyDown={e => e.key==="Enter"&&addItem(ci)} placeholder="New item..." style={{ ...iS, flex: 1, fontSize: 11 }} autoFocus />
+                    <button onClick={() => addItem(ci)} style={{...bS,background:P.oliveP,color:P.olive,fontSize:10}}>Add</button>
+                    <button onClick={() => { setAdding(null); setNewItem(""); }} style={{...bS,background:P.bgD,color:P.txtM,fontSize:10}}>Cancel</button>
+                  </div>
+                ) : (
+                  <button onClick={() => setAdding(ci)} style={{ fontSize: 11, color: P.txtL, background: "none", border: "none", cursor: "pointer", marginTop: 4, padding: 0 }}>+ Add item</button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    /* ========== DECISIONS ========== */
+    function DecisionsTab({ decisions, saveDecisions }) {
+      const [showForm, setShowForm] = useState(false);
+      const [form, setForm] = useState({ title: "", decision: "", reasoning: "", category: "General", date: new Date().toISOString().split("T")[0] });
+      const addD = () => { if (!form.title.trim()) return; saveDecisions([{ ...form, id: Date.now() }, ...decisions]); setForm({ title: "", decision: "", reasoning: "", category: "General", date: new Date().toISOString().split("T")[0] }); setShowForm(false); };
+
+      return (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+            <div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt }}>Decision Log</div><div style={{ fontSize: 12, color: P.txtL, marginTop: 2 }}>So you never re-debate what's settled</div></div>
+            <button onClick={() => setShowForm(!showForm)} style={bP}>+ Add</button>
+          </div>
+          {showForm && (
+            <div style={{ background: P.terraP, borderRadius: 14, padding: 14, marginBottom: 14 }}>
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                <input placeholder="What was decided?" value={form.title} onChange={e => setForm({...form,title:e.target.value})} style={{ ...iS, flex: 3, minWidth: 150 }} />
+                <select value={form.category} onChange={e => setForm({...form,category:e.target.value})} style={{ ...iS, flex: 1, minWidth: 110, background: "#fff" }}>{DECISION_CATS.map(c=><option key={c}>{c}</option>)}</select>
+              </div>
+              <textarea placeholder="The decision" value={form.decision} onChange={e => setForm({...form,decision:e.target.value})} style={{ ...iS, minHeight: 36, resize: "vertical", marginBottom: 5 }} />
+              <div style={{ display: "flex", gap: 5 }}>
+                <textarea placeholder="Why? (so future-you remembers)" value={form.reasoning} onChange={e => setForm({...form,reasoning:e.target.value})} style={{ ...iS, flex: 1, minHeight: 36, resize: "vertical" }} />
+                <button onClick={addD} style={{...bP,alignSelf:"flex-end"}}>Save</button>
+              </div>
+            </div>
+          )}
+          {decisions.length === 0 ? <div style={{ textAlign: "center", padding: 40, color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\u270E"}</div><div style={{ fontSize: 12 }}>No decisions yet</div></div>
+          : decisions.map(d => (
+            <div key={d.id} style={{ background: P.card, borderRadius: 12, padding: "13px 15px", marginBottom: 7, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderLeft: `4px solid ${P.olive}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div><div style={{ fontSize: 12, fontWeight: 700, color: P.txt }}>{d.title}</div><div style={{ display: "flex", gap: 5, marginTop: 3 }}><span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: P.oliveP, color: P.olive, fontWeight: 600 }}>{d.category}</span><span style={{ fontSize: 10, color: P.txtL }}>{new Date(d.date).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</span></div></div>
+                <button onClick={() => saveDecisions(decisions.filter(x=>x.id!==d.id))} style={{ background:"none",border:"none",cursor:"pointer",color:P.stoneL,fontSize:13 }}>{"\u00D7"}</button>
+              </div>
+              {d.decision && <div style={{ fontSize: 11, color: P.txt, marginTop: 7, padding: "7px 9px", background: P.oliveP, borderRadius: 8 }}>{"\u2713"} {d.decision}</div>}
+              {d.reasoning && <div style={{ fontSize: 10, color: P.txtM, marginTop: 5, fontStyle: "italic" }}>{"\uD83D\uDCAD"} {d.reasoning}</div>}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    /* ========== MAIN ========== */
+    function WeddingDashboard() {
+      const [tab, setTab] = useState("dash");
+      const [budget, saveBudget, b1] = useStorage("wedding-budget-v3", DEFAULT_DATA.budget);
+      const [guests, saveGuests, b2] = useStorage("wedding-guests-v3", DEFAULT_DATA.guests);
+      const [vendors, saveVendors, b3] = useStorage("wedding-vendors-v3", DEFAULT_DATA.vendors);
+      const [timeline, saveTimeline, b4] = useStorage("wedding-timeline-v3", DEFAULT_DATA.timeline);
+      const [milestones, saveMilestones, b5] = useStorage("wedding-milestones-v3", DEFAULT_DATA.milestones);
+      const [decisions, saveDecisions, b6] = useStorage("wedding-decisions-v3", DEFAULT_DATA.decisions);
+      const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music);
+      const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing);
+      const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating);
+
+      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9)) return (
+        <div style={{ minHeight: "100vh", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ textAlign: "center", color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\uD83D\uDC8D"}</div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15 }}>Loading...</div></div>
+        </div>
+      );
+
+      const now = new Date();
+      const upPay = [];
+      BUDGET_CATS.forEach(c => { const b = budget[c.id]; if (!b?.payments) return; b.payments.forEach(p => { if (!p.paid && p.date && p.amount > 0) upPay.push({ catId: c.id, label: p.label, amount: p.amount, date: p.date, currency: b.currency || "GBP" }); }); });
+      upPay.sort((a, b) => new Date(a.date) - new Date(b.date));
+      const gC = guests.length; const cC = guests.filter(g => g.status === "Confirmed").length;
+
+      return (
+        <div style={{ minHeight: "100vh", background: P.bg, fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
+          <div style={{ position: "sticky", top: 0, zIndex: 100, background: P.bg, borderBottom: `1px solid ${P.bgD}`, padding: "0 4px" }}>
+            <div style={{ maxWidth: 840, margin: "0 auto", display: "flex", gap: 0, overflowX: "auto" }}>
+              {TABS.map(t => (
+                <button key={t.id} onClick={() => setTab(t.id)} style={{
+                  flex: 1, minWidth: 46, padding: "10px 2px 8px", border: "none", cursor: "pointer",
+                  background: "transparent", fontSize: 9, fontWeight: tab===t.id?700:500,
+                  color: tab===t.id?P.terra:P.txtL,
+                  borderBottom: tab===t.id?`3px solid ${P.terra}`:"3px solid transparent",
+                  transition: "all 0.2s", whiteSpace: "nowrap"
+                }}><span style={{ fontSize: 13, display: "block", marginBottom: 1 }}>{t.icon}</span>{t.label}</button>
+              ))}
+            </div>
+          </div>
+          <div style={{ maxWidth: 840, margin: "0 auto", padding: "18px 10px 50px" }}>
+            {tab === "dash" && <DashTab data={{ budget, milestones }} saveMilestones={saveMilestones} gC={gC} cC={cC} upPay={upPay} />}
+            {tab === "budget" && <BudgetTab budget={budget} saveBudget={saveBudget} />}
+            {tab === "vendors" && <VendorsTab vendors={vendors} saveVendors={saveVendors} />}
+            {tab === "guests" && <GuestsTab guests={guests} saveGuests={saveGuests} />}
+            {tab === "seating" && <SeatingTab seating={seating} saveSeating={saveSeating} guests={guests} />}
+            {tab === "timeline" && <TimelineTab timeline={timeline} saveTimeline={saveTimeline} />}
+            {tab === "music" && <MusicTab music={music} saveMusic={saveMusic} />}
+            {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} />}
+            {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<WeddingDashboard />);
+  </script>
+</body>
+</html>
