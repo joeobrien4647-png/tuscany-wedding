@@ -58,6 +58,7 @@
       { id: "guests", label: "Guests", icon: "\u2661" },
       { id: "seating", label: "Seating", icon: "\u2B21" },
       { id: "rooms", label: "Rooms", icon: "\uD83C\uDFE0" },
+      { id: "project", label: "Project", icon: "\uD83D\uDCC5" },
       { id: "timeline", label: "Week-of", icon: "\u25F7" },
       { id: "music", label: "Music", icon: "\u266B" },
       { id: "packing", label: "Packing", icon: "\u2713" },
@@ -1341,6 +1342,238 @@
       );
     }
 
+    /* ========== PROJECT TIMELINE ========== */
+    function ProjectTab({ milestones, saveMilestones, vendors, budget, upPay }) {
+      const now = new Date();
+      const weddingDate = WEDDING_DATE;
+      const [showAdd, setShowAdd] = useState(false);
+      const [form, setForm] = useState({ task: "", due: "", phase: "planning" });
+
+      const PHASES = [
+        { id: "booking", label: "Booking Phase", range: ["2026-06", "2026-12"], color: P.terra, icon: "\uD83D\uDCDD" },
+        { id: "planning", label: "Planning & Details", range: ["2027-01", "2027-03"], color: P.olive, icon: "\uD83C\uDFA8" },
+        { id: "final", label: "Final Countdown", range: ["2027-04", "2027-05"], color: P.gold, icon: "\u26A1" },
+      ];
+
+      // Build month timeline from now to wedding
+      const startMonth = new Date(Math.min(now.getTime(), new Date("2026-06-01").getTime()));
+      startMonth.setDate(1);
+      const months = [];
+      const cursor = new Date(startMonth);
+      while (cursor <= weddingDate) {
+        months.push(new Date(cursor));
+        cursor.setMonth(cursor.getMonth() + 1);
+      }
+
+      // Group milestones by month
+      const mByMonth = {};
+      milestones.forEach(m => {
+        const key = m.due.substring(0, 7);
+        if (!mByMonth[key]) mByMonth[key] = [];
+        mByMonth[key].push(m);
+      });
+
+      // Group payments by month
+      const payByMonth = {};
+      upPay.forEach(p => {
+        const key = p.date.substring(0, 7);
+        if (!payByMonth[key]) payByMonth[key] = [];
+        payByMonth[key].push(p);
+      });
+
+      // Booked vendors
+      const bookedVendors = vendors.filter(v => ["Booked","Paid Deposit","Paid in Full"].includes(v.status));
+      const unbookedCritical = vendors.filter(v => v.starred && !["Booked","Paid Deposit","Paid in Full"].includes(v.status));
+
+      const toggleM = (task) => {
+        const i = milestones.findIndex(m => m.task === task);
+        if (i < 0) return;
+        const u = [...milestones]; u[i] = { ...u[i], done: !u[i].done };
+        saveMilestones(u);
+      };
+      const addM = () => {
+        if (!form.task.trim() || !form.due) return;
+        saveMilestones([...milestones, { task: form.task, due: form.due, done: false }]);
+        setForm({ task: "", due: "", phase: "planning" }); setShowAdd(false);
+      };
+      const rmM = (task) => saveMilestones(milestones.filter(m => m.task !== task));
+
+      const done = milestones.filter(m => m.done).length;
+      const overdue = milestones.filter(m => !m.done && new Date(m.due) < now).length;
+      const total = milestones.length;
+      const pct = total ? Math.round(done / total * 100) : 0;
+
+      const getPhase = (ym) => PHASES.find(p => ym >= p.range[0] && ym <= p.range[1]);
+      const isCurrentMonth = (d) => d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+      const isPast = (d) => { const end = new Date(d); end.setMonth(end.getMonth() + 1); return end < now; };
+
+      return (
+        <div>
+          <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>Project Timeline</div>
+          <div style={{ fontSize: 12, color: P.txtL, marginBottom: 18 }}>Your planning journey to 29 May 2027</div>
+
+          {/* Progress bar */}
+          <div style={{ background: P.card, borderRadius: 14, padding: 18, marginBottom: 18, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <div style={{ display: "flex", gap: 12 }}>
+                {[{ l: "Done", v: done, c: P.green },{ l: "Overdue", v: overdue, c: overdue ? P.red : P.stone },{ l: "Remaining", v: total - done, c: P.stone }].map((s,i) => (
+                  <div key={i} style={{ textAlign: "center" }}>
+                    <div style={{ fontSize: 18, fontWeight: 700, color: s.c }}>{s.v}</div>
+                    <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>{s.l}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 22, fontWeight: 700, color: P.terra, fontFamily: "'Playfair Display', Georgia, serif" }}>{pct}%</div>
+                <div style={{ fontSize: 9, color: P.txtL }}>complete</div>
+              </div>
+            </div>
+            <div style={{ background: P.bgD, borderRadius: 8, height: 8, overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: 8, width: `${pct}%`, background: `linear-gradient(90deg, ${P.olive}, ${P.oliveL})`, transition: "width 0.5s" }} />
+            </div>
+          </div>
+
+          {/* Vendor booking status */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 120, background: P.card, borderRadius: 12, padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: `3px solid ${P.green}` }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: P.txt }}>{bookedVendors.length}</div>
+              <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>Vendors Booked</div>
+            </div>
+            <div style={{ flex: 1, minWidth: 120, background: P.card, borderRadius: 12, padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: `3px solid ${unbookedCritical.length > 0 ? P.gold : P.stone}` }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: P.txt }}>{unbookedCritical.length}</div>
+              <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>Key Vendors Unbooked</div>
+            </div>
+          </div>
+
+          {/* Add milestone */}
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+            <button onClick={() => setShowAdd(!showAdd)} style={bP}>+ Add Milestone</button>
+          </div>
+          {showAdd && (
+            <div style={{ background: P.terraP, borderRadius: 14, padding: 14, marginBottom: 14 }}>
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                <input placeholder="What needs doing?" value={form.task} onChange={e => setForm({...form,task:e.target.value})} style={{ ...iS, flex: 3, minWidth: 150 }} />
+                <input type="date" value={form.due} onChange={e => setForm({...form,due:e.target.value})} style={{ ...iS, flex: 1, minWidth: 120 }} />
+                <button onClick={addM} style={bP}>Add</button>
+              </div>
+            </div>
+          )}
+
+          {/* Phase legend */}
+          <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+            {PHASES.map(p => (
+              <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <div style={{ width: 10, height: 10, borderRadius: 3, background: p.color }} />
+                <span style={{ fontSize: 10, color: P.txtM }}>{p.icon} {p.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Month-by-month timeline */}
+          <div style={{ position: "relative", paddingLeft: 20 }}>
+            {/* Vertical line */}
+            <div style={{ position: "absolute", left: 9, top: 0, bottom: 0, width: 2, background: P.bgD }} />
+
+            {months.map((m, mi) => {
+              const ym = `${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,"0")}`;
+              const monthMilestones = mByMonth[ym] || [];
+              const monthPayments = payByMonth[ym] || [];
+              const phase = getPhase(ym);
+              const isCurrent = isCurrentMonth(m);
+              const past = isPast(m);
+              const hasItems = monthMilestones.length > 0 || monthPayments.length > 0;
+              const monthLabel = m.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+
+              return (
+                <div key={ym} style={{ marginBottom: hasItems ? 4 : 0, position: "relative" }}>
+                  {/* Dot on timeline */}
+                  <div style={{
+                    position: "absolute", left: -16, top: 4,
+                    width: isCurrent ? 14 : 10, height: isCurrent ? 14 : 10,
+                    borderRadius: "50%",
+                    background: isCurrent ? P.terra : past ? P.olive : phase ? phase.color : P.stoneL,
+                    border: isCurrent ? `3px solid ${P.terraL}` : "2px solid #fff",
+                    boxShadow: isCurrent ? `0 0 0 3px ${P.terraP}` : "none",
+                    marginTop: isCurrent ? -2 : 0,
+                  }} />
+
+                  {/* Month header */}
+                  <div style={{
+                    fontSize: 12, fontWeight: isCurrent ? 700 : 600,
+                    color: isCurrent ? P.terra : past ? P.txtL : P.txt,
+                    marginBottom: hasItems ? 6 : 2,
+                    paddingTop: 1,
+                  }}>
+                    {monthLabel} {isCurrent && <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 8, background: P.terraP, color: P.terra, marginLeft: 4 }}>NOW</span>}
+                  </div>
+
+                  {/* Milestones for this month */}
+                  {monthMilestones.map((ms, i) => {
+                    const ov = !ms.done && new Date(ms.due) < now;
+                    const dU = Math.ceil((new Date(ms.due) - now) / 86400000);
+                    return (
+                      <div key={i} style={{
+                        display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", marginBottom: 3,
+                        background: P.card, borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+                        borderLeft: `3px solid ${ms.done ? P.green : ov ? P.red : phase ? phase.color : P.stoneL}`,
+                        opacity: ms.done && past ? 0.5 : 1,
+                      }}>
+                        <button onClick={() => toggleM(ms.task)} style={{
+                          width: 18, height: 18, borderRadius: 5, flexShrink: 0, cursor: "pointer",
+                          border: `2px solid ${ms.done ? P.green : ov ? P.red : P.stoneL}`,
+                          background: ms.done ? P.green : "transparent",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          color: "#fff", fontSize: 9,
+                        }}>{ms.done && "\u2713"}</button>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 12, color: P.txt, textDecoration: ms.done ? "line-through" : "none" }}>{ms.task}</div>
+                          <div style={{ fontSize: 10, color: ov ? P.red : P.txtL }}>
+                            {new Date(ms.due).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                            {ov ? ` \u2014 ${Math.abs(dU)}d overdue` : !ms.done && dU > 0 && dU <= 60 ? ` \u2014 ${dU}d` : ""}
+                          </div>
+                        </div>
+                        <button onClick={() => rmM(ms.task)} style={{ background: "none", border: "none", cursor: "pointer", color: P.stoneL, fontSize: 13, padding: "0 2px" }}>{"\u00D7"}</button>
+                      </div>
+                    );
+                  })}
+
+                  {/* Payments for this month */}
+                  {monthPayments.map((p, i) => {
+                    const ov = new Date(p.date) < now;
+                    return (
+                      <div key={"p"+i} style={{
+                        display: "flex", alignItems: "center", gap: 8, padding: "5px 10px", marginBottom: 3,
+                        background: P.goldP, borderRadius: 10, borderLeft: `3px solid ${P.gold}`,
+                      }}>
+                        <span style={{ fontSize: 13 }}>{BUDGET_CATS.find(c => c.id === p.catId)?.icon}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 11, color: P.txt }}>{BUDGET_CATS.find(c => c.id === p.catId)?.name} {"\u2014"} {p.label}</div>
+                          <div style={{ fontSize: 10, color: ov ? P.red : P.txtL }}>
+                            {new Date(p.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                            {ov ? " \u2014 overdue" : ""}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: ov ? P.red : P.gold }}>{p.currency === "EUR" ? "\u20AC" : "\u00A3"}{p.amount.toLocaleString()}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+
+            {/* Wedding day marker */}
+            <div style={{ position: "relative", marginTop: 8 }}>
+              <div style={{ position: "absolute", left: -20, top: 2, width: 18, height: 18, borderRadius: "50%", background: P.terra, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, border: "3px solid #fff", boxShadow: `0 0 0 3px ${P.terraP}` }}>{"\uD83D\uDC8D"}</div>
+              <div style={{ background: `linear-gradient(135deg, ${P.terra}, ${P.terraL})`, borderRadius: 12, padding: "12px 16px", color: "#fff" }}>
+                <div style={{ fontSize: 14, fontWeight: 700, fontFamily: "'Playfair Display', Georgia, serif" }}>Wedding Day</div>
+                <div style={{ fontSize: 11, opacity: 0.85 }}>Saturday 29 May 2027 {"\u00B7"} La Conca, Sansepolcro</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     /* ========== MAIN ========== */
     function WeddingDashboard() {
       const [tab, setTab] = useState("dash");
@@ -1389,6 +1622,7 @@
             {tab === "guests" && <GuestsTab guests={guests} saveGuests={saveGuests} />}
             {tab === "seating" && <SeatingTab seating={seating} saveSeating={saveSeating} guests={guests} />}
             {tab === "rooms" && <RoomsTab rooms={rooms} saveRooms={saveRooms} guests={guests} />}
+            {tab === "project" && <ProjectTab milestones={milestones} saveMilestones={saveMilestones} vendors={vendors} budget={budget} upPay={upPay} />}
             {tab === "timeline" && <TimelineTab timeline={timeline} saveTimeline={saveTimeline} />}
             {tab === "music" && <MusicTab music={music} saveMusic={saveMusic} />}
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} />}
