@@ -44,7 +44,7 @@
     const { useState, useEffect, useCallback } = React;
 
     const WEDDING_DATE = new Date("2027-05-29T14:00:00");
-    const EUR_RATE = 1.17;
+    let EUR_RATE = 1.17;
 
     const P = {
       bg: "#FAF7F2", bgD: "#F0EBE3", card: "#FFFFFF",
@@ -99,6 +99,19 @@
     const VILLA_OPTS = ["Santarsa","Vallorsaia","Off-site"];
     const DIETARY_OPTS = ["None","Vegetarian","Vegan","Gluten-free","Dairy-free","Other"];
     const DECISION_CATS = ["General","Venue & Setup","Food & Drinks","Entertainment","Styling","Guest Experience","Budget","Timeline"];
+    const GUEST_GROUPS = ["","Bride's Family","Groom's Family","Bride's Friends","Groom's Friends","Couple's Friends","Work"];
+    const GUEST_ROLES = ["","Best Man","Bridesmaid","Usher","Mother of Bride","Mother of Groom","Father of Bride","Father of Groom","Flower Girl","Page Boy","Reader"];
+    const MEAL_OPTIONS = ["","Beef","Sea Bass","Risotto (V)","Kids Menu"];
+    const MUSIC_MOMENTS = ["","Ceremony","First Dance","Dinner","Party"];
+    const MILESTONE_ASSIGNEES = ["","Sophie","Joe","Both","Planner"];
+    const LEGAL_CHECKLIST = [
+      { key: "noticeOfMarriage", label: "Give Notice of Marriage (28+ days before)" },
+      { key: "oakwoodBooked", label: "Book Legal Ceremony at Oakwood House" },
+      { key: "documentsGathered", label: "Gather Required Documents (passports, birth certs, proof of address)" },
+      { key: "ceremonyAttended", label: "Attend Legal Ceremony" },
+      { key: "certificateObtained", label: "Obtain Marriage Certificate" },
+      { key: "celebrantBriefed", label: "Brief Symbolic Celebrant in Italy" },
+    ];
     const COMMS_ITEMS = [
       { key: "saveTheDate", label: "Save the Date" },
       { key: "invitation", label: "Invitation Sent" },
@@ -411,7 +424,7 @@
     }
 
     /* ========== COUNTDOWN ========== */
-    function DashTab({ data, saveMilestones, gC, cC, upPay, vendors, guests, allData, saveFns }) {
+    function DashTab({ data, saveMilestones, gC, cC, upPay, vendors, guests, timeline, allData, saveFns }) {
       const { budget, milestones } = data;
       const [showDone, setShowDone] = useState(false);
       const fileRef = React.useRef(null);
@@ -477,6 +490,7 @@
               { l: "Committed", v: `\u00A3${tA.toLocaleString()}`, s: `${tE ? Math.round(tA/tE*100) : 0}%`, c: P.terra },
               { l: "Paid", v: `\u00A3${tP.toLocaleString()}`, s: `\u00A3${(tA-tP).toLocaleString()} due`, c: P.olive },
               { l: "Milestones", v: `${completed}/${milestones.length}`, s: overdue.length ? `${overdue.length} overdue` : "on track", c: overdue.length ? P.red : P.green },
+              { l: "Per Head", v: (() => { const hc = guests.filter(g=>g.status!=="Declined").reduce((s,g)=>s+1+(g.plusOne?1:0)+(g.children||0),0); return hc > 0 ? `\u00A3${Math.round(tA/hc).toLocaleString()}` : "\u2014"; })(), s: `${guests.filter(g=>g.status!=="Declined").reduce((s,g)=>s+1+(g.plusOne?1:0)+(g.children||0),0)} heads`, c: P.blue },
             ].map((s, i) => (
               <div key={i} style={{ background: P.card, borderRadius: 14, padding: "14px 12px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `4px solid ${s.c}` }}>
                 <div style={{ fontSize: 10, color: P.txtL, textTransform: "uppercase", letterSpacing: 1, marginBottom: 2 }}>{s.l}</div>
@@ -608,6 +622,10 @@
                     if (d.packing) saveFns.savePacking(d.packing);
                     if (d.seating) saveFns.saveSeating(d.seating);
                     if (d.rooms) saveFns.saveRooms(d.rooms);
+                    if (d.contingency) saveFns.saveContingency(d.contingency);
+                    if (d.legalChecklist) saveFns.saveLegalChecklist(d.legalChecklist);
+                    if (d.speeches) saveFns.saveSpeeches(d.speeches);
+                    if (d.eurRate) saveFns.saveEurRate(d.eurRate);
                     alert("Backup restored successfully!");
                   } catch { alert("Invalid backup file"); }
                 };
@@ -616,6 +634,7 @@
               }} />
             </div>
             <div style={{ fontSize: 10, color: P.txtL, marginTop: 6 }}>Export saves all tabs to a JSON file. Import restores from a previous backup.</div>
+            <div style={{ fontSize: 9, color: P.stoneL, marginTop: 4 }} title="Go to Firebase Console → Realtime Database → Rules to configure read/write access">{"\uD83D\uDD12"} Firebase Security Rules should be configured in the Firebase Console for production use.</div>
           </div>
 
           {/* Destination Guide */}
@@ -681,12 +700,25 @@
               </div>
             );
           })()}
+
+          {/* Guest Info Pack Export */}
+          <button onClick={() => {
+            const tl = timeline || [];
+            const scheduleHtml = tl.map(day => `<h3 style="color:${day.color||"#333"};margin:14px 0 6px">${day.day}</h3><table style="width:100%;border-collapse:collapse;font-size:13px">${day.events.map(ev => `<tr><td style="padding:4px 8px;border-bottom:1px solid #eee;width:60px;font-weight:600">${ev.time}</td><td style="padding:4px 8px;border-bottom:1px solid #eee">${ev.event}${ev.vendor?` <span style="color:#888;font-size:11px">(${ev.vendor})</span>`:""}</td></tr>`).join("")}</table>`).join("");
+            const guestCount = (guests||[]).filter(g => g.status !== "Declined").reduce((s, g) => s + 1 + (g.plusOne ? 1 : 0) + (g.children || 0), 0);
+            const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Sophie & Joe — Wedding Info Pack</title><style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&display=swap');body{font-family:'Inter',sans-serif;max-width:700px;margin:0 auto;padding:30px;color:#3D2B1F;line-height:1.6}h1{font-family:'Playfair Display',serif;color:#3D2B1F;text-align:center;margin-bottom:4px}h2{font-family:'Playfair Display',serif;color:#8B6F47;border-bottom:2px solid #F5E6D3;padding-bottom:6px;margin-top:30px}h3{font-family:'Playfair Display',serif}.header{text-align:center;margin-bottom:30px}.subtitle{text-align:center;color:#888;font-size:14px}@media print{body{padding:20px}}</style></head><body><div class="header"><h1>\uD83D\uDC90 Sophie & Joe</h1><p class="subtitle">29 May 2027 — La Conca del Sole, Sansepolcro, Tuscany</p><p class="subtitle">${guestCount} guests</p></div><h2>\uD83D\uDCC5 Schedule</h2>${scheduleHtml}<h2>\u2708\uFE0F Travel & Documents</h2><ul><li><strong>Passport:</strong> Valid UK passport required (3+ months validity)</li><li><strong>Visa:</strong> Not needed for UK citizens (under 90 days)</li><li><strong>Health:</strong> GHIC card + travel insurance recommended</li><li><strong>Driving:</strong> UK licence valid in Italy — drive on the right</li></ul><h2>\uD83D\uDEA8 Emergency Info</h2><ul><li><strong>Emergency:</strong> 112</li><li><strong>Hospital:</strong> Ospedale Valtiberina, Sansepolcro (~10 min)</li><li><strong>Pharmacy:</strong> Farmacia Comunale, Via XX Settembre, Sansepolcro</li><li><strong>UK Consulate:</strong> Florence — +39 055 284133</li></ul><h2>\u2600\uFE0F May Weather</h2><ul><li>Highs 22–26°C, evenings 12–15°C — bring a wrap</li><li>May averages 6–7 rainy days — usually short afternoon showers</li><li>UV index 6–8 — SPF 30+ essential</li></ul><div style="text-align:center;margin-top:40px;color:#ccc;font-size:11px">Generated from the Wedding Dashboard</div></body></html>`;
+            const w = window.open("", "_blank");
+            w.document.write(html);
+            w.document.close();
+          }} style={{ ...bP, width: "100%", marginTop: 14, padding: "12px 16px", borderRadius: 12, fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            {"\uD83D\uDCE8"} Generate Guest Info Pack
+          </button>
         </div>
       );
     }
 
     /* ========== BUDGET ========== */
-    function BudgetTab({ budget, saveBudget }) {
+    function BudgetTab({ budget, saveBudget, vendors, eurRate, saveEurRate }) {
       const [editing, setEditing] = useState(null);
       const [showEur, setShowEur] = useState(false);
       const tE = BUDGET_CATS.reduce((s, c) => s + c.estimate, 0);
@@ -705,7 +737,7 @@
         saveBudget({ ...budget, [cid]: { ...b, payments: ps, paid } });
       };
       const addPay = (cid) => { const b = { ...budget[cid] }; const ps = [...(b.payments || [])]; ps.push({ label: "Payment " + (ps.length + 1), amount: 0, date: "", paid: false }); saveBudget({ ...budget, [cid]: { ...b, payments: ps } }); };
-      const rmPay = (cid, pi) => { const b = { ...budget[cid] }; const ps = [...(b.payments || [])].filter((_, i) => i !== pi); const paid = ps.filter(p => p.paid).reduce((s, p) => s + p.amount, 0); saveBudget({ ...budget, [cid]: { ...b, payments: ps, paid } }); };
+      const rmPay = (cid, pi) => { if (!window.confirm("Remove this payment?")) return; const b = { ...budget[cid] }; const ps = [...(b.payments || [])].filter((_, i) => i !== pi); const paid = ps.filter(p => p.paid).reduce((s, p) => s + p.amount, 0); saveBudget({ ...budget, [cid]: { ...b, payments: ps, paid } }); };
 
       const exportBudget = () => {
         const rows = [["Category", "Estimate (\u00A3)", "Actual", "Currency", "Actual (\u00A3)", "Paid", "Outstanding (\u00A3)", "Notes"]];
@@ -735,7 +767,7 @@
             <div style={{ background: P.bgD, borderRadius: 8, height: 8, overflow: "hidden" }}>
               <div style={{ height: "100%", borderRadius: 8, transition: "width 0.5s", width: `${Math.min(pct, 100)}%`, background: pct > 100 ? P.red : `linear-gradient(90deg, ${P.olive}, ${P.oliveL})` }} />
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4 }}><div style={{ fontSize: 10, color: P.txtL }}>{"\u00A3"}1 = {"\u20AC"}{EUR_RATE}</div><div style={{ fontSize: 10, color: pct > 100 ? P.red : P.txtL }}>{pct}%</div></div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 4 }}><div style={{ fontSize: 10, color: P.txtL }}>{"\u00A3"}1 = {"\u20AC"}<input type="number" step="0.01" value={eurRate} onChange={e => saveEurRate(parseFloat(e.target.value) || 1)} style={{ width: 42, border: "none", borderBottom: `1px solid ${P.stoneL}`, background: "transparent", fontSize: 10, color: P.txtM, textAlign: "center", outline: "none", padding: 0 }} /></div><div style={{ fontSize: 10, color: pct > 100 ? P.red : P.txtL }}>{pct}%</div></div>
           </div>
 
           {BUDGET_CATS.map(cat => {
@@ -756,6 +788,7 @@
                   </div>
                 </div>
                 {b.notes && !isE && <div style={{ fontSize: 10, color: P.txtM, marginTop: 5, marginLeft: 26, fontStyle: "italic" }}>{"\uD83D\uDCDD"} {b.notes}</div>}
+                {!isE && (() => { const linked = (vendors||[]).filter(v => v.budgetCategory === cat.id && v.quote > 0); return linked.length > 0 ? <div style={{ marginTop: 3, marginLeft: 26 }}>{linked.map(v => <span key={v.id} style={{ fontSize: 9, padding: "1px 6px", borderRadius: 6, background: P.oliveP, color: P.olive, marginRight: 3 }}>{v.name}: {"\u00A3"}{v.quote.toLocaleString()}{b.actual===0 && <button onClick={e=>{e.stopPropagation();upd(cat.id,"actual",v.quote)}} style={{background:"none",border:"none",cursor:"pointer",color:P.blue,fontSize:8,marginLeft:3}}>{"\u2192"} use</button>}</span>)}</div> : null; })()}
                 {isE && (
                   <div style={{ marginTop: 10, borderTop: `1px solid ${P.bgD}`, paddingTop: 10 }} onClick={e => e.stopPropagation()}>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 8 }}>
@@ -779,6 +812,7 @@
                           <input value={p.label} onChange={e => updPay(cat.id,pi,"label",e.target.value)} style={{ ...iS, flex: 2, minWidth: 80, fontSize: 11, padding: "4px 7px" }} />
                           <div style={{ display: "flex", alignItems: "center", gap: 2, flex: 1, minWidth: 70 }}><span style={{ fontSize: 11, color: P.txtM }}>{sym}</span><input type="number" value={p.amount||""} onChange={e => updPay(cat.id,pi,"amount",e.target.value)} style={{ ...iS, fontSize: 11, padding: "4px 7px" }} /></div>
                           <input type="date" value={p.date||""} onChange={e => updPay(cat.id,pi,"date",e.target.value)} style={{ ...iS, flex: 1, minWidth: 100, fontSize: 11, padding: "4px 5px" }} />
+                          <input value={p.reference||""} onChange={e => updPay(cat.id,pi,"reference",e.target.value)} placeholder="Ref" style={{ ...iS, flex: 1, minWidth: 60, fontSize: 10, padding: "4px 5px" }} />
                           <button onClick={() => rmPay(cat.id, pi)} style={{ background: "none", border: "none", cursor: "pointer", color: P.stoneL, fontSize: 13, padding: "0 3px" }}>{"\u00D7"}</button>
                         </div>
                       ))}
@@ -838,12 +872,14 @@
       const [editing, setEditing] = useState(null);
       const [filter, setFilter] = useState("All");
       const [compare, setCompare] = useState(false);
+      const [vSearch, setVSearch] = useState("");
       const [form, setForm] = useState({ name: "", category: "Other", status: "Researching", phone: "", email: "", website: "", notes: "", starred: false });
       const addV = () => { if (!form.name.trim()) return; saveVendors([...vendors, { ...form, id: Date.now() }]); setForm({ name: "", category: "Other", status: "Researching", phone: "", email: "", website: "", notes: "", starred: false }); setShowForm(false); };
       const upV = (id, u) => saveVendors(vendors.map(v => v.id === id ? { ...v, ...u } : v));
-      const rmV = (id) => saveVendors(vendors.filter(v => v.id !== id));
+      const rmV = (id) => { if (!window.confirm("Remove this vendor?")) return; saveVendors(vendors.filter(v => v.id !== id)); };
       const cats = ["All", ...new Set(vendors.map(v => v.category))];
-      const fil = filter === "All" ? vendors : vendors.filter(v => v.category === filter);
+      const preFil = filter === "All" ? vendors : vendors.filter(v => v.category === filter);
+      const fil = vSearch.trim() ? preFil.filter(v => { const s = vSearch.toLowerCase(); return v.name.toLowerCase().includes(s) || (v.category||"").toLowerCase().includes(s) || (v.notes||"").toLowerCase().includes(s) || (v.email||"").toLowerCase().includes(s); }) : preFil;
       const bkd = vendors.filter(v => ["Booked","Paid Deposit","Paid in Full"].includes(v.status)).length;
 
       return (
@@ -852,6 +888,9 @@
             {[{ l: "Total", v: vendors.length, c: P.stone },{ l: "Booked", v: bkd, c: P.green },{ l: "Researching", v: vendors.filter(v => v.status==="Researching").length, c: P.gold }].map((s,i) => (
               <div key={i} style={{ flex: 1, minWidth: 85, background: P.card, borderRadius: 12, padding: "11px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: `3px solid ${s.c}` }}>
                 <div style={{ fontSize: 18, fontWeight: 700, color: P.txt }}>{s.v}</div><div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>{s.l}</div></div>))}
+          </div>
+          <div style={{ marginBottom: 10 }}>
+            <input placeholder={"\uD83D\uDD0D Search vendors..."} value={vSearch} onChange={e => setVSearch(e.target.value)} style={{ ...iS, marginBottom: 6, fontSize: 12 }} />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, flexWrap: "wrap", gap: 5 }}>
             <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>{cats.map(c => (<button key={c} onClick={() => { setFilter(c); if (c === "All") setCompare(false); }} style={{ ...bS, background: filter===c?P.terra:P.bgD, color: filter===c?"#fff":P.txtM, padding: "3px 9px", fontSize: 11 }}>{c}</button>))}</div>
@@ -918,6 +957,7 @@
                   <div style={{ flex: 1 }}><div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{v.name}</div><div style={{ fontSize: 10, color: P.txtL }}>{v.category}{v.phone?` \u00B7 ${v.phone}`:""}{v.email?` \u00B7 ${v.email}`:""}{v.quote?` \u00B7 \u00A3${v.quote.toLocaleString()}`:""}</div></div>
                   <span style={{ padding: "2px 8px", borderRadius: 12, fontSize: 10, fontWeight: 600, background: sc.bg, color: sc.c }}>{v.status}</span>
                 </div>
+                {v.cancellationDeadline && !isE && (() => { const d = Math.ceil((new Date(v.cancellationDeadline) - new Date()) / 86400000); return d <= 14 && d > 0 ? <div style={{ fontSize: 10, color: P.red, marginTop: 3, marginLeft: 28 }}>{"\u26A0"} Cancel deadline in {d} day{d!==1?"s":""}</div> : null; })()}
                 {v.notes && !isE && <div style={{ fontSize: 10, color: P.txtM, marginTop: 5, marginLeft: 28 }}>{v.notes}</div>}
                 {isE && (
                   <div style={{ marginTop: 10, borderTop: `1px solid ${P.bgD}`, paddingTop: 10 }} onClick={e=>e.stopPropagation()}>
@@ -933,6 +973,23 @@
                     <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
                       <div style={{ flex: 1, minWidth: 90 }}><label style={lb}>Quote ({"\u00A3"})</label><input type="number" value={v.quote||""} onChange={e=>upV(v.id,{quote:parseFloat(e.target.value)||0})} style={iS} placeholder="0" /></div>
                       <div style={{ flex: 1, minWidth: 100 }}><label style={lb}>Quote Date</label><input type="date" value={v.quoteDate||""} onChange={e=>upV(v.id,{quoteDate:e.target.value})} style={iS} /></div>
+                      <div style={{ flex: 1, minWidth: 110 }}><label style={lb}>Budget Category</label><select value={v.budgetCategory||""} onChange={e=>upV(v.id,{budgetCategory:e.target.value})} style={{...iS,background:"#fff"}}><option value="">{"\u2014"} None {"\u2014"}</option>{BUDGET_CATS.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+                    </div>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                      <div style={{ flex: 1, minWidth: 100 }}><label style={lb}>Booked Date</label><input type="date" value={v.bookedDate||""} onChange={e=>upV(v.id,{bookedDate:e.target.value})} style={iS} /></div>
+                      <div style={{ flex: 1, minWidth: 100 }}><label style={lb}>Cancel Deadline</label><input type="date" value={v.cancellationDeadline||""} onChange={e=>upV(v.id,{cancellationDeadline:e.target.value})} style={iS} /></div>
+                    </div>
+                    {/* Vendor Links */}
+                    <div style={{ marginBottom: 6 }}>
+                      <label style={lb}>Links / Attachments</label>
+                      {(v.links||[]).map((lk, li) => (
+                        <div key={li} style={{ display: "flex", gap: 4, marginBottom: 3 }}>
+                          <input placeholder="Label" value={lk.label||""} onChange={e=>{ const ls=[...(v.links||[])]; ls[li]={...ls[li],label:e.target.value}; upV(v.id,{links:ls}); }} style={{...iS, flex:1}} />
+                          <input placeholder="URL" value={lk.url||""} onChange={e=>{ const ls=[...(v.links||[])]; ls[li]={...ls[li],url:e.target.value}; upV(v.id,{links:ls}); }} style={{...iS, flex:2}} />
+                          <button onClick={()=>{ const ls=(v.links||[]).filter((_,i)=>i!==li); upV(v.id,{links:ls}); }} style={{...bS,background:P.redP,color:P.red,padding:"2px 8px"}}>{"\u00D7"}</button>
+                        </div>
+                      ))}
+                      <button onClick={()=>upV(v.id,{links:[...(v.links||[]),{label:"",url:""}]})} style={{...bS,background:P.blueP,color:P.blue,fontSize:10,padding:"2px 8px"}}>+ Link</button>
                     </div>
                     <div style={{ marginBottom: 6 }}><label style={lb}>Notes</label><textarea value={v.notes||""} onChange={e=>upV(v.id,{notes:e.target.value})} style={{...iS,minHeight:44,resize:"vertical"}} /></div>
                     <div style={{ display: "flex", gap: 5, justifyContent: "flex-end" }}><button onClick={()=>rmV(v.id)} style={{...bS,background:P.redP,color:P.red}}>Remove</button></div>
@@ -952,36 +1009,45 @@
       const [filter, setFilter] = useState("All");
       const [search, setSearch] = useState("");
       const csvRef = React.useRef(null);
+      const [csvPreview, setCsvPreview] = useState(null); // { guests: [], warnings: [] }
       const [form, setForm] = useState({ name: "", status: "Invited", villa: "Santarsa", dietary: "None", plusOne: false, partner: "", email: "", phone: "", notes: "", airport: "", flightNo: "", arrivalDate: "", arrivalTime: "", departDate: "", departTime: "" });
       const addG = () => { if (!form.name.trim()) return; saveGuests([...guests, { ...form, id: Date.now() }]); setForm({ name: "", status: "Invited", villa: "Santarsa", dietary: "None", plusOne: false, partner: "", email: "", phone: "", notes: "", airport: "", flightNo: "", arrivalDate: "", arrivalTime: "", departDate: "", departTime: "" }); setShowForm(false); };
       const upG = (id, u) => saveGuests(guests.map(g => g.id === id ? { ...g, ...u } : g));
-      const rmG = (id) => saveGuests(guests.filter(g => g.id !== id));
+      const rmG = (id) => { if (!window.confirm("Remove this guest?")) return; saveGuests(guests.filter(g => g.id !== id)); };
+      const validVillas = ["Santarsa", "Vallorsaia", "Off-site"];
       const importCSV = (text) => {
         const lines = text.split(/\r?\n/).filter(l => l.trim());
-        if (lines.length < 2) return;
+        if (lines.length < 2) { alert("CSV must have a header row and at least one data row."); return; }
         const hdrs = lines[0].split(",").map(h => h.replace(/^"|"$/g, "").trim().toLowerCase());
         const colMap = { name: hdrs.findIndex(h => h.includes("name") && !h.includes("partner")), email: hdrs.findIndex(h => h.includes("email")), phone: hdrs.findIndex(h => h.includes("phone")), villa: hdrs.findIndex(h => h.includes("villa")), dietary: hdrs.findIndex(h => h.includes("diet")), status: hdrs.findIndex(h => h.includes("status")), notes: hdrs.findIndex(h => h.includes("note")), partner: hdrs.findIndex(h => h.includes("partner") || h.includes("+1")), airport: hdrs.findIndex(h => h.includes("airport")), flightNo: hdrs.findIndex(h => h.includes("flight")) };
-        const newGuests = [];
+        const newGuests = []; const warnings = [];
+        const existingNames = guests.map(g => g.name.toLowerCase());
         for (let i = 1; i < lines.length; i++) {
           const cols = lines[i].match(/(".*?"|[^",]+)/g)?.map(c => c.replace(/^"|"$/g, "").trim()) || [];
           const name = colMap.name >= 0 ? cols[colMap.name] : "";
-          if (!name) continue;
-          newGuests.push({ id: Date.now() + i, name, status: (colMap.status >= 0 && cols[colMap.status]) || "Invited", villa: (colMap.villa >= 0 && cols[colMap.villa]) || "Santarsa", dietary: (colMap.dietary >= 0 && cols[colMap.dietary]) || "None", plusOne: false, partner: (colMap.partner >= 0 && cols[colMap.partner]) || "", email: (colMap.email >= 0 && cols[colMap.email]) || "", phone: (colMap.phone >= 0 && cols[colMap.phone]) || "", notes: (colMap.notes >= 0 && cols[colMap.notes]) || "", airport: (colMap.airport >= 0 && cols[colMap.airport]) || "", flightNo: (colMap.flightNo >= 0 && cols[colMap.flightNo]) || "", arrivalDate: "", arrivalTime: "", departDate: "", departTime: "" });
+          if (!name) { warnings.push({ row: i + 1, msg: "Missing name — skipped" }); continue; }
+          const villa = (colMap.villa >= 0 && cols[colMap.villa]) || "Santarsa";
+          if (!validVillas.includes(villa)) warnings.push({ row: i + 1, msg: `Unknown villa "${villa}" for ${name} — defaulting to Santarsa` });
+          if (existingNames.includes(name.toLowerCase())) warnings.push({ row: i + 1, msg: `"${name}" already exists — will create duplicate` });
+          newGuests.push({ id: Date.now() + i, name, status: (colMap.status >= 0 && cols[colMap.status]) || "Invited", villa: validVillas.includes(villa) ? villa : "Santarsa", dietary: (colMap.dietary >= 0 && cols[colMap.dietary]) || "None", plusOne: false, partner: (colMap.partner >= 0 && cols[colMap.partner]) || "", email: (colMap.email >= 0 && cols[colMap.email]) || "", phone: (colMap.phone >= 0 && cols[colMap.phone]) || "", notes: (colMap.notes >= 0 && cols[colMap.notes]) || "", airport: (colMap.airport >= 0 && cols[colMap.airport]) || "", flightNo: (colMap.flightNo >= 0 && cols[colMap.flightNo]) || "", arrivalDate: "", arrivalTime: "", departDate: "", departTime: "" });
         }
-        if (newGuests.length > 0) { saveGuests([...guests, ...newGuests]); alert(`Imported ${newGuests.length} guest${newGuests.length !== 1 ? "s" : ""}!`); }
+        if (newGuests.length === 0) { alert("No valid guests found in the CSV."); return; }
+        setCsvPreview({ guests: newGuests, warnings });
       };
+      const confirmImport = () => { if (!csvPreview) return; saveGuests([...guests, ...csvPreview.guests]); setCsvPreview(null); };
+      const cancelImport = () => setCsvPreview(null);
       const preFilter = filter === "All" ? guests : guests.filter(g => g.status === filter);
       const fil = search.trim() ? preFilter.filter(g => { const s = search.toLowerCase(); return (g.name||"").toLowerCase().includes(s) || (g.partner||"").toLowerCase().includes(s) || (g.email||"").toLowerCase().includes(s) || (g.notes||"").toLowerCase().includes(s); }) : preFilter;
       const conf = guests.filter(g => g.status === "Confirmed").length;
-      const hc = guests.filter(g => g.status !== "Declined").reduce((s, g) => s + 1 + (g.plusOne ? 1 : 0), 0);
+      const hc = guests.filter(g => g.status !== "Declined").reduce((s, g) => s + 1 + (g.plusOne ? 1 : 0) + (g.children || 0), 0);
       const san = guests.filter(g => g.villa === "Santarsa" && g.status !== "Declined").length;
       const val = guests.filter(g => g.villa === "Vallorsaia" && g.status !== "Declined").length;
       const noE = guests.filter(g => !g.email && g.status !== "Declined").length;
       const noTravel = guests.filter(g => g.status === "Confirmed" && !g.airport).length;
 
       const exportGuests = () => {
-        const rows = [["Name","Partner/+1","Status","Villa","Dietary","Email","Phone","Airport","Flight","Arrival","Departure","Notes"]];
-        guests.forEach(g => rows.push([g.name, g.partner||"", g.status, g.villa, g.dietary, g.email||"", g.phone||"", g.airport||"", g.flightNo||"", g.arrivalDate?`${g.arrivalDate} ${g.arrivalTime||""}`:""  , g.departDate?`${g.departDate} ${g.departTime||""}`:""  , g.notes||""]));
+        const rows = [["Name","Partner/+1","Status","Villa","Dietary","Meal Choice","Role","Group","Children","Email","Phone","Airport","Flight","Arrival","Departure","Notes"]];
+        guests.forEach(g => rows.push([g.name, g.partner||"", g.status, g.villa, g.dietary, g.mealChoice||"", g.role||"", g.group||"", g.children||0, g.email||"", g.phone||"", g.airport||"", g.flightNo||"", g.arrivalDate?`${g.arrivalDate} ${g.arrivalTime||""}`:""  , g.departDate?`${g.departDate} ${g.departTime||""}`:""  , g.notes||""]));
         downloadCSV("wedding-guests.csv", rows);
       };
 
@@ -1026,6 +1092,33 @@
             </div>
           </div>
 
+          {csvPreview && (
+            <div style={{ background: P.card, borderRadius: 14, padding: 14, marginBottom: 12, boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `4px solid ${P.blue}` }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: P.txt, marginBottom: 6 }}>Import Preview</div>
+              <div style={{ fontSize: 11, color: P.txtM, marginBottom: 8 }}>{csvPreview.guests.length} guest{csvPreview.guests.length !== 1 ? "s" : ""} found</div>
+              {csvPreview.warnings.length > 0 && (
+                <div style={{ background: `${P.gold}15`, borderRadius: 8, padding: 8, marginBottom: 8 }}>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: P.gold, marginBottom: 4 }}>{"\u26A0"} Warnings ({csvPreview.warnings.length})</div>
+                  {csvPreview.warnings.map((w, i) => <div key={i} style={{ fontSize: 10, color: P.txtM, padding: "2px 0" }}>Row {w.row}: {w.msg}</div>)}
+                </div>
+              )}
+              <div style={{ maxHeight: 150, overflow: "auto", marginBottom: 8 }}>
+                {csvPreview.guests.map((g, i) => (
+                  <div key={i} style={{ fontSize: 10, padding: "3px 0", borderBottom: `1px solid ${P.bgD}`, display: "flex", gap: 8 }}>
+                    <span style={{ fontWeight: 600, color: P.txt }}>{g.name}</span>
+                    <span style={{ color: P.txtL }}>{g.villa}</span>
+                    <span style={{ color: P.txtL }}>{g.status}</span>
+                    {g.email && <span style={{ color: P.txtL }}>{g.email}</span>}
+                  </div>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: 6 }}>
+                <button onClick={confirmImport} style={{ ...bP, fontSize: 11, padding: "6px 16px" }}>{"\u2713"} Import {csvPreview.guests.length} Guests</button>
+                <button onClick={cancelImport} style={{ ...bS, fontSize: 11, padding: "6px 12px" }}>Cancel</button>
+              </div>
+            </div>
+          )}
+
           {showForm && (
             <div style={{ background: P.terraP, borderRadius: 14, padding: 14, marginBottom: 10 }}>
               <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
@@ -1053,9 +1146,9 @@
               <div key={g.id} style={{ background: P.card, borderRadius: 10, padding: "10px 12px", marginBottom: 5, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", border: isE ? `2px solid ${P.terra}` : "2px solid transparent" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer" }} onClick={() => setEditing(isE ? null : g.id)}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{g.name}{g.plusOne && g.partner ? ` & ${g.partner}` : g.plusOne ? " +1" : ""}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{g.name}{g.plusOne && g.partner ? ` & ${g.partner}` : g.plusOne ? " +1" : ""}{g.children > 0 ? ` +${g.children} kid${g.children>1?"s":""}` : ""}{g.role ? <span style={{ marginLeft: 5, padding: "1px 6px", borderRadius: 8, background: P.terraP, color: P.terra, fontSize: 9, fontWeight: 500 }}>{g.role}</span> : null}</div>
                     <div style={{ fontSize: 10, color: P.txtL, marginTop: 1 }}>
-                      {g.villa}{g.dietary !== "None" ? ` \u00B7 ${g.dietary}` : ""}{g.email ? ` \u00B7 ${g.email}` : !isE ? " \u00B7 \u26A0\uFE0F no email" : ""}
+                      {g.villa}{g.group ? ` \u00B7 ${g.group}` : ""}{g.dietary !== "None" ? ` \u00B7 ${g.dietary}` : ""}{g.mealChoice ? ` \u00B7 ${g.mealChoice}` : ""}{g.email ? ` \u00B7 ${g.email}` : !isE ? " \u00B7 \u26A0\uFE0F no email" : ""}
                       {g.airport ? ` \u00B7 \u2708 ${g.airport}` : ""}{g.notes ? ` \u00B7 ${g.notes}` : ""}
                     </div>
                   </div>
@@ -1071,6 +1164,12 @@
                       <div style={{ flex: 2, minWidth: 110 }}><label style={lb}>Name</label><input value={g.name} onChange={e => upG(g.id,{name:e.target.value})} style={iS} /></div>
                       <div style={{ flex: 1, minWidth: 85 }}><label style={lb}>Villa</label><select value={g.villa} onChange={e => upG(g.id,{villa:e.target.value})} style={{...iS,background:"#fff"}}>{VILLA_OPTS.map(v=><option key={v}>{v}</option>)}</select></div>
                       <div style={{ flex: 1, minWidth: 85 }}><label style={lb}>Dietary</label><select value={g.dietary} onChange={e => upG(g.id,{dietary:e.target.value})} style={{...iS,background:"#fff"}}>{DIETARY_OPTS.map(d=><option key={d}>{d}</option>)}</select></div>
+                    </div>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                      <div style={{ flex: 1, minWidth: 85 }}><label style={lb}>Role</label><select value={g.role||""} onChange={e => upG(g.id,{role:e.target.value})} style={{...iS,background:"#fff"}}>{GUEST_ROLES.map(r=><option key={r} value={r}>{r||"\u2014 None \u2014"}</option>)}</select></div>
+                      <div style={{ flex: 1, minWidth: 85 }}><label style={lb}>Group</label><select value={g.group||""} onChange={e => upG(g.id,{group:e.target.value})} style={{...iS,background:"#fff"}}>{GUEST_GROUPS.map(r=><option key={r} value={r}>{r||"\u2014 None \u2014"}</option>)}</select></div>
+                      <div style={{ flex: 1, minWidth: 85 }}><label style={lb}>Meal Choice</label><select value={g.mealChoice||""} onChange={e => upG(g.id,{mealChoice:e.target.value})} style={{...iS,background:"#fff"}}>{MEAL_OPTIONS.map(m=><option key={m} value={m}>{m||"\u2014 TBC \u2014"}</option>)}</select></div>
+                      <div style={{ flex: 1, minWidth: 60 }}><label style={lb}>Children</label><input type="number" min="0" value={g.children||0} onChange={e => upG(g.id,{children:parseInt(e.target.value)||0})} style={iS} /></div>
                     </div>
                     <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
                       <div style={{ flex: 1, minWidth: 130 }}><label style={lb}>Email</label><input value={g.email||""} onChange={e => upG(g.id,{email:e.target.value})} style={iS} placeholder="email@..." /></div>
@@ -1359,12 +1458,14 @@
         saveSeating({ ...seating, tables: [...seating.tables, { id: Date.now(), name: form.name, seats: form.seats, shape: form.shape, guests: [] }] });
         setForm({ name: "", seats: 8, shape: form.shape });
       };
-      const rmTable = (id) => saveSeating({ ...seating, tables: seating.tables.filter(t => t.id !== id) });
+      const rmTable = (id) => { if (!window.confirm("Remove this table and unseat all guests?")) return; saveSeating({ ...seating, tables: seating.tables.filter(t => t.id !== id) }); };
+      const moveTable = (id, dir) => { const ts = [...seating.tables]; const i = ts.findIndex(t => t.id === id); const ni = i + dir; if (ni < 0 || ni >= ts.length) return; [ts[i], ts[ni]] = [ts[ni], ts[i]]; saveSeating({ ...seating, tables: ts }); };
       const addToTable = (tid, gName) => {
         if (!gName) return;
         saveSeating({ ...seating, tables: seating.tables.map(t => t.id === tid ? { ...t, guests: [...t.guests, gName] } : t) });
       };
       const rmFromTable = (tid, gName) => {
+        if (!window.confirm(`Remove ${gName} from this table?`)) return;
         saveSeating({ ...seating, tables: seating.tables.map(t => t.id === tid ? { ...t, guests: t.guests.filter(g => g !== gName) } : t) });
       };
       const moveGuest = (gName, fromId, toId) => {
@@ -1423,7 +1524,7 @@
           <div key={t.id} {...dropHandlers(t.id)} style={tableCard(t, isOver)}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
               <div><span style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>{t.name}</span><span style={{ fontSize: 10, color: t.guests.length > t.seats ? P.red : P.txtL, marginLeft: 6 }}>{t.guests.length}/{t.seats}</span></div>
-              <button onClick={() => rmTable(t.id)} style={{...bS, background: P.redP, color: P.red, fontSize: 10}}>Remove</button>
+              <button onClick={() => moveTable(t.id, -1)} style={{...bS, background: P.bgD, color: P.txtM, fontSize: 10, padding: "2px 6px"}}>{"\u25B2"}</button><button onClick={() => moveTable(t.id, 1)} style={{...bS, background: P.bgD, color: P.txtM, fontSize: 10, padding: "2px 6px"}}>{"\u25BC"}</button><button onClick={() => rmTable(t.id)} style={{...bS, background: P.redP, color: P.red, fontSize: 10}}>Remove</button>
             </div>
             <div style={{ position: "relative", width: sz, height: sz, margin: "0 auto" }}>
               <div style={{ position: "absolute", left: cx-tR, top: cy-tR, width: tR*2, height: tR*2, borderRadius: "50%", background: P.bgD, border: `1px solid ${P.stoneP}`, display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
@@ -1483,7 +1584,7 @@
           <div key={t.id} {...dropHandlers(t.id)} style={tableCard(t, isOver)}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
               <div><span style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>{t.name}</span><span style={{ fontSize: 10, color: t.guests.length > t.seats ? P.red : P.txtL, marginLeft: 6 }}>{t.guests.length}/{t.seats}</span></div>
-              <button onClick={() => rmTable(t.id)} style={{...bS, background: P.redP, color: P.red, fontSize: 10}}>Remove</button>
+              <button onClick={() => moveTable(t.id, -1)} style={{...bS, background: P.bgD, color: P.txtM, fontSize: 10, padding: "2px 6px"}}>{"\u25B2"}</button><button onClick={() => moveTable(t.id, 1)} style={{...bS, background: P.bgD, color: P.txtM, fontSize: 10, padding: "2px 6px"}}>{"\u25BC"}</button><button onClick={() => rmTable(t.id)} style={{...bS, background: P.redP, color: P.red, fontSize: 10}}>Remove</button>
             </div>
             <div style={{ position: "relative", width: cW, height: cH, margin: "0 auto" }}>
               <div style={{ position: "absolute", left: tL, top: tT, width: tW, height: tH, borderRadius: 8, background: P.bgD, border: `1px solid ${P.stoneP}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1570,6 +1671,22 @@
             </div>
           </div>
 
+          {/* Couple seating warnings */}
+          {(() => {
+            const warnings = [];
+            guests.filter(g => g.plusOne && g.partner).forEach(g => {
+              const gTable = tables.find(t => t.guests.includes(g.name));
+              const pTable = tables.find(t => t.guests.includes(g.partner));
+              if (gTable && pTable && gTable.id !== pTable.id) warnings.push({ guest: g.name, partner: g.partner, gT: gTable.name, pT: pTable.name });
+            });
+            return warnings.length > 0 ? (
+              <div style={{ background: P.goldP, borderRadius: 10, padding: "8px 12px", marginBottom: 10, borderLeft: `4px solid ${P.gold}` }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: P.gold, marginBottom: 4 }}>{"\u26A0"} Couples split across tables</div>
+                {warnings.map((w, i) => <div key={i} style={{ fontSize: 10, color: P.txtM }}>{w.guest} ({w.gT}) & {w.partner} ({w.pT})</div>)}
+              </div>
+            ) : null;
+          })()}
+
           <div data-no-print style={{ display: "flex", gap: 5, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
             <input placeholder="Table name (e.g. Top Table)" value={form.name} onChange={e => setForm({...form,name:e.target.value})} onKeyDown={e => e.key === "Enter" && addTable()} style={{ ...iS, flex: 2, minWidth: 120 }} />
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -1602,10 +1719,18 @@
     }
 
     /* ========== TIMELINE ========== */
-    function TimelineTab({ timeline, saveTimeline, contingency, saveContingency }) {
+    function TimelineTab({ timeline, saveTimeline, contingency, saveContingency, speeches, saveSpeeches }) {
       const [exp, setExp] = useState(2);
       const [cpOpen, setCpOpen] = useState(false);
+      const [spOpen, setSpOpen] = useState(false);
+      const [spForm, setSpForm] = useState({ person: "", type: "Speech", title: "", duration: 5, notes: "" });
+      const [editingEv, setEditingEv] = useState(null); // {di, ii}
+      const [addingDay, setAddingDay] = useState(null); // dayIdx
+      const [evForm, setEvForm] = useState({ time: "", event: "", vendor: "", notes: "", link: "" });
       const tog = (di, ii) => { const u = timeline.map((d, i) => i === di ? { ...d, items: d.items.map((it, j) => j === ii ? { ...it, done: !it.done } : it) } : d); saveTimeline(u); };
+      const addEvent = (di) => { if (!evForm.time || !evForm.event.trim()) return; const u = timeline.map((d, i) => i !== di ? d : { ...d, items: [...d.items, { ...evForm, done: false }].sort((a, b) => a.time.localeCompare(b.time)) }); saveTimeline(u); setEvForm({ time: "", event: "", vendor: "", notes: "", link: "" }); setAddingDay(null); };
+      const editEvent = (di, ii, updates) => { const u = timeline.map((d, i) => i !== di ? d : { ...d, items: d.items.map((it, j) => j !== ii ? it : { ...it, ...updates }).sort((a, b) => a.time.localeCompare(b.time)) }); saveTimeline(u); setEditingEv(null); };
+      const removeEvent = (di, ii) => { if (!window.confirm("Remove this event?")) return; const u = timeline.map((d, i) => i !== di ? d : { ...d, items: d.items.filter((_, j) => j !== ii) }); saveTimeline(u); };
       return (
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -1627,13 +1752,51 @@
                 </div>
                 {isE && (
                   <div style={{ background: P.card, borderRadius: "0 0 14px 14px", padding: "3px 14px 10px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${day.color}` }}>
-                    {day.items.map((it, ii) => (
-                      <div key={ii} style={{ display: "flex", alignItems: "flex-start", gap: 7, padding: "7px 0", borderBottom: ii < day.items.length-1?`1px solid ${P.bgD}`:"none", opacity: it.done?.4:1 }}>
-                        <button onClick={() => tog(di,ii)} style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${day.color}`, background: it.done?day.color:"transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 9, marginTop: 1, flexShrink: 0 }}>{it.done&&"\u2713"}</button>
-                        <div style={{ width: 44, fontSize: 10, fontWeight: 600, color: P.txtM, flexShrink: 0, marginTop: 1 }}>{it.time}</div>
-                        <div style={{ flex: 1 }}><div style={{ fontSize: 11, color: P.txt, textDecoration: it.done?"line-through":"none" }}>{it.event}</div>{it.vendor && <div style={{ fontSize: 9, color: day.color, marginTop: 1 }}>{"\u21B3"} {it.vendor}</div>}</div>
+                    {day.items.map((it, ii) => {
+                      const isEditing = editingEv && editingEv.di === di && editingEv.ii === ii;
+                      return isEditing ? (
+                        <div key={ii} style={{ padding: "7px 0", borderBottom: ii < day.items.length-1?`1px solid ${P.bgD}`:"none" }}>
+                          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 4 }}>
+                            <input type="time" defaultValue={it.time} id={`ev-time-${di}-${ii}`} style={{ ...iS, width: 75, fontSize: 10 }} />
+                            <input defaultValue={it.event} id={`ev-name-${di}-${ii}`} placeholder="Event" style={{ ...iS, flex: 2, minWidth: 120, fontSize: 10 }} />
+                            <input defaultValue={it.vendor||""} id={`ev-vendor-${di}-${ii}`} placeholder="Vendor" style={{ ...iS, flex: 1, minWidth: 70, fontSize: 10 }} />
+                          </div>
+                          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                            <input defaultValue={it.notes||""} id={`ev-notes-${di}-${ii}`} placeholder="Notes" style={{ ...iS, flex: 2, minWidth: 120, fontSize: 10 }} />
+                            <input defaultValue={it.link||""} id={`ev-link-${di}-${ii}`} placeholder="Link URL" style={{ ...iS, flex: 1, minWidth: 100, fontSize: 10 }} />
+                            <button onClick={() => { const g = (id) => document.getElementById(id).value; editEvent(di, ii, { time: g(`ev-time-${di}-${ii}`), event: g(`ev-name-${di}-${ii}`), vendor: g(`ev-vendor-${di}-${ii}`), notes: g(`ev-notes-${di}-${ii}`), link: g(`ev-link-${di}-${ii}`) }); }} style={{ ...bP, fontSize: 9, padding: "4px 10px" }}>Save</button>
+                            <button onClick={() => setEditingEv(null)} style={{ ...bS, fontSize: 9, padding: "4px 8px" }}>Cancel</button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div key={ii} style={{ display: "flex", alignItems: "flex-start", gap: 7, padding: "7px 0", borderBottom: ii < day.items.length-1?`1px solid ${P.bgD}`:"none", opacity: it.done?.4:1 }}>
+                          <button onClick={() => tog(di,ii)} style={{ width: 16, height: 16, borderRadius: 4, border: `2px solid ${day.color}`, background: it.done?day.color:"transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 9, marginTop: 1, flexShrink: 0 }}>{it.done&&"\u2713"}</button>
+                          <div style={{ width: 44, fontSize: 10, fontWeight: 600, color: P.txtM, flexShrink: 0, marginTop: 1 }}>{it.time}</div>
+                          <div style={{ flex: 1 }}><div style={{ fontSize: 11, color: P.txt, textDecoration: it.done?"line-through":"none" }}>{it.event}{it.link && <a href={it.link} target="_blank" rel="noopener" style={{ marginLeft: 4, fontSize: 9, color: P.blue }}>{"\uD83D\uDD17"}</a>}</div>{it.vendor && <div style={{ fontSize: 9, color: day.color, marginTop: 1 }}>{"\u21B3"} {it.vendor}</div>}{it.notes && <div style={{ fontSize: 9, color: P.txtL, marginTop: 1, fontStyle: "italic" }}>{it.notes}</div>}</div>
+                          <div data-no-print style={{ display: "flex", gap: 3, flexShrink: 0 }}>
+                            <button onClick={() => { setEditingEv({ di, ii }); }} style={{ ...bS, fontSize: 8, padding: "2px 6px" }}>{"\u270E"}</button>
+                            <button onClick={() => removeEvent(di, ii)} style={{ ...bS, color: P.red, fontSize: 8, padding: "2px 6px" }}>{"\u00D7"}</button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {addingDay === di ? (
+                      <div style={{ padding: "8px 0", borderTop: `1px solid ${P.bgD}` }}>
+                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 4 }}>
+                          <input type="time" value={evForm.time} onChange={e => setEvForm({ ...evForm, time: e.target.value })} style={{ ...iS, width: 75, fontSize: 10 }} />
+                          <input value={evForm.event} onChange={e => setEvForm({ ...evForm, event: e.target.value })} placeholder="Event name" style={{ ...iS, flex: 2, minWidth: 120, fontSize: 10 }} />
+                          <input value={evForm.vendor} onChange={e => setEvForm({ ...evForm, vendor: e.target.value })} placeholder="Vendor" style={{ ...iS, flex: 1, minWidth: 70, fontSize: 10 }} />
+                        </div>
+                        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                          <input value={evForm.notes} onChange={e => setEvForm({ ...evForm, notes: e.target.value })} placeholder="Notes" style={{ ...iS, flex: 2, minWidth: 120, fontSize: 10 }} />
+                          <input value={evForm.link} onChange={e => setEvForm({ ...evForm, link: e.target.value })} placeholder="Link URL" style={{ ...iS, flex: 1, minWidth: 100, fontSize: 10 }} />
+                          <button onClick={() => addEvent(di)} style={{ ...bP, fontSize: 9, padding: "4px 10px" }}>Add</button>
+                          <button onClick={() => { setAddingDay(null); setEvForm({ time: "", event: "", vendor: "", notes: "", link: "" }); }} style={{ ...bS, fontSize: 9, padding: "4px 8px" }}>Cancel</button>
+                        </div>
                       </div>
-                    ))}
+                    ) : (
+                      <button data-no-print onClick={() => { setAddingDay(di); setEvForm({ time: "", event: "", vendor: "", notes: "", link: "" }); }} style={{ ...bS, fontSize: 9, padding: "5px 10px", marginTop: 6, background: `${day.color}12`, color: day.color, border: `1px dashed ${day.color}40` }}>+ Add Event</button>
+                    )}
                   </div>
                 )}
               </div>
@@ -1670,15 +1833,63 @@
               </div>
             )}
           </div>
+
+          {/* Speeches & Readings */}
+          <div style={{ marginTop: 18 }}>
+            <div onClick={() => setSpOpen(!spOpen)} style={{ background: P.card, borderRadius: spOpen ? "14px 14px 0 0" : 14, padding: "12px 14px", cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${P.terra}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: P.txt, fontFamily: "'Playfair Display', Georgia, serif" }}>{"\uD83C\uDFA4"} Speeches & Readings</div>
+                <div style={{ fontSize: 10, color: P.txtL, marginTop: 1 }}>{speeches.length} item{speeches.length !== 1 ? "s" : ""} — {speeches.reduce((s, sp) => s + (sp.duration || 0), 0)} min total</div>
+              </div>
+              <span style={{ fontSize: 15, color: P.stoneL, transform: spOpen ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>{"\u203A"}</span>
+            </div>
+            {spOpen && (
+              <div style={{ background: P.card, borderRadius: "0 0 14px 14px", padding: "8px 14px 14px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${P.terra}` }}>
+                <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 10 }}>
+                  <input placeholder="Person" value={spForm.person} onChange={e => setSpForm({ ...spForm, person: e.target.value })} style={{ ...iS, flex: 2, minWidth: 100 }} />
+                  <select value={spForm.type} onChange={e => setSpForm({ ...spForm, type: e.target.value })} style={{ ...iS, flex: 1, minWidth: 80, background: "#fff" }}>
+                    {["Speech", "Reading", "Toast", "Prayer", "Other"].map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                  <input placeholder="Title (optional)" value={spForm.title} onChange={e => setSpForm({ ...spForm, title: e.target.value })} style={{ ...iS, flex: 2, minWidth: 100 }} />
+                  <input type="number" min="1" max="30" placeholder="Min" value={spForm.duration} onChange={e => setSpForm({ ...spForm, duration: parseInt(e.target.value) || 0 })} style={{ ...iS, width: 45 }} />
+                  <button onClick={() => {
+                    if (!spForm.person.trim()) return;
+                    saveSpeeches([...speeches, { ...spForm, id: Date.now(), order: speeches.length }]);
+                    setSpForm({ person: "", type: "Speech", title: "", duration: 5, notes: "" });
+                  }} style={{ ...bP, fontSize: 10, padding: "6px 12px" }}>+ Add</button>
+                </div>
+                {speeches.length > 0 && speeches.sort((a, b) => (a.order || 0) - (b.order || 0)).map((sp, idx) => (
+                  <div key={sp.id} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 0", borderBottom: `1px solid ${P.bgD}` }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                      <button onClick={() => { if (idx === 0) return; const ns = [...speeches]; const prev = ns.find(s => s.order === idx - 1); const cur = ns.find(s => s.order === idx); if (prev && cur) { prev.order = idx; cur.order = idx - 1; } saveSpeeches(ns); }} style={{ ...bS, padding: "0 4px", fontSize: 9, opacity: idx === 0 ? 0.3 : 1 }}>{"\u25B2"}</button>
+                      <button onClick={() => { if (idx === speeches.length - 1) return; const ns = [...speeches]; const next = ns.find(s => s.order === idx + 1); const cur = ns.find(s => s.order === idx); if (next && cur) { next.order = idx; cur.order = idx + 1; } saveSpeeches(ns); }} style={{ ...bS, padding: "0 4px", fontSize: 9, opacity: idx === speeches.length - 1 ? 0.3 : 1 }}>{"\u25BC"}</button>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: P.txt }}>{sp.person} <span style={{ fontSize: 9, padding: "1px 5px", borderRadius: 4, background: sp.type === "Speech" ? P.terraP : sp.type === "Reading" ? P.blueP : P.oliveP, color: sp.type === "Speech" ? P.terra : sp.type === "Reading" ? P.blue : P.olive, marginLeft: 3 }}>{sp.type}</span></div>
+                      {sp.title && <div style={{ fontSize: 10, color: P.txtL, marginTop: 1 }}>{sp.title}</div>}
+                      <div style={{ fontSize: 9, color: P.txtL, marginTop: 1 }}>{sp.duration} min{sp.notes ? ` — ${sp.notes}` : ""}</div>
+                    </div>
+                    <button onClick={() => { if (!window.confirm(`Remove ${sp.person}'s ${sp.type.toLowerCase()}?`)) return; const ns = speeches.filter(s => s.id !== sp.id).map((s, i) => ({ ...s, order: i })); saveSpeeches(ns); }} style={{ ...bS, color: P.red, fontSize: 10, padding: "4px 8px" }}>{"\u00D7"}</button>
+                  </div>
+                ))}
+                {speeches.length > 0 && (
+                  <div style={{ marginTop: 8, fontSize: 10, color: P.txtM, textAlign: "right" }}>
+                    Total: {speeches.reduce((s, sp) => s + (sp.duration || 0), 0)} minutes
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       );
     }
 
     /* ========== MUSIC ========== */
     function MusicTab({ music, saveMusic }) {
-      const [input, setInput] = useState({ must: "", never: "", req: "", reqBy: "" });
-      const add = (list, item) => { if (!item.trim()) return; saveMusic({ ...music, [list]: [...music[list], list === "requests" ? { song: item, by: input.reqBy } : item] }); setInput({ ...input, [list === "mustPlay" ? "must" : list === "neverPlay" ? "never" : "req"]: "", reqBy: list === "requests" ? "" : input.reqBy }); };
-      const rm = (list, idx) => saveMusic({ ...music, [list]: music[list].filter((_, i) => i !== idx) });
+      const [input, setInput] = useState({ must: "", never: "", req: "", reqBy: "", moment: "" });
+      const normMust = (item) => typeof item === "string" ? { song: item, moment: "" } : item;
+      const add = (list, item) => { if (!item.trim()) return; const val = list === "mustPlay" ? { song: item, moment: input.moment } : list === "requests" ? { song: item, by: input.reqBy } : item; saveMusic({ ...music, [list]: [...music[list], val] }); setInput({ ...input, [list === "mustPlay" ? "must" : list === "neverPlay" ? "never" : "req"]: "", reqBy: list === "requests" ? "" : input.reqBy, moment: list === "mustPlay" ? "" : input.moment }); };
+      const rm = (list, idx) => { if (!window.confirm("Remove this song?")) return; saveMusic({ ...music, [list]: music[list].filter((_, i) => i !== idx) }); };
 
       return (
         <div>
@@ -1687,16 +1898,17 @@
 
           <div style={{ background: P.card, borderRadius: 14, padding: 16, marginBottom: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderLeft: `4px solid ${P.green}` }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: P.txt, marginBottom: 8 }}>{"\u2705"} Must Play</div>
-            <div style={{ display: "flex", gap: 5, marginBottom: 8 }}>
-              <input placeholder="Song \u2014 Artist" value={input.must} onChange={e => setInput({...input,must:e.target.value})} onKeyDown={e => e.key==="Enter"&&add("mustPlay",input.must)} style={{ ...iS, flex: 1 }} />
+            <div style={{ display: "flex", gap: 5, marginBottom: 8, flexWrap: "wrap" }}>
+              <input placeholder="Song \u2014 Artist" value={input.must} onChange={e => setInput({...input,must:e.target.value})} onKeyDown={e => e.key==="Enter"&&add("mustPlay",input.must)} style={{ ...iS, flex: 2, minWidth: 140 }} />
+              <select value={input.moment} onChange={e => setInput({...input,moment:e.target.value})} style={{...iS, flex:1, minWidth:90, background:"#fff"}}>{MUSIC_MOMENTS.map(m=><option key={m} value={m}>{m||"Any moment"}</option>)}</select>
               <button onClick={() => add("mustPlay", input.must)} style={{...bS,background:P.greenP,color:P.green}}>Add</button>
             </div>
-            {music.mustPlay.map((s, i) => (
+            {music.mustPlay.map((s, i) => { const n = normMust(s); return (
               <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", borderBottom: i<music.mustPlay.length-1?`1px solid ${P.bgD}`:"none" }}>
-                <span style={{ fontSize: 12, color: P.txt }}>{"\uD83C\uDFB5"} {s}</span>
+                <span style={{ fontSize: 12, color: P.txt }}>{"\uD83C\uDFB5"} {n.song}{n.moment && <span style={{ marginLeft: 5, padding: "1px 6px", borderRadius: 6, background: P.oliveP, color: P.olive, fontSize: 9 }}>{n.moment}</span>}</span>
                 <button onClick={() => rm("mustPlay",i)} style={{ background:"none",border:"none",cursor:"pointer",color:P.stoneL,fontSize:13 }}>{"\u00D7"}</button>
               </div>
-            ))}
+            ); })}
             {music.mustPlay.length === 0 && <div style={{ fontSize: 11, color: P.txtL, padding: 4 }}>No must-play songs yet</div>}
           </div>
 
@@ -1738,6 +1950,7 @@
     function PackingTab({ packing, savePacking }) {
       const [adding, setAdding] = useState(null);
       const [newItem, setNewItem] = useState("");
+      const [newCat, setNewCat] = useState("");
 
       const toggle = (ci, ii) => {
         const u = packing.map((c, i) => i === ci ? { ...c, items: c.items.map((it, j) => j === ii ? { ...it, done: !it.done } : it) } : c);
@@ -1749,6 +1962,7 @@
         savePacking(u); setNewItem(""); setAdding(null);
       };
       const rmItem = (ci, ii) => {
+        if (!window.confirm("Remove this item?")) return;
         const u = packing.map((c, i) => i === ci ? { ...c, items: c.items.filter((_, j) => j !== ii) } : c);
         savePacking(u);
       };
@@ -1794,6 +2008,12 @@
               </div>
             );
           })}
+
+          {/* Add Category */}
+          <div style={{ display: "flex", gap: 5, marginTop: 10 }}>
+            <input placeholder="New category name..." value={newCat} onChange={e => setNewCat(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && newCat.trim()) { savePacking([...packing, { cat: newCat.trim(), items: [] }]); setNewCat(""); }}} style={{ ...iS, flex: 1 }} />
+            <button onClick={() => { if (!newCat.trim()) return; savePacking([...packing, { cat: newCat.trim(), items: [] }]); setNewCat(""); }} style={{...bS, background: P.oliveP, color: P.olive}}>+ Category</button>
+          </div>
         </div>
       );
     }
@@ -1801,8 +2021,10 @@
     /* ========== DECISIONS ========== */
     function DecisionsTab({ decisions, saveDecisions }) {
       const [showForm, setShowForm] = useState(false);
+      const [editingId, setEditingId] = useState(null);
       const [form, setForm] = useState({ title: "", decision: "", reasoning: "", category: "General", date: new Date().toISOString().split("T")[0] });
       const addD = () => { if (!form.title.trim()) return; saveDecisions([{ ...form, id: Date.now() }, ...decisions]); setForm({ title: "", decision: "", reasoning: "", category: "General", date: new Date().toISOString().split("T")[0] }); setShowForm(false); };
+      const upD = (id, updates) => saveDecisions(decisions.map(d => d.id === id ? { ...d, ...updates } : d));
 
       return (
         <div>
@@ -1824,16 +2046,35 @@
             </div>
           )}
           {decisions.length === 0 ? <div style={{ textAlign: "center", padding: 40, color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\u270E"}</div><div style={{ fontSize: 12 }}>No decisions yet</div></div>
-          : decisions.map(d => (
-            <div key={d.id} style={{ background: P.card, borderRadius: 12, padding: "13px 15px", marginBottom: 7, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderLeft: `4px solid ${P.olive}` }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div><div style={{ fontSize: 12, fontWeight: 700, color: P.txt }}>{d.title}</div><div style={{ display: "flex", gap: 5, marginTop: 3 }}><span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: P.oliveP, color: P.olive, fontWeight: 600 }}>{d.category}</span><span style={{ fontSize: 10, color: P.txtL }}>{new Date(d.date).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</span></div></div>
-                <button onClick={() => saveDecisions(decisions.filter(x=>x.id!==d.id))} style={{ background:"none",border:"none",cursor:"pointer",color:P.stoneL,fontSize:13 }}>{"\u00D7"}</button>
-              </div>
-              {d.decision && <div style={{ fontSize: 11, color: P.txt, marginTop: 7, padding: "7px 9px", background: P.oliveP, borderRadius: 8 }}>{"\u2713"} {d.decision}</div>}
-              {d.reasoning && <div style={{ fontSize: 10, color: P.txtM, marginTop: 5, fontStyle: "italic" }}>{"\uD83D\uDCAD"} {d.reasoning}</div>}
+          : decisions.map(d => {
+            const isEd = editingId === d.id;
+            return (
+            <div key={d.id} style={{ background: P.card, borderRadius: 12, padding: "13px 15px", marginBottom: 7, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderLeft: `4px solid ${P.olive}`, border: isEd ? `2px solid ${P.terra}` : "2px solid transparent" }}>
+              {isEd ? (
+                <div>
+                  <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                    <input value={d.title} onChange={e => upD(d.id,{title:e.target.value})} style={{ ...iS, flex: 3, minWidth: 150 }} />
+                    <select value={d.category} onChange={e => upD(d.id,{category:e.target.value})} style={{ ...iS, flex: 1, minWidth: 100, background: "#fff" }}>{DECISION_CATS.map(c=><option key={c}>{c}</option>)}</select>
+                  </div>
+                  <textarea value={d.decision||""} onChange={e => upD(d.id,{decision:e.target.value})} placeholder="The decision" style={{ ...iS, minHeight: 36, resize: "vertical", marginBottom: 5 }} />
+                  <textarea value={d.reasoning||""} onChange={e => upD(d.id,{reasoning:e.target.value})} placeholder="Why?" style={{ ...iS, minHeight: 36, resize: "vertical", marginBottom: 5 }} />
+                  <div style={{ display: "flex", gap: 5, justifyContent: "flex-end" }}>
+                    <button onClick={() => { if (window.confirm("Delete this decision?")) saveDecisions(decisions.filter(x=>x.id!==d.id)); }} style={{...bS,background:P.redP,color:P.red}}>Delete</button>
+                    <button onClick={() => setEditingId(null)} style={bP}>Done</button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                    <div onClick={() => setEditingId(d.id)} style={{ cursor: "pointer", flex: 1 }}><div style={{ fontSize: 12, fontWeight: 700, color: P.txt }}>{d.title}</div><div style={{ display: "flex", gap: 5, marginTop: 3 }}><span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 10, background: P.oliveP, color: P.olive, fontWeight: 600 }}>{d.category}</span><span style={{ fontSize: 10, color: P.txtL }}>{new Date(d.date).toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"})}</span></div></div>
+                    <button onClick={() => setEditingId(isEd ? null : d.id)} style={{ background:"none",border:"none",cursor:"pointer",color:P.stoneL,fontSize:11 }}>{"\u270E"}</button>
+                  </div>
+                  {d.decision && <div style={{ fontSize: 11, color: P.txt, marginTop: 7, padding: "7px 9px", background: P.oliveP, borderRadius: 8 }}>{"\u2713"} {d.decision}</div>}
+                  {d.reasoning && <div style={{ fontSize: 10, color: P.txtM, marginTop: 5, fontStyle: "italic" }}>{"\uD83D\uDCAD"} {d.reasoning}</div>}
+                </div>
+              )}
             </div>
-          ))}
+          ); })}
         </div>
       );
     }
@@ -1877,7 +2118,8 @@
           </div>
           {(rooms[villa]||[]).map((r, ri) => {
             const full = (r.guests||[]).length >= r.sleeps;
-            const available = unassigned.filter(n => !(r.guests||[]).includes(n));
+            const villaName = villa === "santarsa" ? "Santarsa" : "Vallorsaia";
+            const available = unassigned.filter(n => { const gObj = confirmed.find(g => g.name === n); return !(r.guests||[]).includes(n) && (!gObj?.villa || gObj.villa === villaName || gObj.villa === "Off-site"); });
             return (
               <div key={ri} style={{ background: P.card, borderRadius: 10, padding: "10px 12px", marginBottom: 5, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderLeft: `3px solid ${full ? P.olive : P.stoneL}` }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: (r.guests||[]).length > 0 || !full ? 6 : 0 }}>
@@ -1935,10 +2177,11 @@
     }
 
     /* ========== PROJECT TIMELINE ========== */
-    function ProjectTab({ milestones, saveMilestones, vendors, budget, upPay }) {
+    function ProjectTab({ milestones, saveMilestones, vendors, budget, upPay, legalChecklist, saveLegalChecklist }) {
       const now = new Date();
       const [showAdd, setShowAdd] = useState(false);
-      const [form, setForm] = useState({ task: "", due: "" });
+      const [form, setForm] = useState({ task: "", due: "", assignee: "" });
+      const [assigneeFilter, setAssigneeFilter] = useState("");
       const [expIdea, setExpIdea] = useState(null);
       const [addedFlash, setAddedFlash] = useState(null);
       const scrollRef = React.useRef(null);
@@ -1957,15 +2200,16 @@
       const cursor = new Date(startMonth);
       while (cursor <= WEDDING_DATE) { months.push(new Date(cursor)); cursor.setMonth(cursor.getMonth() + 1); }
 
-      const mByMonth = {}; milestones.forEach(m => { const k = m.due.substring(0,7); if (!mByMonth[k]) mByMonth[k] = []; mByMonth[k].push(m); });
+      const filteredMs = assigneeFilter ? milestones.filter(m => (m.assignee||"")=== assigneeFilter || (m.assignee||"")==="Both") : milestones;
+      const mByMonth = {}; filteredMs.forEach(m => { const k = m.due.substring(0,7); if (!mByMonth[k]) mByMonth[k] = []; mByMonth[k].push(m); });
       const payByMonth = {}; upPay.forEach(p => { const k = p.date.substring(0,7); if (!payByMonth[k]) payByMonth[k] = []; payByMonth[k].push(p); });
 
       const bookedV = vendors.filter(v => ["Booked","Paid Deposit","Paid in Full"].includes(v.status)).length;
       const unbookedKey = vendors.filter(v => v.starred && !["Booked","Paid Deposit","Paid in Full"].includes(v.status)).length;
 
       const toggleM = (task) => { const i = milestones.findIndex(m => m.task === task); if (i<0) return; const u = [...milestones]; u[i] = {...u[i], done:!u[i].done}; saveMilestones(u); };
-      const addM = () => { if (!form.task.trim()||!form.due) return; saveMilestones([...milestones, { task:form.task, due:form.due, done:false }]); setForm({ task:"", due:"" }); setShowAdd(false); };
-      const rmM = (task) => saveMilestones(milestones.filter(m => m.task !== task));
+      const addM = () => { if (!form.task.trim()||!form.due) return; saveMilestones([...milestones, { task:form.task, due:form.due, done:false, assignee:form.assignee }]); setForm({ task:"", due:"", assignee:"" }); setShowAdd(false); };
+      const rmM = (task) => { if (!window.confirm("Remove this milestone?")) return; saveMilestones(milestones.filter(m => m.task !== task)); };
 
       const done = milestones.filter(m => m.done).length;
       const overdue = milestones.filter(m => !m.done && new Date(m.due) < now).length;
@@ -1992,7 +2236,12 @@
               <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt }}>Project Timeline</div>
               <div style={{ fontSize: 12, color: P.txtL, marginTop: 2 }}>Scroll to see your full planning journey</div>
             </div>
-            <button onClick={() => setShowAdd(!showAdd)} style={bP}>+ Milestone</button>
+            <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+              <div style={{ display: "flex", gap: 2, background: P.bgD, borderRadius: 7, padding: 2 }}>
+                {["","Sophie","Joe","Planner"].map(a => (<button key={a} onClick={() => setAssigneeFilter(assigneeFilter===a?"":a)} style={{ ...bS, background: assigneeFilter===a?P.terra:"transparent", color: assigneeFilter===a?"#fff":P.txtM, padding: "2px 8px", fontSize: 10 }}>{a||"All"}</button>))}
+              </div>
+              <button onClick={() => setShowAdd(!showAdd)} style={bP}>+ Milestone</button>
+            </div>
           </div>
 
           {showAdd && (
@@ -2000,6 +2249,7 @@
               <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
                 <input placeholder="What needs doing?" value={form.task} onChange={e => setForm({...form,task:e.target.value})} style={{ ...iS, flex: 3, minWidth: 150 }} />
                 <input type="date" value={form.due} onChange={e => setForm({...form,due:e.target.value})} style={{ ...iS, flex: 1, minWidth: 120 }} />
+                <select value={form.assignee} onChange={e => setForm({...form,assignee:e.target.value})} style={{...iS, flex:1, minWidth:80, background:"#fff"}}>{MILESTONE_ASSIGNEES.map(a=><option key={a} value={a}>{a||"Anyone"}</option>)}</select>
                 <button onClick={addM} style={bP}>Add</button>
               </div>
             </div>
@@ -2105,7 +2355,7 @@
                               }}>{ms.done && "\u2713"}</button>
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ fontSize: 10, fontWeight: 600, color: P.txt, textDecoration: ms.done ? "line-through" : "none", lineHeight: 1.3, wordBreak: "break-word" }}>{ms.task}</div>
-                                <div style={{ fontSize: 8, color: ov ? P.red : P.txtL, marginTop: 1 }}>{new Date(ms.due).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</div>
+                                <div style={{ fontSize: 8, color: ov ? P.red : P.txtL, marginTop: 1 }}>{new Date(ms.due).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}{ms.assignee && <span style={{ marginLeft: 3, padding: "0 4px", borderRadius: 4, background: ms.assignee==="Sophie"?P.terraP:ms.assignee==="Joe"?P.blueP:P.oliveP, color: ms.assignee==="Sophie"?P.terra:ms.assignee==="Joe"?P.blue:P.olive, fontSize: 7, fontWeight: 600 }}>{ms.assignee}</span>}</div>
                               </div>
                               <button onClick={() => rmM(ms.task)} style={{ background: "none", border: "none", cursor: "pointer", color: P.stoneL, fontSize: 11, padding: 0, lineHeight: 1, flexShrink: 0 }}>{"\u00D7"}</button>
                             </div>
@@ -2192,6 +2442,41 @@
               );
             })}
           </div>
+
+          {/* Legal Ceremony Checklist */}
+          {(() => {
+            const [lcOpen, setLcOpen] = React.useState(false);
+            const done = LEGAL_CHECKLIST.filter(c => legalChecklist[c.key]?.done).length;
+            return (
+              <div style={{ marginTop: 18 }}>
+                <div onClick={() => setLcOpen(!lcOpen)} style={{ background: P.card, borderRadius: lcOpen ? "14px 14px 0 0" : 14, padding: "12px 14px", cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${P.blue}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: P.txt, fontFamily: "'Playfair Display', Georgia, serif" }}>{"\uD83C\uDDEC\uD83C\uDDE7"} Legal Ceremony</div>
+                    <div style={{ fontSize: 10, color: P.txtL, marginTop: 1 }}>Oakwood House, UK — {done}/{LEGAL_CHECKLIST.length} complete</div>
+                  </div>
+                  <span style={{ fontSize: 15, color: P.stoneL, transform: lcOpen ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>{"\u203A"}</span>
+                </div>
+                {lcOpen && (
+                  <div style={{ background: P.card, borderRadius: "0 0 14px 14px", padding: "8px 14px 14px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${P.blue}` }}>
+                    {LEGAL_CHECKLIST.map(c => {
+                      const entry = legalChecklist[c.key] || {};
+                      return (
+                        <div key={c.key} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0", borderBottom: `1px solid ${P.bgD}` }}>
+                          <input type="checkbox" checked={!!entry.done} onChange={e => {
+                            saveLegalChecklist({ ...legalChecklist, [c.key]: { ...entry, done: e.target.checked, date: e.target.checked ? new Date().toISOString().slice(0, 10) : "" } });
+                          }} style={{ accentColor: P.blue }} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 11, color: entry.done ? P.txtL : P.txt, textDecoration: entry.done ? "line-through" : "none" }}>{c.label}</div>
+                            {entry.done && entry.date && <div style={{ fontSize: 9, color: P.green, marginTop: 1 }}>Completed {entry.date}</div>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       );
     }
@@ -2216,8 +2501,12 @@
         medical: "Nearest hospital: Ospedale Valtiberina, Sansepolcro (10 min drive).\nEmergency number: 112\nFirst aid kit: villa reception desk.",
         transport: "Backup taxi: Radio Taxi Arezzo (+39 0575 382626)\nCar hire: Europcar Sansepolcro\nVilla parking: 20+ spaces"
       });
+      const [eurRate, saveEurRate, b12] = useStorage("wedding-eur-rate-v1", 1.17);
+      const [legalChecklist, saveLegalChecklist, b13] = useStorage("wedding-legal-v1", {});
+      const [speeches, saveSpeeches, b14] = useStorage("wedding-speeches-v1", []);
+      EUR_RATE = eurRate;
 
-      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11)) return (
+      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14)) return (
         <div style={{ minHeight: "100vh", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\uD83D\uDC8D"}</div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15 }}>Loading...</div></div>
         </div>
@@ -2228,6 +2517,18 @@
       BUDGET_CATS.forEach(c => { const b = budget[c.id]; if (!b?.payments) return; b.payments.forEach(p => { if (!p.paid && p.date && p.amount > 0) upPay.push({ catId: c.id, label: p.label, amount: p.amount, date: p.date, currency: b.currency || "GBP" }); }); });
       upPay.sort((a, b) => new Date(a.date) - new Date(b.date));
       const gC = guests.length; const cC = guests.filter(g => g.status === "Confirmed").length;
+
+      // Browser notifications for overdue items
+      const [notifEnabled, setNotifEnabled] = React.useState(typeof Notification !== "undefined" && Notification.permission === "granted");
+      const notifRef = React.useRef(new Set());
+      React.useEffect(() => {
+        if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+        const today = new Date().toISOString().slice(0, 10);
+        const overdue = [];
+        milestones.filter(m => !m.done && m.due && m.due < today).forEach(m => overdue.push(`Milestone overdue: ${m.task}`));
+        upPay.filter(p => p.date < today).forEach(p => overdue.push(`Payment overdue: ${p.label} (£${p.amount})`));
+        overdue.forEach(msg => { if (!notifRef.current.has(msg)) { notifRef.current.add(msg); try { new Notification("Wedding Dashboard", { body: msg, icon: "\uD83D\uDC8D" }); } catch(e) {} } });
+      }, [milestones, budget]);
 
       return (
         <div style={{ minHeight: "100vh", background: P.bg, fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
@@ -2242,6 +2543,9 @@
                   transition: "all 0.2s", whiteSpace: "nowrap"
                 }}><span style={{ fontSize: 13, display: "block", marginBottom: 1 }}>{t.icon}</span>{t.label}</button>
               ))}
+              {typeof Notification !== "undefined" && Notification.permission === "default" && (
+                <button onClick={() => Notification.requestPermission().then(p => { if (p === "granted") setNotifEnabled(true); })} title="Enable reminders for overdue items" style={{ ...bS, fontSize: 8, padding: "3px 6px", marginLeft: 4, flexShrink: 0 }}>{"\uD83D\uDD14"}</button>
+              )}
               <div title={fbConnected ? "Synced to cloud" : "Offline \u2014 changes saved locally"} style={{
                 flexShrink: 0, width: 8, height: 8, borderRadius: "50%", marginLeft: 6,
                 background: fbConnected ? P.green : P.gold,
@@ -2251,14 +2555,14 @@
             </div>
           </div>
           <div style={{ maxWidth: 840, margin: "0 auto", padding: "18px 10px 50px" }}>
-            {tab === "dash" && <DashTab data={{ budget, milestones }} saveMilestones={saveMilestones} gC={gC} cC={cC} upPay={upPay} vendors={vendors} guests={guests} allData={{ budget, guests, vendors, timeline, milestones, decisions, music, packing, seating, rooms }} saveFns={{ saveBudget, saveGuests, saveVendors, saveTimeline, saveMilestones, saveDecisions, saveMusic, savePacking, saveSeating, saveRooms }} />}
-            {tab === "budget" && <BudgetTab budget={budget} saveBudget={saveBudget} />}
+            {tab === "dash" && <DashTab data={{ budget, milestones }} saveMilestones={saveMilestones} gC={gC} cC={cC} upPay={upPay} vendors={vendors} guests={guests} timeline={timeline} allData={{ budget, guests, vendors, timeline, milestones, decisions, music, packing, seating, rooms, contingency, legalChecklist, speeches, eurRate }} saveFns={{ saveBudget, saveGuests, saveVendors, saveTimeline, saveMilestones, saveDecisions, saveMusic, savePacking, saveSeating, saveRooms, saveContingency, saveLegalChecklist, saveSpeeches, saveEurRate }} />}
+            {tab === "budget" && <BudgetTab budget={budget} saveBudget={saveBudget} vendors={vendors} eurRate={eurRate} saveEurRate={saveEurRate} />}
             {tab === "vendors" && <VendorsTab vendors={vendors} saveVendors={saveVendors} />}
             {tab === "guests" && <GuestsTab guests={guests} saveGuests={saveGuests} />}
             {tab === "seating" && <SeatingTab seating={seating} saveSeating={saveSeating} guests={guests} />}
             {tab === "rooms" && <RoomsTab rooms={rooms} saveRooms={saveRooms} guests={guests} />}
-            {tab === "project" && <ProjectTab milestones={milestones} saveMilestones={saveMilestones} vendors={vendors} budget={budget} upPay={upPay} />}
-            {tab === "timeline" && <TimelineTab timeline={timeline} saveTimeline={saveTimeline} contingency={contingency} saveContingency={saveContingency} />}
+            {tab === "project" && <ProjectTab milestones={milestones} saveMilestones={saveMilestones} vendors={vendors} budget={budget} upPay={upPay} legalChecklist={legalChecklist} saveLegalChecklist={saveLegalChecklist} />}
+            {tab === "timeline" && <TimelineTab timeline={timeline} saveTimeline={saveTimeline} contingency={contingency} saveContingency={saveContingency} speeches={speeches} saveSpeeches={saveSpeeches} />}
             {tab === "music" && <MusicTab music={music} saveMusic={saveMusic} />}
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} />}
             {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
