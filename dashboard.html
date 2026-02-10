@@ -440,6 +440,37 @@
             <div style={{ marginTop: 12, fontSize: 12, opacity: 0.75 }}>La Conca, Sansepolcro {"\u00B7"} {gC > 0 ? `${cC} confirmed / ${gC} invited` : "~50 guests"}</div>
           </div>
 
+          {/* Countdown Badges */}
+          {(() => {
+            const badges = [];
+            // Next milestone
+            const nextM = [...milestones].filter(m => !m.done && new Date(m.due) >= now).sort((a,b) => new Date(a.due) - new Date(b.due))[0];
+            if (nextM) { const d = Math.ceil((new Date(nextM.due) - now) / 86400000); badges.push({ l: nextM.task.length > 25 ? nextM.task.slice(0,23) + "\u2026" : nextM.task, d, icon: "\u25CB" }); }
+            // RSVP deadline
+            const rsvpM = milestones.find(m => m.task.toLowerCase().includes("rsvp") && !m.done);
+            if (rsvpM && (!nextM || rsvpM.task !== nextM.task)) { const d = Math.ceil((new Date(rsvpM.due) - now) / 86400000); badges.push({ l: "RSVP Deadline", d, icon: "\u2709" }); }
+            // Next payment
+            if (upPay.length > 0) { const d = Math.ceil((new Date(upPay[0].date) - now) / 86400000); badges.push({ l: `${BUDGET_CATS.find(c=>c.id===upPay[0].catId)?.name||"Payment"} \u2014 ${upPay[0].label}`, d, icon: "\u00A3" }); }
+            // Info pack
+            const infoM = milestones.find(m => m.task.toLowerCase().includes("info pack") && !m.done);
+            if (infoM && (!nextM || infoM.task !== nextM.task)) { const d = Math.ceil((new Date(infoM.due) - now) / 86400000); badges.push({ l: "Guest Info Pack", d, icon: "\u2709" }); }
+            return badges.length > 0 ? (
+              <div style={{ display: "flex", gap: 8, marginBottom: 18, overflowX: "auto", paddingBottom: 2 }}>
+                {badges.slice(0,4).map((b,i) => {
+                  const col = b.d < 0 ? P.red : b.d <= 14 ? P.red : b.d <= 60 ? P.gold : P.green;
+                  const bg = b.d < 0 ? P.redP : b.d <= 14 ? P.redP : b.d <= 60 ? P.goldP : P.greenP;
+                  return (
+                    <div key={i} style={{ flex: "0 0 auto", minWidth: 130, background: bg, borderRadius: 12, padding: "10px 14px", borderLeft: `4px solid ${col}` }}>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: col, fontFamily: "'Playfair Display', Georgia, serif" }}>{Math.abs(b.d)}d</div>
+                      <div style={{ fontSize: 9, color: col, fontWeight: 600 }}>{b.d < 0 ? "OVERDUE" : b.d === 0 ? "TODAY" : "to go"}</div>
+                      <div style={{ fontSize: 10, color: P.txtM, marginTop: 3, lineHeight: 1.2 }}>{b.l}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null;
+          })()}
+
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginBottom: 22 }}>
             {[
               { l: "Estimated", v: `\u00A3${tE.toLocaleString()}`, s: "target", c: P.stone },
@@ -586,6 +617,70 @@
             </div>
             <div style={{ fontSize: 10, color: P.txtL, marginTop: 6 }}>Export saves all tabs to a JSON file. Import restores from a previous backup.</div>
           </div>
+
+          {/* Destination Guide */}
+          {(() => {
+            const [expGuide, setExpGuide] = React.useState(null);
+            const sections = [
+              { id: "travel", title: "Travel & Documents", icon: "\u2708", color: P.blue, items: [
+                { q: "Passport", a: "Valid UK passport required. Must not expire within 3 months of return date. Check all guests!" },
+                { q: "Visa", a: "UK citizens: no visa needed for stays under 90 days in the EU (post-Brexit rule)." },
+                { q: "Health Cover", a: "GHIC (Global Health Insurance Card) covers emergency treatment in Italy. Apply free via NHS. Travel insurance still essential." },
+                { q: "Travel Insurance", a: "Get wedding-specific travel insurance covering supplier failure, cancellation, and medical repatriation." },
+                { q: "Driving", a: "UK driving licence valid in Italy. Drive on the right. ZTL zones in town centres \u2014 avoid or risk fines." },
+              ]},
+              { id: "emergency", title: "Emergency Contacts", icon: "\uD83D\uDEA8", color: P.red, items: [
+                { q: "Emergency Number", a: "112 (pan-European). Works for police, ambulance, fire." },
+                { q: "Nearest Hospital", a: "Ospedale Valtiberina, Sansepolcro (~10 min from La Conca). A&E available." },
+                { q: "Pharmacy", a: "Farmacia Comunale Sansepolcro, Via XX Settembre. Open Mon\u2013Sat. Night rota posted on door." },
+                { q: "UK Consulate", a: "British Consulate General, Florence. +39 055 284133. For passport loss / emergencies." },
+              ]},
+              { id: "local", title: "Local Area", icon: "\uD83D\uDDFA", color: P.olive, items: [
+                { q: "Sansepolcro", a: "Charming medieval town, 10 min from villas. Birthplace of Piero della Francesca. Good restaurants & shops." },
+                { q: "Supermarket", a: "Conad Sansepolcro (10 min). Open daily 8:30\u201320:00, closed Sun afternoon." },
+                { q: "ATM / Cash", a: "ATMs in Sansepolcro centre. Italy is card-friendly but carry cash for markets and small bars." },
+                { q: "Market Days", a: "Sansepolcro: Saturday morning. Arezzo: first Sunday of month (famous antique market in Piazza Grande)." },
+                { q: "WiFi", a: "Both villas have WiFi. Passwords in your welcome pack. Mobile signal can be patchy in valleys." },
+              ]},
+              { id: "weather", title: "May Weather", icon: "\u2600", color: P.gold, items: [
+                { q: "Temperature", a: "Avg highs 22\u201326\u00B0C. Evenings cool to 12\u201315\u00B0C \u2014 bring a wrap for outdoor dinner." },
+                { q: "Rain", a: "May averages 6\u20137 rainy days. Usually short afternoon showers. Mornings are reliably sunny." },
+                { q: "UV Index", a: "High (6\u20138). SPF 30+ essential, especially by the pool. Hats recommended for ceremony." },
+                { q: "What to Wear", a: "Light layers, comfortable shoes for gravel paths. Smart casual for dinners. Swimwear for pool days." },
+              ]},
+            ];
+            return (
+              <div style={{ background: P.card, borderRadius: 14, padding: 18, marginTop: 18, boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `4px solid ${P.blue}` }}>
+                <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15, fontWeight: 700, color: P.txt, marginBottom: 4 }}>{"\uD83C\uDDEE\uD83C\uDDF9"} Destination Guide</div>
+                <div style={{ fontSize: 11, color: P.txtL, marginBottom: 12 }}>Everything your guests need to know about travelling to Tuscany</div>
+                {sections.map(sec => {
+                  const isE = expGuide === sec.id;
+                  return (
+                    <div key={sec.id} style={{ marginBottom: 4 }}>
+                      <div onClick={() => setExpGuide(isE ? null : sec.id)} style={{
+                        display: "flex", alignItems: "center", gap: 8, padding: "9px 10px", cursor: "pointer",
+                        background: isE ? `${sec.color}10` : P.bgD, borderRadius: isE ? "10px 10px 0 0" : 10, transition: "background 0.15s",
+                      }}>
+                        <span style={{ fontSize: 14 }}>{sec.icon}</span>
+                        <span style={{ flex: 1, fontSize: 12, fontWeight: 600, color: P.txt }}>{sec.title}</span>
+                        <span style={{ fontSize: 13, color: P.stoneL, transform: isE ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>{"\u203A"}</span>
+                      </div>
+                      {isE && (
+                        <div style={{ background: `${sec.color}08`, borderRadius: "0 0 10px 10px", padding: "4px 10px 10px" }}>
+                          {sec.items.map((item, i) => (
+                            <div key={i} style={{ padding: "8px 0", borderBottom: i < sec.items.length - 1 ? `1px solid ${P.bgD}` : "none" }}>
+                              <div style={{ fontSize: 11, fontWeight: 600, color: sec.color }}>{item.q}</div>
+                              <div style={{ fontSize: 10, color: P.txtM, lineHeight: 1.4, marginTop: 2 }}>{item.a}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       );
     }
@@ -694,6 +789,45 @@
               </div>
             );
           })}
+
+          {/* Payment Schedule */}
+          {(() => {
+            const allPays = [];
+            BUDGET_CATS.forEach(c => { const b = budget[c.id]; if (!b?.payments) return; b.payments.forEach(p => { if (p.date && p.amount > 0) allPays.push({ ...p, catId: c.id, catName: c.name, icon: c.icon, currency: b.currency || "GBP" }); }); });
+            if (allPays.length === 0) return null;
+            allPays.sort((a,b) => a.date.localeCompare(b.date));
+            const byMonth = {};
+            allPays.forEach(p => { const k = p.date.substring(0,7); if (!byMonth[k]) byMonth[k] = { paid: 0, unpaid: 0, items: [] }; const g = toGBP(p.amount, p.currency); if (p.paid) byMonth[k].paid += g; else byMonth[k].unpaid += g; byMonth[k].items.push(p); });
+            const months = Object.keys(byMonth).sort();
+            const max = Math.max(...months.map(k => byMonth[k].paid + byMonth[k].unpaid), 1);
+            return (
+              <div style={{ background: P.card, borderRadius: 14, padding: 18, marginTop: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+                <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15, fontWeight: 700, color: P.txt, marginBottom: 12 }}>Payment Schedule</div>
+                <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4 }}>
+                  {months.map(m => {
+                    const d = byMonth[m]; const total = d.paid + d.unpaid;
+                    const monthDate = new Date(m + "-15");
+                    const isPast = monthDate < new Date();
+                    return (
+                      <div key={m} style={{ flex: "0 0 auto", width: 70, textAlign: "center" }}>
+                        <div style={{ height: 80, display: "flex", flexDirection: "column", justifyContent: "flex-end", alignItems: "center", gap: 1, marginBottom: 4 }}>
+                          {d.unpaid > 0 && <div style={{ width: 32, borderRadius: "4px 4px 0 0", background: isPast && d.unpaid > 0 ? P.red : P.gold, height: `${Math.max(d.unpaid / max * 70, 4)}px` }} />}
+                          {d.paid > 0 && <div style={{ width: 32, borderRadius: d.unpaid > 0 ? "0 0 4px 4px" : 4, background: P.olive, height: `${Math.max(d.paid / max * 70, 4)}px` }} />}
+                        </div>
+                        <div style={{ fontSize: 10, fontWeight: 600, color: P.txt }}>{"\u00A3"}{total.toLocaleString()}</div>
+                        <div style={{ fontSize: 9, color: P.txtL }}>{monthDate.toLocaleDateString("en-GB", { month: "short", year: "2-digit" })}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ display: "flex", gap: 12, marginTop: 8, fontSize: 10, color: P.txtL }}>
+                  <span><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: P.olive, marginRight: 3 }} />Paid</span>
+                  <span><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: P.gold, marginRight: 3 }} />Due</span>
+                  <span><span style={{ display: "inline-block", width: 8, height: 8, borderRadius: 2, background: P.red, marginRight: 3 }} />Overdue</span>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       );
     }
@@ -754,6 +888,7 @@
                         </div>
                       </div>
                       {[
+                        { l: "Quote", v: v.quote ? `\u00A3${v.quote.toLocaleString()}` : null },
                         { l: "Phone", v: v.phone },
                         { l: "Email", v: v.email },
                         { l: "Website", v: v.website },
@@ -780,7 +915,7 @@
               <div key={v.id} style={{ background: P.card, borderRadius: 12, padding: "11px 13px", marginBottom: 6, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", border: isE?`2px solid ${P.terra}`:v.starred?`2px solid ${P.goldP}`:"2px solid transparent" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer" }} onClick={() => setEditing(isE?null:v.id)}>
                   <button onClick={e=>{e.stopPropagation();upV(v.id,{starred:!v.starred})}} style={{ background:"none",border:"none",cursor:"pointer",fontSize:15,padding:0 }}>{v.starred?"\u2B50":"\u2606"}</button>
-                  <div style={{ flex: 1 }}><div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{v.name}</div><div style={{ fontSize: 10, color: P.txtL }}>{v.category}{v.phone?` \u00B7 ${v.phone}`:""}{v.email?` \u00B7 ${v.email}`:""}</div></div>
+                  <div style={{ flex: 1 }}><div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{v.name}</div><div style={{ fontSize: 10, color: P.txtL }}>{v.category}{v.phone?` \u00B7 ${v.phone}`:""}{v.email?` \u00B7 ${v.email}`:""}{v.quote?` \u00B7 \u00A3${v.quote.toLocaleString()}`:""}</div></div>
                   <span style={{ padding: "2px 8px", borderRadius: 12, fontSize: 10, fontWeight: 600, background: sc.bg, color: sc.c }}>{v.status}</span>
                 </div>
                 {v.notes && !isE && <div style={{ fontSize: 10, color: P.txtM, marginTop: 5, marginLeft: 28 }}>{v.notes}</div>}
@@ -794,6 +929,10 @@
                       <div style={{ flex: 1, minWidth: 90 }}><label style={lb}>Phone</label><input value={v.phone||""} onChange={e=>upV(v.id,{phone:e.target.value})} style={iS} /></div>
                       <div style={{ flex: 1, minWidth: 110 }}><label style={lb}>Email</label><input value={v.email||""} onChange={e=>upV(v.id,{email:e.target.value})} style={iS} /></div>
                       <div style={{ flex: 1, minWidth: 90 }}><label style={lb}>Website</label><input value={v.website||""} onChange={e=>upV(v.id,{website:e.target.value})} style={iS} /></div>
+                    </div>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                      <div style={{ flex: 1, minWidth: 90 }}><label style={lb}>Quote ({"\u00A3"})</label><input type="number" value={v.quote||""} onChange={e=>upV(v.id,{quote:parseFloat(e.target.value)||0})} style={iS} placeholder="0" /></div>
+                      <div style={{ flex: 1, minWidth: 100 }}><label style={lb}>Quote Date</label><input type="date" value={v.quoteDate||""} onChange={e=>upV(v.id,{quoteDate:e.target.value})} style={iS} /></div>
                     </div>
                     <div style={{ marginBottom: 6 }}><label style={lb}>Notes</label><textarea value={v.notes||""} onChange={e=>upV(v.id,{notes:e.target.value})} style={{...iS,minHeight:44,resize:"vertical"}} /></div>
                     <div style={{ display: "flex", gap: 5, justifyContent: "flex-end" }}><button onClick={()=>rmV(v.id)} style={{...bS,background:P.redP,color:P.red}}>Remove</button></div>
@@ -811,11 +950,28 @@
       const [showForm, setShowForm] = useState(false);
       const [editing, setEditing] = useState(null);
       const [filter, setFilter] = useState("All");
+      const [search, setSearch] = useState("");
+      const csvRef = React.useRef(null);
       const [form, setForm] = useState({ name: "", status: "Invited", villa: "Santarsa", dietary: "None", plusOne: false, partner: "", email: "", phone: "", notes: "", airport: "", flightNo: "", arrivalDate: "", arrivalTime: "", departDate: "", departTime: "" });
       const addG = () => { if (!form.name.trim()) return; saveGuests([...guests, { ...form, id: Date.now() }]); setForm({ name: "", status: "Invited", villa: "Santarsa", dietary: "None", plusOne: false, partner: "", email: "", phone: "", notes: "", airport: "", flightNo: "", arrivalDate: "", arrivalTime: "", departDate: "", departTime: "" }); setShowForm(false); };
       const upG = (id, u) => saveGuests(guests.map(g => g.id === id ? { ...g, ...u } : g));
       const rmG = (id) => saveGuests(guests.filter(g => g.id !== id));
-      const fil = filter === "All" ? guests : guests.filter(g => g.status === filter);
+      const importCSV = (text) => {
+        const lines = text.split(/\r?\n/).filter(l => l.trim());
+        if (lines.length < 2) return;
+        const hdrs = lines[0].split(",").map(h => h.replace(/^"|"$/g, "").trim().toLowerCase());
+        const colMap = { name: hdrs.findIndex(h => h.includes("name") && !h.includes("partner")), email: hdrs.findIndex(h => h.includes("email")), phone: hdrs.findIndex(h => h.includes("phone")), villa: hdrs.findIndex(h => h.includes("villa")), dietary: hdrs.findIndex(h => h.includes("diet")), status: hdrs.findIndex(h => h.includes("status")), notes: hdrs.findIndex(h => h.includes("note")), partner: hdrs.findIndex(h => h.includes("partner") || h.includes("+1")), airport: hdrs.findIndex(h => h.includes("airport")), flightNo: hdrs.findIndex(h => h.includes("flight")) };
+        const newGuests = [];
+        for (let i = 1; i < lines.length; i++) {
+          const cols = lines[i].match(/(".*?"|[^",]+)/g)?.map(c => c.replace(/^"|"$/g, "").trim()) || [];
+          const name = colMap.name >= 0 ? cols[colMap.name] : "";
+          if (!name) continue;
+          newGuests.push({ id: Date.now() + i, name, status: (colMap.status >= 0 && cols[colMap.status]) || "Invited", villa: (colMap.villa >= 0 && cols[colMap.villa]) || "Santarsa", dietary: (colMap.dietary >= 0 && cols[colMap.dietary]) || "None", plusOne: false, partner: (colMap.partner >= 0 && cols[colMap.partner]) || "", email: (colMap.email >= 0 && cols[colMap.email]) || "", phone: (colMap.phone >= 0 && cols[colMap.phone]) || "", notes: (colMap.notes >= 0 && cols[colMap.notes]) || "", airport: (colMap.airport >= 0 && cols[colMap.airport]) || "", flightNo: (colMap.flightNo >= 0 && cols[colMap.flightNo]) || "", arrivalDate: "", arrivalTime: "", departDate: "", departTime: "" });
+        }
+        if (newGuests.length > 0) { saveGuests([...guests, ...newGuests]); alert(`Imported ${newGuests.length} guest${newGuests.length !== 1 ? "s" : ""}!`); }
+      };
+      const preFilter = filter === "All" ? guests : guests.filter(g => g.status === filter);
+      const fil = search.trim() ? preFilter.filter(g => { const s = search.toLowerCase(); return (g.name||"").toLowerCase().includes(s) || (g.partner||"").toLowerCase().includes(s) || (g.email||"").toLowerCase().includes(s) || (g.notes||"").toLowerCase().includes(s); }) : preFilter;
       const conf = guests.filter(g => g.status === "Confirmed").length;
       const hc = guests.filter(g => g.status !== "Declined").reduce((s, g) => s + 1 + (g.plusOne ? 1 : 0), 0);
       const san = guests.filter(g => g.villa === "Santarsa" && g.status !== "Declined").length;
@@ -857,11 +1013,16 @@
             ))}
           </div>
 
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, flexWrap: "wrap", gap: 5 }}>
-            <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>{["All",...GUEST_STATUSES].map(f => (<button key={f} onClick={() => setFilter(f)} style={{ ...bS, background: filter===f?P.terra:P.bgD, color: filter===f?"#fff":P.txtM, padding: "3px 9px", fontSize: 11 }}>{f}</button>))}</div>
-            <div style={{ display: "flex", gap: 4 }}>
-              <button onClick={exportGuests} style={{ ...bS, background: P.oliveP, color: P.olive, padding: "3px 10px", fontSize: 11 }}>{"\u2B07"} CSV</button>
-              <button onClick={() => setShowForm(!showForm)} style={bP}>+ Add</button>
+          <div style={{ marginBottom: 10 }}>
+            <input placeholder={"\uD83D\uDD0D Search guests..."} value={search} onChange={e => setSearch(e.target.value)} style={{ ...iS, marginBottom: 8 }} />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 5 }}>
+              <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>{["All",...GUEST_STATUSES].map(f => (<button key={f} onClick={() => { setFilter(f); setSearch(""); }} style={{ ...bS, background: filter===f?P.terra:P.bgD, color: filter===f?"#fff":P.txtM, padding: "3px 9px", fontSize: 11 }}>{f}</button>))}</div>
+              <div style={{ display: "flex", gap: 4 }}>
+                <button onClick={exportGuests} style={{ ...bS, background: P.oliveP, color: P.olive, padding: "3px 10px", fontSize: 11 }}>{"\u2B07"} CSV</button>
+                <button onClick={() => csvRef.current?.click()} style={{ ...bS, background: P.blueP, color: P.blue, padding: "3px 10px", fontSize: 11 }}>{"\u2B06"} Import</button>
+                <input ref={csvRef} type="file" accept=".csv" style={{ display: "none" }} onChange={e => { const f = e.target.files?.[0]; if (!f) return; const r = new FileReader(); r.onload = () => importCSV(r.result); r.readAsText(f); e.target.value = ""; }} />
+                <button onClick={() => setShowForm(!showForm)} style={bP}>+ Add</button>
+              </div>
             </div>
           </div>
 
@@ -1036,6 +1197,75 @@
                     ))}
                   </div>
                 ))}
+
+                {/* Shuttle Runs */}
+                {(() => {
+                  const runs = [];
+                  const arrivals = withTravel.filter(g => g.arrivalDate && g.arrivalTime && g.airport);
+                  const grouped = {};
+                  arrivals.forEach(g => {
+                    const key = `${g.airport}|${g.arrivalDate}`;
+                    if (!grouped[key]) grouped[key] = [];
+                    grouped[key].push(g);
+                  });
+                  Object.entries(grouped).forEach(([key, gs]) => {
+                    gs.sort((a, b) => a.arrivalTime.localeCompare(b.arrivalTime));
+                    let run = [gs[0]];
+                    for (let i = 1; i < gs.length; i++) {
+                      const prev = run[run.length - 1].arrivalTime.split(":").map(Number);
+                      const curr = gs[i].arrivalTime.split(":").map(Number);
+                      const diffMin = (curr[0] * 60 + (curr[1]||0)) - (prev[0] * 60 + (prev[1]||0));
+                      if (diffMin <= 60) { run.push(gs[i]); } else { if (run.length > 1) runs.push(run); run = [gs[i]]; }
+                    }
+                    if (run.length > 1) runs.push(run);
+                  });
+                  const departures = withTravel.filter(g => g.departDate && g.departTime && g.airport);
+                  const depGrouped = {};
+                  departures.forEach(g => {
+                    const key = `${g.airport}|${g.departDate}`;
+                    if (!depGrouped[key]) depGrouped[key] = [];
+                    depGrouped[key].push(g);
+                  });
+                  const depRuns = [];
+                  Object.entries(depGrouped).forEach(([key, gs]) => {
+                    gs.sort((a, b) => a.departTime.localeCompare(b.departTime));
+                    let run = [gs[0]];
+                    for (let i = 1; i < gs.length; i++) {
+                      const prev = run[run.length - 1].departTime.split(":").map(Number);
+                      const curr = gs[i].departTime.split(":").map(Number);
+                      const diffMin = (curr[0] * 60 + (curr[1]||0)) - (prev[0] * 60 + (prev[1]||0));
+                      if (diffMin <= 60) { run.push(gs[i]); } else { if (run.length > 1) depRuns.push(run); run = [gs[i]]; }
+                    }
+                    if (run.length > 1) depRuns.push(run);
+                  });
+                  const allRuns = [...runs.map(r => ({ type: "arrival", guests: r })), ...depRuns.map(r => ({ type: "departure", guests: r }))];
+                  return allRuns.length > 0 ? (
+                    <div style={{ marginTop: 10, marginBottom: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: P.olive, marginBottom: 6 }}>{"\uD83D\uDE90"} Suggested Shuttle Runs</div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                        {allRuns.map((run, ri) => {
+                          const gs = run.guests;
+                          const airport = gs[0].airport;
+                          const date = run.type === "arrival" ? gs[0].arrivalDate : gs[0].departDate;
+                          const times = gs.map(g => run.type === "arrival" ? g.arrivalTime : g.departTime).sort();
+                          const isMinibus = gs.length >= 4;
+                          const arrow = run.type === "arrival" ? `${airport} \u2192 Villa` : `Villa \u2192 ${airport}`;
+                          const dateStr = new Date(date + "T12:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
+                          return (
+                            <div key={ri} style={{ background: isMinibus ? P.oliveP : P.blueP, borderRadius: 10, padding: "8px 11px", borderLeft: `4px solid ${isMinibus ? P.olive : P.blue}` }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                                <div style={{ fontSize: 11, fontWeight: 700, color: isMinibus ? P.olive : P.blue }}>{arrow}</div>
+                                <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 6, background: isMinibus ? P.olive : P.blue, color: "#fff", fontWeight: 600 }}>{isMinibus ? "Minibus" : "Sedan"}</span>
+                              </div>
+                              <div style={{ fontSize: 10, color: P.txtM, marginTop: 2 }}>{dateStr} {"\u00B7"} {times[0]}{"\u2013"}{times[times.length-1]} {"\u00B7"} {gs.length} guest{gs.length !== 1 ? "s" : ""}</div>
+                              <div style={{ fontSize: 10, color: P.txt, marginTop: 3 }}>{gs.map(g => g.name).join(", ")}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
 
                 {/* By airport summary */}
                 <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
@@ -1225,6 +1455,15 @@
                 ))}
               </div>
             )}
+            {(() => {
+              const diets = {}; t.guests.forEach(gn => { const gObj = guests.find(g => g.name === gn); const d = gObj?.dietary || "None"; if (d !== "None") diets[d] = (diets[d]||0) + 1; });
+              const entries = Object.entries(diets);
+              return entries.length > 0 ? (
+                <div style={{ display: "flex", gap: 3, flexWrap: "wrap", marginTop: 5 }}>
+                  {entries.map(([d,c]) => <span key={d} style={{ padding: "1px 7px", borderRadius: 8, background: P.terraP, fontSize: 9, color: P.terra }}>{c} {d}</span>)}
+                </div>
+              ) : null;
+            })()}
           </div>
         );
       };
@@ -1272,6 +1511,15 @@
                 ))}
               </div>
             )}
+            {(() => {
+              const diets = {}; t.guests.forEach(gn => { const gObj = guests.find(g => g.name === gn); const d = gObj?.dietary || "None"; if (d !== "None") diets[d] = (diets[d]||0) + 1; });
+              const entries = Object.entries(diets);
+              return entries.length > 0 ? (
+                <div style={{ display: "flex", gap: 3, flexWrap: "wrap", marginTop: 5 }}>
+                  {entries.map(([d,c]) => <span key={d} style={{ padding: "1px 7px", borderRadius: 8, background: P.terraP, fontSize: 9, color: P.terra }}>{c} {d}</span>)}
+                </div>
+              ) : null;
+            })()}
           </div>
         );
       };
@@ -1283,7 +1531,19 @@
               <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>Seating Plan</div>
               <div style={{ fontSize: 12, color: P.txtL, marginBottom: 18 }}>Drag guests to tables {"\u00B7"} {seated.length} seated / {confirmed.length} confirmed</div>
             </div>
-            <button data-no-print onClick={() => window.print()} style={{...bS, background: P.stoneP, color: P.stone, padding: "6px 14px"}}>{"\uD83D\uDDA8"} Print</button>
+            <div data-no-print style={{ display: "flex", gap: 4 }}>
+              <button onClick={() => window.print()} style={{...bS, background: P.stoneP, color: P.stone, padding: "6px 14px"}}>{"\uD83D\uDDA8"} Print</button>
+              <button onClick={() => {
+                const cards = tables.flatMap(t => t.guests.map(gn => {
+                  const gObj = guests.find(g => g.name === gn);
+                  return { name: gn, table: t.name, dietary: gObj?.dietary !== "None" ? gObj?.dietary : "" };
+                }));
+                const w = window.open("", "_blank");
+                w.document.write("<html><head><title>Place Cards</title><style>@page{size:landscape;margin:10mm}body{font-family:'DM Sans',sans-serif;margin:0;padding:10mm}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8mm}.card{border:1px solid #ddd;border-radius:6px;padding:16px 12px;text-align:center;break-inside:avoid;min-height:50mm;display:flex;flex-direction:column;justify-content:center}.name{font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:700;color:#3D3228}.table{font-size:13px;color:#8C8377;margin-top:6px}.diet{font-size:11px;color:#C4704B;margin-top:4px;font-style:italic}</style></head><body><div class='grid'>");
+                cards.forEach(c => w.document.write(`<div class='card'><div class='name'>${c.name}</div><div class='table'>${c.table}</div>${c.dietary ? `<div class='diet'>${c.dietary}</div>` : ""}</div>`));
+                w.document.write("</div></body></html>"); w.document.close(); w.print();
+              }} style={{...bS, background: P.terraP, color: P.terra, padding: "6px 14px"}}>Place Cards</button>
+            </div>
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: 7, marginBottom: 14 }}>
@@ -1342,8 +1602,9 @@
     }
 
     /* ========== TIMELINE ========== */
-    function TimelineTab({ timeline, saveTimeline }) {
+    function TimelineTab({ timeline, saveTimeline, contingency, saveContingency }) {
       const [exp, setExp] = useState(2);
+      const [cpOpen, setCpOpen] = useState(false);
       const tog = (di, ii) => { const u = timeline.map((d, i) => i === di ? { ...d, items: d.items.map((it, j) => j === ii ? { ...it, done: !it.done } : it) } : d); saveTimeline(u); };
       return (
         <div>
@@ -1378,6 +1639,37 @@
               </div>
             );
           })}
+
+          {/* Contingency Plans */}
+          <div style={{ marginTop: 18 }}>
+            <div onClick={() => setCpOpen(!cpOpen)} style={{ background: P.card, borderRadius: cpOpen ? "14px 14px 0 0" : 14, padding: "12px 14px", cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${P.gold}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: P.txt, fontFamily: "'Playfair Display', Georgia, serif" }}>{"\uD83D\uDEE1"} Contingency Plans</div>
+                <div style={{ fontSize: 10, color: P.txtL, marginTop: 1 }}>Backup plans for rain, vendor issues, emergencies</div>
+              </div>
+              <span style={{ fontSize: 15, color: P.stoneL, transform: cpOpen ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>{"\u203A"}</span>
+            </div>
+            {cpOpen && (
+              <div style={{ background: P.card, borderRadius: "0 0 14px 14px", padding: "6px 14px 14px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${P.gold}` }}>
+                {[
+                  { key: "rain", icon: "\uD83C\uDF27", label: "Rain / Bad Weather", color: P.blue },
+                  { key: "vendorNoShow", icon: "\u260E", label: "Vendor No-Show", color: P.terra },
+                  { key: "medical", icon: "\uD83C\uDFE5", label: "Medical Emergency", color: P.red },
+                  { key: "transport", icon: "\uD83D\uDE90", label: "Transport Issues", color: P.olive },
+                ].map(s => (
+                  <div key={s.key} style={{ marginTop: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: s.color, marginBottom: 4 }}>{s.icon} {s.label}</div>
+                    <textarea
+                      value={contingency[s.key] || ""}
+                      onChange={e => saveContingency({ ...contingency, [s.key]: e.target.value })}
+                      rows={3}
+                      style={{ ...iS, width: "100%", resize: "vertical", fontSize: 11, lineHeight: 1.5 }}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       );
     }
@@ -1918,8 +2210,14 @@
       const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing);
       const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating);
       const [rooms, saveRooms, b10] = useStorage("wedding-rooms-v3", DEFAULT_DATA.rooms);
+      const [contingency, saveContingency, b11] = useStorage("wedding-contingency-v1", {
+        rain: "Move ceremony to indoor salon at villa. Cocktail hour under covered loggia. Reception in main dining room.",
+        vendorNoShow: "Contact wedding planner immediately.\nBackup photographer: TBC\nBackup DJ: TBC",
+        medical: "Nearest hospital: Ospedale Valtiberina, Sansepolcro (10 min drive).\nEmergency number: 112\nFirst aid kit: villa reception desk.",
+        transport: "Backup taxi: Radio Taxi Arezzo (+39 0575 382626)\nCar hire: Europcar Sansepolcro\nVilla parking: 20+ spaces"
+      });
 
-      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10)) return (
+      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11)) return (
         <div style={{ minHeight: "100vh", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\uD83D\uDC8D"}</div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15 }}>Loading...</div></div>
         </div>
@@ -1960,7 +2258,7 @@
             {tab === "seating" && <SeatingTab seating={seating} saveSeating={saveSeating} guests={guests} />}
             {tab === "rooms" && <RoomsTab rooms={rooms} saveRooms={saveRooms} guests={guests} />}
             {tab === "project" && <ProjectTab milestones={milestones} saveMilestones={saveMilestones} vendors={vendors} budget={budget} upPay={upPay} />}
-            {tab === "timeline" && <TimelineTab timeline={timeline} saveTimeline={saveTimeline} />}
+            {tab === "timeline" && <TimelineTab timeline={timeline} saveTimeline={saveTimeline} contingency={contingency} saveContingency={saveContingency} />}
             {tab === "music" && <MusicTab music={music} saveMusic={saveMusic} />}
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} />}
             {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
