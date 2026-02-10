@@ -379,6 +379,7 @@
     const bP = { padding: "8px 18px", borderRadius: 10, border: "none", cursor: "pointer", background: P.terra, color: "#fff", fontSize: 13, fontWeight: 600 };
     const bS = { padding: "4px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 500 };
     const lb = { fontSize: 11, color: P.txtL, display: "block", marginBottom: 3 };
+    const safeArr = (v) => Array.isArray(v) ? v : v && typeof v === "object" ? Object.values(v) : [];
 
     function useStorage(key, def) {
       const [d, setD] = useState(() => {
@@ -704,7 +705,7 @@
           {/* Guest Info Pack Export */}
           <button onClick={() => {
             const tl = timeline || [];
-            const scheduleHtml = tl.map(day => `<h3 style="color:${day.color||"#333"};margin:14px 0 6px">${day.day}</h3><table style="width:100%;border-collapse:collapse;font-size:13px">${day.events.map(ev => `<tr><td style="padding:4px 8px;border-bottom:1px solid #eee;width:60px;font-weight:600">${ev.time}</td><td style="padding:4px 8px;border-bottom:1px solid #eee">${ev.event}${ev.vendor?` <span style="color:#888;font-size:11px">(${ev.vendor})</span>`:""}</td></tr>`).join("")}</table>`).join("");
+            const scheduleHtml = tl.map(day => `<h3 style="color:${day.color||"#333"};margin:14px 0 6px">${day.day}</h3><table style="width:100%;border-collapse:collapse;font-size:13px">${safeArr(day.items || day.events).map(ev => `<tr><td style="padding:4px 8px;border-bottom:1px solid #eee;width:60px;font-weight:600">${ev.time}</td><td style="padding:4px 8px;border-bottom:1px solid #eee">${ev.event}${ev.vendor?` <span style="color:#888;font-size:11px">(${ev.vendor})</span>`:""}</td></tr>`).join("")}</table>`).join("");
             const guestCount = (guests||[]).filter(g => g.status !== "Declined").reduce((s, g) => s + 1 + (g.plusOne ? 1 : 0) + (g.children || 0), 0);
             const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Sophie & Joe — Wedding Info Pack</title><style>@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;600&display=swap');body{font-family:'Inter',sans-serif;max-width:700px;margin:0 auto;padding:30px;color:#3D2B1F;line-height:1.6}h1{font-family:'Playfair Display',serif;color:#3D2B1F;text-align:center;margin-bottom:4px}h2{font-family:'Playfair Display',serif;color:#8B6F47;border-bottom:2px solid #F5E6D3;padding-bottom:6px;margin-top:30px}h3{font-family:'Playfair Display',serif}.header{text-align:center;margin-bottom:30px}.subtitle{text-align:center;color:#888;font-size:14px}@media print{body{padding:20px}}</style></head><body><div class="header"><h1>\uD83D\uDC90 Sophie & Joe</h1><p class="subtitle">29 May 2027 — La Conca del Sole, Sansepolcro, Tuscany</p><p class="subtitle">${guestCount} guests</p></div><h2>\uD83D\uDCC5 Schedule</h2>${scheduleHtml}<h2>\u2708\uFE0F Travel & Documents</h2><ul><li><strong>Passport:</strong> Valid UK passport required (3+ months validity)</li><li><strong>Visa:</strong> Not needed for UK citizens (under 90 days)</li><li><strong>Health:</strong> GHIC card + travel insurance recommended</li><li><strong>Driving:</strong> UK licence valid in Italy — drive on the right</li></ul><h2>\uD83D\uDEA8 Emergency Info</h2><ul><li><strong>Emergency:</strong> 112</li><li><strong>Hospital:</strong> Ospedale Valtiberina, Sansepolcro (~10 min)</li><li><strong>Pharmacy:</strong> Farmacia Comunale, Via XX Settembre, Sansepolcro</li><li><strong>UK Consulate:</strong> Florence — +39 055 284133</li></ul><h2>\u2600\uFE0F May Weather</h2><ul><li>Highs 22–26°C, evenings 12–15°C — bring a wrap</li><li>May averages 6–7 rainy days — usually short afternoon showers</li><li>UV index 6–8 — SPF 30+ essential</li></ul><div style="text-align:center;margin-top:40px;color:#ccc;font-size:11px">Generated from the Wedding Dashboard</div></body></html>`;
             const w = window.open("", "_blank");
@@ -1446,33 +1447,34 @@
       const [dragOverId, setDragOverId] = useState(null);
       const [dragging, setDragging] = useState(null);
 
-      const tables = seating.tables.map(t => ({ ...t, shape: t.shape || "round" }));
+      const tables = safeArr(seating.tables).map(t => ({ ...t, shape: t.shape || "round", guests: safeArr(t.guests) }));
       const seated = tables.flatMap(t => t.guests);
       const confirmed = guests.filter(g => g.status === "Confirmed");
       const unseated = confirmed.filter(g => !seated.includes(g.name)).map(g => g.name);
 
       const getInitials = (name) => { const p = name.trim().split(/\s+/); return p.length === 1 ? p[0][0].toUpperCase() : (p[0][0] + p[p.length-1][0]).toUpperCase(); };
 
+      const getTables = () => (seating.tables || []);
       const addTable = () => {
         if (!form.name.trim()) return;
-        saveSeating({ ...seating, tables: [...seating.tables, { id: Date.now(), name: form.name, seats: form.seats, shape: form.shape, guests: [] }] });
+        saveSeating({ ...seating, tables: [...getTables(), { id: Date.now(), name: form.name, seats: form.seats, shape: form.shape, guests: [] }] });
         setForm({ name: "", seats: 8, shape: form.shape });
       };
-      const rmTable = (id) => { if (!window.confirm("Remove this table and unseat all guests?")) return; saveSeating({ ...seating, tables: seating.tables.filter(t => t.id !== id) }); };
-      const moveTable = (id, dir) => { const ts = [...seating.tables]; const i = ts.findIndex(t => t.id === id); const ni = i + dir; if (ni < 0 || ni >= ts.length) return; [ts[i], ts[ni]] = [ts[ni], ts[i]]; saveSeating({ ...seating, tables: ts }); };
+      const rmTable = (id) => { if (!window.confirm("Remove this table and unseat all guests?")) return; saveSeating({ ...seating, tables: getTables().filter(t => t.id !== id) }); };
+      const moveTable = (id, dir) => { const ts = [...getTables()]; const i = ts.findIndex(t => t.id === id); const ni = i + dir; if (ni < 0 || ni >= ts.length) return; [ts[i], ts[ni]] = [ts[ni], ts[i]]; saveSeating({ ...seating, tables: ts }); };
       const addToTable = (tid, gName) => {
         if (!gName) return;
-        saveSeating({ ...seating, tables: seating.tables.map(t => t.id === tid ? { ...t, guests: [...t.guests, gName] } : t) });
+        saveSeating({ ...seating, tables: getTables().map(t => t.id === tid ? { ...t, guests: [...(t.guests || []), gName] } : t) });
       };
       const rmFromTable = (tid, gName) => {
         if (!window.confirm(`Remove ${gName} from this table?`)) return;
-        saveSeating({ ...seating, tables: seating.tables.map(t => t.id === tid ? { ...t, guests: t.guests.filter(g => g !== gName) } : t) });
+        saveSeating({ ...seating, tables: getTables().map(t => t.id === tid ? { ...t, guests: (t.guests || []).filter(g => g !== gName) } : t) });
       };
       const moveGuest = (gName, fromId, toId) => {
         if (fromId === toId) return;
-        let newTables = [...seating.tables];
-        if (fromId !== "pool") newTables = newTables.map(t => t.id === fromId ? { ...t, guests: t.guests.filter(g => g !== gName) } : t);
-        if (toId !== "pool") newTables = newTables.map(t => t.id === toId ? { ...t, guests: [...t.guests, gName] } : t);
+        let newTables = [...getTables()];
+        if (fromId !== "pool") newTables = newTables.map(t => t.id === fromId ? { ...t, guests: (t.guests || []).filter(g => g !== gName) } : t);
+        if (toId !== "pool") newTables = newTables.map(t => t.id === toId ? { ...t, guests: [...(t.guests || []), gName] } : t);
         saveSeating({ ...seating, tables: newTables });
       };
 
@@ -1727,10 +1729,11 @@
       const [editingEv, setEditingEv] = useState(null); // {di, ii}
       const [addingDay, setAddingDay] = useState(null); // dayIdx
       const [evForm, setEvForm] = useState({ time: "", event: "", vendor: "", notes: "", link: "" });
-      const tog = (di, ii) => { const u = timeline.map((d, i) => i === di ? { ...d, items: d.items.map((it, j) => j === ii ? { ...it, done: !it.done } : it) } : d); saveTimeline(u); };
-      const addEvent = (di) => { if (!evForm.time || !evForm.event.trim()) return; const u = timeline.map((d, i) => i !== di ? d : { ...d, items: [...d.items, { ...evForm, done: false }].sort((a, b) => a.time.localeCompare(b.time)) }); saveTimeline(u); setEvForm({ time: "", event: "", vendor: "", notes: "", link: "" }); setAddingDay(null); };
-      const editEvent = (di, ii, updates) => { const u = timeline.map((d, i) => i !== di ? d : { ...d, items: d.items.map((it, j) => j !== ii ? it : { ...it, ...updates }).sort((a, b) => a.time.localeCompare(b.time)) }); saveTimeline(u); setEditingEv(null); };
-      const removeEvent = (di, ii) => { if (!window.confirm("Remove this event?")) return; const u = timeline.map((d, i) => i !== di ? d : { ...d, items: d.items.filter((_, j) => j !== ii) }); saveTimeline(u); };
+      const safeTL = timeline.map(d => ({ ...d, items: safeArr(d.items) }));
+      const tog = (di, ii) => { const u = safeTL.map((d, i) => i === di ? { ...d, items: d.items.map((it, j) => j === ii ? { ...it, done: !it.done } : it) } : d); saveTimeline(u); };
+      const addEvent = (di) => { if (!evForm.time || !evForm.event.trim()) return; const u = safeTL.map((d, i) => i !== di ? d : { ...d, items: [...d.items, { ...evForm, done: false }].sort((a, b) => a.time.localeCompare(b.time)) }); saveTimeline(u); setEvForm({ time: "", event: "", vendor: "", notes: "", link: "" }); setAddingDay(null); };
+      const editEvent = (di, ii, updates) => { const u = safeTL.map((d, i) => i !== di ? d : { ...d, items: d.items.map((it, j) => j !== ii ? it : { ...it, ...updates }).sort((a, b) => a.time.localeCompare(b.time)) }); saveTimeline(u); setEditingEv(null); };
+      const removeEvent = (di, ii) => { if (!window.confirm("Remove this event?")) return; const u = safeTL.map((d, i) => i !== di ? d : { ...d, items: d.items.filter((_, j) => j !== ii) }); saveTimeline(u); };
       return (
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -1740,7 +1743,7 @@
             </div>
             <button data-no-print onClick={() => window.print()} style={{...bS, background: P.stoneP, color: P.stone, padding: "6px 14px"}}>{"\uD83D\uDDA8"} Print</button>
           </div>
-          {timeline.map((day, di) => {
+          {safeTL.map((day, di) => {
             const isE = exp === di; const dc = day.items.filter(i => i.done).length;
             return (
               <div key={di} style={{ marginBottom: 7 }}>
@@ -1885,11 +1888,12 @@
     }
 
     /* ========== MUSIC ========== */
-    function MusicTab({ music, saveMusic }) {
+    function MusicTab({ music: rawMusic, saveMusic }) {
+      const music = { mustPlay: safeArr(rawMusic.mustPlay), neverPlay: safeArr(rawMusic.neverPlay), requests: safeArr(rawMusic.requests) };
       const [input, setInput] = useState({ must: "", never: "", req: "", reqBy: "", moment: "" });
       const normMust = (item) => typeof item === "string" ? { song: item, moment: "" } : item;
-      const add = (list, item) => { if (!item.trim()) return; const val = list === "mustPlay" ? { song: item, moment: input.moment } : list === "requests" ? { song: item, by: input.reqBy } : item; saveMusic({ ...music, [list]: [...music[list], val] }); setInput({ ...input, [list === "mustPlay" ? "must" : list === "neverPlay" ? "never" : "req"]: "", reqBy: list === "requests" ? "" : input.reqBy, moment: list === "mustPlay" ? "" : input.moment }); };
-      const rm = (list, idx) => { if (!window.confirm("Remove this song?")) return; saveMusic({ ...music, [list]: music[list].filter((_, i) => i !== idx) }); };
+      const add = (list, item) => { if (!item.trim()) return; const val = list === "mustPlay" ? { song: item, moment: input.moment } : list === "requests" ? { song: item, by: input.reqBy } : item; saveMusic({ ...rawMusic, [list]: [...music[list], val] }); setInput({ ...input, [list === "mustPlay" ? "must" : list === "neverPlay" ? "never" : "req"]: "", reqBy: list === "requests" ? "" : input.reqBy, moment: list === "mustPlay" ? "" : input.moment }); };
+      const rm = (list, idx) => { if (!window.confirm("Remove this song?")) return; saveMusic({ ...rawMusic, [list]: music[list].filter((_, i) => i !== idx) }); };
 
       return (
         <div>
@@ -1947,7 +1951,8 @@
     }
 
     /* ========== PACKING ========== */
-    function PackingTab({ packing, savePacking }) {
+    function PackingTab({ packing: rawPacking, savePacking }) {
+      const packing = safeArr(rawPacking).map(c => ({ ...c, items: safeArr(c.items) }));
       const [adding, setAdding] = useState(null);
       const [newItem, setNewItem] = useState("");
       const [newCat, setNewCat] = useState("");
@@ -2082,16 +2087,16 @@
     /* ========== ROOMS ========== */
     function RoomsTab({ rooms, saveRooms, guests }) {
       const confirmed = guests.filter(g => g.status !== "Declined");
-      const allAssigned = [...(rooms.santarsa||[]), ...(rooms.vallorsaia||[])].flatMap(r => r.guests || []);
+      const allAssigned = [...safeArr(rooms.santarsa), ...safeArr(rooms.vallorsaia)].flatMap(r => safeArr(r.guests));
       const unassigned = confirmed.filter(g => !allAssigned.includes(g.name)).map(g => g.name);
 
       const assign = (villa, ri, gName) => {
         if (!gName) return;
-        const u = { ...rooms, [villa]: rooms[villa].map((r, i) => i === ri ? { ...r, guests: [...(r.guests||[]), gName] } : r) };
+        const u = { ...rooms, [villa]: safeArr(rooms[villa]).map((r, i) => i === ri ? { ...r, guests: [...(r.guests||[]), gName] } : r) };
         saveRooms(u);
       };
       const remove = (villa, ri, gName) => {
-        const u = { ...rooms, [villa]: rooms[villa].map((r, i) => i === ri ? { ...r, guests: (r.guests||[]).filter(g => g !== gName) } : r) };
+        const u = { ...rooms, [villa]: safeArr(rooms[villa]).map((r, i) => i === ri ? { ...r, guests: (r.guests||[]).filter(g => g !== gName) } : r) };
         saveRooms(u);
       };
 
