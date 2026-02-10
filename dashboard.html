@@ -933,6 +933,7 @@
                         { l: "Phone", v: v.phone },
                         { l: "Email", v: v.email },
                         { l: "Website", v: v.website },
+                        { l: "Backup", v: v.backupContact ? `${v.backupContact}${v.backupPhone ? ` (${v.backupPhone})` : ""}` : null },
                       ].map(f => f.v ? (
                         <div key={f.l}>
                           <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 0.5 }}>{f.l}</div>
@@ -971,6 +972,10 @@
                       <div style={{ flex: 1, minWidth: 90 }}><label style={lb}>Phone</label><input value={v.phone||""} onChange={e=>upV(v.id,{phone:e.target.value})} style={iS} /></div>
                       <div style={{ flex: 1, minWidth: 110 }}><label style={lb}>Email</label><input value={v.email||""} onChange={e=>upV(v.id,{email:e.target.value})} style={iS} /></div>
                       <div style={{ flex: 1, minWidth: 90 }}><label style={lb}>Website</label><input value={v.website||""} onChange={e=>upV(v.id,{website:e.target.value})} style={iS} /></div>
+                    </div>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                      <div style={{ flex: 1, minWidth: 100 }}><label style={lb}>Backup Contact</label><input value={v.backupContact||""} onChange={e=>upV(v.id,{backupContact:e.target.value})} placeholder="Name" style={iS} /></div>
+                      <div style={{ flex: 1, minWidth: 90 }}><label style={lb}>Backup Phone</label><input value={v.backupPhone||""} onChange={e=>upV(v.id,{backupPhone:e.target.value})} placeholder="+39..." style={iS} /></div>
                     </div>
                     <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
                       <div style={{ flex: 1, minWidth: 90 }}><label style={lb}>Quote ({"\u00A3"})</label><input type="number" value={v.quote||""} onChange={e=>upV(v.id,{quote:parseFloat(e.target.value)||0})} style={iS} placeholder="0" /></div>
@@ -1048,8 +1053,8 @@
       const noTravel = guests.filter(g => g.status === "Confirmed" && !g.airport).length;
 
       const exportGuests = () => {
-        const rows = [["Name","Partner/+1","Status","Villa","Dietary","Meal Choice","Role","Group","Children","Email","Phone","Airport","Flight","Arrival","Departure","Notes"]];
-        guests.forEach(g => rows.push([g.name, g.partner||"", g.status, g.villa, g.dietary, g.mealChoice||"", g.role||"", g.group||"", g.children||0, g.email||"", g.phone||"", g.airport||"", g.flightNo||"", g.arrivalDate?`${g.arrivalDate} ${g.arrivalTime||""}`:""  , g.departDate?`${g.departDate} ${g.departTime||""}`:""  , g.notes||""]));
+        const rows = [["Name","Partner/+1","Status","Villa","Dietary","Meal Choice","Role","Group","Children","Thanked","Email","Phone","Airport","Flight","Arrival","Departure","Notes"]];
+        guests.forEach(g => rows.push([g.name, g.partner||"", g.status, g.villa, g.dietary, g.mealChoice||"", g.role||"", g.group||"", g.children||0, g.thankYou?"Yes":"", g.email||"", g.phone||"", g.airport||"", g.flightNo||"", g.arrivalDate?`${g.arrivalDate} ${g.arrivalTime||""}`:""  , g.departDate?`${g.departDate} ${g.departTime||""}`:""  , g.notes||""]));
         downloadCSV("wedding-guests.csv", rows);
       };
 
@@ -1062,6 +1067,7 @@
               { l: "Headcount", v: hc, s: "inc. +1s", c: P.terra },
               { l: "No Email", v: noE, c: noE ? P.gold : P.stone },
               { l: "No Travel", v: noTravel, s: "confirmed", c: noTravel ? P.gold : P.stone },
+              { l: "Thanked", v: `${guests.filter(g=>g.thankYou).length}/${guests.filter(g=>g.status!=="Declined").length}`, c: P.green },
             ].map((s, i) => (
               <div key={i} style={{ background: P.card, borderRadius: 12, padding: "10px 11px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: `3px solid ${s.c}` }}>
                 <div style={{ fontSize: 18, fontWeight: 700, color: P.txt }}>{s.v}</div>
@@ -1141,17 +1147,22 @@
             </div>
           )}
 
-          {fil.length === 0 ? <div style={{ textAlign: "center", padding: 30, color: P.txtL, fontSize: 12 }}>{guests.length === 0 ? "No guests yet" : "No match"}</div>
+          {fil.length === 0 ? <div style={{ textAlign: "center", padding: 30, color: P.txtL, fontSize: 12 }}>{guests.length === 0 ? <div><div>No guests yet</div><div style={{ fontSize: 10, marginTop: 4 }}>Add your first guest above or import from a CSV spreadsheet</div></div> : "No match"}</div>
           : fil.map(g => {
             const isE = editing === g.id;
             return (
               <div key={g.id} style={{ background: P.card, borderRadius: 10, padding: "10px 12px", marginBottom: 5, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", border: isE ? `2px solid ${P.terra}` : "2px solid transparent" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, cursor: "pointer" }} onClick={() => setEditing(isE ? null : g.id)}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{g.name}{g.plusOne && g.partner ? ` & ${g.partner}` : g.plusOne ? " +1" : ""}{g.children > 0 ? ` +${g.children} kid${g.children>1?"s":""}` : ""}{g.role ? <span style={{ marginLeft: 5, padding: "1px 6px", borderRadius: 8, background: P.terraP, color: P.terra, fontSize: 9, fontWeight: 500 }}>{g.role}</span> : null}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{g.name}{g.plusOne && g.partner ? ` & ${g.partner}` : g.plusOne ? " +1" : ""}{g.children > 0 ? ` +${g.children} kid${g.children>1?"s":""}` : ""}{g.role ? <span style={{ marginLeft: 5, padding: "1px 6px", borderRadius: 8, background: P.terraP, color: P.terra, fontSize: 9, fontWeight: 500 }}>{g.role}</span> : null}{g.thankYou ? <span style={{ marginLeft: 4, padding: "1px 6px", borderRadius: 8, background: P.greenP, color: P.green, fontSize: 9, fontWeight: 500 }}>{"\u2713"} Thanked</span> : null}</div>
                     <div style={{ fontSize: 10, color: P.txtL, marginTop: 1 }}>
                       {g.villa}{g.group ? ` \u00B7 ${g.group}` : ""}{g.dietary !== "None" ? ` \u00B7 ${g.dietary}` : ""}{g.mealChoice ? ` \u00B7 ${g.mealChoice}` : ""}{g.email ? ` \u00B7 ${g.email}` : !isE ? " \u00B7 \u26A0\uFE0F no email" : ""}
                       {g.airport ? ` \u00B7 \u2708 ${g.airport}` : ""}{g.notes ? ` \u00B7 ${g.notes}` : ""}
+                      {g.mealChoice && g.dietary !== "None" && (
+                        (g.dietary === "Vegan" && ["Beef","Sea Bass","Kids Menu"].includes(g.mealChoice)) ||
+                        (g.dietary === "Vegetarian" && ["Beef","Sea Bass"].includes(g.mealChoice)) ||
+                        (g.dietary === "Gluten-free" && g.mealChoice === "Risotto (V)")
+                      ) && <span style={{ color: P.red, fontWeight: 600 }}> {"\u00B7"} {"\u26A0"} meal/diet clash</span>}
                     </div>
                   </div>
                   <select value={g.status} onChange={e => { e.stopPropagation(); upG(g.id, { status: e.target.value }); }} style={{
@@ -1172,6 +1183,7 @@
                       <div style={{ flex: 1, minWidth: 85 }}><label style={lb}>Group</label><select value={g.group||""} onChange={e => upG(g.id,{group:e.target.value})} style={{...iS,background:"#fff"}}>{GUEST_GROUPS.map(r=><option key={r} value={r}>{r||"\u2014 None \u2014"}</option>)}</select></div>
                       <div style={{ flex: 1, minWidth: 85 }}><label style={lb}>Meal Choice</label><select value={g.mealChoice||""} onChange={e => upG(g.id,{mealChoice:e.target.value})} style={{...iS,background:"#fff"}}>{MEAL_OPTIONS.map(m=><option key={m} value={m}>{m||"\u2014 TBC \u2014"}</option>)}</select></div>
                       <div style={{ flex: 1, minWidth: 60 }}><label style={lb}>Children</label><input type="number" min="0" value={g.children||0} onChange={e => upG(g.id,{children:parseInt(e.target.value)||0})} style={iS} /></div>
+                      <div style={{ flex: 0, minWidth: 65, display: "flex", alignItems: "flex-end", paddingBottom: 4 }}><label style={{ fontSize: 10, color: P.txtL, display: "flex", alignItems: "center", gap: 4, cursor: "pointer" }}><input type="checkbox" checked={!!g.thankYou} onChange={e => upG(g.id,{thankYou:e.target.checked})} style={{ accentColor: P.green }} /> Thanked</label></div>
                     </div>
                     <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
                       <div style={{ flex: 1, minWidth: 130 }}><label style={lb}>Email</label><input value={g.email||""} onChange={e => upG(g.id,{email:e.target.value})} style={iS} placeholder="email@..." /></div>
@@ -1364,6 +1376,40 @@
                           );
                         })}
                       </div>
+                    </div>
+                  ) : null;
+                })()}
+
+                {/* Mixed-villa arrival warnings */}
+                {(() => {
+                  const arrivals = withTravel.filter(g => g.arrivalDate && g.arrivalTime);
+                  const groups = {};
+                  arrivals.forEach(g => { const k = `${g.airport}|${g.arrivalDate}`; if (!groups[k]) groups[k] = []; groups[k].push(g); });
+                  const conflicts = [];
+                  Object.entries(groups).forEach(([key, gs]) => {
+                    gs.sort((a, b) => a.arrivalTime.localeCompare(b.arrivalTime));
+                    let run = [gs[0]];
+                    for (let i = 1; i < gs.length; i++) {
+                      const prev = run[run.length - 1].arrivalTime.split(":").map(Number);
+                      const curr = gs[i].arrivalTime.split(":").map(Number);
+                      if ((curr[0]*60+(curr[1]||0)) - (prev[0]*60+(prev[1]||0)) <= 60) { run.push(gs[i]); }
+                      else { if (run.length > 1) { const villas = new Set(run.map(g => g.villa)); if (villas.size > 1) conflicts.push({ key, guests: run }); } run = [gs[i]]; }
+                    }
+                    if (run.length > 1) { const villas = new Set(run.map(g => g.villa)); if (villas.size > 1) conflicts.push({ key, guests: run }); }
+                  });
+                  return conflicts.length > 0 ? (
+                    <div style={{ background: P.goldP, borderRadius: 10, padding: "8px 12px", marginTop: 8, borderLeft: `4px solid ${P.gold}` }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: P.gold, marginBottom: 4 }}>{"\u26A0"} Mixed villas at same pickup ({conflicts.length})</div>
+                      {conflicts.map((c, ci) => {
+                        const [apt, date] = c.key.split("|");
+                        const byVilla = {};
+                        c.guests.forEach(g => { if (!byVilla[g.villa]) byVilla[g.villa] = []; byVilla[g.villa].push(g); });
+                        return (
+                          <div key={ci} style={{ fontSize: 10, color: P.txtM, marginBottom: 4 }}>
+                            <span style={{ fontWeight: 600 }}>{apt}</span> {date} — {Object.entries(byVilla).map(([v, gs]) => `${v}: ${gs.map(g => g.name).join(", ")}`).join(" | ")}
+                          </div>
+                        );
+                      })}
                     </div>
                   ) : null;
                 })()}
@@ -1914,7 +1960,7 @@
                 <button onClick={() => rm("mustPlay",i)} style={{ background:"none",border:"none",cursor:"pointer",color:P.stoneL,fontSize:13 }}>{"\u00D7"}</button>
               </div>
             ); })}
-            {music.mustPlay.length === 0 && <div style={{ fontSize: 11, color: P.txtL, padding: 4 }}>No must-play songs yet</div>}
+            {music.mustPlay.length === 0 && <div style={{ fontSize: 11, color: P.txtL, padding: 4 }}>No must-play songs yet<div style={{ fontSize: 10, marginTop: 2 }}>Add your first dance song or ceremony entrance track</div></div>}
           </div>
 
           <div style={{ background: P.card, borderRadius: 14, padding: 16, marginBottom: 12, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderLeft: `4px solid ${P.red}` }}>
@@ -1929,7 +1975,7 @@
                 <button onClick={() => rm("neverPlay",i)} style={{ background:"none",border:"none",cursor:"pointer",color:P.stoneL,fontSize:13 }}>{"\u00D7"}</button>
               </div>
             ))}
-            {music.neverPlay.length === 0 && <div style={{ fontSize: 11, color: P.txtL, padding: 4 }}>No banned songs (yet!)</div>}
+            {music.neverPlay.length === 0 && <div style={{ fontSize: 11, color: P.txtL, padding: 4 }}>No banned songs (yet!)<div style={{ fontSize: 10, marginTop: 2 }}>Any songs that would kill the vibe?</div></div>}
           </div>
 
           <div style={{ background: P.card, borderRadius: 14, padding: 16, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderLeft: `4px solid ${P.gold}` }}>
@@ -1945,7 +1991,7 @@
                 <button onClick={() => rm("requests",i)} style={{ background:"none",border:"none",cursor:"pointer",color:P.stoneL,fontSize:13 }}>{"\u00D7"}</button>
               </div>
             ))}
-            {music.requests.length === 0 && <div style={{ fontSize: 11, color: P.txtL, padding: 4 }}>No guest requests yet</div>}
+            {music.requests.length === 0 && <div style={{ fontSize: 11, color: P.txtL, padding: 4 }}>No guest requests yet<div style={{ fontSize: 10, marginTop: 2 }}>Collect song requests from your guests ahead of the big day</div></div>}
           </div>
         </div>
       );
@@ -2051,7 +2097,7 @@
               </div>
             </div>
           )}
-          {decisions.length === 0 ? <div style={{ textAlign: "center", padding: 40, color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\u270E"}</div><div style={{ fontSize: 12 }}>No decisions yet</div></div>
+          {decisions.length === 0 ? <div style={{ textAlign: "center", padding: 40, color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\u270E"}</div><div style={{ fontSize: 12 }}>No decisions yet</div><div style={{ fontSize: 10, marginTop: 4 }}>Track venue, menu, colour scheme and other choices</div></div>
           : decisions.map(d => {
             const isEd = editingId === d.id;
             return (
