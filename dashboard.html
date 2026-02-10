@@ -107,6 +107,38 @@
       { key: "travelConfirmed", label: "Travel Confirmed" },
     ];
 
+    const IDEAS = [
+      { cat: "Guest Experiences", color: "#6B7F4E", ideas: [
+        { title: "Truffle hunting in the Umbrian hills", desc: "Forage with a local guide and Lagotto dog \u2014 then taste your finds on fresh pasta.", due: "2027-03-15" },
+        { title: "Pasta-making class at the villa", desc: "Hands-on pici & ravioli with a local nonna. Perfect for a relaxed Friday afternoon.", due: "2027-03-15" },
+        { title: "Wine tasting tour \u2014 Cortona vineyards", desc: "Visit Leuta, Tanagatta or Pomaio for tastings with the group.", due: "2027-03-15" },
+        { title: "Olive oil tasting with local producer", desc: "Valtiberina produces some of Tuscany\u2019s finest oil \u2014 arrange a guided tasting.", due: "2027-03-15" },
+        { title: "Limoncello making workshop", desc: "Zest, infuse, bottle \u2014 guests take home their own limoncello as a memento.", due: "2027-04-01" },
+        { title: "Morning yoga session by the pool", desc: "Hire a local instructor for a sunrise session \u2014 perfect pre-wedding calm.", due: "2027-04-01" },
+        { title: "Piero della Francesca art trail", desc: "Sansepolcro is his birthplace \u2014 visit the Resurrection fresco + Monterchi Madonna.", due: "2027-04-01" },
+        { title: "Arezzo antique market day trip", desc: "One of Italy\u2019s best flea markets, held first weekend of the month in Piazza Grande.", due: "2027-04-01" },
+      ]},
+      { cat: "Personal Touches", color: "#C4704B", ideas: [
+        { title: "Create a signature cocktail for the day", desc: "Design a \u2018Sophie & Joe\u2019 cocktail \u2014 print the recipe on table cards.", due: "2027-04-15" },
+        { title: "Handwrite personal vows", desc: "Take time to write vows that are truly yours \u2014 practice reading them aloud.", due: "2027-02-15" },
+        { title: "Photo timeline display of your story", desc: "Print key moments from first date to proposal \u2014 string up at the welcome party.", due: "2027-05-01" },
+        { title: "Time capsule \u2014 open on 1st anniversary", desc: "Guests write letters, you add mementos. Seal it and open 29 May 2028.", due: "2027-05-15" },
+        { title: "Letters to each other (read on the morning)", desc: "Write a letter the night before \u2014 exchange them while getting ready.", due: "2027-05-15" },
+        { title: "Polaroid guest wall \u2014 instant memories", desc: "Set up a Polaroid station with props. Guests pin photos to a board.", due: "2027-05-01" },
+        { title: "Spotify playlist QR codes on tables", desc: "Each table gets a QR code linking to a themed playlist you\u2019ve curated.", due: "2027-05-10" },
+        { title: "Italian-themed welcome bags", desc: "Tote bags with Aperol sachets, taralli, a mini Tuscan guidebook, and paracetamol.", due: "2027-05-01" },
+      ]},
+      { cat: "Food & Drink", color: "#C9A84C", ideas: [
+        { title: "Build-your-own bruschetta station", desc: "Fresh bread, roasted tomatoes, burrata, prosciutto \u2014 let guests assemble their own.", due: "2027-04-15" },
+        { title: "Negroni bar with custom recipe cards", desc: "Classic, Sbagliato, Boulevardier \u2014 a proper Italian aperitivo experience.", due: "2027-04-15" },
+        { title: "Late-night porchetta rolls", desc: "Slow-roasted pork with salsa verde \u2014 the ultimate midnight feast.", due: "2027-04-15" },
+        { title: "Italian cheese & charcuterie tower", desc: "Pecorino, Parmigiano, finocchiona, coppa \u2014 styled on a tiered stand.", due: "2027-04-15" },
+        { title: "Espresso cart after dinner", desc: "Proper Italian espresso, affogato, and espresso martinis from a vintage cart.", due: "2027-04-15" },
+        { title: "Gelato station on pool day", desc: "Local gelateria delivers fresh gelato for the Sunday pool party.", due: "2027-04-15" },
+        { title: "Local honey & jam wedding favours", desc: "Small jars of Valtiberina honey or fig jam with a handwritten thank-you tag.", due: "2027-05-01" },
+      ]},
+    ];
+
     const SANTARSA_ROOMS = [
       { name: "Master Suite", sleeps: 2 }, { name: "Room 2", sleeps: 2 }, { name: "Room 3", sleeps: 2 },
       { name: "Room 4", sleeps: 2 }, { name: "Room 5", sleeps: 2 }, { name: "Room 6", sleeps: 2 },
@@ -275,6 +307,13 @@
       ],
       timeline: TIMELINE_DAYS.map(d => ({ ...d, items: d.items.map(i => ({ ...i })) })),
       milestones: [
+        // Early Phase
+        { task: "Get wedding insurance", due: "2026-03-15", done: false },
+        { task: "Create mood board / Pinterest", due: "2026-03-30", done: false },
+        { task: "Finalise guest list", due: "2026-04-15", done: false },
+        { task: "Start wedding dress shopping", due: "2026-04-30", done: false },
+        { task: "Research wedding planners & shortlist", due: "2026-05-15", done: false },
+        // Booking Phase
         { task: "Book wedding planner/coordinator", due: "2026-06-01", done: false },
         { task: "Legal ceremony at Oakwood House", due: "2026-07-18", done: false },
         { task: "Book photographer", due: "2026-09-01", done: false },
@@ -282,14 +321,37 @@
         { task: "Book caterer", due: "2026-09-01", done: false },
         { task: "Book celebrant", due: "2026-09-01", done: false },
         { task: "Send save-the-dates", due: "2026-09-15", done: false },
-        { task: "Book florist", due: "2026-12-01", done: false },
-        { task: "Book DJ / band", due: "2026-12-01", done: false },
-        { task: "Book hair & makeup", due: "2026-12-01", done: false },
+        { task: "Book suit / groomswear", due: "2026-09-30", done: false },
+        // Planning Phase
+        { task: "Book florist", due: "2026-10-15", done: false },
+        { task: "Book DJ / band", due: "2026-10-30", done: false },
+        { task: "Book hair & makeup", due: "2026-11-01", done: false },
+        { task: "Order wedding rings", due: "2026-11-15", done: false },
+        { task: "Cake tasting sessions", due: "2026-11-20", done: false },
+        { task: "Food tasting with caterer", due: "2026-11-30", done: false },
+        { task: "Design & order stationery suite", due: "2026-12-01", done: false },
+        { task: "Book guest activities (cooking class, wine tasting)", due: "2026-12-15", done: false },
+        { task: "Plan welcome pizza party details", due: "2026-12-20", done: false },
+        { task: "Plan pool party & day-after details", due: "2026-12-31", done: false },
+        // Countdown Phase
         { task: "Send formal invitations", due: "2027-01-15", done: false },
+        { task: "Hair & makeup trial (UK)", due: "2027-01-20", done: false },
+        { task: "Book honeymoon", due: "2027-01-31", done: false },
+        { task: "Choose ceremony readings & write vows", due: "2027-02-15", done: false },
         { task: "RSVP deadline", due: "2027-02-28", done: false },
+        { task: "Brief best man & bridesmaids", due: "2027-03-01", done: false },
         { task: "Finalise menu with caterer", due: "2027-03-15", done: false },
         { task: "Book airport transfers", due: "2027-03-15", done: false },
-        { task: "Send guest info pack", due: "2027-04-15", done: false },
+        { task: "Sort wedding favours & welcome bags", due: "2027-03-31", done: false },
+        // Final Phase
+        { task: "Send guest info pack", due: "2027-04-01", done: false },
+        { task: "Final dress fitting", due: "2027-04-10", done: false },
+        { task: "Create day-of timeline with planner", due: "2027-04-15", done: false },
+        { task: "Finalise ceremony script with celebrant", due: "2027-04-15", done: false },
+        { task: "Practice first dance", due: "2027-04-20", done: false },
+        { task: "Passport checks for all guests", due: "2027-04-30", done: false },
+        { task: "Buy & ship self-supply drinks to Italy", due: "2027-05-10", done: false },
+        { task: "Print table plan, place cards, signage", due: "2027-05-15", done: false },
         { task: "Final vendor payments", due: "2027-05-15", done: false },
         { task: "Vineyard visits & drinks shopping", due: "2027-05-27", done: false },
       ],
@@ -1585,12 +1647,16 @@
       const now = new Date();
       const [showAdd, setShowAdd] = useState(false);
       const [form, setForm] = useState({ task: "", due: "" });
+      const [expIdea, setExpIdea] = useState(null);
+      const [addedFlash, setAddedFlash] = useState(null);
       const scrollRef = React.useRef(null);
 
       const PHASES = [
-        { id: "booking", label: "Booking", range: ["2026-06", "2026-12"], color: P.terra },
-        { id: "planning", label: "Planning", range: ["2027-01", "2027-03"], color: P.olive },
-        { id: "final", label: "Final", range: ["2027-04", "2027-05"], color: P.gold },
+        { id: "early", label: "Early Planning", range: ["2026-02", "2026-05"], color: P.blue },
+        { id: "booking", label: "Booking", range: ["2026-06", "2026-09"], color: P.terra },
+        { id: "planning", label: "Planning", range: ["2026-10", "2026-12"], color: P.olive },
+        { id: "countdown", label: "Countdown", range: ["2027-01", "2027-03"], color: P.gold },
+        { id: "final", label: "Final", range: ["2027-04", "2027-05"], color: P.red },
       ];
 
       const startMonth = new Date(Math.min(now.getTime(), new Date("2026-06-01").getTime()));
@@ -1775,6 +1841,65 @@
               })}
             </div>
           </div>
+
+          {/* Ideas & Inspiration */}
+          <div style={{ marginTop: 24 }}>
+            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 18, fontWeight: 700, color: P.txt, marginBottom: 4 }}>Ideas & Inspiration</div>
+            <div style={{ fontSize: 12, color: P.txtL, marginBottom: 14 }}>Curated for your Tuscany villa wedding {"\u2014"} tap to add any to your timeline</div>
+
+            {IDEAS.map((group, gi) => {
+              const isExp = expIdea === gi;
+              const mTasks = milestones.map(m => m.task);
+              return (
+                <div key={gi} style={{ marginBottom: 8 }}>
+                  <div onClick={() => setExpIdea(isExp ? null : gi)} style={{
+                    display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", cursor: "pointer",
+                    background: P.card, borderRadius: isExp ? "12px 12px 0 0" : 12,
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                  }}>
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: group.color, flexShrink: 0 }} />
+                    <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: P.txt }}>{group.cat}</div>
+                    <span style={{ fontSize: 10, color: P.txtL }}>{group.ideas.filter(i => mTasks.includes(i.title)).length}/{group.ideas.length}</span>
+                    <span style={{ fontSize: 14, color: P.stoneL, transform: isExp ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>{"\u203A"}</span>
+                  </div>
+                  {isExp && (
+                    <div style={{ background: P.card, borderRadius: "0 0 12px 12px", padding: "6px 10px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
+                      {group.ideas.map((idea, ii) => {
+                        const exists = mTasks.includes(idea.title);
+                        const justAdded = addedFlash === idea.title;
+                        return (
+                          <div key={ii} style={{
+                            display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 4px",
+                            borderBottom: ii < group.ideas.length - 1 ? `1px solid ${P.bgD}` : "none",
+                          }}>
+                            <div style={{ width: 4, borderRadius: 2, alignSelf: "stretch", background: group.color, flexShrink: 0, opacity: 0.4 }} />
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{idea.title}</div>
+                              <div style={{ fontSize: 10, color: P.txtM, lineHeight: 1.4, marginTop: 2 }}>{idea.desc}</div>
+                            </div>
+                            {exists || justAdded ? (
+                              <div style={{ fontSize: 10, fontWeight: 600, color: P.green, flexShrink: 0, padding: "4px 10px", borderRadius: 8, background: P.greenP }}>
+                                {"\u2713"} {justAdded ? "Added!" : "In plan"}
+                              </div>
+                            ) : (
+                              <button onClick={() => {
+                                saveMilestones([...milestones, { task: idea.title, due: idea.due, done: false }]);
+                                setAddedFlash(idea.title);
+                                setTimeout(() => setAddedFlash(null), 2000);
+                              }} style={{
+                                ...bS, flexShrink: 0, background: `${group.color}18`, color: group.color,
+                                padding: "4px 10px", borderRadius: 8, fontSize: 10, fontWeight: 600,
+                              }}>+ Add</button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       );
     }
@@ -1787,7 +1912,7 @@
       const [guests, saveGuests, b2] = useStorage("wedding-guests-v4", DEFAULT_DATA.guests);
       const [vendors, saveVendors, b3] = useStorage("wedding-vendors-v4", DEFAULT_DATA.vendors);
       const [timeline, saveTimeline, b4] = useStorage("wedding-timeline-v3", DEFAULT_DATA.timeline);
-      const [milestones, saveMilestones, b5] = useStorage("wedding-milestones-v3", DEFAULT_DATA.milestones);
+      const [milestones, saveMilestones, b5] = useStorage("wedding-milestones-v4", DEFAULT_DATA.milestones);
       const [decisions, saveDecisions, b6] = useStorage("wedding-decisions-v3", DEFAULT_DATA.decisions);
       const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music);
       const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing);
