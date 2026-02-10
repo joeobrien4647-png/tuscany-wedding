@@ -31,6 +31,11 @@
     input, select, textarea, button { font-family: inherit; }
     ::-webkit-scrollbar { height: 4px; width: 4px; }
     ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      [data-no-print] { display: none !important; }
+      [data-print-expand] { overflow: visible !important; max-height: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -94,6 +99,13 @@
     const VILLA_OPTS = ["Santarsa","Vallorsaia","Off-site"];
     const DIETARY_OPTS = ["None","Vegetarian","Vegan","Gluten-free","Dairy-free","Other"];
     const DECISION_CATS = ["General","Venue & Setup","Food & Drinks","Entertainment","Styling","Guest Experience","Budget","Timeline"];
+    const COMMS_ITEMS = [
+      { key: "saveTheDate", label: "Save the Date" },
+      { key: "invitation", label: "Invitation Sent" },
+      { key: "rsvpChased", label: "RSVP Chased" },
+      { key: "infoPack", label: "Info Pack Sent" },
+      { key: "travelConfirmed", label: "Travel Confirmed" },
+    ];
 
     const SANTARSA_ROOMS = [
       { name: "Master Suite", sleeps: 2 }, { name: "Room 2", sleeps: 2 }, { name: "Room 3", sleeps: 2 },
@@ -316,6 +328,16 @@
         if (fbOk.current) db.ref(key).set(n);
       }, [key]);
       return [d, save, ok];
+    }
+
+    function useFirebaseConnected() {
+      const [connected, setConnected] = useState(true);
+      useEffect(() => {
+        const ref = db.ref(".info/connected");
+        const handler = ref.on("value", snap => setConnected(snap.val() === true));
+        return () => ref.off("value", handler);
+      }, []);
+      return connected;
     }
 
     function toGBP(a, c) { return c === "EUR" ? Math.round(a / EUR_RATE) : a; }
@@ -619,6 +641,7 @@
       const [showForm, setShowForm] = useState(false);
       const [editing, setEditing] = useState(null);
       const [filter, setFilter] = useState("All");
+      const [compare, setCompare] = useState(false);
       const [form, setForm] = useState({ name: "", category: "Other", status: "Researching", phone: "", email: "", website: "", notes: "", starred: false });
       const addV = () => { if (!form.name.trim()) return; saveVendors([...vendors, { ...form, id: Date.now() }]); setForm({ name: "", category: "Other", status: "Researching", phone: "", email: "", website: "", notes: "", starred: false }); setShowForm(false); };
       const upV = (id, u) => saveVendors(vendors.map(v => v.id === id ? { ...v, ...u } : v));
@@ -635,8 +658,11 @@
                 <div style={{ fontSize: 18, fontWeight: 700, color: P.txt }}>{s.v}</div><div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>{s.l}</div></div>))}
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, flexWrap: "wrap", gap: 5 }}>
-            <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>{cats.map(c => (<button key={c} onClick={() => setFilter(c)} style={{ ...bS, background: filter===c?P.terra:P.bgD, color: filter===c?"#fff":P.txtM, padding: "3px 9px", fontSize: 11 }}>{c}</button>))}</div>
-            <button onClick={() => setShowForm(!showForm)} style={bP}>+ Add</button>
+            <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>{cats.map(c => (<button key={c} onClick={() => { setFilter(c); if (c === "All") setCompare(false); }} style={{ ...bS, background: filter===c?P.terra:P.bgD, color: filter===c?"#fff":P.txtM, padding: "3px 9px", fontSize: 11 }}>{c}</button>))}</div>
+            <div style={{ display: "flex", gap: 4 }}>
+              {filter !== "All" && <button onClick={() => setCompare(!compare)} style={{...bS, background: compare ? P.blueP : P.bgD, color: compare ? P.blue : P.txtM, padding: "3px 10px", fontSize: 11}}>{compare ? "\u2630 List" : "\u2194 Compare"}</button>}
+              <button onClick={() => setShowForm(!showForm)} style={bP}>+ Add</button>
+            </div>
           </div>
           {showForm && (
             <div style={{ background: P.terraP, borderRadius: 14, padding: 14, marginBottom: 10 }}>
@@ -652,7 +678,41 @@
               <div style={{ display: "flex", gap: 5 }}><input placeholder="Notes" value={form.notes} onChange={e => setForm({...form,notes:e.target.value})} style={{ ...iS, flex: 1 }} /><button onClick={addV} style={bP}>Add</button></div>
             </div>
           )}
-          {fil.sort((a,b)=>(b.starred?1:0)-(a.starred?1:0)).map(v => {
+          {compare && filter !== "All" ? (
+            <div style={{ overflowX: "auto", paddingBottom: 8 }}>
+              <div style={{ display: "flex", gap: 10, minWidth: "min-content" }}>
+                {fil.sort((a,b) => (b.starred?1:0)-(a.starred?1:0)).map(v => {
+                  const sc = VSC[v.status] || VSC.Researching;
+                  return (
+                    <div key={v.id} style={{ minWidth: 220, maxWidth: 260, flex: "0 0 auto", background: P.card, borderRadius: 14, padding: 14, boxShadow: "0 1px 4px rgba(0,0,0,0.05)", border: v.starred ? `2px solid ${P.gold}` : `2px solid ${P.bgD}`, display: "flex", flexDirection: "column", gap: 8 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div>
+                          <div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>{v.starred ? "\u2B50 " : ""}{v.name}</div>
+                          <span style={{ padding: "2px 8px", borderRadius: 12, fontSize: 10, fontWeight: 600, background: sc.bg, color: sc.c, display: "inline-block", marginTop: 3 }}>{v.status}</span>
+                        </div>
+                      </div>
+                      {[
+                        { l: "Phone", v: v.phone },
+                        { l: "Email", v: v.email },
+                        { l: "Website", v: v.website },
+                      ].map(f => f.v ? (
+                        <div key={f.l}>
+                          <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 0.5 }}>{f.l}</div>
+                          <div style={{ fontSize: 11, color: P.txt, wordBreak: "break-all" }}>{f.v}</div>
+                        </div>
+                      ) : null)}
+                      {v.notes && (
+                        <div>
+                          <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 0.5 }}>Notes</div>
+                          <div style={{ fontSize: 10, color: P.txtM, lineHeight: 1.4 }}>{v.notes}</div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : fil.sort((a,b)=>(b.starred?1:0)-(a.starred?1:0)).map(v => {
             const isE = editing===v.id; const sc = VSC[v.status]||VSC.Researching;
             return (
               <div key={v.id} style={{ background: P.card, borderRadius: 12, padding: "11px 13px", marginBottom: 6, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", border: isE?`2px solid ${P.terra}`:v.starred?`2px solid ${P.goldP}`:"2px solid transparent" }}>
@@ -806,6 +866,25 @@
                         <div style={{ flex: 1, minWidth: 70 }}><label style={lb}>Time</label><input type="time" value={g.departTime||""} onChange={e => upG(g.id,{departTime:e.target.value})} style={iS} /></div>
                       </div>
                     </div>
+                    <div style={{ background: P.terraP, borderRadius: 10, padding: 10, marginBottom: 6 }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: P.terra, marginBottom: 6 }}>{"\u2709"} Comms Tracking</div>
+                      <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                        {COMMS_ITEMS.map(ci => {
+                          const comms = g.comms || {};
+                          const sent = comms[ci.key];
+                          return (
+                            <label key={ci.key} style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 10, color: sent ? P.green : P.txtM, cursor: "pointer", padding: "3px 8px", borderRadius: 8, background: sent ? P.greenP : P.bgD }}>
+                              <input type="checkbox" checked={!!sent} onChange={() => {
+                                const newComms = { ...comms, [ci.key]: sent ? null : new Date().toISOString().slice(0,10) };
+                                upG(g.id, { comms: newComms });
+                              }} style={{ margin: 0 }} />
+                              {ci.label}
+                              {sent && <span style={{ fontSize: 8, color: P.txtL, marginLeft: 2 }}>{sent}</span>}
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
                     <div style={{ display: "flex", gap: 5, alignItems: "center", flexWrap: "wrap" }}>
                       <label style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: P.txtM, cursor: "pointer" }}><input type="checkbox" checked={g.plusOne||false} onChange={e => upG(g.id,{plusOne:e.target.checked})} /> +1</label>
                       {g.plusOne && <input value={g.partner||""} onChange={e => upG(g.id,{partner:e.target.value})} placeholder="+1 name" style={{...iS,flex:1,minWidth:85}} />}
@@ -817,6 +896,155 @@
               </div>
             );
           })}
+
+          {/* Dietary Summary */}
+          {(() => {
+            const active = guests.filter(g => g.status !== "Declined");
+            const counts = {}; active.forEach(g => { const d = g.dietary || "None"; counts[d] = (counts[d]||0) + 1; });
+            const specials = Object.entries(counts).filter(([k]) => k !== "None").sort((a,b) => b[1]-a[1]);
+            const exportDietary = () => {
+              const rows = [["Dietary Requirement","Count","Guests"]];
+              Object.entries(counts).sort((a,b)=>b[1]-a[1]).forEach(([d,c]) => rows.push([d, c, active.filter(g=>(g.dietary||"None")===d).map(g=>g.name).join(", ")]));
+              downloadCSV("wedding-dietary-summary.csv", rows);
+            };
+            return active.length > 0 ? (
+              <div style={{ background: P.card, borderRadius: 14, padding: 16, marginTop: 16, boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `4px solid ${P.olive}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 14, fontWeight: 700, color: P.txt }}>{"\uD83C\uDF7D"} Dietary Summary</div>
+                  <button onClick={exportDietary} style={{ ...bS, background: P.oliveP, color: P.olive, fontSize: 10, padding: "3px 8px" }}>{"\u2B07"} CSV</button>
+                </div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: specials.length > 0 ? 10 : 0 }}>
+                  {Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([d,c]) => (
+                    <div key={d} style={{ padding: "4px 10px", borderRadius: 10, background: d === "None" ? P.bgD : P.oliveP, fontSize: 11, fontWeight: 600, color: d === "None" ? P.txtM : P.olive }}>
+                      {c} {d}
+                    </div>
+                  ))}
+                </div>
+                {specials.length > 0 && (
+                  <div>
+                    {specials.map(([d]) => (
+                      <div key={d} style={{ marginBottom: 4 }}>
+                        <div style={{ fontSize: 10, fontWeight: 600, color: P.olive, marginBottom: 2 }}>{d}</div>
+                        <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+                          {active.filter(g => g.dietary === d).map(g => (
+                            <span key={g.id} style={{ padding: "1px 7px", borderRadius: 8, background: P.oliveP, fontSize: 10, color: P.olive }}>{g.name}</span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : null;
+          })()}
+
+          {/* Transport Logistics */}
+          {(() => {
+            const withTravel = guests.filter(g => g.status === "Confirmed" && g.airport);
+            const byAirport = {}; withTravel.forEach(g => { const a = g.airport; if (!byAirport[a]) byAirport[a] = []; byAirport[a].push(g); });
+            const byArrDate = {}; withTravel.filter(g => g.arrivalDate).forEach(g => { const k = g.arrivalDate; if (!byArrDate[k]) byArrDate[k] = []; byArrDate[k].push(g); });
+            const noTravel = guests.filter(g => g.status === "Confirmed" && !g.airport);
+            const exportTransport = () => {
+              const rows = [["Date","Time","Airport","Flight","Guest","Villa"]];
+              [...withTravel].sort((a,b) => (a.arrivalDate||"").localeCompare(b.arrivalDate||"") || (a.arrivalTime||"").localeCompare(b.arrivalTime||"")).forEach(g => rows.push([g.arrivalDate||"", g.arrivalTime||"", g.airport, g.flightNo||"", g.name, g.villa]));
+              downloadCSV("wedding-transport-logistics.csv", rows);
+            };
+            return withTravel.length > 0 || noTravel.length > 0 ? (
+              <div style={{ background: P.card, borderRadius: 14, padding: 16, marginTop: 12, boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `4px solid ${P.blue}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 14, fontWeight: 700, color: P.txt }}>{"\u2708"} Transport Logistics</div>
+                  <button onClick={exportTransport} style={{ ...bS, background: P.blueP, color: P.blue, fontSize: 10, padding: "3px 8px" }}>{"\u2B07"} CSV</button>
+                </div>
+
+                {/* By arrival date */}
+                {Object.entries(byArrDate).sort(([a],[b]) => a.localeCompare(b)).map(([date, gs]) => (
+                  <div key={date} style={{ marginBottom: 10 }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: P.blue, marginBottom: 4 }}>
+                      {new Date(date+"T12:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
+                      <span style={{ fontWeight: 400, color: P.txtL, marginLeft: 4 }}>({gs.length} guest{gs.length !== 1 ? "s" : ""})</span>
+                    </div>
+                    {gs.sort((a,b) => (a.arrivalTime||"").localeCompare(b.arrivalTime||"")).map(g => (
+                      <div key={g.id} style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 0", borderBottom: `1px solid ${P.bgD}` }}>
+                        <div style={{ width: 42, fontSize: 10, fontWeight: 600, color: P.txtM, flexShrink: 0 }}>{g.arrivalTime || "TBC"}</div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 11, color: P.txt }}>{g.name}</div>
+                          <div style={{ fontSize: 9, color: P.txtL }}>{g.airport}{g.flightNo ? ` \u00B7 ${g.flightNo}` : ""} {"\u2192"} {g.villa}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+
+                {/* By airport summary */}
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 6 }}>
+                  {Object.entries(byAirport).sort((a,b) => b[1].length - a[1].length).map(([apt, gs]) => (
+                    <div key={apt} style={{ padding: "3px 9px", borderRadius: 8, background: P.blueP, fontSize: 10, color: P.blue, fontWeight: 600 }}>
+                      {gs.length} {"\u2192"} {apt}
+                    </div>
+                  ))}
+                </div>
+
+                {noTravel.length > 0 && (
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ fontSize: 10, fontWeight: 600, color: P.gold, marginBottom: 3 }}>{"\u26A0"} No travel details ({noTravel.length})</div>
+                    <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+                      {noTravel.map(g => (<span key={g.id} style={{ padding: "1px 7px", borderRadius: 8, background: P.goldP, fontSize: 9, color: P.gold }}>{g.name}</span>))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : null;
+          })()}
+
+          {/* Comms Overview */}
+          {(() => {
+            const active = guests.filter(g => g.status !== "Declined");
+            if (active.length === 0) return null;
+            const totals = {};
+            COMMS_ITEMS.forEach(ci => { totals[ci.key] = active.filter(g => g.comms && g.comms[ci.key]).length; });
+            const exportComms = () => {
+              const rows = [["Guest", "Status", ...COMMS_ITEMS.map(ci => ci.label)]];
+              active.forEach(g => rows.push([g.name, g.status, ...COMMS_ITEMS.map(ci => (g.comms && g.comms[ci.key]) || "")]));
+              downloadCSV("wedding-comms-tracker.csv", rows);
+            };
+            return (
+              <div style={{ background: P.card, borderRadius: 14, padding: 16, marginTop: 12, boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `4px solid ${P.terra}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 14, fontWeight: 700, color: P.txt }}>{"\u2709"} Comms Tracker</div>
+                  <button onClick={exportComms} style={{ ...bS, background: P.terraP, color: P.terra, fontSize: 10, padding: "3px 8px" }}>{"\u2B07"} CSV</button>
+                </div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+                  {COMMS_ITEMS.map(ci => (
+                    <div key={ci.key} style={{ padding: "6px 11px", borderRadius: 10, background: totals[ci.key] === active.length ? P.greenP : P.bgD }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: totals[ci.key] === active.length ? P.green : P.txt }}>{totals[ci.key]}/{active.length}</div>
+                      <div style={{ fontSize: 9, color: P.txtL }}>{ci.label}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 10 }}>
+                    <thead>
+                      <tr style={{ borderBottom: `2px solid ${P.bgD}` }}>
+                        <th style={{ textAlign: "left", padding: "4px 6px", color: P.txtM, fontWeight: 600 }}>Guest</th>
+                        {COMMS_ITEMS.map(ci => <th key={ci.key} style={{ textAlign: "center", padding: "4px 4px", color: P.txtM, fontWeight: 600, whiteSpace: "nowrap" }}>{ci.label}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {active.map(g => (
+                        <tr key={g.id} style={{ borderBottom: `1px solid ${P.bgD}` }}>
+                          <td style={{ padding: "4px 6px", color: P.txt, whiteSpace: "nowrap" }}>{g.name}</td>
+                          {COMMS_ITEMS.map(ci => {
+                            const sent = g.comms && g.comms[ci.key];
+                            return <td key={ci.key} style={{ textAlign: "center", padding: "4px 4px", color: sent ? P.green : P.stoneL }}>{sent ? "\u2713" : "\u2014"}</td>;
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       );
     }
@@ -988,8 +1216,13 @@
 
       return (
         <div>
-          <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>Seating Plan</div>
-          <div style={{ fontSize: 12, color: P.txtL, marginBottom: 18 }}>Drag guests to tables {"\u00B7"} {seated.length} seated / {confirmed.length} confirmed</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>Seating Plan</div>
+              <div style={{ fontSize: 12, color: P.txtL, marginBottom: 18 }}>Drag guests to tables {"\u00B7"} {seated.length} seated / {confirmed.length} confirmed</div>
+            </div>
+            <button data-no-print onClick={() => window.print()} style={{...bS, background: P.stoneP, color: P.stone, padding: "6px 14px"}}>{"\uD83D\uDDA8"} Print</button>
+          </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: 7, marginBottom: 14 }}>
             {[{ l: "Confirmed", v: confirmed.length, c: P.green },{ l: "Seated", v: seated.length, c: P.olive },{ l: "Unseated", v: unseated.length, c: unseated.length > 0 ? P.gold : P.stone },{ l: "Tables", v: tables.length, c: P.terra }].map((s,i) => (
@@ -1015,7 +1248,7 @@
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 5, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+          <div data-no-print style={{ display: "flex", gap: 5, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
             <input placeholder="Table name (e.g. Top Table)" value={form.name} onChange={e => setForm({...form,name:e.target.value})} onKeyDown={e => e.key === "Enter" && addTable()} style={{ ...iS, flex: 2, minWidth: 120 }} />
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
               <label style={{ fontSize: 11, color: P.txtL }}>Seats</label>
@@ -1052,8 +1285,13 @@
       const tog = (di, ii) => { const u = timeline.map((d, i) => i === di ? { ...d, items: d.items.map((it, j) => j === ii ? { ...it, done: !it.done } : it) } : d); saveTimeline(u); };
       return (
         <div>
-          <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>Week-of Timeline</div>
-          <div style={{ fontSize: 12, color: P.txtL, marginBottom: 18 }}>Thu 27 {"\u2013"} Mon 31 May 2027</div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>Week-of Timeline</div>
+              <div style={{ fontSize: 12, color: P.txtL, marginBottom: 18 }}>Thu 27 {"\u2013"} Mon 31 May 2027</div>
+            </div>
+            <button data-no-print onClick={() => window.print()} style={{...bS, background: P.stoneP, color: P.stone, padding: "6px 14px"}}>{"\uD83D\uDDA8"} Print</button>
+          </div>
           {timeline.map((day, di) => {
             const isE = exp === di; const dc = day.items.filter(i => i.done).length;
             return (
@@ -1345,110 +1583,60 @@
     /* ========== PROJECT TIMELINE ========== */
     function ProjectTab({ milestones, saveMilestones, vendors, budget, upPay }) {
       const now = new Date();
-      const weddingDate = WEDDING_DATE;
       const [showAdd, setShowAdd] = useState(false);
-      const [form, setForm] = useState({ task: "", due: "", phase: "planning" });
+      const [form, setForm] = useState({ task: "", due: "" });
+      const scrollRef = React.useRef(null);
 
       const PHASES = [
-        { id: "booking", label: "Booking Phase", range: ["2026-06", "2026-12"], color: P.terra, icon: "\uD83D\uDCDD" },
-        { id: "planning", label: "Planning & Details", range: ["2027-01", "2027-03"], color: P.olive, icon: "\uD83C\uDFA8" },
-        { id: "final", label: "Final Countdown", range: ["2027-04", "2027-05"], color: P.gold, icon: "\u26A1" },
+        { id: "booking", label: "Booking", range: ["2026-06", "2026-12"], color: P.terra },
+        { id: "planning", label: "Planning", range: ["2027-01", "2027-03"], color: P.olive },
+        { id: "final", label: "Final", range: ["2027-04", "2027-05"], color: P.gold },
       ];
 
-      // Build month timeline from now to wedding
       const startMonth = new Date(Math.min(now.getTime(), new Date("2026-06-01").getTime()));
       startMonth.setDate(1);
       const months = [];
       const cursor = new Date(startMonth);
-      while (cursor <= weddingDate) {
-        months.push(new Date(cursor));
-        cursor.setMonth(cursor.getMonth() + 1);
-      }
+      while (cursor <= WEDDING_DATE) { months.push(new Date(cursor)); cursor.setMonth(cursor.getMonth() + 1); }
 
-      // Group milestones by month
-      const mByMonth = {};
-      milestones.forEach(m => {
-        const key = m.due.substring(0, 7);
-        if (!mByMonth[key]) mByMonth[key] = [];
-        mByMonth[key].push(m);
-      });
+      const mByMonth = {}; milestones.forEach(m => { const k = m.due.substring(0,7); if (!mByMonth[k]) mByMonth[k] = []; mByMonth[k].push(m); });
+      const payByMonth = {}; upPay.forEach(p => { const k = p.date.substring(0,7); if (!payByMonth[k]) payByMonth[k] = []; payByMonth[k].push(p); });
 
-      // Group payments by month
-      const payByMonth = {};
-      upPay.forEach(p => {
-        const key = p.date.substring(0, 7);
-        if (!payByMonth[key]) payByMonth[key] = [];
-        payByMonth[key].push(p);
-      });
+      const bookedV = vendors.filter(v => ["Booked","Paid Deposit","Paid in Full"].includes(v.status)).length;
+      const unbookedKey = vendors.filter(v => v.starred && !["Booked","Paid Deposit","Paid in Full"].includes(v.status)).length;
 
-      // Booked vendors
-      const bookedVendors = vendors.filter(v => ["Booked","Paid Deposit","Paid in Full"].includes(v.status));
-      const unbookedCritical = vendors.filter(v => v.starred && !["Booked","Paid Deposit","Paid in Full"].includes(v.status));
-
-      const toggleM = (task) => {
-        const i = milestones.findIndex(m => m.task === task);
-        if (i < 0) return;
-        const u = [...milestones]; u[i] = { ...u[i], done: !u[i].done };
-        saveMilestones(u);
-      };
-      const addM = () => {
-        if (!form.task.trim() || !form.due) return;
-        saveMilestones([...milestones, { task: form.task, due: form.due, done: false }]);
-        setForm({ task: "", due: "", phase: "planning" }); setShowAdd(false);
-      };
+      const toggleM = (task) => { const i = milestones.findIndex(m => m.task === task); if (i<0) return; const u = [...milestones]; u[i] = {...u[i], done:!u[i].done}; saveMilestones(u); };
+      const addM = () => { if (!form.task.trim()||!form.due) return; saveMilestones([...milestones, { task:form.task, due:form.due, done:false }]); setForm({ task:"", due:"" }); setShowAdd(false); };
       const rmM = (task) => saveMilestones(milestones.filter(m => m.task !== task));
 
       const done = milestones.filter(m => m.done).length;
       const overdue = milestones.filter(m => !m.done && new Date(m.due) < now).length;
-      const total = milestones.length;
-      const pct = total ? Math.round(done / total * 100) : 0;
+      const pct = milestones.length ? Math.round(done / milestones.length * 100) : 0;
 
       const getPhase = (ym) => PHASES.find(p => ym >= p.range[0] && ym <= p.range[1]);
-      const isCurrentMonth = (d) => d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-      const isPast = (d) => { const end = new Date(d); end.setMonth(end.getMonth() + 1); return end < now; };
+      const isCurMonth = (d) => d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+      const isPast = (d) => { const e = new Date(d); e.setMonth(e.getMonth()+1); return e < now; };
+
+      // Auto-scroll to current month on mount
+      useEffect(() => {
+        if (scrollRef.current) {
+          const cur = scrollRef.current.querySelector("[data-current]");
+          if (cur) cur.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        }
+      }, []);
+
+      const COL = 155;
 
       return (
         <div>
-          <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>Project Timeline</div>
-          <div style={{ fontSize: 12, color: P.txtL, marginBottom: 18 }}>Your planning journey to 29 May 2027</div>
-
-          {/* Progress bar */}
-          <div style={{ background: P.card, borderRadius: 14, padding: 18, marginBottom: 18, boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <div style={{ display: "flex", gap: 12 }}>
-                {[{ l: "Done", v: done, c: P.green },{ l: "Overdue", v: overdue, c: overdue ? P.red : P.stone },{ l: "Remaining", v: total - done, c: P.stone }].map((s,i) => (
-                  <div key={i} style={{ textAlign: "center" }}>
-                    <div style={{ fontSize: 18, fontWeight: 700, color: s.c }}>{s.v}</div>
-                    <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>{s.l}</div>
-                  </div>
-                ))}
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 22, fontWeight: 700, color: P.terra, fontFamily: "'Playfair Display', Georgia, serif" }}>{pct}%</div>
-                <div style={{ fontSize: 9, color: P.txtL }}>complete</div>
-              </div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
+            <div>
+              <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt }}>Project Timeline</div>
+              <div style={{ fontSize: 12, color: P.txtL, marginTop: 2 }}>Scroll to see your full planning journey</div>
             </div>
-            <div style={{ background: P.bgD, borderRadius: 8, height: 8, overflow: "hidden" }}>
-              <div style={{ height: "100%", borderRadius: 8, width: `${pct}%`, background: `linear-gradient(90deg, ${P.olive}, ${P.oliveL})`, transition: "width 0.5s" }} />
-            </div>
+            <button onClick={() => setShowAdd(!showAdd)} style={bP}>+ Milestone</button>
           </div>
 
-          {/* Vendor booking status */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 18, flexWrap: "wrap" }}>
-            <div style={{ flex: 1, minWidth: 120, background: P.card, borderRadius: 12, padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: `3px solid ${P.green}` }}>
-              <div style={{ fontSize: 18, fontWeight: 700, color: P.txt }}>{bookedVendors.length}</div>
-              <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>Vendors Booked</div>
-            </div>
-            <div style={{ flex: 1, minWidth: 120, background: P.card, borderRadius: 12, padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: `3px solid ${unbookedCritical.length > 0 ? P.gold : P.stone}` }}>
-              <div style={{ fontSize: 18, fontWeight: 700, color: P.txt }}>{unbookedCritical.length}</div>
-              <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>Key Vendors Unbooked</div>
-            </div>
-          </div>
-
-          {/* Add milestone */}
-          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
-            <button onClick={() => setShowAdd(!showAdd)} style={bP}>+ Add Milestone</button>
-          </div>
           {showAdd && (
             <div style={{ background: P.terraP, borderRadius: 14, padding: 14, marginBottom: 14 }}>
               <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
@@ -1459,115 +1647,132 @@
             </div>
           )}
 
-          {/* Phase legend */}
-          <div style={{ display: "flex", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
-            {PHASES.map(p => (
-              <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <div style={{ width: 10, height: 10, borderRadius: 3, background: p.color }} />
-                <span style={{ fontSize: 10, color: P.txtM }}>{p.icon} {p.label}</span>
+          {/* Stats row */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 14, flexWrap: "wrap" }}>
+            {[{ l: "Done", v: done, c: P.green },{ l: "Overdue", v: overdue, c: overdue ? P.red : P.stone },{ l: "Remaining", v: milestones.length - done, c: P.stone },{ l: "Booked", v: bookedV, c: P.olive },{ l: "Unbooked", v: unbookedKey, c: unbookedKey ? P.gold : P.stone }].map((s,i) => (
+              <div key={i} style={{ flex: 1, minWidth: 65, background: P.card, borderRadius: 12, padding: "8px 10px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: `3px solid ${s.c}`, textAlign: "center" }}>
+                <div style={{ fontSize: 16, fontWeight: 700, color: P.txt }}>{s.v}</div>
+                <div style={{ fontSize: 8, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>{s.l}</div>
               </div>
             ))}
           </div>
 
-          {/* Month-by-month timeline */}
-          <div style={{ position: "relative", paddingLeft: 20 }}>
-            {/* Vertical line */}
-            <div style={{ position: "absolute", left: 9, top: 0, bottom: 0, width: 2, background: P.bgD }} />
+          {/* Progress bar */}
+          <div style={{ background: P.card, borderRadius: 10, padding: "10px 14px", marginBottom: 14, boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: P.txt }}>Overall Progress</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: P.terra }}>{pct}%</span>
+            </div>
+            <div style={{ background: P.bgD, borderRadius: 6, height: 6, overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: 6, width: `${pct}%`, background: `linear-gradient(90deg, ${P.olive}, ${P.oliveL})`, transition: "width 0.5s" }} />
+            </div>
+          </div>
 
-            {months.map((m, mi) => {
-              const ym = `${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,"0")}`;
-              const monthMilestones = mByMonth[ym] || [];
-              const monthPayments = payByMonth[ym] || [];
-              const phase = getPhase(ym);
-              const isCurrent = isCurrentMonth(m);
-              const past = isPast(m);
-              const hasItems = monthMilestones.length > 0 || monthPayments.length > 0;
-              const monthLabel = m.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+          {/* Phase legend */}
+          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+            {PHASES.map(p => (<div key={p.id} style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: 2, background: p.color }} /><span style={{ fontSize: 10, color: P.txtM }}>{p.label}</span></div>))}
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}><div style={{ width: 8, height: 8, borderRadius: 2, background: P.gold, opacity: 0.5 }} /><span style={{ fontSize: 10, color: P.txtM }}>Payment</span></div>
+          </div>
 
-              return (
-                <div key={ym} style={{ marginBottom: hasItems ? 4 : 0, position: "relative" }}>
-                  {/* Dot on timeline */}
-                  <div style={{
-                    position: "absolute", left: -16, top: 4,
-                    width: isCurrent ? 14 : 10, height: isCurrent ? 14 : 10,
-                    borderRadius: "50%",
-                    background: isCurrent ? P.terra : past ? P.olive : phase ? phase.color : P.stoneL,
-                    border: isCurrent ? `3px solid ${P.terraL}` : "2px solid #fff",
-                    boxShadow: isCurrent ? `0 0 0 3px ${P.terraP}` : "none",
-                    marginTop: isCurrent ? -2 : 0,
-                  }} />
-
-                  {/* Month header */}
-                  <div style={{
-                    fontSize: 12, fontWeight: isCurrent ? 700 : 600,
-                    color: isCurrent ? P.terra : past ? P.txtL : P.txt,
-                    marginBottom: hasItems ? 6 : 2,
-                    paddingTop: 1,
-                  }}>
-                    {monthLabel} {isCurrent && <span style={{ fontSize: 9, padding: "1px 6px", borderRadius: 8, background: P.terraP, color: P.terra, marginLeft: 4 }}>NOW</span>}
+          {/* Horizontal scrolling calendar */}
+          <div ref={scrollRef} style={{ overflowX: "auto", overflowY: "visible", paddingBottom: 12, marginLeft: -10, marginRight: -10, paddingLeft: 10, paddingRight: 10 }}>
+            {/* Phase bars */}
+            <div style={{ display: "flex", minWidth: months.length * COL, marginBottom: 2 }}>
+              {months.map((m, mi) => {
+                const ym = `${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,"0")}`;
+                const phase = getPhase(ym);
+                const prevYm = mi > 0 ? `${months[mi-1].getFullYear()}-${String(months[mi-1].getMonth()+1).padStart(2,"0")}` : "";
+                const prevPhase = mi > 0 ? getPhase(prevYm) : null;
+                const isFirst = !prevPhase || prevPhase?.id !== phase?.id;
+                return (
+                  <div key={ym} style={{ width: COL, flexShrink: 0 }}>
+                    {phase && isFirst ? (
+                      <div style={{ fontSize: 9, fontWeight: 600, color: phase.color, textTransform: "uppercase", letterSpacing: 1, padding: "2px 0" }}>{phase.label}</div>
+                    ) : <div style={{ height: 16 }} />}
                   </div>
+                );
+              })}
+            </div>
 
-                  {/* Milestones for this month */}
-                  {monthMilestones.map((ms, i) => {
-                    const ov = !ms.done && new Date(ms.due) < now;
-                    const dU = Math.ceil((new Date(ms.due) - now) / 86400000);
-                    return (
-                      <div key={i} style={{
-                        display: "flex", alignItems: "center", gap: 8, padding: "6px 10px", marginBottom: 3,
-                        background: P.card, borderRadius: 10, boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
-                        borderLeft: `3px solid ${ms.done ? P.green : ov ? P.red : phase ? phase.color : P.stoneL}`,
-                        opacity: ms.done && past ? 0.5 : 1,
-                      }}>
-                        <button onClick={() => toggleM(ms.task)} style={{
-                          width: 18, height: 18, borderRadius: 5, flexShrink: 0, cursor: "pointer",
-                          border: `2px solid ${ms.done ? P.green : ov ? P.red : P.stoneL}`,
-                          background: ms.done ? P.green : "transparent",
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          color: "#fff", fontSize: 9,
-                        }}>{ms.done && "\u2713"}</button>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 12, color: P.txt, textDecoration: ms.done ? "line-through" : "none" }}>{ms.task}</div>
-                          <div style={{ fontSize: 10, color: ov ? P.red : P.txtL }}>
-                            {new Date(ms.due).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                            {ov ? ` \u2014 ${Math.abs(dU)}d overdue` : !ms.done && dU > 0 && dU <= 60 ? ` \u2014 ${dU}d` : ""}
+            {/* Month columns */}
+            <div style={{ display: "flex", minWidth: months.length * COL, position: "relative" }}>
+              {/* Horizontal track line */}
+              <div style={{ position: "absolute", top: 18, left: 0, right: 0, height: 2, background: P.bgD, zIndex: 0 }} />
+
+              {months.map((m, mi) => {
+                const ym = `${m.getFullYear()}-${String(m.getMonth()+1).padStart(2,"0")}`;
+                const items = mByMonth[ym] || [];
+                const pays = payByMonth[ym] || [];
+                const phase = getPhase(ym);
+                const cur = isCurMonth(m);
+                const past = isPast(m);
+                const isWedding = ym === "2027-05";
+                const monthShort = m.toLocaleDateString("en-GB", { month: "short" });
+                const yearShort = m.toLocaleDateString("en-GB", { year: "2-digit" });
+
+                return (
+                  <div key={ym} {...(cur ? {"data-current":""} : {})} style={{ width: COL, flexShrink: 0, position: "relative", zIndex: 1 }}>
+                    {/* Month header + dot */}
+                    <div style={{ textAlign: "center", marginBottom: 10 }}>
+                      <div style={{ fontSize: 11, fontWeight: cur ? 700 : 500, color: cur ? P.terra : past ? P.txtL : P.txt }}>{monthShort}</div>
+                      <div style={{ fontSize: 9, color: P.txtL }}>{yearShort}</div>
+                      <div style={{
+                        width: cur ? 14 : 10, height: cur ? 14 : 10, borderRadius: "50%", margin: "4px auto 0",
+                        background: cur ? P.terra : isWedding ? P.terra : past ? P.olive : phase ? phase.color : P.stoneL,
+                        border: cur ? `3px solid ${P.terraL}` : isWedding ? `3px solid ${P.terraL}` : "2px solid #fff",
+                        boxShadow: cur ? `0 0 0 3px ${P.terraP}` : isWedding ? `0 0 0 3px ${P.terraP}` : "none",
+                        position: "relative", zIndex: 2,
+                      }} />
+                      {cur && <div style={{ fontSize: 8, fontWeight: 700, color: P.terra, marginTop: 2 }}>NOW</div>}
+                      {isWedding && !cur && <div style={{ fontSize: 8, fontWeight: 700, color: P.terra, marginTop: 2 }}>{"\uD83D\uDC8D"}</div>}
+                    </div>
+
+                    {/* Cards stack */}
+                    <div style={{ padding: "0 3px" }}>
+                      {items.map((ms, i) => {
+                        const ov = !ms.done && new Date(ms.due) < now;
+                        return (
+                          <div key={i} style={{
+                            background: ms.done ? P.greenP : ov ? P.redP : P.card,
+                            borderRadius: 8, padding: "6px 7px", marginBottom: 4,
+                            borderLeft: `3px solid ${ms.done ? P.green : ov ? P.red : phase ? phase.color : P.stoneL}`,
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.04)", opacity: ms.done && past ? 0.55 : 1,
+                          }}>
+                            <div style={{ display: "flex", alignItems: "flex-start", gap: 4 }}>
+                              <button onClick={() => toggleM(ms.task)} style={{
+                                width: 14, height: 14, borderRadius: 3, flexShrink: 0, cursor: "pointer", marginTop: 1,
+                                border: `2px solid ${ms.done ? P.green : ov ? P.red : P.stoneL}`,
+                                background: ms.done ? P.green : "transparent",
+                                display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 8,
+                              }}>{ms.done && "\u2713"}</button>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ fontSize: 10, fontWeight: 600, color: P.txt, textDecoration: ms.done ? "line-through" : "none", lineHeight: 1.3, wordBreak: "break-word" }}>{ms.task}</div>
+                                <div style={{ fontSize: 8, color: ov ? P.red : P.txtL, marginTop: 1 }}>{new Date(ms.due).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</div>
+                              </div>
+                              <button onClick={() => rmM(ms.task)} style={{ background: "none", border: "none", cursor: "pointer", color: P.stoneL, fontSize: 11, padding: 0, lineHeight: 1, flexShrink: 0 }}>{"\u00D7"}</button>
+                            </div>
                           </div>
+                        );
+                      })}
+                      {pays.map((p, i) => (
+                        <div key={"p"+i} style={{ background: P.goldP, borderRadius: 8, padding: "5px 7px", marginBottom: 4, borderLeft: `3px solid ${P.gold}` }}>
+                          <div style={{ fontSize: 10, fontWeight: 600, color: P.txt, lineHeight: 1.3 }}>{BUDGET_CATS.find(c => c.id === p.catId)?.icon} {p.label}</div>
+                          <div style={{ fontSize: 9, color: P.gold, marginTop: 1 }}>{p.currency === "EUR" ? "\u20AC" : "\u00A3"}{p.amount.toLocaleString()}</div>
                         </div>
-                        <button onClick={() => rmM(ms.task)} style={{ background: "none", border: "none", cursor: "pointer", color: P.stoneL, fontSize: 13, padding: "0 2px" }}>{"\u00D7"}</button>
-                      </div>
-                    );
-                  })}
-
-                  {/* Payments for this month */}
-                  {monthPayments.map((p, i) => {
-                    const ov = new Date(p.date) < now;
-                    return (
-                      <div key={"p"+i} style={{
-                        display: "flex", alignItems: "center", gap: 8, padding: "5px 10px", marginBottom: 3,
-                        background: P.goldP, borderRadius: 10, borderLeft: `3px solid ${P.gold}`,
-                      }}>
-                        <span style={{ fontSize: 13 }}>{BUDGET_CATS.find(c => c.id === p.catId)?.icon}</span>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 11, color: P.txt }}>{BUDGET_CATS.find(c => c.id === p.catId)?.name} {"\u2014"} {p.label}</div>
-                          <div style={{ fontSize: 10, color: ov ? P.red : P.txtL }}>
-                            {new Date(p.date).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
-                            {ov ? " \u2014 overdue" : ""}
-                          </div>
+                      ))}
+                      {items.length === 0 && pays.length === 0 && !isWedding && (
+                        <div style={{ textAlign: "center", padding: "8px 0", fontSize: 18, opacity: 0.12 }}>{"\u00B7"}</div>
+                      )}
+                      {isWedding && (
+                        <div style={{ background: `linear-gradient(135deg, ${P.terra}, ${P.terraL})`, borderRadius: 8, padding: "8px 7px", color: "#fff", textAlign: "center" }}>
+                          <div style={{ fontSize: 11, fontWeight: 700 }}>Wedding Day</div>
+                          <div style={{ fontSize: 8, opacity: 0.8 }}>Sat 29 May</div>
                         </div>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: ov ? P.red : P.gold }}>{p.currency === "EUR" ? "\u20AC" : "\u00A3"}{p.amount.toLocaleString()}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
-
-            {/* Wedding day marker */}
-            <div style={{ position: "relative", marginTop: 8 }}>
-              <div style={{ position: "absolute", left: -20, top: 2, width: 18, height: 18, borderRadius: "50%", background: P.terra, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, border: "3px solid #fff", boxShadow: `0 0 0 3px ${P.terraP}` }}>{"\uD83D\uDC8D"}</div>
-              <div style={{ background: `linear-gradient(135deg, ${P.terra}, ${P.terraL})`, borderRadius: 12, padding: "12px 16px", color: "#fff" }}>
-                <div style={{ fontSize: 14, fontWeight: 700, fontFamily: "'Playfair Display', Georgia, serif" }}>Wedding Day</div>
-                <div style={{ fontSize: 11, opacity: 0.85 }}>Saturday 29 May 2027 {"\u00B7"} La Conca, Sansepolcro</div>
-              </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -1577,6 +1782,7 @@
     /* ========== MAIN ========== */
     function WeddingDashboard() {
       const [tab, setTab] = useState("dash");
+      const fbConnected = useFirebaseConnected();
       const [budget, saveBudget, b1] = useStorage("wedding-budget-v3", DEFAULT_DATA.budget);
       const [guests, saveGuests, b2] = useStorage("wedding-guests-v4", DEFAULT_DATA.guests);
       const [vendors, saveVendors, b3] = useStorage("wedding-vendors-v4", DEFAULT_DATA.vendors);
@@ -1602,8 +1808,8 @@
 
       return (
         <div style={{ minHeight: "100vh", background: P.bg, fontFamily: "'DM Sans', -apple-system, sans-serif" }}>
-          <div style={{ position: "sticky", top: 0, zIndex: 100, background: P.bg, borderBottom: `1px solid ${P.bgD}`, padding: "0 4px" }}>
-            <div style={{ maxWidth: 840, margin: "0 auto", display: "flex", gap: 0, overflowX: "auto" }}>
+          <div data-no-print style={{ position: "sticky", top: 0, zIndex: 100, background: P.bg, borderBottom: `1px solid ${P.bgD}`, padding: "0 4px" }}>
+            <div style={{ maxWidth: 840, margin: "0 auto", display: "flex", gap: 0, overflowX: "auto", alignItems: "center" }}>
               {TABS.map(t => (
                 <button key={t.id} onClick={() => setTab(t.id)} style={{
                   flex: 1, minWidth: 46, padding: "10px 2px 8px", border: "none", cursor: "pointer",
@@ -1613,6 +1819,12 @@
                   transition: "all 0.2s", whiteSpace: "nowrap"
                 }}><span style={{ fontSize: 13, display: "block", marginBottom: 1 }}>{t.icon}</span>{t.label}</button>
               ))}
+              <div title={fbConnected ? "Synced to cloud" : "Offline \u2014 changes saved locally"} style={{
+                flexShrink: 0, width: 8, height: 8, borderRadius: "50%", marginLeft: 6,
+                background: fbConnected ? P.green : P.gold,
+                boxShadow: fbConnected ? `0 0 4px ${P.green}` : `0 0 4px ${P.gold}`,
+                transition: "all 0.3s"
+              }} />
             </div>
           </div>
           <div style={{ maxWidth: 840, margin: "0 auto", padding: "18px 10px 50px" }}>
