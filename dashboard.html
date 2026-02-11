@@ -112,6 +112,30 @@
       { key: "certificateObtained", label: "Obtain Marriage Certificate" },
       { key: "celebrantBriefed", label: "Brief Symbolic Celebrant in Italy" },
     ];
+    const GROOM_PREP = [
+      { key: "suit", label: "Buy / hire wedding suit" },
+      { key: "groomsmen", label: "Choose groomsmen" },
+      { key: "groomsmenGifts", label: "Buy groomsmen gifts" },
+      { key: "rings", label: "Buy wedding rings" },
+      { key: "vows", label: "Write vows" },
+      { key: "stagDo", label: "Plan stag do" },
+      { key: "shoes", label: "Buy & break in wedding shoes" },
+      { key: "grooming", label: "Book haircut / grooming" },
+      { key: "speech", label: "Prepare wedding speech" },
+    ];
+    const BRIDE_PREP = [
+      { key: "dress", label: "Choose wedding dress" },
+      { key: "dressFitting", label: "Dress fittings" },
+      { key: "bridesmaids", label: "Choose bridesmaids" },
+      { key: "bridesmaidsDresses", label: "Buy bridesmaids' dresses" },
+      { key: "bridesmaidsGifts", label: "Buy bridesmaids' gifts" },
+      { key: "hairTrial", label: "Book hair trial" },
+      { key: "makeupTrial", label: "Book makeup trial" },
+      { key: "accessories", label: "Choose accessories (veil, shoes, jewellery)" },
+      { key: "vows", label: "Write vows" },
+      { key: "henDo", label: "Plan hen do" },
+      { key: "somethingBorrowed", label: "Something old, new, borrowed, blue" },
+    ];
     const COMMS_ITEMS = [
       { key: "saveTheDate", label: "Save the Date" },
       { key: "invitation", label: "Invitation Sent" },
@@ -627,6 +651,7 @@
                     if (d.legalChecklist) saveFns.saveLegalChecklist(d.legalChecklist);
                     if (d.speeches) saveFns.saveSpeeches(d.speeches);
                     if (d.eurRate) saveFns.saveEurRate(d.eurRate);
+                    if (d.prepChecklist) saveFns.savePrepChecklist(d.prepChecklist);
                     alert("Backup restored successfully!");
                   } catch { alert("Invalid backup file"); }
                 };
@@ -2229,7 +2254,7 @@
     }
 
     /* ========== PROJECT TIMELINE ========== */
-    function ProjectTab({ milestones, saveMilestones, vendors, budget, upPay, legalChecklist, saveLegalChecklist }) {
+    function ProjectTab({ milestones, saveMilestones, vendors, budget, upPay, legalChecklist, saveLegalChecklist, prepChecklist, savePrepChecklist }) {
       const now = new Date();
       const [showAdd, setShowAdd] = useState(false);
       const [form, setForm] = useState({ task: "", due: "", assignee: "" });
@@ -2495,6 +2520,87 @@
             })}
           </div>
 
+          {/* Bride & Groom Prep */}
+          {(() => {
+            const [prepOpen, setPrepOpen] = React.useState(false);
+            const [customInput, setCustomInput] = React.useState({ groom: "", bride: "" });
+            const prep = prepChecklist || { groom: {}, bride: {}, customGroom: [], customBride: [] };
+            const customG = safeArr(prep.customGroom);
+            const customB = safeArr(prep.customBride);
+            const allGroom = [...GROOM_PREP, ...customG];
+            const allBride = [...BRIDE_PREP, ...customB];
+            const gDone = allGroom.filter(c => prep.groom?.[c.key]?.done).length;
+            const bDone = allBride.filter(c => prep.bride?.[c.key]?.done).length;
+            const toggle = (who, key) => {
+              const cur = prep[who]?.[key] || {};
+              savePrepChecklist({ ...prep, [who]: { ...prep[who], [key]: { ...cur, done: !cur.done, date: !cur.done ? new Date().toISOString().slice(0, 10) : "" } } });
+            };
+            const addCustom = (who) => {
+              const field = who === "groom" ? "customGroom" : "customBride";
+              const label = customInput[who === "groom" ? "groom" : "bride"].trim();
+              if (!label) return;
+              const key = "custom_" + Date.now();
+              savePrepChecklist({ ...prep, [field]: [...(who === "groom" ? customG : customB), { key, label }] });
+              setCustomInput(p => ({ ...p, [who === "groom" ? "groom" : "bride"]: "" }));
+            };
+            const rmCustom = (who, key) => {
+              if (!window.confirm("Remove this custom item?")) return;
+              const field = who === "groom" ? "customGroom" : "customBride";
+              const updated = (who === "groom" ? customG : customB).filter(c => c.key !== key);
+              const newWho = { ...prep[who] }; delete newWho[key];
+              savePrepChecklist({ ...prep, [field]: updated, [who]: newWho });
+            };
+            const renderPanel = (who, title, icon, items, doneCount, color) => (
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                  <span style={{ fontSize: 16 }}>{icon}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>{title}</span>
+                  <span style={{ fontSize: 10, color: P.txtL, marginLeft: "auto" }}>{doneCount}/{items.length}</span>
+                </div>
+                <div style={{ height: 4, borderRadius: 2, background: P.bgD, marginBottom: 10 }}>
+                  <div style={{ height: 4, borderRadius: 2, background: color, width: items.length ? `${(doneCount / items.length) * 100}%` : 0, transition: "width 0.3s" }} />
+                </div>
+                {items.map(c => {
+                  const entry = prep[who]?.[c.key] || {};
+                  const isCustom = c.key.startsWith("custom_");
+                  return (
+                    <div key={c.key} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 0", borderBottom: `1px solid ${P.bgD}` }}>
+                      <input type="checkbox" checked={!!entry.done} onChange={() => toggle(who, c.key)} style={{ accentColor: color }} />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: 11, color: entry.done ? P.txtL : P.txt, textDecoration: entry.done ? "line-through" : "none" }}>{c.label}</div>
+                        {entry.done && entry.date && <div style={{ fontSize: 9, color: P.green, marginTop: 1 }}>Completed {entry.date}</div>}
+                      </div>
+                      {isCustom && <button onClick={() => rmCustom(who, c.key)} style={{ background: "none", border: "none", color: P.red, cursor: "pointer", fontSize: 12, padding: "2px 4px", opacity: 0.5 }} title="Remove">{"\u2715"}</button>}
+                    </div>
+                  );
+                })}
+                <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                  <input value={customInput[who === "groom" ? "groom" : "bride"]} onChange={e => setCustomInput(p => ({ ...p, [who === "groom" ? "groom" : "bride"]: e.target.value }))} onKeyDown={e => e.key === "Enter" && addCustom(who)} placeholder="Add custom item..." style={{ ...iS, flex: 1, fontSize: 10 }} />
+                  <button onClick={() => addCustom(who)} style={{ ...bS, fontSize: 10, padding: "4px 10px", color }}>+ Add</button>
+                </div>
+              </div>
+            );
+            return (
+              <div style={{ marginTop: 18 }}>
+                <div onClick={() => setPrepOpen(!prepOpen)} style={{ background: P.card, borderRadius: prepOpen ? "14px 14px 0 0" : 14, padding: "12px 14px", cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${P.terra}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: P.txt, fontFamily: "'Playfair Display', Georgia, serif" }}>{"\uD83D\uDC70"}{"\uD83E\uDD35"} Bride & Groom Prep</div>
+                    <div style={{ fontSize: 10, color: P.txtL, marginTop: 1 }}>Sophie: {bDone}/{allBride.length} · Joe: {gDone}/{allGroom.length}</div>
+                  </div>
+                  <span style={{ fontSize: 15, color: P.stoneL, transform: prepOpen ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>{"\u203A"}</span>
+                </div>
+                {prepOpen && (
+                  <div style={{ background: P.card, borderRadius: "0 0 14px 14px", padding: "14px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${P.terra}` }}>
+                    <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
+                      {renderPanel("groom", "Joe", "\uD83E\uDD35", allGroom, gDone, P.blue)}
+                      {renderPanel("bride", "Sophie", "\uD83D\uDC70", allBride, bDone, P.terra)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+
           {/* Legal Ceremony Checklist */}
           {(() => {
             const [lcOpen, setLcOpen] = React.useState(false);
@@ -2556,9 +2662,10 @@
       const [eurRate, saveEurRate, b12] = useStorage("wedding-eur-rate-v1", 1.17);
       const [legalChecklist, saveLegalChecklist, b13] = useStorage("wedding-legal-v1", {});
       const [speeches, saveSpeeches, b14] = useStorage("wedding-speeches-v1", []);
+      const [prepChecklist, savePrepChecklist, b15] = useStorage("wedding-prep-v1", { groom: {}, bride: {}, customGroom: [], customBride: [] });
       EUR_RATE = eurRate;
 
-      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14)) return (
+      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15)) return (
         <div style={{ minHeight: "100vh", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\uD83D\uDC8D"}</div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15 }}>Loading...</div></div>
         </div>
@@ -2607,13 +2714,13 @@
             </div>
           </div>
           <div style={{ maxWidth: 840, margin: "0 auto", padding: "18px 10px 50px" }}>
-            {tab === "dash" && <DashTab data={{ budget, milestones }} saveMilestones={saveMilestones} gC={gC} cC={cC} upPay={upPay} vendors={vendors} guests={guests} timeline={timeline} allData={{ budget, guests, vendors, timeline, milestones, decisions, music, packing, seating, rooms, contingency, legalChecklist, speeches, eurRate }} saveFns={{ saveBudget, saveGuests, saveVendors, saveTimeline, saveMilestones, saveDecisions, saveMusic, savePacking, saveSeating, saveRooms, saveContingency, saveLegalChecklist, saveSpeeches, saveEurRate }} />}
+            {tab === "dash" && <DashTab data={{ budget, milestones }} saveMilestones={saveMilestones} gC={gC} cC={cC} upPay={upPay} vendors={vendors} guests={guests} timeline={timeline} allData={{ budget, guests, vendors, timeline, milestones, decisions, music, packing, seating, rooms, contingency, legalChecklist, speeches, eurRate, prepChecklist }} saveFns={{ saveBudget, saveGuests, saveVendors, saveTimeline, saveMilestones, saveDecisions, saveMusic, savePacking, saveSeating, saveRooms, saveContingency, saveLegalChecklist, saveSpeeches, saveEurRate, savePrepChecklist }} />}
             {tab === "budget" && <BudgetTab budget={budget} saveBudget={saveBudget} vendors={vendors} eurRate={eurRate} saveEurRate={saveEurRate} />}
             {tab === "vendors" && <VendorsTab vendors={vendors} saveVendors={saveVendors} />}
             {tab === "guests" && <GuestsTab guests={guests} saveGuests={saveGuests} />}
             {tab === "seating" && <SeatingTab seating={seating} saveSeating={saveSeating} guests={guests} />}
             {tab === "rooms" && <RoomsTab rooms={rooms} saveRooms={saveRooms} guests={guests} />}
-            {tab === "project" && <ProjectTab milestones={milestones} saveMilestones={saveMilestones} vendors={vendors} budget={budget} upPay={upPay} legalChecklist={legalChecklist} saveLegalChecklist={saveLegalChecklist} />}
+            {tab === "project" && <ProjectTab milestones={milestones} saveMilestones={saveMilestones} vendors={vendors} budget={budget} upPay={upPay} legalChecklist={legalChecklist} saveLegalChecklist={saveLegalChecklist} prepChecklist={prepChecklist} savePrepChecklist={savePrepChecklist} />}
             {tab === "timeline" && <TimelineTab timeline={timeline} saveTimeline={saveTimeline} contingency={contingency} saveContingency={saveContingency} speeches={speeches} saveSpeeches={saveSpeeches} />}
             {tab === "music" && <MusicTab music={music} saveMusic={saveMusic} />}
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} />}
