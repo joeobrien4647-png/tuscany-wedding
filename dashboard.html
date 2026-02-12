@@ -136,6 +136,56 @@
       { key: "henDo", label: "Plan hen do" },
       { key: "somethingBorrowed", label: "Something old, new, borrowed, blue" },
     ];
+    const PHOTO_CATEGORIES = ["All","Ceremony","Couple","Family","Bridal Party","Details","Reception","Fun"];
+    const DEFAULT_SHOTS = [
+      { id: "c1", description: "First look", category: "Ceremony", who: "Photographer" },
+      { id: "c2", description: "Walking down the aisle", category: "Ceremony", who: "Photographer" },
+      { id: "c3", description: "Exchanging vows", category: "Ceremony", who: "Photographer" },
+      { id: "c4", description: "Ring exchange", category: "Ceremony", who: "Photographer" },
+      { id: "c5", description: "First kiss", category: "Ceremony", who: "Photographer" },
+      { id: "c6", description: "Recessional (walking back together)", category: "Ceremony", who: "Photographer" },
+      { id: "cp1", description: "Bride & groom portraits", category: "Couple", who: "Photographer" },
+      { id: "cp2", description: "Golden hour shots", category: "Couple", who: "Photographer" },
+      { id: "cp3", description: "With the Tuscan landscape", category: "Couple", who: "Photographer" },
+      { id: "f1", description: "Bride with parents", category: "Family", who: "Photographer" },
+      { id: "f2", description: "Groom with parents", category: "Family", who: "Photographer" },
+      { id: "f3", description: "Both families together", category: "Family", who: "Photographer" },
+      { id: "f4", description: "Grandparents", category: "Family", who: "Photographer" },
+      { id: "bp1", description: "Bridesmaids getting ready", category: "Bridal Party", who: "Photographer" },
+      { id: "bp2", description: "Groomsmen together", category: "Bridal Party", who: "Photographer" },
+      { id: "bp3", description: "Full wedding party", category: "Bridal Party", who: "Photographer" },
+      { id: "d1", description: "Rings close-up", category: "Details", who: "Photographer" },
+      { id: "d2", description: "Bouquet & flowers", category: "Details", who: "Photographer" },
+      { id: "d3", description: "Table settings", category: "Details", who: "Photographer" },
+      { id: "d4", description: "Venue exterior", category: "Details", who: "Photographer" },
+      { id: "d5", description: "Dress hanging shot", category: "Details", who: "Photographer" },
+      { id: "r1", description: "First dance", category: "Reception", who: "Photographer" },
+      { id: "r2", description: "Speeches & toasts", category: "Reception", who: "Videographer" },
+      { id: "r3", description: "Cake cutting", category: "Reception", who: "Photographer" },
+      { id: "r4", description: "Bouquet toss", category: "Reception", who: "Photographer" },
+      { id: "r5", description: "Sparkler exit / send-off", category: "Reception", who: "Photographer" },
+      { id: "fn1", description: "Dance floor candids", category: "Fun", who: "Photographer" },
+      { id: "fn2", description: "Guest selfies & reactions", category: "Fun", who: "Guest" },
+      { id: "fn3", description: "Kids being kids", category: "Fun", who: "Photographer" },
+    ];
+    const DAYKIT_ITEMS = [
+      { key: "sewingKit", label: "Mini sewing kit (needle, thread, safety pins)" },
+      { key: "stainRemover", label: "Stain remover pen" },
+      { key: "painkillers", label: "Painkillers (paracetamol, ibuprofen)" },
+      { key: "plasters", label: "Plasters / blister pads" },
+      { key: "tissues", label: "Tissues / handkerchief" },
+      { key: "deodorant", label: "Deodorant / mini perfume" },
+      { key: "hairPins", label: "Hair pins & hair ties" },
+      { key: "lipstick", label: "Lipstick / touch-up makeup" },
+      { key: "phoneCharger", label: "Phone charger & power bank" },
+      { key: "snacks", label: "Snacks & water bottle" },
+      { key: "flats", label: "Comfortable flat shoes (for dancing)" },
+      { key: "mintBreath", label: "Mints / breath freshener" },
+      { key: "sunscreen", label: "Sunscreen (SPF 30+)" },
+      { key: "bugSpray", label: "Insect repellent" },
+      { key: "clearTape", label: "Fashion tape / double-sided tape" },
+      { key: "umbrella", label: "Compact umbrella (just in case)" },
+    ];
     const COMMS_ITEMS = [
       { key: "saveTheDate", label: "Save the Date" },
       { key: "invitation", label: "Invitation Sent" },
@@ -652,6 +702,9 @@
                     if (d.speeches) saveFns.saveSpeeches(d.speeches);
                     if (d.eurRate) saveFns.saveEurRate(d.eurRate);
                     if (d.prepChecklist) saveFns.savePrepChecklist(d.prepChecklist);
+                    if (d.photoShots) saveFns.savePhotoShots(d.photoShots);
+                    if (d.dayKit) saveFns.saveDayKit(d.dayKit);
+                    if (d.honeymoon) saveFns.saveHoneymoon(d.honeymoon);
                     alert("Backup restored successfully!");
                   } catch { alert("Invalid backup file"); }
                 };
@@ -739,6 +792,77 @@
           }} style={{ ...bP, width: "100%", marginTop: 14, padding: "12px 16px", borderRadius: 12, fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
             {"\uD83D\uDCE8"} Generate Guest Info Pack
           </button>
+
+          {/* Honeymoon Planner */}
+          {(() => {
+            const hm = allData.honeymoon || { destination: "", dates: "", flights: "", hotel: "", budget: "", notes: "", documents: "", itinerary: [] };
+            const saveHm = saveFns.saveHoneymoon;
+            const itin = safeArr(hm.itinerary);
+            const [hmOpen, setHmOpen] = React.useState(false);
+            const [itinForm, setItinForm] = React.useState({ day: "", activity: "" });
+            const upField = (field, val) => saveHm({ ...hm, [field]: val });
+            const addItin = () => {
+              if (!itinForm.activity.trim()) return;
+              saveHm({ ...hm, itinerary: [...itin, { id: "it_" + Date.now(), day: itinForm.day, activity: itinForm.activity.trim(), booked: false }] });
+              setItinForm({ day: "", activity: "" });
+            };
+            const toggleItin = (id) => saveHm({ ...hm, itinerary: itin.map(i => i.id === id ? { ...i, booked: !i.booked } : i) });
+            const rmItin = (id) => { if (!window.confirm("Remove this item?")) return; saveHm({ ...hm, itinerary: itin.filter(i => i.id !== id) }); };
+            const booked = itin.filter(i => i.booked).length;
+            return (
+              <div style={{ marginTop: 18 }}>
+                <div onClick={() => setHmOpen(!hmOpen)} style={{ background: P.card, borderRadius: hmOpen ? "14px 14px 0 0" : 14, padding: "12px 14px", cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${P.gold}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: P.txt, fontFamily: "'Playfair Display', Georgia, serif" }}>{"\u2708\uFE0F"} Honeymoon Planner</div>
+                    <div style={{ fontSize: 10, color: P.txtL, marginTop: 1 }}>{hm.destination || "Where to next?"}{itin.length > 0 ? ` · ${booked}/${itin.length} booked` : ""}</div>
+                  </div>
+                  <span style={{ fontSize: 15, color: P.stoneL, transform: hmOpen ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>{"\u203A"}</span>
+                </div>
+                {hmOpen && (
+                  <div style={{ background: P.card, borderRadius: "0 0 14px 14px", padding: "14px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${P.gold}` }}>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+                      <div style={{ flex: 1, minWidth: 140 }}><label style={lb}>Destination</label><input value={hm.destination} onChange={e => upField("destination", e.target.value)} placeholder="Maldives, Amalfi, Bali..." style={iS} /></div>
+                      <div style={{ flex: 1, minWidth: 120 }}><label style={lb}>Dates</label><input value={hm.dates} onChange={e => upField("dates", e.target.value)} placeholder="30 May – 12 Jun 2027" style={iS} /></div>
+                      <div style={{ flex: 1, minWidth: 100 }}><label style={lb}>Budget</label><input value={hm.budget} onChange={e => upField("budget", e.target.value)} placeholder="£5,000" style={iS} /></div>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+                      <div style={{ flex: 1, minWidth: 140 }}><label style={lb}>Flights</label><input value={hm.flights} onChange={e => upField("flights", e.target.value)} placeholder="BA 572, 30 May 09:15" style={iS} /></div>
+                      <div style={{ flex: 1, minWidth: 140 }}><label style={lb}>Hotel / Accommodation</label><input value={hm.hotel} onChange={e => upField("hotel", e.target.value)} placeholder="Four Seasons, ref #12345" style={iS} /></div>
+                    </div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 10 }}>
+                      <div style={{ flex: 1, minWidth: 140 }}><label style={lb}>Documents Needed</label><input value={hm.documents} onChange={e => upField("documents", e.target.value)} placeholder="Passport, travel insurance, GHIC" style={iS} /></div>
+                      <div style={{ flex: 1, minWidth: 140 }}><label style={lb}>Notes</label><input value={hm.notes} onChange={e => upField("notes", e.target.value)} placeholder="Any special plans..." style={iS} /></div>
+                    </div>
+
+                    {itin.length > 0 && (
+                      <div style={{ marginTop: 6 }}>
+                        <div style={{ fontSize: 12, fontWeight: 600, color: P.txt, marginBottom: 6 }}>Itinerary</div>
+                        <div style={{ height: 4, borderRadius: 2, background: P.bgD, marginBottom: 8 }}>
+                          <div style={{ height: 4, borderRadius: 2, background: P.gold, width: itin.length ? `${(booked / itin.length) * 100}%` : 0, transition: "width 0.3s" }} />
+                        </div>
+                        {itin.map(i => (
+                          <div key={i.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 0", borderBottom: `1px solid ${P.bgD}` }}>
+                            <input type="checkbox" checked={!!i.booked} onChange={() => toggleItin(i.id)} style={{ accentColor: P.gold }} />
+                            <div style={{ flex: 1 }}>
+                              <div style={{ fontSize: 11, color: i.booked ? P.txtL : P.txt, textDecoration: i.booked ? "line-through" : "none" }}>{i.activity}</div>
+                              {i.day && <div style={{ fontSize: 9, color: P.txtL }}>{i.day}</div>}
+                            </div>
+                            <button onClick={() => rmItin(i.id)} style={{ background: "none", border: "none", color: P.red, cursor: "pointer", fontSize: 12, padding: "2px 4px", opacity: 0.5 }} title="Remove">{"\u2715"}</button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
+                      <input value={itinForm.day} onChange={e => setItinForm(f => ({ ...f, day: e.target.value }))} placeholder="Day / date" style={{ ...iS, width: 90, fontSize: 10 }} />
+                      <input value={itinForm.activity} onChange={e => setItinForm(f => ({ ...f, activity: e.target.value }))} onKeyDown={e => e.key === "Enter" && addItin()} placeholder="Activity or booking..." style={{ ...iS, flex: 1, fontSize: 10, minWidth: 120 }} />
+                      <button onClick={addItin} style={{ ...bS, fontSize: 10, padding: "4px 10px", color: P.gold }}>+ Add</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       );
     }
@@ -1793,7 +1917,7 @@
     }
 
     /* ========== TIMELINE ========== */
-    function TimelineTab({ timeline, saveTimeline, contingency, saveContingency, speeches, saveSpeeches }) {
+    function TimelineTab({ timeline, saveTimeline, contingency, saveContingency, speeches, saveSpeeches, photoShots, savePhotoShots }) {
       const [exp, setExp] = useState(2);
       const [cpOpen, setCpOpen] = useState(false);
       const [spOpen, setSpOpen] = useState(false);
@@ -1955,6 +2079,67 @@
               </div>
             )}
           </div>
+
+          {/* Photo / Video Shot List */}
+          {(() => {
+            const shots = safeArr(photoShots);
+            const [psOpen, setPsOpen] = React.useState(false);
+            const [catFilter, setCatFilter] = React.useState("All");
+            const [addForm, setAddForm] = React.useState({ description: "", category: "Ceremony", who: "Photographer" });
+            const done = shots.filter(s => s.done).length;
+            const filtered = catFilter === "All" ? shots : shots.filter(s => s.category === catFilter);
+            const toggleShot = (id) => savePhotoShots(shots.map(s => s.id === id ? { ...s, done: !s.done } : s));
+            const addShot = () => {
+              if (!addForm.description.trim()) return;
+              savePhotoShots([...shots, { ...addForm, id: "custom_" + Date.now(), done: false }]);
+              setAddForm({ description: "", category: addForm.category, who: addForm.who });
+            };
+            const rmShot = (id) => { if (!window.confirm("Remove this shot?")) return; savePhotoShots(shots.filter(s => s.id !== id)); };
+            return (
+              <div style={{ marginTop: 18 }}>
+                <div onClick={() => setPsOpen(!psOpen)} style={{ background: P.card, borderRadius: psOpen ? "14px 14px 0 0" : 14, padding: "12px 14px", cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${P.olive}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: P.txt, fontFamily: "'Playfair Display', Georgia, serif" }}>{"\uD83D\uDCF8"} Photo & Video Shot List</div>
+                    <div style={{ fontSize: 10, color: P.txtL, marginTop: 1 }}>{done}/{shots.length} captured</div>
+                  </div>
+                  <span style={{ fontSize: 15, color: P.stoneL, transform: psOpen ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>{"\u203A"}</span>
+                </div>
+                {psOpen && (
+                  <div style={{ background: P.card, borderRadius: "0 0 14px 14px", padding: "10px 14px 14px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${P.olive}` }}>
+                    <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 10 }}>
+                      {PHOTO_CATEGORIES.map(c => (
+                        <button key={c} onClick={() => setCatFilter(c)} style={{ ...bS, fontSize: 9, padding: "3px 8px", borderRadius: 10, background: catFilter === c ? P.olive : P.bgD, color: catFilter === c ? "#fff" : P.txtM, border: "none" }}>{c}</button>
+                      ))}
+                    </div>
+                    <div style={{ height: 4, borderRadius: 2, background: P.bgD, marginBottom: 10 }}>
+                      <div style={{ height: 4, borderRadius: 2, background: P.olive, width: shots.length ? `${(done / shots.length) * 100}%` : 0, transition: "width 0.3s" }} />
+                    </div>
+                    {filtered.map(s => (
+                      <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 0", borderBottom: `1px solid ${P.bgD}` }}>
+                        <input type="checkbox" checked={!!s.done} onChange={() => toggleShot(s.id)} style={{ accentColor: P.olive }} />
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 11, color: s.done ? P.txtL : P.txt, textDecoration: s.done ? "line-through" : "none" }}>{s.description}</div>
+                          <div style={{ fontSize: 9, color: P.txtL }}>{s.category} · {s.who}</div>
+                        </div>
+                        {s.id.startsWith("custom_") && <button onClick={() => rmShot(s.id)} style={{ background: "none", border: "none", color: P.red, cursor: "pointer", fontSize: 12, padding: "2px 4px", opacity: 0.5 }} title="Remove">{"\u2715"}</button>}
+                      </div>
+                    ))}
+                    {filtered.length === 0 && <div style={{ fontSize: 11, color: P.txtL, padding: "12px 0", textAlign: "center" }}>No shots in this category</div>}
+                    <div style={{ display: "flex", gap: 6, marginTop: 10, flexWrap: "wrap" }}>
+                      <input value={addForm.description} onChange={e => setAddForm(f => ({ ...f, description: e.target.value }))} onKeyDown={e => e.key === "Enter" && addShot()} placeholder="Add custom shot..." style={{ ...iS, flex: 1, fontSize: 10, minWidth: 120 }} />
+                      <select value={addForm.category} onChange={e => setAddForm(f => ({ ...f, category: e.target.value }))} style={{ ...iS, fontSize: 10, width: 90 }}>
+                        {PHOTO_CATEGORIES.filter(c => c !== "All").map(c => <option key={c}>{c}</option>)}
+                      </select>
+                      <select value={addForm.who} onChange={e => setAddForm(f => ({ ...f, who: e.target.value }))} style={{ ...iS, fontSize: 10, width: 90 }}>
+                        {["Photographer","Videographer","Guest"].map(w => <option key={w}>{w}</option>)}
+                      </select>
+                      <button onClick={addShot} style={{ ...bS, fontSize: 10, padding: "4px 10px", color: P.olive }}>+ Add</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       );
     }
@@ -2023,7 +2208,7 @@
     }
 
     /* ========== PACKING ========== */
-    function PackingTab({ packing: rawPacking, savePacking }) {
+    function PackingTab({ packing: rawPacking, savePacking, dayKit, saveDayKit }) {
       const packing = safeArr(rawPacking).map(c => ({ ...c, items: safeArr(c.items) }));
       const [adding, setAdding] = useState(null);
       const [newItem, setNewItem] = useState("");
@@ -2091,6 +2276,68 @@
             <input placeholder="New category name..." value={newCat} onChange={e => setNewCat(e.target.value)} onKeyDown={e => { if (e.key === "Enter" && newCat.trim()) { savePacking([...packing, { cat: newCat.trim(), items: [] }]); setNewCat(""); }}} style={{ ...iS, flex: 1 }} />
             <button onClick={() => { if (!newCat.trim()) return; savePacking([...packing, { cat: newCat.trim(), items: [] }]); setNewCat(""); }} style={{...bS, background: P.oliveP, color: P.olive}}>+ Category</button>
           </div>
+
+          {/* Wedding Day Emergency Kit */}
+          {(() => {
+            const kit = dayKit || {};
+            const customKit = safeArr(kit._custom);
+            const allItems = [...DAYKIT_ITEMS, ...customKit];
+            const [dkOpen, setDkOpen] = React.useState(false);
+            const [dkInput, setDkInput] = React.useState("");
+            const dkDone = allItems.filter(c => kit[c.key]?.done).length;
+            const toggleDk = (key) => {
+              const cur = kit[key] || {};
+              saveDayKit({ ...kit, [key]: { ...cur, done: !cur.done, date: !cur.done ? new Date().toISOString().slice(0, 10) : "" } });
+            };
+            const addDkItem = () => {
+              if (!dkInput.trim()) return;
+              const key = "custom_" + Date.now();
+              saveDayKit({ ...kit, _custom: [...customKit, { key, label: dkInput.trim() }] });
+              setDkInput("");
+            };
+            const rmDkItem = (key) => {
+              if (!window.confirm("Remove this item?")) return;
+              const newKit = { ...kit, _custom: customKit.filter(c => c.key !== key) };
+              delete newKit[key];
+              saveDayKit(newKit);
+            };
+            return (
+              <div style={{ marginTop: 18 }}>
+                <div onClick={() => setDkOpen(!dkOpen)} style={{ background: P.card, borderRadius: dkOpen ? "14px 14px 0 0" : 14, padding: "12px 14px", cursor: "pointer", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${P.red}`, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: P.txt, fontFamily: "'Playfair Display', Georgia, serif" }}>{"\uD83C\uDFE5"} Wedding Day Emergency Kit</div>
+                    <div style={{ fontSize: 10, color: P.txtL, marginTop: 1 }}>{dkDone}/{allItems.length} packed</div>
+                  </div>
+                  <span style={{ fontSize: 15, color: P.stoneL, transform: dkOpen ? "rotate(90deg)" : "none", transition: "transform 0.2s" }}>{"\u203A"}</span>
+                </div>
+                {dkOpen && (
+                  <div style={{ background: P.card, borderRadius: "0 0 14px 14px", padding: "8px 14px 14px", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", borderLeft: `5px solid ${P.red}` }}>
+                    <div style={{ height: 4, borderRadius: 2, background: P.bgD, marginBottom: 10 }}>
+                      <div style={{ height: 4, borderRadius: 2, background: P.green, width: allItems.length ? `${(dkDone / allItems.length) * 100}%` : 0, transition: "width 0.3s" }} />
+                    </div>
+                    {allItems.map(c => {
+                      const entry = kit[c.key] || {};
+                      const isCustom = c.key.startsWith("custom_");
+                      return (
+                        <div key={c.key} style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 0", borderBottom: `1px solid ${P.bgD}` }}>
+                          <input type="checkbox" checked={!!entry.done} onChange={() => toggleDk(c.key)} style={{ accentColor: P.green }} />
+                          <div style={{ flex: 1 }}>
+                            <div style={{ fontSize: 11, color: entry.done ? P.txtL : P.txt, textDecoration: entry.done ? "line-through" : "none" }}>{c.label}</div>
+                            {entry.done && entry.date && <div style={{ fontSize: 9, color: P.green, marginTop: 1 }}>Packed {entry.date}</div>}
+                          </div>
+                          {isCustom && <button onClick={() => rmDkItem(c.key)} style={{ background: "none", border: "none", color: P.red, cursor: "pointer", fontSize: 12, padding: "2px 4px", opacity: 0.5 }} title="Remove">{"\u2715"}</button>}
+                        </div>
+                      );
+                    })}
+                    <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                      <input value={dkInput} onChange={e => setDkInput(e.target.value)} onKeyDown={e => e.key === "Enter" && addDkItem()} placeholder="Add custom item..." style={{ ...iS, flex: 1, fontSize: 10 }} />
+                      <button onClick={addDkItem} style={{ ...bS, fontSize: 10, padding: "4px 10px", color: P.green }}>+ Add</button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
       );
     }
@@ -2663,9 +2910,12 @@
       const [legalChecklist, saveLegalChecklist, b13] = useStorage("wedding-legal-v1", {});
       const [speeches, saveSpeeches, b14] = useStorage("wedding-speeches-v1", []);
       const [prepChecklist, savePrepChecklist, b15] = useStorage("wedding-prep-v1", { groom: {}, bride: {}, customGroom: [], customBride: [] });
+      const [photoShots, savePhotoShots, b16] = useStorage("wedding-photos-v1", DEFAULT_SHOTS.map(s => ({ ...s, done: false })));
+      const [dayKit, saveDayKit, b17] = useStorage("wedding-daykit-v1", {});
+      const [honeymoon, saveHoneymoon, b18] = useStorage("wedding-honeymoon-v1", { destination: "", dates: "", flights: "", hotel: "", budget: "", notes: "", documents: "", itinerary: [] });
       EUR_RATE = eurRate;
 
-      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15)) return (
+      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18)) return (
         <div style={{ minHeight: "100vh", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\uD83D\uDC8D"}</div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15 }}>Loading...</div></div>
         </div>
@@ -2714,16 +2964,16 @@
             </div>
           </div>
           <div style={{ maxWidth: 840, margin: "0 auto", padding: "18px 10px 50px" }}>
-            {tab === "dash" && <DashTab data={{ budget, milestones }} saveMilestones={saveMilestones} gC={gC} cC={cC} upPay={upPay} vendors={vendors} guests={guests} timeline={timeline} allData={{ budget, guests, vendors, timeline, milestones, decisions, music, packing, seating, rooms, contingency, legalChecklist, speeches, eurRate, prepChecklist }} saveFns={{ saveBudget, saveGuests, saveVendors, saveTimeline, saveMilestones, saveDecisions, saveMusic, savePacking, saveSeating, saveRooms, saveContingency, saveLegalChecklist, saveSpeeches, saveEurRate, savePrepChecklist }} />}
+            {tab === "dash" && <DashTab data={{ budget, milestones }} saveMilestones={saveMilestones} gC={gC} cC={cC} upPay={upPay} vendors={vendors} guests={guests} timeline={timeline} allData={{ budget, guests, vendors, timeline, milestones, decisions, music, packing, seating, rooms, contingency, legalChecklist, speeches, eurRate, prepChecklist, photoShots, dayKit, honeymoon }} saveFns={{ saveBudget, saveGuests, saveVendors, saveTimeline, saveMilestones, saveDecisions, saveMusic, savePacking, saveSeating, saveRooms, saveContingency, saveLegalChecklist, saveSpeeches, saveEurRate, savePrepChecklist, savePhotoShots, saveDayKit, saveHoneymoon }} />}
             {tab === "budget" && <BudgetTab budget={budget} saveBudget={saveBudget} vendors={vendors} eurRate={eurRate} saveEurRate={saveEurRate} />}
             {tab === "vendors" && <VendorsTab vendors={vendors} saveVendors={saveVendors} />}
             {tab === "guests" && <GuestsTab guests={guests} saveGuests={saveGuests} />}
             {tab === "seating" && <SeatingTab seating={seating} saveSeating={saveSeating} guests={guests} />}
             {tab === "rooms" && <RoomsTab rooms={rooms} saveRooms={saveRooms} guests={guests} />}
             {tab === "project" && <ProjectTab milestones={milestones} saveMilestones={saveMilestones} vendors={vendors} budget={budget} upPay={upPay} legalChecklist={legalChecklist} saveLegalChecklist={saveLegalChecklist} prepChecklist={prepChecklist} savePrepChecklist={savePrepChecklist} />}
-            {tab === "timeline" && <TimelineTab timeline={timeline} saveTimeline={saveTimeline} contingency={contingency} saveContingency={saveContingency} speeches={speeches} saveSpeeches={saveSpeeches} />}
+            {tab === "timeline" && <TimelineTab timeline={timeline} saveTimeline={saveTimeline} contingency={contingency} saveContingency={saveContingency} speeches={speeches} saveSpeeches={saveSpeeches} photoShots={photoShots} savePhotoShots={savePhotoShots} />}
             {tab === "music" && <MusicTab music={music} saveMusic={saveMusic} />}
-            {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} />}
+            {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} dayKit={dayKit} saveDayKit={saveDayKit} />}
             {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
           </div>
         </div>
