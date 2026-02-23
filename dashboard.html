@@ -91,8 +91,8 @@
     ];
 
     const VENDOR_CATS = ["Venue","Caterer","Photographer","Videographer","Florist","DJ / Band","Hair & Makeup","Celebrant","Wedding Planner","Transport","Cake","Stationery","Activities","Other"];
-    const VENDOR_STATUSES = ["Researching","Contacted","Quoted","Booked","Paid Deposit","Paid in Full"];
-    const VSC = { Researching:{bg:P.stoneP,c:P.stone}, Contacted:{bg:P.goldP,c:P.gold}, Quoted:{bg:P.blueP,c:P.blue}, Booked:{bg:P.oliveP,c:P.olive}, "Paid Deposit":{bg:P.terraP,c:P.terra}, "Paid in Full":{bg:P.greenP,c:P.green} };
+    const VENDOR_STATUSES = ["Researching","Contacted","Responded","Quoted","Booked","Paid Deposit","Paid in Full","Not Proceeding"];
+    const VSC = { Researching:{bg:P.stoneP,c:P.stone}, Contacted:{bg:P.goldP,c:P.gold}, Responded:{bg:"#E8F4FD",c:"#2980B9"}, Quoted:{bg:P.blueP,c:P.blue}, Booked:{bg:P.oliveP,c:P.olive}, "Paid Deposit":{bg:P.terraP,c:P.terra}, "Paid in Full":{bg:P.greenP,c:P.green}, "Not Proceeding":{bg:"#F5F5F5",c:"#999"} };
 
     const AIRPORTS = ["Perugia (PEG)","Florence (FLR)","Rome Fiumicino (FCO)","Rome Ciampino (CIA)","Pisa (PSA)","Bologna (BLQ)","Self-driving","Other"];
     const GUEST_STATUSES = ["Invited","Confirmed","Declined","Pending"];
@@ -1032,11 +1032,13 @@
       const preFil = filter === "All" ? vendors : vendors.filter(v => v.category === filter);
       const fil = vSearch.trim() ? preFil.filter(v => { const s = vSearch.toLowerCase(); return v.name.toLowerCase().includes(s) || (v.category||"").toLowerCase().includes(s) || (v.notes||"").toLowerCase().includes(s) || (v.email||"").toLowerCase().includes(s); }) : preFil;
       const bkd = vendors.filter(v => ["Booked","Paid Deposit","Paid in Full"].includes(v.status)).length;
+      const contacted = vendors.filter(v => ["Contacted","Responded","Quoted"].includes(v.status)).length;
+      const awaitingReply = vendors.filter(v => v.response === "Awaiting reply").length;
 
       return (
         <div>
           <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-            {[{ l: "Total", v: vendors.length, c: P.stone },{ l: "Booked", v: bkd, c: P.green },{ l: "Researching", v: vendors.filter(v => v.status==="Researching").length, c: P.gold }].map((s,i) => (
+            {[{ l: "Total", v: vendors.length, c: P.stone },{ l: "Booked", v: bkd, c: P.green },{ l: "In Outreach", v: contacted, c: P.gold },{ l: "Awaiting Reply", v: awaitingReply, c: "#2980B9" },{ l: "Researching", v: vendors.filter(v => v.status==="Researching").length, c: P.stone }].map((s,i) => (
               <div key={i} style={{ flex: 1, minWidth: 85, background: P.card, borderRadius: 12, padding: "11px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: `3px solid ${s.c}` }}>
                 <div style={{ fontSize: 18, fontWeight: 700, color: P.txt }}>{s.v}</div><div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>{s.l}</div></div>))}
           </div>
@@ -1110,7 +1112,15 @@
                   <span style={{ padding: "2px 8px", borderRadius: 12, fontSize: 10, fontWeight: 600, background: sc.bg, color: sc.c }}>{v.status}</span>
                 </div>
                 {v.cancellationDeadline && !isE && (() => { const d = Math.ceil((new Date(v.cancellationDeadline) - new Date()) / 86400000); return d <= 14 && d > 0 ? <div style={{ fontSize: 10, color: P.red, marginTop: 3, marginLeft: 28 }}>{"\u26A0"} Cancel deadline in {d} day{d!==1?"s":""}</div> : null; })()}
-                {v.notes && !isE && <div style={{ fontSize: 10, color: P.txtM, marginTop: 5, marginLeft: 28 }}>{v.notes}</div>}
+                {!isE && (v.contactedDate || v.response || v.quote > 0) && (
+                  <div style={{ marginTop: 5, marginLeft: 28, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+                    {v.contactedDate && <span style={{ fontSize: 10, color: P.txtL }}>📨 Contacted {new Date(v.contactedDate).toLocaleDateString("en-GB",{day:"numeric",month:"short"})}</span>}
+                    {v.response && <span style={{ fontSize: 10, background: v.response==="Awaiting reply"?P.goldP:v.response==="No reply"?"#FFF0F0":"#EBF7EF", color: v.response==="Awaiting reply"?P.gold:v.response==="No reply"?P.red:"#2D7D46", padding:"1px 7px", borderRadius:8, fontWeight:600 }}>{v.response}</span>}
+                    {v.quote > 0 && <span style={{ fontSize: 10, color: P.blue, fontWeight: 600 }}>£{v.quote.toLocaleString()} quoted</span>}
+                    {v.responseNotes && <span style={{ fontSize: 10, color: P.txtM, fontStyle:"italic" }}>{v.responseNotes}</span>}
+                  </div>
+                )}
+                {v.notes && !isE && <div style={{ fontSize: 10, color: P.txtM, marginTop: 4, marginLeft: 28 }}>{v.notes}</div>}
                 {isE && (
                   <div style={{ marginTop: 10, borderTop: `1px solid ${P.bgD}`, paddingTop: 10 }} onClick={e=>e.stopPropagation()}>
                     <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
@@ -1131,6 +1141,11 @@
                       <div style={{ flex: 1, minWidth: 100 }}><label style={lb}>Quote Date</label><input type="date" value={v.quoteDate||""} onChange={e=>upV(v.id,{quoteDate:e.target.value})} style={iS} /></div>
                       <div style={{ flex: 1, minWidth: 110 }}><label style={lb}>Budget Category</label><select value={v.budgetCategory||""} onChange={e=>upV(v.id,{budgetCategory:e.target.value})} style={{...iS,background:"#fff"}}><option value="">{"\u2014"} None {"\u2014"}</option>{BUDGET_CATS.map(c=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
                     </div>
+                    <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
+                      <div style={{ flex: 1, minWidth: 100 }}><label style={lb}>Contacted Date</label><input type="date" value={v.contactedDate||""} onChange={e=>upV(v.id,{contactedDate:e.target.value})} style={iS} /></div>
+                      <div style={{ flex: 1, minWidth: 140 }}><label style={lb}>Response</label><select value={v.response||""} onChange={e=>upV(v.id,{response:e.target.value})} style={{...iS,background:"#fff"}}><option value="">— not contacted —</option><option>Awaiting reply</option><option>Responded</option><option>No reply</option><option>Declined</option></select></div>
+                    </div>
+                    <div style={{ marginBottom: 5 }}><label style={lb}>Response Notes</label><input value={v.responseNotes||""} onChange={e=>upV(v.id,{responseNotes:e.target.value})} placeholder="e.g. Quoted €1,800, includes sax, confirmed availability..." style={{...iS,width:"100%",boxSizing:"border-box"}} /></div>
                     <div style={{ display: "flex", gap: 5, flexWrap: "wrap", marginBottom: 5 }}>
                       <div style={{ flex: 1, minWidth: 100 }}><label style={lb}>Booked Date</label><input type="date" value={v.bookedDate||""} onChange={e=>upV(v.id,{bookedDate:e.target.value})} style={iS} /></div>
                       <div style={{ flex: 1, minWidth: 100 }}><label style={lb}>Cancel Deadline</label><input type="date" value={v.cancellationDeadline||""} onChange={e=>upV(v.id,{cancellationDeadline:e.target.value})} style={iS} /></div>
