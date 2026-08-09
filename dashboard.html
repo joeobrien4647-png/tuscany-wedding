@@ -454,10 +454,39 @@
     const bS = { padding: "4px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 500 };
     const lb = { fontSize: 11, color: P.txtL, display: "block", marginBottom: 3 };
     const safeArr = (v) => Array.isArray(v) ? v : v && typeof v === "object" ? Object.values(v) : [];
+    const safeObj = (v, fallback = {}) => (v && typeof v === "object" && !Array.isArray(v) ? v : fallback);
+    const normalizeRooms = (v) => {
+      const base = safeObj(v, {});
+      return {
+        santarsa: safeArr(base.santarsa).map(r => ({ ...r, guests: safeArr(r?.guests) })),
+        vallorsaia: safeArr(base.vallorsaia).map(r => ({ ...r, guests: safeArr(r?.guests) })),
+      };
+    };
+    const normalizeTimeline = (v) => safeArr(v).map(day => ({ ...day, items: safeArr(day?.items || day?.events) }));
+    const normalizeMusic = (v) => {
+      const base = safeObj(v, {});
+      return { mustPlay: safeArr(base.mustPlay), neverPlay: safeArr(base.neverPlay), requests: safeArr(base.requests) };
+    };
+    const normalizePrep = (v) => {
+      const base = safeObj(v, {});
+      return { groom: safeObj(base.groom, {}), bride: safeObj(base.bride, {}), customGroom: safeArr(base.customGroom), customBride: safeArr(base.customBride) };
+    };
+    const normalizeHoneymoon = (v) => {
+      const base = safeObj(v, {});
+      return { ...base, itinerary: safeArr(base.itinerary) };
+    };
 
-    function useStorage(key, def) {
+    function useStorage(key, def, normalize = (v) => v) {
+      const applyNorm = useCallback((v) => {
+        try { return normalize(v); } catch { return def; }
+      }, [normalize, def]);
       const [d, setD] = useState(() => {
-        try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : def; } catch { return def; }
+        try {
+          const s = localStorage.getItem(key);
+          return s ? applyNorm(JSON.parse(s)) : def;
+        } catch {
+          return def;
+        }
       });
       const [ok, setOk] = useState(true);
       const fbOk = React.useRef(false);
@@ -465,18 +494,20 @@
         const ref = db.ref(key);
         const handler = ref.on("value", (snap) => {
           fbOk.current = true;
-          const val = snap.exists() ? snap.val() : def;
-          if (!snap.exists()) ref.set(def);
+          const incoming = snap.exists() ? snap.val() : def;
+          const val = applyNorm(incoming);
+          if (!snap.exists()) ref.set(val);
           setD(val);
           try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
         }, () => { fbOk.current = false; });
         return () => ref.off("value", handler);
-      }, [key]);
+      }, [key, applyNorm, def]);
       const save = useCallback((n) => {
-        setD(n);
-        try { localStorage.setItem(key, JSON.stringify(n)); } catch {}
-        if (fbOk.current) db.ref(key).set(n);
-      }, [key]);
+        const next = applyNorm(n);
+        setD(next);
+        try { localStorage.setItem(key, JSON.stringify(next)); } catch {}
+        if (fbOk.current) db.ref(key).set(next);
+      }, [key, applyNorm]);
       return [d, save, ok];
     }
 
@@ -2420,97 +2451,208 @@
 
     /* ========== ROOMS ========== */
     function RoomsTab({ rooms, saveRooms, guests }) {
-      const confirmed = guests.filter(g => g.status !== "Declined");
-      const allAssigned = [...safeArr(rooms.santarsa), ...safeArr(rooms.vallorsaia)].flatMap(r => safeArr(r.guests));
-      const unassigned = confirmed.filter(g => !allAssigned.includes(g.name)).map(g => g.name);
+      const [picked, setPicked] = useState(null);
+      const [overKey, setOverKey] = useState(null);
 
-      const assign = (villa, ri, gName) => {
-        if (!gName) return;
-        const u = { ...rooms, [villa]: safeArr(rooms[villa]).map((r, i) => i === ri ? { ...r, guests: [...(r.guests||[]), gName] } : r) };
-        saveRooms(u);
-      };
-      const remove = (villa, ri, gName) => {
-        const u = { ...rooms, [villa]: safeArr(rooms[villa]).map((r, i) => i === ri ? { ...r, guests: (r.guests||[]).filter(g => g !== gName) } : r) };
-        saveRooms(u);
+      const live = safeArr(guests).filter(g => g && g.status !== "Declined");
+      const byName = {};
+      live.forEach(g => { byName[g.name] = g; });
+
+      const placedNames = [...safeArr(rooms.santarsa), ...safeArr(rooms.vallorsaia)]
+        .flatMap(r => safeArr(r.guests));
+      const unplaced = live.filter(g => !placedNames.includes(g.name)).map(g => g.name);
+
+      const VILLAS = [
+        { key: "santarsa", label: "Villa Santarsa", c: P.terra, p: P.terraP },
+        { key: "vallorsaia", label: "Villa Vallorsaia", c: P.olive, p: P.oliveP },
+      ];
+
+      const statsFor = k => {
+        const rs = safeArr(rooms[k]);
+        const beds = rs.reduce((s, r) => s + (r.sleeps || 0), 0);
+        const used = rs.reduce((s, r) => s + safeArr(r.guests).length, 0);
+        return { beds, used, free: beds - used, count: rs.length };
       };
 
-      const villaStats = (key) => {
-        const rs = rooms[key] || [];
-        const beds = rs.reduce((s, r) => s + r.sleeps, 0);
-        const used = rs.reduce((s, r) => s + (r.guests||[]).length, 0);
-        return { beds, used, free: beds - used };
-      };
-      const sS = villaStats("santarsa"), vS = villaStats("vallorsaia");
+      const stripName = (obj, name) => ({
+        santarsa: safeArr(obj.santarsa).map(r => ({ ...r, guests: safeArr(r.guests).filter(g => g !== name) })),
+        vallorsaia: safeArr(obj.vallorsaia).map(r => ({ ...r, guests: safeArr(r.guests).filter(g => g !== name) })),
+      });
 
-      const VillaSection = ({ title, villa, stats, color }) => (
-        <div style={{ marginBottom: 18 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: P.txt, fontFamily: "'Playfair Display', Georgia, serif" }}>{title}</div>
-            <div style={{ display: "flex", gap: 10, fontSize: 10 }}>
-              <span style={{ color: P.txtM }}>{stats.beds} beds</span>
-              <span style={{ color: P.olive }}>{stats.used} assigned</span>
-              <span style={{ color: stats.free > 0 ? P.txtL : P.red }}>{stats.free} free</span>
+      const place = (name, villa, ri) => {
+        if (!name) return;
+        const target = safeArr(rooms[villa])[ri];
+        if (!target) return;
+        const gs = safeArr(target.guests);
+        if (gs.includes(name)) { setPicked(null); return; }
+        if (gs.length >= target.sleeps) return;
+        const next = stripName(rooms, name);
+        next[villa] = next[villa].map((r, i) => i === ri ? { ...r, guests: [...safeArr(r.guests), name] } : r);
+        saveRooms(next);
+        setPicked(null);
+      };
+
+      const unplace = name => { saveRooms(stripName(rooms, name)); setPicked(null); };
+
+      const statusColour = name => {
+        const g = byName[name];
+        const st = g && g.status;
+        if (st === "Confirmed") return P.green;
+        if (st === "Pending") return P.gold;
+        return P.olive;
+      };
+
+      const Chip = ({ name, seated }) => {
+        const on = picked === name;
+        return (
+          <span
+            draggable
+            onDragStart={e => { e.dataTransfer.setData("text/plain", name); setPicked(name); }}
+            onDragEnd={() => setOverKey(null)}
+            onClick={e => { e.stopPropagation(); setPicked(on ? null : name); }}
+            title={(byName[name] && byName[name].notes) || name}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 5,
+              padding: "3px 8px", borderRadius: 12, cursor: "grab",
+              background: on ? P.blueP : "#fff",
+              border: "1px solid " + (on ? P.blue : P.stoneP),
+              fontSize: 11, color: P.txt, userSelect: "none", maxWidth: "100%",
+            }}>
+            <i style={{ width: 6, height: 6, borderRadius: 3, background: statusColour(name), flex: "none" }} />
+            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
+            {seated && (
+              <button onClick={e => { e.stopPropagation(); unplace(name); }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: P.txtL, fontSize: 12, padding: 0, lineHeight: 1 }}>
+                {"×"}
+              </button>
+            )}
+          </span>
+        );
+      };
+
+      const RoomCard = ({ villa, r, ri, accent }) => {
+        const gs = safeArr(r.guests);
+        const full = gs.length >= r.sleeps;
+        const key = villa + ":" + ri;
+        const armed = picked && !gs.includes(picked) && !full;
+        const hot = overKey === key;
+        return (
+          <div
+            onDragOver={e => { e.preventDefault(); if (!full) setOverKey(key); }}
+            onDragLeave={() => setOverKey(k => (k === key ? null : k))}
+            onDrop={e => { e.preventDefault(); setOverKey(null); place(e.dataTransfer.getData("text/plain"), villa, ri); }}
+            onClick={() => { if (picked) place(picked, villa, ri); }}
+            style={{
+              background: P.card, borderRadius: 10, padding: 10,
+              border: "1px solid " + (hot ? P.blue : armed ? P.blueP : P.stoneP),
+              borderLeft: "3px solid " + (full ? accent : P.stoneL),
+              boxShadow: hot ? "0 0 0 3px " + P.blueP : "0 1px 2px rgba(0,0,0,0.03)",
+              cursor: armed ? "pointer" : "default",
+              display: "flex", flexDirection: "column", gap: 7, minHeight: 72,
+              transition: "box-shadow 0.12s, border-color 0.12s",
+            }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: P.txt }}>{r.name}</span>
+              <span style={{ display: "flex", gap: 2, flex: "none" }}>
+                {Array.from({ length: r.sleeps }).map((_, i) => (
+                  <i key={i} style={{ width: 11, height: 4, borderRadius: 2, background: i < gs.length ? accent : P.stoneP }} />
+                ))}
+              </span>
+            </div>
+            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+              {gs.map(n => <Chip key={n} name={n} seated />)}
+              {gs.length === 0 && <span style={{ fontSize: 10, color: P.txtL, fontStyle: "italic" }}>empty</span>}
             </div>
           </div>
-          <div style={{ background: P.bgD, borderRadius: 8, height: 5, marginBottom: 12, overflow: "hidden" }}>
-            <div style={{ height: "100%", borderRadius: 8, width: `${stats.beds ? Math.min(stats.used/stats.beds*100,100) : 0}%`, background: stats.used > stats.beds ? P.red : color, transition: "width 0.3s" }} />
-          </div>
-          {(rooms[villa]||[]).map((r, ri) => {
-            const full = (r.guests||[]).length >= r.sleeps;
-            const villaName = villa === "santarsa" ? "Santarsa" : "Vallorsaia";
-            const available = unassigned.filter(n => { const gObj = confirmed.find(g => g.name === n); return !(r.guests||[]).includes(n) && (!gObj?.villa || gObj.villa === villaName || gObj.villa === "Off-site"); });
-            return (
-              <div key={ri} style={{ background: P.card, borderRadius: 10, padding: "10px 12px", marginBottom: 5, boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderLeft: `3px solid ${full ? P.olive : P.stoneL}` }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: (r.guests||[]).length > 0 || !full ? 6 : 0 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: P.txt }}>{r.name}</div>
-                  <div style={{ fontSize: 10, color: full ? P.olive : P.txtL }}>{(r.guests||[]).length}/{r.sleeps}</div>
-                </div>
-                {(r.guests||[]).length > 0 && (
-                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: !full ? 6 : 0 }}>
-                    {(r.guests||[]).map(g => (
-                      <span key={g} style={{ padding: "2px 8px", borderRadius: 12, background: P.oliveP, fontSize: 11, color: P.olive, display: "flex", alignItems: "center", gap: 4 }}>
-                        {g} <button onClick={() => remove(villa, ri, g)} style={{ background: "none", border: "none", cursor: "pointer", color: P.olive, fontSize: 12, padding: 0, lineHeight: 1 }}>{"\u00D7"}</button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {!full && available.length > 0 && (
-                  <select onChange={e => { assign(villa, ri, e.target.value); e.target.value = ""; }} style={{ ...iS, fontSize: 11, padding: "4px 8px", background: "#fff" }} defaultValue="">
-                    <option value="" disabled>+ Assign guest{"\u2026"}</option>
-                    {available.map(n => <option key={n}>{n}</option>)}
-                  </select>
-                )}
+        );
+      };
+
+      const VillaPanel = ({ v }) => {
+        const s = statsFor(v.key);
+        const over = s.used > s.beds;
+        return (
+          <div style={{ background: P.bg, borderRadius: 14, padding: 14, border: "1px solid " + P.stoneP }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8, gap: 8, flexWrap: "wrap" }}>
+              <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 16, fontWeight: 700, color: P.txt }}>{v.label}</div>
+              <div style={{ display: "flex", gap: 10, fontSize: 10, color: P.txtM }}>
+                <span>{s.count} rooms</span>
+                <span style={{ color: v.c, fontWeight: 600 }}>{s.used}/{s.beds} beds</span>
+                <span style={{ color: over ? P.red : s.free === 0 ? P.gold : P.txtL }}>
+                  {over ? (s.used - s.beds) + " over" : s.free + " free"}
+                </span>
               </div>
-            );
-          })}
-        </div>
-      );
+            </div>
+            <div style={{ background: P.bgD, borderRadius: 8, height: 5, marginBottom: 12, overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: 8, background: over ? P.red : v.c, transition: "width 0.3s",
+                width: (s.beds ? Math.min(s.used / s.beds * 100, 100) : 0) + "%" }} />
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(158px, 1fr))", gap: 8 }}>
+              {safeArr(rooms[v.key]).map((r, ri) => (
+                <RoomCard key={ri} villa={v.key} r={r} ri={ri} accent={v.c} />
+              ))}
+            </div>
+          </div>
+        );
+      };
+
+      const tot = { beds: statsFor("santarsa").beds + statsFor("vallorsaia").beds,
+                    used: statsFor("santarsa").used + statsFor("vallorsaia").used };
 
       return (
         <div>
           <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>Room Allocation</div>
-          <div style={{ fontSize: 12, color: P.txtL, marginBottom: 18 }}>Assign guests to villa rooms {"\u00B7"} {allAssigned.length} assigned / {confirmed.length} guests</div>
+          <div style={{ fontSize: 12, color: P.txtL, marginBottom: 14 }}>
+            Drag a name onto a room, or tap a name then tap a room {"·"} {tot.used}/{tot.beds} beds filled
+          </div>
 
-          {unassigned.length > 0 && (
-            <div style={{ background: P.goldP, borderRadius: 12, padding: 14, marginBottom: 16 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: P.gold, marginBottom: 6 }}>Unassigned ({unassigned.length})</div>
-              <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
-                {unassigned.map(n => (<span key={n} style={{ padding: "3px 10px", borderRadius: 14, background: "#fff", fontSize: 11, color: P.txt }}>{n}</span>))}
-              </div>
-            </div>
-          )}
-
-          <div style={{ display: "flex", gap: 10, marginBottom: 18 }}>
-            {[{ l: "Santarsa", v: `${sS.used}/${sS.beds}`, c: P.terra }, { l: "Vallorsaia", v: `${vS.used}/${vS.beds}`, c: P.olive }, { l: "Total", v: `${sS.used+vS.used}/${sS.beds+vS.beds}`, c: P.stone }].map((s,i) => (
-              <div key={i} style={{ flex: 1, background: P.card, borderRadius: 12, padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: `3px solid ${s.c}` }}>
-                <div style={{ fontSize: 18, fontWeight: 700, color: P.txt }}>{s.v}</div>
+          <div style={{ display: "flex", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+            {[{ l: "Placed", v: tot.used, c: P.olive },
+              { l: "Beds", v: tot.beds, c: P.stone },
+              { l: "Spare", v: tot.beds - tot.used, c: tot.beds - tot.used < 0 ? P.red : P.terra },
+              { l: "Unplaced", v: unplaced.length, c: unplaced.length ? P.gold : P.green }].map((s, i) => (
+              <div key={i} style={{ flex: "1 1 90px", background: P.card, borderRadius: 12, padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: "3px solid " + s.c }}>
+                <div style={{ fontSize: 20, fontWeight: 700, color: P.txt }}>{s.v}</div>
                 <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>{s.l}</div>
               </div>
             ))}
           </div>
 
-          <VillaSection title="Villa Santarsa" villa="santarsa" stats={sS} color={P.terra} />
-          <VillaSection title="Villa Vallorsaia" villa="vallorsaia" stats={vS} color={P.olive} />
+          <div
+            onDragOver={e => e.preventDefault()}
+            onDrop={e => { e.preventDefault(); const n = e.dataTransfer.getData("text/plain"); if (n) unplace(n); }}
+            style={{ background: unplaced.length ? P.goldP : P.greenP, borderRadius: 12, padding: 12, marginBottom: 16 }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: unplaced.length ? P.gold : P.green, marginBottom: unplaced.length ? 7 : 0 }}>
+              {unplaced.length ? "Not in a room yet (" + unplaced.length + ") — drag one into a room, or drop a name here to take them out" : "Everyone has a room"}
+            </div>
+            {unplaced.length > 0 && (
+              <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
+                {unplaced.map(n => <Chip key={n} name={n} />)}
+              </div>
+            )}
+          </div>
+
+          {picked && (
+            <div style={{ background: P.blueP, borderRadius: 10, padding: "8px 12px", marginBottom: 12, fontSize: 11, color: P.blue, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span><b>{picked}</b> selected {"·"} tap a room to move them there</span>
+              <button onClick={() => setPicked(null)} style={{ ...bS, background: "#fff", color: P.blue }}>Cancel</button>
+            </div>
+          )}
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(330px, 1fr))", gap: 14, marginBottom: 14 }}>
+            {VILLAS.map(v => <VillaPanel key={v.key} v={v} />)}
+          </div>
+
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", fontSize: 10, color: P.txtL }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i style={{ width: 6, height: 6, borderRadius: 3, background: P.olive }} /> invited
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i style={{ width: 6, height: 6, borderRadius: 3, background: P.gold }} /> not invited yet
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+              <i style={{ width: 6, height: 6, borderRadius: 3, background: P.green }} /> confirmed
+            </span>
+          </div>
         </div>
       );
     }
@@ -2908,13 +3050,13 @@
       const [budget, saveBudget, b1] = useStorage("wedding-budget-v3", DEFAULT_DATA.budget);
       const [guests, saveGuests, b2] = useStorage("wedding-guests-v4", DEFAULT_DATA.guests);
       const [vendors, saveVendors, b3] = useStorage("wedding-vendors-v4", DEFAULT_DATA.vendors);
-      const [timeline, saveTimeline, b4] = useStorage("wedding-timeline-v3", DEFAULT_DATA.timeline);
+      const [timeline, saveTimeline, b4] = useStorage("wedding-timeline-v3", DEFAULT_DATA.timeline, normalizeTimeline);
       const [milestones, saveMilestones, b5] = useStorage("wedding-milestones-v4", DEFAULT_DATA.milestones);
       const [decisions, saveDecisions, b6] = useStorage("wedding-decisions-v3", DEFAULT_DATA.decisions);
-      const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music);
-      const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing);
-      const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating);
-      const [rooms, saveRooms, b10] = useStorage("wedding-rooms-v3", DEFAULT_DATA.rooms);
+      const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music, normalizeMusic);
+      const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing, safeArr);
+      const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating, (v) => ({ tables: safeArr(v?.tables).map(t => ({ ...t, guests: safeArr(t?.guests) })) }));
+      const [rooms, saveRooms, b10] = useStorage("wedding-rooms-v3", DEFAULT_DATA.rooms, normalizeRooms);
       const [contingency, saveContingency, b11] = useStorage("wedding-contingency-v1", {
         rain: "Move ceremony to indoor salon at villa. Cocktail hour under covered loggia. Reception in main dining room.",
         vendorNoShow: "Contact wedding planner immediately.\nBackup photographer: TBC\nBackup DJ: TBC",
@@ -2923,11 +3065,11 @@
       });
       const [eurRate, saveEurRate, b12] = useStorage("wedding-eur-rate-v1", 1.17);
       const [legalChecklist, saveLegalChecklist, b13] = useStorage("wedding-legal-v1", {});
-      const [speeches, saveSpeeches, b14] = useStorage("wedding-speeches-v1", []);
-      const [prepChecklist, savePrepChecklist, b15] = useStorage("wedding-prep-v1", { groom: {}, bride: {}, customGroom: [], customBride: [] });
-      const [photoShots, savePhotoShots, b16] = useStorage("wedding-photos-v1", DEFAULT_SHOTS.map(s => ({ ...s, done: false })));
+      const [speeches, saveSpeeches, b14] = useStorage("wedding-speeches-v1", [], safeArr);
+      const [prepChecklist, savePrepChecklist, b15] = useStorage("wedding-prep-v1", { groom: {}, bride: {}, customGroom: [], customBride: [] }, normalizePrep);
+      const [photoShots, savePhotoShots, b16] = useStorage("wedding-photos-v1", DEFAULT_SHOTS.map(s => ({ ...s, done: false })), safeArr);
       const [dayKit, saveDayKit, b17] = useStorage("wedding-daykit-v1", {});
-      const [honeymoon, saveHoneymoon, b18] = useStorage("wedding-honeymoon-v1", { destination: "", dates: "", flights: "", hotel: "", budget: "", notes: "", documents: "", itinerary: [] });
+      const [honeymoon, saveHoneymoon, b18] = useStorage("wedding-honeymoon-v1", { destination: "", dates: "", flights: "", hotel: "", budget: "", notes: "", documents: "", itinerary: [] }, normalizeHoneymoon);
       EUR_RATE = eurRate;
 
       if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18)) return (
@@ -2999,3 +3141,4 @@
   </script>
 </body>
 </html>
+
