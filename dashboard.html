@@ -13,6 +13,7 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script>
     firebase.initializeApp({
       apiKey: "AIzaSyAbEpCIPFFqiuElH0DK1dkkl7JBbNyZTc8",
@@ -3184,7 +3185,7 @@
     }
 
     /* ========== MAIN ========== */
-    function WeddingDashboard() {
+    function WeddingDashboard({ authUser }) {
       const [tab, setTab] = useState("dash");
       const fbConnected = useFirebaseConnected();
       const [budget, saveBudget, b1] = useStorage("wedding-budget-v3", DEFAULT_DATA.budget);
@@ -3279,7 +3280,90 @@
       );
     }
 
-    ReactDOM.createRoot(document.getElementById("root")).render(<WeddingDashboard />);
+        /* ========== AUTH GATE ========== */
+    function AuthGate() {
+      const [user, setUser] = useState(undefined);   // undefined = still checking
+      const [email, setEmail] = useState("");
+      const [pw, setPw] = useState("");
+      const [err, setErr] = useState("");
+      const [busy, setBusy] = useState(false);
+
+      useEffect(() => {
+        return firebase.auth().onAuthStateChanged(u => setUser(u || null));
+      }, []);
+
+      const signIn = async (e) => {
+        if (e) e.preventDefault();
+        setErr(""); setBusy(true);
+        try {
+          await firebase.auth().signInWithEmailAndPassword(email.trim(), pw);
+        } catch (ex) {
+          const c = ex && ex.code || "";
+          setErr(
+            c === "auth/invalid-credential" || c === "auth/wrong-password" || c === "auth/user-not-found"
+              ? "That email and password don't match an account."
+            : c === "auth/too-many-requests"
+              ? "Too many attempts. Wait a minute and try again."
+            : c === "auth/operation-not-allowed" || c === "auth/configuration-not-found"
+              ? "Email sign-in is not switched on for this Firebase project yet. Enable Authentication > Sign-in method > Email/Password in the Firebase console."
+            : (ex && ex.message) || "Could not sign in."
+          );
+        }
+        setBusy(false);
+      };
+
+      if (user === undefined) {
+        return (
+          <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
+                        background: P.bg, color: P.txtL, fontSize: 13 }}>
+            Checking&hellip;
+          </div>
+        );
+      }
+
+      if (user) return <WeddingDashboard authUser={user} />;
+
+      return (
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
+                      background: P.bg, padding: 20 }}>
+          <form onSubmit={signIn}
+                style={{ background: P.card, borderRadius: 16, padding: "30px 28px", width: "100%", maxWidth: 360,
+                         boxShadow: "0 10px 40px -12px rgba(61,50,40,0.25)" }}>
+            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 24, fontWeight: 700,
+                          color: P.txt, marginBottom: 4 }}>
+              Sophie &amp; Joe
+            </div>
+            <div style={{ fontSize: 12, color: P.txtL, marginBottom: 22 }}>
+              Wedding dashboard {"\u00B7"} Tuscany 2027
+            </div>
+
+            <label style={{ fontSize: 11, color: P.txtM, display: "block", marginBottom: 4 }}>Email</label>
+            <input type="email" value={email} autoComplete="username" required
+                   onChange={e => setEmail(e.target.value)}
+                   style={{ ...iS, width: "100%", marginBottom: 12 }} />
+
+            <label style={{ fontSize: 11, color: P.txtM, display: "block", marginBottom: 4 }}>Password</label>
+            <input type="password" value={pw} autoComplete="current-password" required
+                   onChange={e => setPw(e.target.value)}
+                   style={{ ...iS, width: "100%", marginBottom: 16 }} />
+
+            {err && (
+              <div style={{ background: P.redP, color: P.red, borderRadius: 8, padding: "9px 11px",
+                            fontSize: 12, marginBottom: 14, lineHeight: 1.5 }}>
+                {err}
+              </div>
+            )}
+
+            <button type="submit" disabled={busy}
+                    style={{ ...bP, width: "100%", opacity: busy ? 0.6 : 1, cursor: busy ? "default" : "pointer" }}>
+              {busy ? "Signing in\u2026" : "Sign in"}
+            </button>
+          </form>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<AuthGate />);
   </script>
 </body>
 </html>
