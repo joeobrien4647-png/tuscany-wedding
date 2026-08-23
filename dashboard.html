@@ -68,6 +68,7 @@
       { id: "music", label: "Music", icon: "\u266B" },
       { id: "packing", label: "Packing", icon: "\u2713" },
       { id: "decisions", label: "Decisions", icon: "\u270E" },
+      { id: "total", label: "Total Cost", icon: "Σ" },
     ];
 
     const BUDGET_CATS = [
@@ -2450,6 +2451,145 @@
     }
 
     /* ========== ROOMS ========== */
+    /* ========== TOTAL COST — both weddings ========== */
+    function TotalCostTab({ legalSpend, budget, eurRate, guests }) {
+      const rate = eurRate || 1.17;
+      const gbp = (amt, cur) => (cur === "EUR" ? (amt || 0) / rate : (amt || 0));
+      const money = n => "£" + Math.round(n).toLocaleString();
+
+      const ls = safeObj(legalSpend, {});
+      const legalItems = safeArr(ls.items);
+      const legalUnpriced = safeArr(ls.unpriced);
+      const legalTotal = legalItems.reduce((s, i) => s + (i.amount || 0), 0);
+
+      const byWho = {};
+      legalItems.forEach(i => {
+        const k = (i.paidBy || "").trim() || "Unattributed";
+        byWho[k] = (byWho[k] || 0) + (i.amount || 0);
+      });
+
+      const bud = safeObj(budget, {});
+      const rows = Object.keys(bud).map(k => ({ id: k, ...safeObj(bud[k], {}) }));
+      const italyCommitted = rows.reduce((s, r) => s + gbp(r.actual, r.currency), 0);
+      const italyPaid = rows.reduce((s, r) => s + gbp(r.paid, r.currency), 0);
+      const italyDue = italyCommitted - italyPaid;
+
+      const upcoming = [];
+      rows.forEach(r => {
+        safeArr(r.payments).forEach(p => {
+          if (!p.paid && (p.amount || 0) > 0 && p.date) {
+            upcoming.push({ cat: r.id, label: p.label, date: p.date,
+                            gbp: gbp(p.amount, p.currency || r.currency), raw: p, cur: p.currency || r.currency });
+          }
+        });
+      });
+      upcoming.sort((a, b) => (a.date < b.date ? -1 : 1));
+
+      const liveGuests = safeArr(guests).filter(g => g && g.status !== "Declined").length;
+      const paidAll = legalTotal + italyPaid;
+
+      const Card = ({ label, value, sub, colour, wide }) => (
+        <div style={{ flex: wide ? "2 1 220px" : "1 1 150px", background: P.card, borderRadius: 12,
+                      padding: "14px 16px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: "3px solid " + colour }}>
+          <div style={{ fontSize: 24, fontWeight: 700, color: P.txt, lineHeight: 1.1 }}>{value}</div>
+          <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1, marginTop: 5 }}>{label}</div>
+          {sub && <div style={{ fontSize: 11, color: P.txtM, marginTop: 5 }}>{sub}</div>}
+        </div>
+      );
+
+      const Panel = ({ title, when, children, accent }) => (
+        <div style={{ flex: "1 1 320px", background: P.bg, borderRadius: 14, padding: 16, border: "1px solid " + P.stoneP }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12, gap: 8 }}>
+            <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 16, fontWeight: 700, color: P.txt }}>{title}</div>
+            <div style={{ fontSize: 10, color: accent, textTransform: "uppercase", letterSpacing: 1 }}>{when}</div>
+          </div>
+          {children}
+        </div>
+      );
+
+      const Line = ({ k, v, strong, colour }) => (
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, padding: "6px 0",
+                      borderBottom: "1px solid " + P.stoneP, fontSize: 12.5,
+                      color: colour || P.txtM, fontWeight: strong ? 700 : 400 }}>
+          <span>{k}</span><span style={{ color: strong ? P.txt : (colour || P.txt) }}>{v}</span>
+        </div>
+      );
+
+      return (
+        <div>
+          <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>
+            What getting married has cost
+          </div>
+          <div style={{ fontSize: 12, color: P.txtL, marginBottom: 16 }}>
+            Both weddings in one place {"·"} figures shown are what is actually recorded, not estimates
+          </div>
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 18 }}>
+            <Card label="Paid so far, both" value={money(paidAll)} colour={P.terra}
+                  sub={money(legalTotal) + " legal + " + money(italyPaid) + " Italy"} wide />
+            <Card label="Still owed" value={money(italyDue)} colour={P.gold}
+                  sub={upcoming.length ? "next " + upcoming[0].date : "nothing scheduled"} />
+            <Card label="Committed, Italy" value={money(italyCommitted)} colour={P.olive}
+                  sub={liveGuests + " guests"} />
+            <Card label="Per head, Italy" value={liveGuests ? money(italyCommitted / liveGuests) : "—"} colour={P.stone}
+                  sub="committed / expected" />
+          </div>
+
+          {legalUnpriced.length > 0 && (
+            <div style={{ background: P.goldP, borderLeft: "3px solid " + P.gold, borderRadius: 8,
+                          padding: "12px 14px", marginBottom: 18, fontSize: 12, color: P.txtM, lineHeight: 1.6 }}>
+              <b style={{ color: P.gold }}>These totals are a floor, not a final number.</b>{" "}
+              {legalUnpriced.length} items on the legal wedding have no figure recorded
+              {" — "}{legalUnpriced.map(u => u.item).join(", ")}.
+              {byWho["Unattributed"] ? " And " + money(byWho["Unattributed"]) + " is recorded without saying who paid it." : ""}
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 18 }}>
+
+            <Panel title="Legal ceremony & home" when="18 Jul 2026 · done" accent={P.olive}>
+              <Line k="Recorded across the sheet" v={money(legalTotal)} strong />
+              <Line k="Items with a figure" v={legalItems.length} />
+              <Line k="Items never costed" v={legalUnpriced.length} colour={legalUnpriced.length ? P.gold : P.txtM} />
+              <div style={{ fontSize: 10, color: P.txtL, textTransform: "uppercase", letterSpacing: 1, margin: "14px 0 6px" }}>Who paid</div>
+              {Object.keys(byWho).sort((a, b) => byWho[b] - byWho[a]).map(k => (
+                <Line key={k} k={k} v={money(byWho[k])} colour={k === "Unattributed" ? P.gold : undefined} />
+              ))}
+              <div style={{ fontSize: 10.5, color: P.txtL, marginTop: 12, lineHeight: 1.5 }}>
+                Source: {(safeObj(ls.meta, {}).source) || "imported spreadsheet"}
+              </div>
+            </Panel>
+
+            <Panel title="Tuscany" when="29 May 2027 · in progress" accent={P.terra}>
+              <Line k="Committed" v={money(italyCommitted)} strong />
+              <Line k="Paid" v={money(italyPaid)} />
+              <Line k="Outstanding" v={money(italyDue)} colour={italyDue > 0 ? P.gold : P.green} />
+              <div style={{ fontSize: 10, color: P.txtL, textTransform: "uppercase", letterSpacing: 1, margin: "14px 0 6px" }}>Scheduled payments</div>
+              {upcoming.length === 0 && <div style={{ fontSize: 12, color: P.txtL, fontStyle: "italic" }}>None scheduled.</div>}
+              {upcoming.map((u, i) => (
+                <Line key={i} k={u.label + " · " + u.date}
+                      v={(u.cur === "EUR" ? "€" : "£") + Math.round(u.raw.amount).toLocaleString()} />
+              ))}
+              <div style={{ fontSize: 10.5, color: P.txtL, marginTop: 12, lineHeight: 1.5 }}>
+                {rows.filter(r => (r.actual || 0) > 0).length} of {rows.length} categories have a real figure. The rest are still zero.
+              </div>
+            </Panel>
+          </div>
+
+          <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15, fontWeight: 700, color: P.txt, marginBottom: 8 }}>
+            Legal wedding, line by line
+          </div>
+          <div style={{ background: P.card, borderRadius: 12, padding: "6px 14px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            {legalItems.slice().sort((a, b) => (b.amount || 0) - (a.amount || 0)).map((i, n) => (
+              <Line key={n} k={i.item} v={money(i.amount) + (i.paidBy ? "  · " + i.paidBy : "")} />
+            ))}
+            {legalUnpriced.map((u, n) => (
+              <Line key={"u" + n} k={u.item} v="not costed" colour={P.gold} />
+            ))}
+          </div>
+        </div>
+      );
+    }
     function RoomsTab({ rooms, saveRooms, guests }) {
       const [picked, setPicked] = useState(null);
       const [overKey, setOverKey] = useState(null);
@@ -3053,6 +3193,7 @@
       const [timeline, saveTimeline, b4] = useStorage("wedding-timeline-v3", DEFAULT_DATA.timeline, normalizeTimeline);
       const [milestones, saveMilestones, b5] = useStorage("wedding-milestones-v4", DEFAULT_DATA.milestones);
       const [decisions, saveDecisions, b6] = useStorage("wedding-decisions-v3", DEFAULT_DATA.decisions);
+      const [legalSpend, , b19] = useStorage("wedding-legal-spend-v1", { meta: {}, items: [], unpriced: [] }, (v) => safeObj(v, { meta: {}, items: [], unpriced: [] }));
       const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music, normalizeMusic);
       const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing, safeArr);
       const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating, (v) => ({ tables: safeArr(v?.tables).map(t => ({ ...t, guests: safeArr(t?.guests) })) }));
@@ -3072,7 +3213,7 @@
       const [honeymoon, saveHoneymoon, b18] = useStorage("wedding-honeymoon-v1", { destination: "", dates: "", flights: "", hotel: "", budget: "", notes: "", documents: "", itinerary: [] }, normalizeHoneymoon);
       EUR_RATE = eurRate;
 
-      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18)) return (
+      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19)) return (
         <div style={{ minHeight: "100vh", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\uD83D\uDC8D"}</div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15 }}>Loading...</div></div>
         </div>
@@ -3132,6 +3273,7 @@
             {tab === "music" && <MusicTab music={music} saveMusic={saveMusic} />}
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} dayKit={dayKit} saveDayKit={saveDayKit} />}
             {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
+            {tab === "total" && <TotalCostTab legalSpend={legalSpend} budget={budget} eurRate={eurRate} guests={guests} />}
           </div>
         </div>
       );
