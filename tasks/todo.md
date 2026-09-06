@@ -68,3 +68,5 @@ itinerary, schedule, guest-map, plus arrivals.html (untracked, transfer-sharing 
 - [ ] Put the £150 / everything-included / no-gifts lines on accommodation.html and faq.html.
 - [ ] Extend the reveal switch to per-section flags (travel+stay first; the rest later).
 - [ ] Reveal travel + accommodation once May 2027 flights are on sale; arrivals board with them.
+- [x] Address field on registration (private, in `/registrations`; shown in dashboard Site tab) — for thank-yous.
+- [x] `index.html?preview=done` renders the registered state with sample data, saves disabled — for reviewing copy without an account.

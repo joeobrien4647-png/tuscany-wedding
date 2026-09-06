@@ -2533,7 +2533,7 @@
               <div key={r.uid || r.email} style={{ background: P.card, borderRadius: 10, padding: "10px 14px", marginBottom: 6,
                     display: "grid", gridTemplateColumns: "1.3fr 1.4fr 1fr auto auto", gap: 10, alignItems: "center", fontSize: 12.5 }}>
                 <div style={{ fontWeight: 600, color: P.txt }}>{r.name}
-                  {!ok && <span style={{ marginLeft: 6, fontSize: 10, color: P.gold }}>not on list</span>}</div>
+                  {!ok && <span style={{ marginLeft: 6, fontSize: 10, color: P.gold }}>not on list</span>}{r.address && <div style={{ fontSize: 10.5, color: P.txtL, fontWeight: 400, marginTop: 2 }}>{r.address}</div>}</div>
                 <div style={{ color: P.txtM, overflow: "hidden", textOverflow: "ellipsis" }}>{r.email}</div>
                 <div style={{ color: P.txtM }}>{r.phone || "—"}</div>
                 <span style={{ padding: "3px 10px", borderRadius: 12, background: it[2], color: it[1], fontSize: 11, fontWeight: 600 }}>{it[0]}</span>

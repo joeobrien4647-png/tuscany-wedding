@@ -33,10 +33,11 @@
   .p-tabs button { flex: 1; background: none; border: none; padding: 10px 4px 12px; font-family: var(--font-body); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-warm-gray); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
   .p-tabs button[aria-selected="true"] { color: var(--color-terracotta); border-bottom-color: var(--color-terracotta); }
   label { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--color-warm-gray); margin: 14px 0 6px; }
-  input[type=text], input[type=email], input[type=password], input[type=tel] {
+  input[type=text], input[type=email], input[type=password], input[type=tel], textarea {
     width: 100%; box-sizing: border-box; font-family: var(--font-body); font-size: 15px; padding: 12px 13px;
     border: 1px solid rgba(44,44,44,.18); border-radius: 3px; background: var(--color-cream); color: var(--color-charcoal); }
-  input:focus { outline: 2px solid var(--color-gold); outline-offset: 1px; border-color: transparent; }
+  input:focus, textarea:focus { outline: 2px solid var(--color-gold); outline-offset: 1px; border-color: transparent; }
+  textarea { min-height: 76px; resize: vertical; line-height: 1.5; }
   .p-intent { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
   .p-intent input { position: absolute; opacity: 0; width: 0; height: 0; }
   .p-intent span { display: block; text-align: center; padding: 11px 6px; border: 1px solid rgba(44,44,44,.18); border-radius: 3px; font-size: 13px; color: var(--color-charcoal); cursor: pointer; background: var(--color-cream); }
@@ -102,6 +103,8 @@
       <input id="up-email" type="email" autocomplete="email" required>
       <label for="up-phone">Mobile</label>
       <input id="up-phone" type="tel" autocomplete="tel" placeholder="Optional, but handy for the weekend">
+      <label for="up-address">Postal address</label>
+      <textarea id="up-address" autocomplete="street-address" placeholder="Optional. So we can send a proper thank-you afterwards."></textarea>
       <label for="up-pw">Choose a password</label>
       <input id="up-pw" type="password" autocomplete="new-password" required minlength="6">
       <label>Are you coming?</label>
@@ -134,12 +137,15 @@
       <dt>Name</dt><dd id="d-name"></dd>
       <dt>Email</dt><dd id="d-email"></dd>
       <dt>Mobile</dt><dd id="d-phone"></dd>
+      <dt>Address</dt><dd id="d-address"></dd>
       <dt>Coming?</dt><dd id="d-intent"></dd>
     </dl>
     <button class="p-link" type="button" id="edit">Change something</button>
     <form id="form-edit" novalidate hidden>
       <label for="ed-phone">Mobile</label>
       <input id="ed-phone" type="tel">
+      <label for="ed-address">Postal address</label>
+      <textarea id="ed-address"></textarea>
       <label>Are you coming?</label>
       <div class="p-intent">
         <label style="margin:0"><input type="radio" name="ed-intent" value="yes"><span>Yes!</span></label>
@@ -235,13 +241,22 @@
     $("d-name").textContent = reg.name || "";
     $("d-email").textContent = reg.email || "";
     $("d-phone").textContent = reg.phone || "—";
+    $("d-address").textContent = reg.address || "—";
     $("d-intent").textContent = INTENT[reg.intent] || reg.intent || "—";
     $("ed-phone").value = reg.phone || "";
+    $("ed-address").value = reg.address || "";
     var r = document.querySelector('input[name="ed-intent"][value="' + (reg.intent || "") + '"]'); if (r) r.checked = true;
   }
 
+  var PREVIEW = /[?&]preview=done/.test(location.search);
+  if (PREVIEW) {
+    render({ name: "Sample Guest", email: "sample@example.com", phone: "07700 900000",
+             address: "1 Example Street, Sevenoaks, TN13 1AA", intent: "yes" });
+    $("done").insertAdjacentHTML("afterbegin", '<div class="p-msg">Preview with sample data. Nothing on this page is saved.</div>');
+    document.querySelectorAll("#done button.p-primary").forEach(function (b) { b.disabled = true; });
+  }
   auth.onAuthStateChanged(function (u) {
-    if (!u) return render(null);
+    if (!u) return PREVIEW ? null : render(null);
     db.ref("registrations/" + u.uid).once("value").then(function (s) {
       render(s.exists() ? s.val() : { name: u.displayName || "", email: u.email, phone: "", intent: "" });
     }).catch(function () { render({ name: u.displayName || "", email: u.email, phone: "", intent: "" }); });
@@ -251,6 +266,7 @@
   $("form-up").onsubmit = function (ev) {
     ev.preventDefault(); hideErr("up-err");
     var name = $("up-name").value.trim(), email = $("up-email").value.trim(), phone = $("up-phone").value.trim(),
+        address = $("up-address").value.trim().slice(0, 300),
         pw = $("up-pw").value, intent = picked("intent");
     if (!name) return showErr("up-err", { message: "Tell us your name." });
     if (!email) return showErr("up-err", { message: "We need an email address." });
@@ -259,7 +275,7 @@
     $("up-btn").disabled = true;
     auth.createUserWithEmailAndPassword(email, pw).then(function (cred) {
       var u = cred.user;
-      var rec = { name: name, email: email, phone: phone, intent: intent, uid: u.uid,
+      var rec = { name: name, email: email, phone: phone, address: address, intent: intent, uid: u.uid,
                   createdAt: firebase.database.ServerValue.TIMESTAMP, updatedAt: firebase.database.ServerValue.TIMESTAMP };
       return Promise.all([ u.updateProfile({ displayName: name }), db.ref("registrations/" + u.uid).set(rec) ])
         .then(function () { render(rec); });
@@ -289,7 +305,7 @@
   $("form-edit").onsubmit = function (ev) {
     ev.preventDefault(); hideErr("ed-err");
     var u = auth.currentUser; if (!u) return;
-    var upd = { phone: $("ed-phone").value.trim(), intent: picked("ed-intent") || undefined, updatedAt: firebase.database.ServerValue.TIMESTAMP };
+    var upd = { phone: $("ed-phone").value.trim(), address: $("ed-address").value.trim().slice(0, 300), intent: picked("ed-intent") || undefined, updatedAt: firebase.database.ServerValue.TIMESTAMP };
     if (!upd.intent) delete upd.intent;
     db.ref("registrations/" + u.uid).update(upd)
       .then(function () { return db.ref("registrations/" + u.uid).once("value"); })
