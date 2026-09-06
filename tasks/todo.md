@@ -32,7 +32,7 @@ place where guests create a login, confirm they got the save-the-date, and give 
 - [x] Security rules drafted in `firebase.rules.json` — `/admins/{uid}` whitelist; guests read `/public/*`, write own `/registrations/{uid}`. NOT yet applied (see Joe's steps)
 - [x] Hide existing pages behind the reveal switch (`js/reveal.js`, fail-closed, admin bypass); old homepage kept as `welcome.html`
 - [ ] Joe: enable Email/Password provider, create admin accounts, paste rules (in that order)
-- [ ] CNAME once DNS for sophieandjoe2027.com is live
+- [x] CNAME added; sophieandjoe2027.com serving from GitHub Pages (6 Sep 2026)
 - [ ] Verify end to end: register as a test guest, confirm it appears in the dashboard, confirm a
       guest cannot read the guest table
 
