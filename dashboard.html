@@ -2454,7 +2454,7 @@
 
     /* ========== ROOMS ========== */
     /* ========== SITE — registrations + reveal switch ========== */
-    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests }) {
+    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles }) {
       const regs = Object.values(safeObj(registrations, {})).filter(r => r && r.name)
         .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       const names = safeArr(guests).map(g => (g.name || "").trim().toLowerCase());
@@ -2496,6 +2496,31 @@
             ))}
           </div>
 
+          {(() => {
+            const ps = Object.values(safeObj(profiles, {})).filter(p => p && p.name);
+            const songs = ps.filter(p => p.song);
+            const text = songs.map(p => p.song + "  —  " + p.name).join("\n");
+            return (
+              <div style={{ background: P.card, borderRadius: 12, padding: 14, marginBottom: 18, boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: songs.length ? 8 : 0, gap: 10, flexWrap: "wrap" }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>Pool-party playlist {"·"} {songs.length} song{songs.length === 1 ? "" : "s"}</div>
+                    <div style={{ fontSize: 11, color: P.txtL, marginTop: 2 }}>{ps.length} binder pocket{ps.length === 1 ? "" : "s"} filled</div>
+                  </div>
+                  {songs.length > 0 && (
+                    <button onClick={() => navigator.clipboard && navigator.clipboard.writeText(text)}
+                            style={{ ...bS, background: P.olive, color: "#fff" }}>Copy list for Betto</button>
+                  )}
+                </div>
+                {songs.map((p, i) => (
+                  <div key={i} style={{ fontSize: 12, color: P.txtM, padding: "3px 0", borderTop: i ? "1px solid " + P.stoneP : "none" }}>
+                    <span style={{ color: P.txt }}>{p.song}</span> {"—"} {p.name}
+                  </div>
+                ))}
+                {songs.length === 0 && <div style={{ fontSize: 12, color: P.txtL, fontStyle: "italic" }}>No song requests yet.</div>}
+              </div>
+            );
+          })()}
           {regs.length === 0 && (
             <div style={{ background: P.card, borderRadius: 12, padding: 18, fontSize: 13, color: P.txtL, fontStyle: "italic" }}>
               Nobody has registered yet. Registrations appear here the moment someone signs up on the site.
@@ -3265,6 +3290,7 @@
       const [legalSpend, , b19] = useStorage("wedding-legal-spend-v1", { meta: {}, items: [], unpriced: [] }, (v) => safeObj(v, { meta: {}, items: [], unpriced: [] }));
       const [registrations, , b20] = useStorage("registrations", {}, (v) => safeObj(v, {}));
       const [siteConfig, saveSiteConfig, b21] = useStorage("public/config", { revealed: false }, (v) => safeObj(v, { revealed: false }));
+      const [profiles, , b22] = useStorage("public/profiles", {}, (v) => safeObj(v, {}));
       const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music, normalizeMusic);
       const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing, safeArr);
       const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating, (v) => ({ tables: safeArr(v?.tables).map(t => ({ ...t, guests: safeArr(t?.guests) })) }));
@@ -3284,7 +3310,7 @@
       const [honeymoon, saveHoneymoon, b18] = useStorage("wedding-honeymoon-v1", { destination: "", dates: "", flights: "", hotel: "", budget: "", notes: "", documents: "", itinerary: [] }, normalizeHoneymoon);
       EUR_RATE = eurRate;
 
-      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19&&b20&&b21)) return (
+      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19&&b20&&b21&&b22)) return (
         <div style={{ minHeight: "100vh", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\uD83D\uDC8D"}</div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15 }}>Loading...</div></div>
         </div>
@@ -3345,7 +3371,7 @@
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} dayKit={dayKit} saveDayKit={saveDayKit} />}
             {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
             {tab === "total" && <TotalCostTab legalSpend={legalSpend} budget={budget} eurRate={eurRate} guests={guests} />}
-            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} />}
+            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} />}
           </div>
         </div>
       );

@@ -46,3 +46,25 @@ Not verifiable until Joe enables Email/Password: an actual sign-up round trip, a
 guest cannot read the guest table once rules are applied.
 
 Order of Joe's steps matters — populate `/admins` BEFORE applying rules, or the dashboard locks out.
+
+## Phase 1 — guest profiles (decided 6 Sep 2026, not started; fresh session)
+
+- [x] **Profile ("pocket")** on the register page once signed in: one line + one song (free text
+      "Title – Artist"). Written to `/public/profiles/{uid}` (name, line, song) — the private
+      registration stays in `/registrations`. Photos DEFERRED (needs Firebase Storage).
+- [x] Dashboard Site tab: pool-party playlist list + "Copy list for Betto".
+- [x] **Binder view** `binder.html`: one pocket per filled profile, sorted by name, your own
+      pocket outlined, padded with empty pockets. Requires sign-in; NOT behind the reveal switch.
+      Shows profile only — card art stays OFFLINE and secret until the day.
+- [x] Rules updated: `/public/profiles/$uid` writable by its owner (validate: has name).
+- Parked: wedding sweepstake (Joe unsure). Rejected: live painting page, kids' corner.
+
+## Phase 2 — logistics reveal (decided 6 Sep 2026, not started; fresh session)
+
+Pages already exist (Jan 2026 build) and are gated: travel, accommodation, things-to-do, faq,
+itinerary, schedule, guest-map, plus arrivals.html (untracked, transfer-sharing board).
+- [ ] Accuracy pass on all of them against today's facts: 5 airports + drive times, Santarsa /
+      Vallorsaia, Fri 28 – Mon 31 May 2027, adults-only wording, no "book your room".
+- [ ] Put the £150 / everything-included / no-gifts lines on accommodation.html and faq.html.
+- [ ] Extend the reveal switch to per-section flags (travel+stay first; the rest later).
+- [ ] Reveal travel + accommodation once May 2027 flights are on sale; arrivals board with them.

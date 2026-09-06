@@ -60,6 +60,10 @@
   .p-next li { font-weight: 300; color: var(--color-warm-gray); line-height: 1.65; margin-bottom: 8px; }
   .p-next li b { font-weight: 400; color: var(--color-charcoal); }
   footer.p-mini { text-align: center; padding: 28px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .18em; color: var(--color-warm-gray); }
+  .p-profile { margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(44,44,44,.1); }
+  .p-profile h3 { font-family: var(--font-heading); font-weight: 500; font-size: 20px; color: var(--color-charcoal); margin: 0 0 6px; }
+  .p-profile p { color: var(--color-warm-gray); font-weight: 300; font-size: 13.5px; line-height: 1.6; margin: 0; }
+  .p-profile a.p-link { display: inline-block; text-decoration: underline; }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -145,6 +149,21 @@
       <div class="p-msg p-err" id="ed-err" hidden></div>
       <button class="p-primary" type="submit">Save</button>
     </form>
+
+    <div class="p-profile">
+      <h3>Your pocket in the binder</h3>
+      <p>One line about you, and one song for the pool on Sunday. Everyone who registers gets a pocket &mdash; this fills yours.</p>
+      <form id="form-profile" novalidate>
+        <label for="pr-line">One line about you</label>
+        <input id="pr-line" type="text" maxlength="120" placeholder="How you know the couple, what you're bringing, anything">
+        <label for="pr-song">Your one song</label>
+        <input id="pr-song" type="text" maxlength="120" placeholder="Title &ndash; Artist">
+        <div class="p-msg p-err" id="pr-err" hidden></div>
+        <div class="p-msg p-ok" id="pr-ok" hidden></div>
+        <button class="p-primary" type="submit">Save my pocket</button>
+      </form>
+      <a class="p-link" href="binder.html">See the binder &rarr;</a>
+    </div>
   </section>
 </main>
 
@@ -276,6 +295,26 @@
       .then(function () { return db.ref("registrations/" + u.uid).once("value"); })
       .then(function (s) { render(s.val()); $("form-edit").hidden = true; })
       .catch(function (e) { showErr("ed-err", e); });
+  };
+
+  // ---- public binder pocket (/public/profiles/{uid}) ----
+  auth.onAuthStateChanged(function (u) {
+    if (!u) return;
+    db.ref("public/profiles/" + u.uid).once("value").then(function (s) {
+      var p = s.val() || {};
+      $("pr-line").value = p.line || ""; $("pr-song").value = p.song || "";
+    }).catch(function () {});
+  });
+  $("form-profile").onsubmit = function (ev) {
+    ev.preventDefault(); hideErr("pr-err"); $("pr-ok").hidden = true;
+    var u = auth.currentUser; if (!u) return;
+    var name = ($("d-name").textContent || u.displayName || "").trim();
+    if (!name) return showErr("pr-err", { message: "We don’t have your name yet — register first." });
+    var rec = { name: name, line: $("pr-line").value.trim().slice(0, 120), song: $("pr-song").value.trim().slice(0, 120),
+                updatedAt: firebase.database.ServerValue.TIMESTAMP };
+    db.ref("public/profiles/" + u.uid).set(rec).then(function () {
+      $("pr-ok").textContent = "Saved — you’re in the binder."; $("pr-ok").hidden = false;
+    }).catch(function (e) { showErr("pr-err", e); });
   };
 })();
 </script>

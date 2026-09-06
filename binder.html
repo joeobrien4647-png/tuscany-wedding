@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Binder &mdash; Sophie &amp; Joe, Tuscany 2027</title>
+<link rel="icon" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  :root { --mono: "SF Mono", ui-monospace, Consolas, "Roboto Mono", monospace; }
+  body { background: var(--color-cream); }
+  .b-top { display: flex; justify-content: space-between; align-items: center; padding: 26px 40px; }
+  .b-top a.b-mark { font-family: var(--font-heading); font-size: 20px; letter-spacing: .08em; color: var(--color-charcoal); text-decoration: none; }
+  .b-top button { background: none; border: none; font-family: var(--font-body); font-size: 13px; color: var(--color-warm-gray); cursor: pointer; }
+  .b-head { text-align: center; padding: 40px 24px 28px; }
+  .b-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--color-terracotta); margin-bottom: 14px; }
+  .b-head h1 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(40px, 7vw, 72px); line-height: 1; color: var(--color-charcoal); margin: 0 0 12px; letter-spacing: -.02em; }
+  .b-head p { font-family: var(--font-body); font-weight: 300; color: var(--color-warm-gray); max-width: 52ch; margin: 0 auto; line-height: 1.65; }
+  .b-count { font-family: var(--mono); font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--color-olive); margin-top: 18px; }
+
+  .b-grid { max-width: 1120px; margin: 24px auto 80px; padding: 0 20px; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 18px; }
+  .pocket { aspect-ratio: 5 / 7; border-radius: 6px; padding: 16px 16px 14px; display: flex; flex-direction: column; justify-content: space-between;
+            background: #fff; border: 1px solid rgba(44,44,44,.10); box-shadow: var(--shadow-soft); position: relative; overflow: hidden; }
+  .pocket::before { content: ""; position: absolute; inset: 6px; border: 1px solid rgba(201,169,97,.35); border-radius: 3px; pointer-events: none; }
+  .pocket.empty { background: transparent; border: 1px dashed rgba(44,44,44,.18); box-shadow: none; }
+  .pocket.empty::before { display: none; }
+  .pocket.empty span { margin: auto; font-family: var(--mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: rgba(107,100,96,.5); }
+  .pocket.mine { border-color: var(--color-terracotta); }
+  .pk-num { font-family: var(--mono); font-size: 9.5px; letter-spacing: .2em; color: var(--color-gold); }
+  .pk-name { font-family: var(--font-heading); font-size: 20px; font-weight: 500; color: var(--color-charcoal); line-height: 1.15; margin-top: 8px; }
+  .pk-line { font-family: var(--font-body); font-weight: 300; font-size: 12.5px; color: var(--color-warm-gray); line-height: 1.5; margin-top: 8px; flex: 1; }
+  .pk-song { font-family: var(--mono); font-size: 9.5px; letter-spacing: .06em; color: var(--color-olive); line-height: 1.5; border-top: 1px solid rgba(44,44,44,.08); padding-top: 8px; }
+  .pk-song::before { content: "♫  "; }
+
+  .b-gate { max-width: 440px; margin: 40px auto 100px; text-align: center; padding: 0 24px; }
+  .b-gate p { color: var(--color-warm-gray); font-weight: 300; line-height: 1.65; }
+  .b-gate a { display: inline-block; margin-top: 18px; background: var(--color-terracotta); color: #fff; text-decoration: none; padding: 14px 28px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: .06em; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="b-top">
+  <a class="b-mark" href="index.html">S &amp; J</a>
+  <button id="signout" hidden>Sign out</button>
+</div>
+
+<header class="b-head">
+  <div class="b-kicker">Tuscany 2027</div>
+  <h1>The Binder</h1>
+  <p>Everyone who&rsquo;s registered gets a pocket. Fill yours in from your profile &mdash; one line about you, and one song for the pool on Sunday.</p>
+  <div class="b-count" id="count"></div>
+</header>
+
+<div class="b-gate" id="gate" hidden>
+  <p>The binder is for people who&rsquo;ve registered. Sign in, or register, and you&rsquo;ll get a pocket of your own.</p>
+  <a href="index.html">Register or sign in &rarr;</a>
+</div>
+
+<div class="b-grid" id="grid" hidden></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+(function () {
+  firebase.initializeApp({
+    apiKey: "AIzaSyAbEpCIPFFqiuElH0DK1dkkl7JBbNyZTc8",
+    databaseURL: "https://tuscany-wedding-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "tuscany-wedding"
+  });
+  var auth = firebase.auth(), db = firebase.database();
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+
+  function render(profiles, uid) {
+    var list = Object.keys(profiles || {}).map(function (k) { var p = profiles[k] || {}; p._uid = k; return p; })
+      .filter(function (p) { return p.name; })
+      .sort(function (a, b) { return (a.name || "").localeCompare(b.name || ""); });
+    var cols = 6, pad = Math.max(cols * 2 - list.length, (cols - (list.length % cols)) % cols);
+    var html = list.map(function (p, i) {
+      return '<div class="pocket' + (p._uid === uid ? " mine" : "") + '">'
+        + '<div><div class="pk-num">No. ' + String(i + 1).padStart(2, "0") + "</div>"
+        + '<div class="pk-name">' + esc(p.name) + "</div>"
+        + '<div class="pk-line">' + esc(p.line || "") + "</div></div>"
+        + (p.song ? '<div class="pk-song">' + esc(p.song) + "</div>" : "")
+        + "</div>";
+    }).join("");
+    for (var i = 0; i < pad; i++) html += '<div class="pocket empty"><span>empty</span></div>';
+    $("grid").innerHTML = html;
+    $("count").textContent = list.length + " in the binder so far";
+    $("grid").hidden = false;
+  }
+
+  auth.onAuthStateChanged(function (u) {
+    $("signout").hidden = !u;
+    if (!u) { $("gate").hidden = false; $("grid").hidden = true; $("count").textContent = ""; return; }
+    $("gate").hidden = true;
+    db.ref("public/profiles").once("value")
+      .then(function (s) { render(s.val() || {}, u.uid); })
+      .catch(function () { $("count").textContent = "Couldn’t load the binder just now."; });
+  });
+  $("signout").onclick = function () { auth.signOut(); };
+})();
+</script>
+</body>
+</html>
