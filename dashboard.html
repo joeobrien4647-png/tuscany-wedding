@@ -70,6 +70,7 @@
       { id: "packing", label: "Packing", icon: "\u2713" },
       { id: "decisions", label: "Decisions", icon: "\u270E" },
       { id: "total", label: "Total Cost", icon: "Σ" },
+      { id: "site", label: "Site", icon: "✉" },
     ];
 
     const BUDGET_CATS = [
@@ -2452,6 +2453,73 @@
     }
 
     /* ========== ROOMS ========== */
+    /* ========== SITE — registrations + reveal switch ========== */
+    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests }) {
+      const regs = Object.values(safeObj(registrations, {})).filter(r => r && r.name)
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      const names = safeArr(guests).map(g => (g.name || "").trim().toLowerCase());
+      const matched = r => names.includes((r.name || "").trim().toLowerCase());
+      const cfg = safeObj(siteConfig, {});
+      const revealed = cfg.revealed === true;
+      const INTENT = { yes: ["Coming", P.green, P.greenP], maybe: ["Not sure", P.gold, P.goldP], no: ["Can't", P.red, P.redP] };
+      const count = k => regs.filter(r => r.intent === k).length;
+      const when = t => t ? new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "";
+
+      return (
+        <div>
+          <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 20, fontWeight: 700, color: P.txt, marginBottom: 3 }}>Site</div>
+          <div style={{ fontSize: 12, color: P.txtL, marginBottom: 16 }}>Who has registered on sophiejoe2027.com, and whether the full site is revealed</div>
+
+          <div style={{ background: revealed ? P.greenP : P.goldP, borderRadius: 12, padding: 14, marginBottom: 18,
+                        display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: revealed ? P.green : P.gold }}>
+                Full site is {revealed ? "REVEALED" : "hidden"}
+              </div>
+              <div style={{ fontSize: 11, color: P.txtM, marginTop: 3 }}>
+                {revealed ? "Guests can see every page." : "Guests see only the register page. Every other page shows 'Not yet'."}
+              </div>
+            </div>
+            <button onClick={() => saveSiteConfig({ ...cfg, revealed: !revealed })}
+                    style={{ ...bS, background: revealed ? P.stone : P.terra, color: "#fff", padding: "8px 16px" }}>
+              {revealed ? "Hide the site again" : "Reveal the full site"}
+            </button>
+          </div>
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 18 }}>
+            {[["Registered", regs.length, P.olive], ["Coming", count("yes"), P.green], ["Not sure", count("maybe"), P.gold],
+              ["Can't", count("no"), P.red], ["Not on guest list", regs.filter(r => !matched(r)).length, P.stone]].map(([l, v, c], i) => (
+              <div key={i} style={{ flex: "1 1 110px", background: P.card, borderRadius: 12, padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: "3px solid " + c }}>
+                <div style={{ fontSize: 20, fontWeight: 700, color: P.txt }}>{v}</div>
+                <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>{l}</div>
+              </div>
+            ))}
+          </div>
+
+          {regs.length === 0 && (
+            <div style={{ background: P.card, borderRadius: 12, padding: 18, fontSize: 13, color: P.txtL, fontStyle: "italic" }}>
+              Nobody has registered yet. Registrations appear here the moment someone signs up on the site.
+            </div>
+          )}
+          {regs.map(r => {
+            const it = INTENT[r.intent] || [r.intent || "—", P.txtL, P.stoneP];
+            const ok = matched(r);
+            return (
+              <div key={r.uid || r.email} style={{ background: P.card, borderRadius: 10, padding: "10px 14px", marginBottom: 6,
+                    display: "grid", gridTemplateColumns: "1.3fr 1.4fr 1fr auto auto", gap: 10, alignItems: "center", fontSize: 12.5 }}>
+                <div style={{ fontWeight: 600, color: P.txt }}>{r.name}
+                  {!ok && <span style={{ marginLeft: 6, fontSize: 10, color: P.gold }}>not on list</span>}</div>
+                <div style={{ color: P.txtM, overflow: "hidden", textOverflow: "ellipsis" }}>{r.email}</div>
+                <div style={{ color: P.txtM }}>{r.phone || "—"}</div>
+                <span style={{ padding: "3px 10px", borderRadius: 12, background: it[2], color: it[1], fontSize: 11, fontWeight: 600 }}>{it[0]}</span>
+                <div style={{ fontSize: 10, color: P.txtL }}>{when(r.createdAt)}</div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
     /* ========== TOTAL COST — both weddings ========== */
     function TotalCostTab({ legalSpend, budget, eurRate, guests }) {
       const rate = eurRate || 1.17;
@@ -3195,6 +3263,8 @@
       const [milestones, saveMilestones, b5] = useStorage("wedding-milestones-v4", DEFAULT_DATA.milestones);
       const [decisions, saveDecisions, b6] = useStorage("wedding-decisions-v3", DEFAULT_DATA.decisions);
       const [legalSpend, , b19] = useStorage("wedding-legal-spend-v1", { meta: {}, items: [], unpriced: [] }, (v) => safeObj(v, { meta: {}, items: [], unpriced: [] }));
+      const [registrations, , b20] = useStorage("registrations", {}, (v) => safeObj(v, {}));
+      const [siteConfig, saveSiteConfig, b21] = useStorage("public/config", { revealed: false }, (v) => safeObj(v, { revealed: false }));
       const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music, normalizeMusic);
       const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing, safeArr);
       const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating, (v) => ({ tables: safeArr(v?.tables).map(t => ({ ...t, guests: safeArr(t?.guests) })) }));
@@ -3214,7 +3284,7 @@
       const [honeymoon, saveHoneymoon, b18] = useStorage("wedding-honeymoon-v1", { destination: "", dates: "", flights: "", hotel: "", budget: "", notes: "", documents: "", itinerary: [] }, normalizeHoneymoon);
       EUR_RATE = eurRate;
 
-      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19)) return (
+      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19&&b20&&b21)) return (
         <div style={{ minHeight: "100vh", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\uD83D\uDC8D"}</div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15 }}>Loading...</div></div>
         </div>
@@ -3275,6 +3345,7 @@
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} dayKit={dayKit} saveDayKit={saveDayKit} />}
             {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
             {tab === "total" && <TotalCostTab legalSpend={legalSpend} budget={budget} eurRate={eurRate} guests={guests} />}
+            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} />}
           </div>
         </div>
       );
