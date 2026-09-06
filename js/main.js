@@ -54,7 +54,7 @@ function initCountdown() {
     if (!countdownElement) return;
 
     // Wedding date: May 24, 2027 (adjust as needed)
-    const weddingDate = new Date('2027-05-24T15:00:00').getTime();
+    const weddingDate = new Date('2027-05-29T15:00:00').getTime();
 
     function updateCountdown() {
         const now = new Date().getTime();
