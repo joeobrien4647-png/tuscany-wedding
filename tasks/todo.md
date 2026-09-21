@@ -70,3 +70,19 @@ itinerary, schedule, guest-map, plus arrivals.html (untracked, transfer-sharing 
 - [ ] Reveal travel + accommodation once May 2027 flights are on sale; arrivals board with them.
 - [x] Address field on registration (private, in `/registrations`; shown in dashboard Site tab) — for thank-yous.
 - [x] `index.html?preview=done` renders the registered state with sample data, saves disabled — for reviewing copy without an account.
+
+## Phase 3 — payments (decided 21 Sep 2026, not started; fresh session)
+
+- **£150 flat.** No surcharge, no transfer discount (card surcharges are banned for UK traders;
+  fee exposure is ~£2.45 per card payment, tens of pounds total — absorb it).
+- Shown on the registered screen only to guests whose intent is **Yes**. Paying = place confirmed.
+- **Option 1, listed first: bank transfer.** Sort code + account, reference = their name. One line:
+  "Free for everyone — a card payment costs us a couple of quid each time." Details visible only
+  to signed-in registered guests, never on the public page.
+- **Option 2: Stripe Payment Link** (Apple Pay, Google Pay, card; Klarna undecided). URL carries
+  the Firebase uid as client_reference_id + prefilled email. Needed for US guests (Natales).
+- **Reconciliation: manual.** Payment arrives (bank or Stripe email) → tick "paid" on the
+  registration in the dashboard Site tab. Add a `paid` flag + paid count there.
+- Dependencies: Firebase Email/Password enabled (still Joe's step); Stripe account (Joe — ID and
+  bank details, not Claude). Collect by end Feb 2027 — RSVP deadline 28 Feb, villa balance
+  €9,069 due 28 Mar.
