@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arrivals, Sophie &amp; Joe, Tuscany 2027</title>
+<meta name="description" content="Who is arriving when, and who you can share a transfer with.">
+<link rel="icon" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<style>
+  :root {
+    --board-bg:    #17171A;
+    --board-panel: #1F1F23;
+    --board-rule:  #2E2E34;
+    --flap:        #26262B;
+    --amber:       #E8B84B;
+    --amber-dim:   #8A6F2C;
+    --board-text:  #F3EDE0;
+    --board-mute:  #7C7669;
+    --mono: "SF Mono", ui-monospace, Consolas, "Cascadia Mono", "Roboto Mono", monospace;
+  }
+
+  .arrivals-hero {
+    background: var(--color-cream);
+    padding: 72px 24px 40px;
+    text-align: center;
+  }
+  .arrivals-hero .kicker {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--color-terracotta);
+    margin-bottom: 14px;
+  }
+  .arrivals-hero h1 {
+    font-family: var(--font-heading);
+    font-weight: 400;
+    font-size: clamp(38px, 7vw, 68px);
+    line-height: 1.02;
+    color: var(--color-charcoal);
+    letter-spacing: -0.02em;
+    margin: 0 0 16px;
+  }
+  .arrivals-hero p {
+    font-family: var(--font-body);
+    font-weight: 300;
+    max-width: 54ch;
+    margin: 0 auto;
+    color: var(--color-warm-gray);
+    line-height: 1.65;
+  }
+
+  /* ---------- the board ---------- */
+  .board-wrap { padding: 0 16px 64px; background: var(--color-cream); }
+  .board {
+    max-width: 1120px;
+    margin: 0 auto;
+    background: var(--board-bg);
+    border-radius: 4px;
+    box-shadow: 0 30px 70px -30px rgba(28, 20, 10, 0.55), 0 2px 0 rgba(255,255,255,0.04) inset;
+    overflow: hidden;
+    position: relative;
+  }
+  .board::after {
+    content: "";
+    position: absolute; inset: 0;
+    pointer-events: none;
+    background-image: repeating-linear-gradient(to bottom, rgba(255,255,255,0.022) 0 1px, transparent 1px 3px);
+  }
+
+  .board-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+    padding: 22px 26px 18px;
+    border-bottom: 1px solid var(--board-rule);
+    background: linear-gradient(180deg, #202024, var(--board-bg));
+  }
+  .board-title {
+    font-family: var(--mono);
+    font-size: 15px;
+    letter-spacing: 0.30em;
+    color: var(--amber);
+    text-transform: uppercase;
+  }
+  .board-sub {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    color: var(--board-mute);
+    text-transform: uppercase;
+  }
+
+  .board-cols, .board-row {
+    display: grid;
+    grid-template-columns: 74px 1.35fr 88px 1fr 96px;
+    gap: 14px;
+    align-items: center;
+    padding: 0 26px;
+  }
+  .board-cols {
+    padding-top: 12px; padding-bottom: 12px;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--board-mute);
+    border-bottom: 1px solid var(--board-rule);
+  }
+  .board-row {
+    padding-top: 13px; padding-bottom: 13px;
+    border-bottom: 1px solid rgba(46,46,52,0.6);
+    opacity: 0;
+    animation: flapIn 0.5s cubic-bezier(.2,.7,.3,1) forwards;
+    transform-origin: top center;
+  }
+  .board-row:last-child { border-bottom: none; }
+  @keyframes flapIn {
+    from { opacity: 0; transform: perspective(600px) rotateX(-72deg); }
+    to   { opacity: 1; transform: perspective(600px) rotateX(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .board-row { animation: none; opacity: 1; }
+  }
+
+  .cell-time {
+    font-family: var(--mono);
+    font-size: 17px;
+    color: var(--amber);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.04em;
+  }
+  .cell-time.pending { color: var(--amber-dim); }
+  .cell-who {
+    font-family: var(--font-body);
+    font-size: 14.5px;
+    color: var(--board-text);
+  }
+  .cell-who small {
+    display: block;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.12em;
+    color: var(--board-mute);
+    text-transform: uppercase;
+    margin-top: 3px;
+  }
+  .cell-code {
+    font-family: var(--mono);
+    font-size: 15px;
+    letter-spacing: 0.12em;
+    color: var(--board-text);
+    background: var(--flap);
+    border-radius: 2px;
+    padding: 5px 0;
+    text-align: center;
+  }
+  .cell-code.pending { color: var(--board-mute); }
+  .cell-from { font-family: var(--font-body); font-size: 13px; color: var(--board-mute); }
+  .cell-stat {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-align: right;
+  }
+  .stat-ok { color: #7FB069; }
+  .stat-wait { color: var(--amber-dim); }
+
+  /* ---------- stats ---------- */
+  .stats {
+    max-width: 1120px; margin: 0 auto 34px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1px; background: rgba(107,100,96,0.18);
+    border: 1px solid rgba(107,100,96,0.18);
+  }
+  .stat { background: var(--color-cream); padding: 18px 20px; }
+  .stat b {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 34px; font-weight: 500;
+    color: var(--color-terracotta);
+    line-height: 1;
+  }
+  .stat span {
+    font-family: var(--mono);
+    font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--color-warm-gray);
+    display: block; margin-top: 7px;
+  }
+
+  /* ---------- transfer clusters ---------- */
+  .section { max-width: 1120px; margin: 0 auto; padding: 56px 16px; }
+  .section h2 {
+    font-family: var(--font-heading);
+    font-weight: 400; font-size: clamp(26px, 3.6vw, 38px);
+    color: var(--color-charcoal); margin: 0 0 8px;
+  }
+  .section .lede {
+    font-family: var(--font-body); font-weight: 300;
+    color: var(--color-warm-gray); max-width: 60ch; margin: 0 0 30px; line-height: 1.6;
+  }
+  .clusters { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+  .cluster {
+    border: 1px solid rgba(196,92,38,0.22);
+    border-top: 3px solid var(--color-terracotta);
+    background: #fff; padding: 18px 20px;
+  }
+  .cluster h3 {
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--color-terracotta); margin: 0 0 4px;
+  }
+  .cluster .when {
+    font-family: var(--font-body); font-size: 13px; color: var(--color-warm-gray); margin-bottom: 12px;
+  }
+  .cluster ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+  .cluster li { font-family: var(--font-body); font-size: 14px; color: var(--color-charcoal); }
+
+  /* ---------- people ---------- */
+  .people { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 14px; }
+  .pass {
+    background: #fff;
+    border: 1px solid rgba(44,44,44,0.10);
+    display: grid; grid-template-columns: 1fr 42px;
+    box-shadow: var(--shadow-soft);
+    transition: transform 0.25s cubic-bezier(.2,.7,.3,1), box-shadow 0.25s;
+  }
+  .pass:hover { transform: translateY(-3px); box-shadow: var(--shadow-medium); }
+  .pass-main { padding: 16px 18px; min-width: 0; }
+  .pass-name {
+    font-family: var(--font-heading); font-size: 18px; font-weight: 500;
+    color: var(--color-charcoal); line-height: 1.2; margin-bottom: 3px;
+  }
+  .pass-room {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--color-olive); margin-bottom: 10px;
+  }
+  .pass-fact {
+    font-family: var(--font-body); font-weight: 300; font-size: 13.5px;
+    color: var(--color-warm-gray); line-height: 1.55;
+  }
+  .pass-fact.empty { color: #C4BDB6; font-style: italic; }
+  .pass-stub {
+    border-left: 1px dashed rgba(44,44,44,0.20);
+    background: var(--color-cream);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pass-stub span {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.22em;
+    color: var(--color-gold); writing-mode: vertical-rl; transform: rotate(180deg);
+    text-transform: uppercase;
+  }
+
+  .note {
+    max-width: 1120px; margin: 0 auto 64px; padding: 18px 20px;
+    border-left: 3px solid var(--color-gold);
+    background: rgba(201,169,97,0.09);
+    font-family: var(--font-body); font-size: 14px; color: var(--color-warm-gray); line-height: 1.6;
+  }
+  .loading {
+    text-align: center; padding: 60px 20px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--board-mute);
+  }
+
+  @media (max-width: 760px) {
+    .board-cols { display: none; }
+    .board-row {
+      grid-template-columns: 66px 1fr;
+      grid-template-areas: "time who" "code from" ". stat";
+      row-gap: 6px;
+    }
+    .cell-time { grid-area: time; } .cell-who { grid-area: who; }
+    .cell-code { grid-area: code; } .cell-from { grid-area: from; }
+    .cell-stat { grid-area: stat; text-align: left; }
+  }
+</style>
+    <style id="reveal-gate-style">html{visibility:hidden}</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">S &amp; J</a>
+    <div class="nav-menu">
+      <a href="index.html">Home</a>
+      <a href="schedule.html">Schedule</a>
+      <a href="travel.html">Travel</a>
+      <a href="arrivals.html" class="active">Arrivals</a>
+      <a href="accommodation.html">Stay</a>
+      <a href="guests.html">Guests</a>
+      <a href="faq.html">FAQ</a>
+    </div>
+  </div>
+</nav>
+
+<header class="arrivals-hero">
+  <div class="kicker">Fri 28 &ndash; Mon 31 May 2027</div>
+  <h1>Everyone lands<br>somewhere different</h1>
+  <p>Perugia is 55 minutes from the villa, Florence an hour forty-five, Bologna two hours, Rome three. Tell us your flight and this board will find you someone to share the drive with.</p>
+</header>
+
+<div class="board-wrap">
+  <div class="board">
+    <div class="board-head">
+      <div class="board-title">Arrivals: La Conca</div>
+      <div class="board-sub" id="board-sub">Loading&hellip;</div>
+    </div>
+    <div class="board-cols">
+      <div>Time</div><div>Party</div><div>Flight</div><div>From</div><div>Status</div>
+    </div>
+    <div id="board-body"><div class="loading">Reading the manifest&hellip;</div></div>
+  </div>
+</div>
+
+<section class="section">
+  <div class="stats" id="stats"></div>
+
+  <h2>Share a transfer</h2>
+  <p class="lede">Anyone landing at the same airport within a few hours of each other. Splitting a minibus beats four separate taxis, and the drive up is half the fun.</p>
+  <div class="clusters" id="clusters"></div>
+</section>
+
+<section class="section">
+  <h2>Who you'll be with</h2>
+  <p class="lede">Two villas, one weekend, and a lot of people who haven't met yet. Here's everyone, and where they're sleeping.</p>
+  <div class="people" id="people"></div>
+</section>
+
+<div class="note" id="privacy-note"></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script>
+(function () {
+  firebase.initializeApp({
+    apiKey: "AIzaSyAbEpCIPFFqiuElH0DK1dkkl7JBbNyZTc8",
+    databaseURL: "https://tuscany-wedding-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "tuscany-wedding"
+  });
+  var db = firebase.database();
+
+  var AIRPORTS = {
+    "Perugia (PEG)":        { code: "PEG", drive: "55 min" },
+    "Florence (FLR)":       { code: "FLR", drive: "1h45" },
+    "Rome Fiumicino (FCO)": { code: "FCO", drive: "3h" },
+    "Rome Ciampino (CIA)":  { code: "CIA", drive: "3h" },
+    "Pisa (PSA)":           { code: "PSA", drive: "2h15" },
+    "Bologna (BLQ)":        { code: "BLQ", drive: "2h" },
+    "Self-driving":         { code: "CAR", drive: "-" },
+    "Other":                { code: "-", drive: "-" }
+  };
+
+  var esc = function (s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  };
+
+  function isChild(g) { return /child/i.test(g.notes || ""); }
+
+  function households(guests, roomOf) {
+    var by = {}, seen = {}, out = [];
+    guests.forEach(function (g) { by[g.name] = g; });
+
+    // adults first, paired with their partner
+    guests.forEach(function (g) {
+      if (seen[g.name] || isChild(g)) return;
+      var unit = [g];
+      if (g.partner && by[g.partner] && !seen[g.partner] && !isChild(by[g.partner])) {
+        unit.push(by[g.partner]);
+      }
+      unit.forEach(function (m) { seen[m.name] = true; });
+      out.push(unit);
+    });
+
+    // children travel with whoever they share a room with
+    guests.filter(isChild).forEach(function (kid) {
+      var room = roomOf[kid.name];
+      var host = room && out.find(function (u) {
+        return u.some(function (m) { return roomOf[m.name] === room; });
+      });
+      if (host) { host.push(kid); } else { out.push([kid]); }
+      seen[kid.name] = true;
+    });
+
+    return out;
+  }
+
+  function render(guests, rooms) {
+    var live = guests.filter(function (g) { return g && g.name && g.status !== "Declined"; });
+
+    var roomOf = {};
+    ["santarsa", "vallorsaia"].forEach(function (v) {
+      (rooms && rooms[v] ? rooms[v] : []).forEach(function (r) {
+        (r.guests || []).forEach(function (n) {
+          roomOf[n] = (v === "santarsa" ? "Santarsa" : "Vallorsaia") + " · " + r.name;
+        });
+      });
+    });
+
+    var units = households(live, roomOf);
+    var known = units.filter(function (u) { return u[0].arrivalDate || u[0].flightNo; });
+
+    // ---- board ----
+    units.sort(function (a, b) {
+      var ad = (a[0].arrivalDate || "9") + (a[0].arrivalTime || "9");
+      var bd = (b[0].arrivalDate || "9") + (b[0].arrivalTime || "9");
+      return ad < bd ? -1 : ad > bd ? 1 : a[0].name.localeCompare(b[0].name);
+    });
+
+    var rows = units.map(function (u, i) {
+      var g = u[0];
+      var names = u.map(function (m) { return m.name; }).join(" &amp; ");
+      var ap = AIRPORTS[g.airport] || { code: "-", drive: "-" };
+      var hasTime = !!g.arrivalTime;
+      var hasFlight = !!g.flightNo;
+      var when = g.arrivalDate
+        ? new Date(g.arrivalDate + "T00:00:00").toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
+        : "";
+      return '<div class="board-row" style="animation-delay:' + (i * 34) + 'ms">'
+        + '<div class="cell-time ' + (hasTime ? "" : "pending") + '">' + esc(hasTime ? g.arrivalTime : "--:--") + "</div>"
+        + '<div class="cell-who">' + names + (when ? "<small>" + esc(when) + "</small>" : "<small>date to confirm</small>") + "</div>"
+        + '<div class="cell-code ' + (hasFlight ? "" : "pending") + '">' + esc(hasFlight ? g.flightNo : ap.code) + "</div>"
+        + '<div class="cell-from">' + esc(g.airport && g.airport !== "TBD" ? g.airport + " · " + ap.drive : "airport not yet known") + "</div>"
+        + '<div class="cell-stat ' + (hasTime ? "stat-ok" : "stat-wait") + '">' + (hasTime ? "Confirmed" : "Awaiting") + "</div>"
+        + "</div>";
+    });
+    document.getElementById("board-body").innerHTML = rows.join("");
+    document.getElementById("board-sub").textContent =
+      known.length + " of " + units.length + " parties confirmed";
+
+    // ---- stats ----
+    var beds = 0, used = 0;
+    ["santarsa", "vallorsaia"].forEach(function (v) {
+      (rooms && rooms[v] ? rooms[v] : []).forEach(function (r) {
+        beds += r.sleeps || 0; used += (r.guests || []).length;
+      });
+    });
+    var stats = [
+      [live.length, "Guests expected"],
+      [units.length, "Travelling parties"],
+      [known.length, "Flights told us"],
+      [units.length - known.length, "Still to hear from"],
+      [used + " / " + beds, "Beds allocated"]
+    ];
+    document.getElementById("stats").innerHTML = stats.map(function (s) {
+      return '<div class="stat"><b>' + s[0] + "</b><span>" + s[1] + "</span></div>";
+    }).join("");
+
+    // ---- transfer clusters ----
+    var buckets = {};
+    known.forEach(function (u) {
+      var g = u[0];
+      if (!g.airport || g.airport === "TBD" || g.airport === "Self-driving") return;
+      var key = g.airport + "|" + (g.arrivalDate || "?");
+      (buckets[key] = buckets[key] || []).push(u);
+    });
+    var cl = Object.keys(buckets).filter(function (k) { return buckets[k].length > 1; }).map(function (k) {
+      var parts = k.split("|"), ap = AIRPORTS[parts[0]] || { drive: "" };
+      var when = parts[1] !== "?"
+        ? new Date(parts[1] + "T00:00:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })
+        : "date to confirm";
+      return '<div class="cluster"><h3>' + esc(parts[0]) + "</h3>"
+        + '<div class="when">' + esc(when) + " · " + esc(ap.drive) + " to the villa</div><ul>"
+        + buckets[k].map(function (u) {
+            return "<li>" + u.map(function (m) { return esc(m.name); }).join(" &amp; ")
+              + (u[0].arrivalTime ? ", " + esc(u[0].arrivalTime) : "") + "</li>";
+          }).join("")
+        + "</ul></div>";
+    });
+    document.getElementById("clusters").innerHTML = cl.length
+      ? cl.join("")
+      : '<div class="cluster"><h3>Nothing to match yet</h3><div class="when">Once two parties share an airport and a day, they will pair up here automatically.</div></div>';
+
+    // ---- people ----
+    live.sort(function (a, b) { return a.name.localeCompare(b.name); });
+    document.getElementById("people").innerHTML = live.map(function (g) {
+      var fact = g.funFact && g.funFact.trim();
+      return '<article class="pass"><div class="pass-main">'
+        + '<div class="pass-name">' + esc(g.name) + "</div>"
+        + '<div class="pass-room">' + esc(roomOf[g.name] || "Room to be assigned") + "</div>"
+        + '<div class="pass-fact' + (fact ? "" : " empty") + '">' + esc(fact || "") + "</div>"
+        + '</div><div class="pass-stub"><span>La Conca</span></div></article>';
+    }).join("");
+
+    var missing = live.filter(function (g) { return !(g.funFact && g.funFact.trim()); }).length;
+    document.getElementById("privacy-note").innerHTML =
+      "<strong>Not live yet.</strong> This page is not linked from the site and must stay that way until the password gate is working. It shows every guest, their room and their travel plans. "
+      + missing + " of " + live.length + " people still need a fun fact.";
+  }
+
+  Promise.all([
+    db.ref("wedding-guests-v4").once("value"),
+    db.ref("wedding-rooms-v3").once("value")
+  ]).then(function (snaps) {
+    var guests = snaps[0].val() || [];
+    if (!Array.isArray(guests)) guests = Object.keys(guests).map(function (k) { return guests[k]; });
+    render(guests.filter(Boolean), snaps[1].val() || {});
+  }).catch(function (e) {
+    document.getElementById("board-body").innerHTML =
+      '<div class="loading">Could not reach the manifest: ' + esc(e.message) + "</div>";
+  });
+})();
+</script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="js/reveal.js"></script>
+</body>
+</html>

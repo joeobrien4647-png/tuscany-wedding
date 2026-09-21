@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sophie &amp; Joe &mdash; Tuscany 2027</title>
+<title>Sophie &amp; Joe, Tuscany 2027</title>
 <meta name="description" content="Sophie and Joe are getting married in Tuscany, 29 May 2027. Register to confirm you got the save-the-date.">
 <link rel="icon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -132,7 +132,7 @@
   <!-- ===== registered ===== -->
   <section id="done" class="p-done" hidden>
     <h2>You&rsquo;re on the list.</h2>
-    <p>Thank you. That&rsquo;s everything we need for now &mdash; the rest of the site opens up nearer the time, and we&rsquo;ll let you know when it does.</p>
+    <p>Thank you. That&rsquo;s everything we need for now. The rest of the site opens up nearer the time, and we&rsquo;ll let you know when it does.</p>
     <dl>
       <dt>Name</dt><dd id="d-name"></dd>
       <dt>Email</dt><dd id="d-email"></dd>
@@ -158,7 +158,7 @@
 
     <div class="p-profile">
       <h3>Your pocket in the binder</h3>
-      <p>One line about you, and one song for the pool on Sunday. Everyone who registers gets a pocket &mdash; this fills yours.</p>
+      <p>One line about you, and one song for the pool on Sunday. Everyone who registers gets a pocket. This fills yours.</p>
       <form id="form-profile" novalidate>
         <label for="pr-line">One line about you</label>
         <input id="pr-line" type="text" maxlength="120" placeholder="How you know the couple, what you're bringing, anything">
@@ -176,9 +176,9 @@
 <section class="p-next">
   <h3>What happens next</h3>
   <ul>
-    <li><b>Now</b> &mdash; register above so we have your details.</li>
-    <li><b>Nearer the time</b> &mdash; the full site opens: the weekend, travel, where you&rsquo;re sleeping, who you can share a lift with.</li>
-    <li><b>Early 2027</b> &mdash; the proper RSVP.</li>
+    <li><b>Now:</b> register above so we have your details.</li>
+    <li><b>Nearer the time:</b> the full site opens, the weekend, travel, where you&rsquo;re sleeping, who you can share a lift with.</li>
+    <li><b>Early 2027:</b> confirm your place. Paying the &pound;150 is the RSVP.</li>
   </ul>
 </section>
 
@@ -219,12 +219,12 @@
   // ---- errors ----
   function friendly(e) {
     var c = (e && e.code) || "";
-    if (c === "auth/email-already-in-use") return "You already have an account with that email — sign in instead.";
+    if (c === "auth/email-already-in-use") return "You already have an account with that email. Sign in instead.";
     if (c === "auth/invalid-email") return "That email address doesn’t look right.";
     if (c === "auth/weak-password") return "Password needs to be at least 6 characters.";
     if (c === "auth/invalid-credential" || c === "auth/wrong-password" || c === "auth/user-not-found") return "That email and password don’t match.";
-    if (c === "auth/too-many-requests") return "Too many attempts — give it a minute and try again.";
-    if (c === "auth/operation-not-allowed" || c === "auth/configuration-not-found") return "Registration isn’t switched on yet — Joe needs to enable it. Try again shortly.";
+    if (c === "auth/too-many-requests") return "Too many attempts. Give it a minute and try again.";
+    if (c === "auth/operation-not-allowed" || c === "auth/configuration-not-found") return "Registration isn’t switched on yet. Joe needs to enable it. Try again shortly.";
     if (c === "PERMISSION_DENIED" || /permission/i.test(e && e.message || "")) return "Couldn’t save that. Try again, or message Joe.";
     return (e && e.message) || "Something went wrong.";
   }
@@ -240,9 +240,9 @@
     if (!has) return;
     $("d-name").textContent = reg.name || "";
     $("d-email").textContent = reg.email || "";
-    $("d-phone").textContent = reg.phone || "—";
-    $("d-address").textContent = reg.address || "—";
-    $("d-intent").textContent = INTENT[reg.intent] || reg.intent || "—";
+    $("d-phone").textContent = reg.phone || "not given";
+    $("d-address").textContent = reg.address || "not given";
+    $("d-intent").textContent = INTENT[reg.intent] || reg.intent || "not given";
     $("ed-phone").value = reg.phone || "";
     $("ed-address").value = reg.address || "";
     var r = document.querySelector('input[name="ed-intent"][value="' + (reg.intent || "") + '"]'); if (r) r.checked = true;
@@ -271,7 +271,7 @@
     if (!name) return showErr("up-err", { message: "Tell us your name." });
     if (!email) return showErr("up-err", { message: "We need an email address." });
     if (pw.length < 6) return showErr("up-err", { code: "auth/weak-password" });
-    if (!intent) return showErr("up-err", { message: "Let us know if you’re coming — ‘not sure yet’ is fine." });
+    if (!intent) return showErr("up-err", { message: "Let us know if you’re coming. ‘Not sure yet’ is fine." });
     $("up-btn").disabled = true;
     auth.createUserWithEmailAndPassword(email, pw).then(function (cred) {
       var u = cred.user;
@@ -325,11 +325,11 @@
     ev.preventDefault(); hideErr("pr-err"); $("pr-ok").hidden = true;
     var u = auth.currentUser; if (!u) return;
     var name = ($("d-name").textContent || u.displayName || "").trim();
-    if (!name) return showErr("pr-err", { message: "We don’t have your name yet — register first." });
+    if (!name) return showErr("pr-err", { message: "We don’t have your name yet. Register first." });
     var rec = { name: name, line: $("pr-line").value.trim().slice(0, 120), song: $("pr-song").value.trim().slice(0, 120),
                 updatedAt: firebase.database.ServerValue.TIMESTAMP };
     db.ref("public/profiles/" + u.uid).set(rec).then(function () {
-      $("pr-ok").textContent = "Saved — you’re in the binder."; $("pr-ok").hidden = false;
+      $("pr-ok").textContent = "Saved. You’re in the binder."; $("pr-ok").hidden = false;
     }).catch(function (e) { showErr("pr-err", e); });
   };
 })();

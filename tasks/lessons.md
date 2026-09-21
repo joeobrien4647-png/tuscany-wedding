@@ -27,3 +27,7 @@ into a real newline / real character before Python saw it, breaking a JS string 
 Write the script file with the Write tool, or build strings with chr(10)/chr(92), or use
 literal unicode characters. Verify against served bytes, not the console — console errors
 persist across navigations in the browser tool and can be stale.
+
+## 21 Sep 2026: em dashes
+Joe: "never ever use Mdashes." Every reply and most site copy had them. Rule: none, anywhere.
+Comma, full stop, colon or brackets instead. Grep files for the character after writing copy.
