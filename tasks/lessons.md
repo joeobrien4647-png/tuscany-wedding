@@ -31,3 +31,8 @@ persist across navigations in the browser tool and can be stale.
 ## 21 Sep 2026: em dashes
 Joe: "never ever use Mdashes." Every reply and most site copy had them. Rule: none, anywhere.
 Comma, full stop, colon or brackets instead. Grep files for the character after writing copy.
+
+## 21 Sep 2026: dress code is not decided
+Put "Black tie optional" / "Smart casual" on the live register page from the old January pages
+and the Brain note. Neither is a decision. Same failure as the vendor one: old site content and
+planning notes are drafts, not facts. Only the Decisions log and Joe count as settled.
