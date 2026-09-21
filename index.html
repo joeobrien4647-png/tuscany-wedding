@@ -76,6 +76,24 @@
   .p-valley { margin: 72px 0 0; height: clamp(220px, 34vw, 420px); background: url("images/venue/valley.jpg") center 60% / cover no-repeat; position: relative; }
   .p-valley span { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); white-space: nowrap;
     font-family: var(--mono); font-size: 10.5px; letter-spacing: .3em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,.6); }
+  .p-us { max-width: 1120px; margin: 72px auto 0; padding: 0 20px; }
+  .p-us .p-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--color-terracotta); margin-bottom: 12px; }
+  .p-us h2 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(32px, 5vw, 52px); line-height: 1.05; letter-spacing: -.02em; color: var(--color-charcoal); margin: 0 0 10px; }
+  .p-us .p-lede { font-family: var(--font-body); font-weight: 300; color: var(--color-warm-gray); max-width: 58ch; line-height: 1.65; margin: 0 0 30px; }
+  .p-shots { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 14px; }
+  .p-shots img { display: block; width: 100%; height: 100%; object-fit: cover; aspect-ratio: 4 / 3; }
+  .p-shots img:first-child { grid-row: span 2; aspect-ratio: auto; }
+  @media (max-width: 720px) { .p-shots { grid-template-columns: 1fr 1fr; } .p-shots img:first-child { grid-column: span 2; grid-row: auto; aspect-ratio: 3 / 2; } }
+
+  .p-ask { max-width: 760px; margin: 80px auto 0; padding: 0 24px; text-align: center; }
+  .p-ask .p-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--color-terracotta); margin-bottom: 14px; }
+  .p-ask h2 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(30px, 4.6vw, 46px); line-height: 1.1; letter-spacing: -.02em; color: var(--color-charcoal); margin: 0 0 22px; }
+  .p-ask p { font-family: var(--font-body); font-weight: 300; font-size: 16.5px; color: var(--color-warm-gray); line-height: 1.75; margin: 0 0 16px; }
+  .p-ask .p-big { font-family: var(--font-heading); font-weight: 500; font-size: clamp(56px, 9vw, 84px); color: var(--color-terracotta); line-height: 1; margin: 26px 0 4px; }
+  .p-ask .p-per { font-family: var(--mono); font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: var(--color-warm-gray); margin-bottom: 26px; }
+  .p-ask ul { list-style: none; padding: 0; margin: 0 auto 26px; display: inline-grid; gap: 8px; text-align: left; }
+  .p-ask li { font-family: var(--font-body); font-size: 15px; color: var(--color-charcoal); }
+  .p-ask li::before { content: "\2713"; color: var(--color-olive); margin-right: 10px; }
   @media (max-width: 600px) { .p-hero { padding: 90px 20px 130px; } .p-card { margin-top: -80px; } }
   .p-next h3 { font-family: var(--mono); font-size: 10.5px; letter-spacing: .26em; text-transform: uppercase; color: var(--color-terracotta); margin: 0 0 14px; }
   .p-next li { font-weight: 300; color: var(--color-warm-gray); line-height: 1.65; margin-bottom: 8px; }
@@ -151,8 +169,8 @@
 
   <!-- ===== registered ===== -->
   <section id="done" class="p-done" hidden>
-    <h2>You&rsquo;re on the list.</h2>
-    <p>Thank you. That&rsquo;s everything we need for now. The rest of the site opens up nearer the time, and we&rsquo;ll let you know when it does.</p>
+    <h2>Lovely. You&rsquo;re in.</h2>
+    <p>Thank you. That&rsquo;s all we need for now. The rest of the site opens up nearer the time and we&rsquo;ll give you a shout when it does.</p>
     <dl>
       <dt>Name</dt><dd id="d-name"></dd>
       <dt>Email</dt><dd id="d-email"></dd>
@@ -227,12 +245,40 @@
 
 <div class="p-valley"><span>Lago di Montedoglio, from the villa</span></div>
 
+<section class="p-us">
+  <div class="p-eyebrow">The two of us</div>
+  <h2>Sophie &amp; Joe</h2>
+  <p class="p-lede">Engaged on a beach. Married quietly in Kent this July, just the family. The proper one, with all of you, next May in the hills above Sansepolcro.</p>
+  <div class="p-shots">
+    <img src="images/us/proposal.jpg" alt="Joe proposing to Sophie on the beach" loading="lazy">
+    <img src="images/us/walk.jpg" alt="Sophie and Joe walking along the beach" loading="lazy">
+    <img src="images/us/laugh.jpg" alt="Sophie and Joe laughing" loading="lazy">
+    <img src="images/us/carry.jpg" alt="Joe carrying Sophie on the beach" loading="lazy">
+  </div>
+</section>
+
+<section class="p-ask">
+  <div class="p-eyebrow">The one thing we ask</div>
+  <h2>Come and stay with us for the weekend</h2>
+  <p>We&rsquo;ve taken over two old stone villas for the whole weekend so that everyone can stay together, on site, from Friday to Monday. No hotels, no taxis home, everyone in one place.</p>
+  <div class="p-big">&pound;150</div>
+  <div class="p-per">per person, for the whole weekend</div>
+  <p>That covers your bed for the three nights. Everything else, from the moment you arrive to the moment you leave, is on us.</p>
+  <ul>
+    <li>Your room in one of the villas</li>
+    <li>Every meal, Friday night to Monday morning</li>
+    <li>Every drink</li>
+    <li>The pools, the grounds, the lot</li>
+  </ul>
+  <p>We&rsquo;ll sort the money nearer the time, once you&rsquo;ve told us you&rsquo;re coming. And please, genuinely, no presents. You being there is the present.</p>
+</section>
+
 <section class="p-next">
   <h3>What happens next</h3>
   <ul>
-    <li><b>Now:</b> register above so we have your details.</li>
-    <li><b>Nearer the time:</b> the full site opens: travel, where you&rsquo;re sleeping, who you can share a lift with.</li>
-    <li><b>Early 2027:</b> confirm your place. Paying the &pound;150 is the RSVP.</li>
+    <li><b>Now:</b> register above so we can reach you.</li>
+    <li><b>Nearer the time:</b> the full site opens: travel, which villa you&rsquo;re in, who you can share a lift with.</li>
+    <li><b>Early 2027:</b> we&rsquo;ll ask you to confirm you&rsquo;re definitely coming, and sort the &pound;150 then.</li>
   </ul>
 </section>
 
