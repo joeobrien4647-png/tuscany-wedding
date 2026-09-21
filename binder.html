@@ -38,6 +38,9 @@
   .b-gate { max-width: 440px; margin: 40px auto 100px; text-align: center; padding: 0 24px; }
   .b-gate p { color: var(--color-warm-gray); font-weight: 300; line-height: 1.65; }
   .b-gate a { display: inline-block; margin-top: 18px; background: var(--color-terracotta); color: #fff; text-decoration: none; padding: 14px 28px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: .06em; }
+  @keyframes b-deal { from { opacity: 0; transform: translateY(16px) rotate(-1.2deg); } to { opacity: 1; transform: none; } }
+  .pocket { opacity: 0; animation: b-deal .55s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: calc(var(--i, 0) * 60ms); }
+  @media (prefers-reduced-motion: reduce) { .pocket { animation: none; opacity: 1; } }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -82,14 +85,14 @@
       .sort(function (a, b) { return (a.name || "").localeCompare(b.name || ""); });
     var cols = 6, pad = Math.max(cols * 2 - list.length, (cols - (list.length % cols)) % cols);
     var html = list.map(function (p, i) {
-      return '<div class="pocket' + (p._uid === uid ? " mine" : "") + '">'
+      return '<div class="pocket' + (p._uid === uid ? " mine" : "") + '" style="--i:' + i + '">'
         + '<div><div class="pk-num">No. ' + String(i + 1).padStart(2, "0") + "</div>"
         + '<div class="pk-name">' + esc(p.name) + "</div>"
         + '<div class="pk-line">' + esc(p.line || "") + "</div></div>"
         + (p.song ? '<div class="pk-song">' + esc(p.song) + "</div>" : "")
         + "</div>";
     }).join("");
-    for (var i = 0; i < pad; i++) html += '<div class="pocket empty"><span>empty</span></div>';
+    for (var i = 0; i < pad; i++) html += '<div class="pocket empty" style="--i:' + (list.length + i) + '"><span>empty</span></div>';
     $("grid").innerHTML = html;
     $("count").textContent = list.length + " in the binder so far";
     $("grid").hidden = false;

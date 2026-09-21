@@ -103,6 +103,34 @@
   .p-profile h3 { font-family: var(--font-heading); font-weight: 500; font-size: 20px; color: var(--color-charcoal); margin: 0 0 6px; }
   .p-profile p { color: var(--color-warm-gray); font-weight: 300; font-size: 13.5px; line-height: 1.6; margin: 0; }
   .p-profile a.p-link { display: inline-block; text-decoration: underline; }
+
+  /* ---- motion ---- */
+  @keyframes p-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+  .p-hero .p-kicker, .p-hero h1, .p-hero .p-sub, .p-hero .p-count { opacity: 0; animation: p-rise .9s cubic-bezier(.2,.7,.2,1) forwards; }
+  .p-hero .p-kicker { animation-delay: .15s; }
+  .p-hero h1 { animation-delay: .35s; }
+  .p-hero .p-sub { animation-delay: .6s; }
+  .p-hero .p-count { animation-delay: .85s; }
+  .p-card { opacity: 0; animation: p-rise .9s cubic-bezier(.2,.7,.2,1) 1.05s forwards; }
+  .p-reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+  .p-reveal.is-in { opacity: 1; transform: none; }
+  .p-days .p-day:nth-child(2), .p-shots img:nth-child(2) { transition-delay: .12s; }
+  .p-days .p-day:nth-child(3), .p-shots img:nth-child(3) { transition-delay: .24s; }
+  .p-shots img:nth-child(4) { transition-delay: .36s; }
+  .p-swap-out { animation: p-fade-out .35s ease forwards; }
+  @keyframes p-fade-out { to { opacity: 0; transform: translateY(-8px); } }
+  #done { animation: p-rise .6s cubic-bezier(.2,.7,.2,1); }
+  .p-live { display: inline-block; font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.85); margin-top: 26px; padding: 7px 14px; border: 1px solid rgba(255,255,255,.35); border-radius: 999px; backdrop-filter: blur(2px); }
+  .p-live b { font-family: var(--font-heading); font-size: 15px; font-weight: 500; color: #fff; letter-spacing: 0; margin-right: 4px; }
+  .p-google { width: 100%; margin-top: 12px; background: #fff; color: var(--color-charcoal); border: 1px solid rgba(44,44,44,.22); border-radius: 999px; padding: 13px; font-family: var(--font-body); font-weight: 700; font-size: 13.5px; letter-spacing: .04em; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .p-google svg { width: 18px; height: 18px; }
+  .p-or { text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--color-warm-gray); margin-top: 18px; }
+  html.p-settled .p-hero .p-kicker, html.p-settled .p-hero h1, html.p-settled .p-hero .p-sub, html.p-settled .p-hero .p-count, html.p-settled .p-card { opacity: 1; animation: none; }
+  html.p-settled .p-reveal { opacity: 1; transform: none; transition: none; }
+  @media (prefers-reduced-motion: reduce) {
+    .p-hero .p-kicker, .p-hero h1, .p-hero .p-sub, .p-hero .p-count, .p-card, #done { animation: none; opacity: 1; }
+    .p-reveal { opacity: 1; transform: none; transition: none; }
+  }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -121,7 +149,9 @@
     <div><b id="c-d">&ndash;</b><span>DAYS</span></div>
     <div><b id="c-h">&ndash;</b><span>HOURS</span></div>
     <div><b id="c-m">&ndash;</b><span>MINUTES</span></div>
+    <div><b id="c-s">&ndash;</b><span>SECONDS</span></div>
   </div>
+  <div class="p-live" id="live" hidden><b id="live-n">0</b> already registered</div>
 </header>
 
 <main class="p-card" id="card">
@@ -153,6 +183,11 @@
       </div>
       <div class="p-msg p-err" id="up-err" hidden></div>
       <button class="p-primary" id="up-btn" type="submit">Register</button>
+      <div class="p-or">or</div>
+      <button class="p-google" type="button" data-google>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.5l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.5 0 20.1 0 24s1 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.5-5.8c-2.1 1.4-4.8 2.3-8.1 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+        Continue with Google
+      </button>
     </form>
 
     <form id="form-in" novalidate hidden>
@@ -164,6 +199,11 @@
       <button class="p-primary" id="in-btn" type="submit">Sign in</button>
       <button class="p-link" type="button" id="forgot">Forgotten your password?</button>
       <div class="p-msg p-ok" id="in-ok" hidden></div>
+      <div class="p-or">or</div>
+      <button class="p-google" type="button" data-google>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.5l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.5 0 20.1 0 24s1 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.5-5.8c-2.1 1.4-4.8 2.3-8.1 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+        Continue with Google
+      </button>
     </form>
   </section>
 
@@ -305,8 +345,29 @@
     $("c-d").textContent = Math.floor(ms / 864e5);
     $("c-h").textContent = Math.floor(ms / 36e5) % 24;
     $("c-m").textContent = Math.floor(ms / 6e4) % 60;
+    $("c-s").textContent = String(Math.floor(ms / 1e3) % 60).padStart(2, "0");
   }
-  tick(); setInterval(tick, 30000);
+  tick(); setInterval(tick, 1000);
+
+  // ---- who's in so far (public count, no names) ----
+  db.ref("public/profiles").once("value").then(function (s) {
+    var v = s.val() || {}, k = Object.keys(v).filter(function (id) { return v[id] && v[id].name; }).length;
+    if (k >= 3) { $("live-n").textContent = k; $("live").hidden = false; }
+  }).catch(function () {});
+
+  // safety net: whatever happens to animations, nothing stays invisible
+  setTimeout(function () { document.documentElement.classList.add("p-settled"); }, 4000);
+
+  // ---- reveal on scroll ----
+  (function () {
+    var els = document.querySelectorAll(".p-wk .p-eyebrow, .p-wk h2, .p-wk .p-lede, .p-day, .p-valley, .p-us .p-eyebrow, .p-us h2, .p-us .p-lede, .p-shots img, .p-ask > *, .p-next");
+    els.forEach(function (e) { e.classList.add("p-reveal"); });
+    if (!("IntersectionObserver" in window)) { els.forEach(function (e) { e.classList.add("is-in"); }); return; }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add("is-in"); io.unobserve(en.target); } });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    els.forEach(function (e) { io.observe(e); });
+  })();
 
   // ---- tabs ----
   function showTab(up) {
@@ -336,7 +397,11 @@
   function render(reg) {
     $("loading").hidden = true;
     var has = !!reg;
-    $("auth").hidden = has; $("done").hidden = !has; $("signout").hidden = !has;
+    if (has && !$("auth").hidden) {
+      $("auth").classList.add("p-swap-out");
+      setTimeout(function () { $("auth").classList.remove("p-swap-out"); $("auth").hidden = true; $("done").hidden = false; }, 330);
+    } else { $("auth").hidden = has; $("done").hidden = !has; }
+    $("signout").hidden = !has;
     if (!has) return;
     $("d-name").textContent = reg.name || "";
     $("d-email").textContent = reg.email || "";
@@ -399,6 +464,22 @@
     }).catch(function (e) { showErr("in-err", e); });
   };
   $("signout").onclick = function () { auth.signOut(); };
+
+  document.querySelectorAll("[data-google]").forEach(function (b) {
+    b.onclick = function () {
+      hideErr("up-err"); hideErr("in-err");
+      auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(function (res) {
+        var u = res.user;
+        return db.ref("registrations/" + u.uid).once("value").then(function (s) {
+          if (s.exists()) return;
+          var intent = picked("intent") || "";
+          var rec = { name: u.displayName || "", email: u.email || "", phone: $("up-phone").value.trim(), address: $("up-address").value.trim().slice(0, 300),
+                      intent: intent, uid: u.uid, createdAt: firebase.database.ServerValue.TIMESTAMP, updatedAt: firebase.database.ServerValue.TIMESTAMP };
+          return db.ref("registrations/" + u.uid).set(rec).then(function () { render(rec); });
+        });
+      }).catch(function (e) { if (e && e.code !== "auth/popup-closed-by-user") showErr($("form-up").hidden ? "in-err" : "up-err", e); });
+    };
+  });
 
   // ---- edit ----
   $("edit").onclick = function () { $("form-edit").hidden = !$("form-edit").hidden; };

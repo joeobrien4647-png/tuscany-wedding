@@ -36,3 +36,10 @@ Comma, full stop, colon or brackets instead. Grep files for the character after 
 Put "Black tie optional" / "Smart casual" on the live register page from the old January pages
 and the Brain note. Neither is a decision. Same failure as the vendor one: old site content and
 planning notes are drafts, not facts. Only the Decisions log and Joe count as settled.
+
+## 21 Sep 2026: the hidden Browser pane does not paint
+When the pane is hidden, requestAnimationFrame never fires, CSS animations sit at time 0 and
+IntersectionObserver never triggers. So computed opacity of 0 on animated elements is an
+artefact, not a bug. Do not "fix" it. Verify motion by checking the safety-net state instead
+(html.p-settled after 4s), or by asking Joe to look. Never run an open-ended rAF loop in
+javascript_tool while the pane is hidden: it hangs for 45s.
