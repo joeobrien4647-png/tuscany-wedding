@@ -13,22 +13,25 @@
 <style>
   :root { --mono: "SF Mono", ui-monospace, Consolas, "Roboto Mono", monospace; }
   body { background: var(--color-cream); }
-  .p-hero { background: none; min-height: 0; color: inherit; }
 
   .p-top { display: flex; justify-content: space-between; align-items: center; padding: 26px 40px; }
   .p-top .p-mark { font-family: var(--font-heading); font-size: 20px; letter-spacing: .08em; color: var(--color-charcoal); text-decoration: none; }
   .p-top button { background: none; border: none; font-family: var(--font-body); font-size: 13px; letter-spacing: .04em; color: var(--color-warm-gray); cursor: pointer; }
 
-  .p-hero { text-align: center; padding: 56px 24px 40px; }
-  .p-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--color-terracotta); margin-bottom: 18px; }
-  .p-hero h1 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(54px, 10vw, 118px); line-height: .98; letter-spacing: -.02em; color: var(--color-charcoal); margin: 0 0 12px; }
-  .p-hero .p-sub { font-family: var(--font-heading); font-style: italic; font-size: clamp(20px, 3vw, 30px); color: var(--color-warm-gray); margin: 0 0 30px; }
+  .p-hero { position: relative; text-align: center; padding: 120px 24px 150px; min-height: 0; color: #fff; overflow: hidden;
+    background: #2C2C2C url("images/venue/hero-drone.jpg") center 45% / cover no-repeat; }
+  .p-hero::before { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(20,16,10,.30) 0%, rgba(20,16,10,.22) 45%, rgba(20,16,10,.62) 100%); }
+  .p-hero > * { position: relative; }
+  .p-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--color-gold-light); margin-bottom: 18px; text-shadow: 0 1px 8px rgba(0,0,0,.4); }
+  .p-hero h1 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(54px, 10vw, 118px); line-height: .98; letter-spacing: -.02em; color: #fff; margin: 0 0 12px; text-shadow: 0 2px 24px rgba(0,0,0,.35); }
+  .p-hero .p-sub { font-family: var(--font-heading); font-style: italic; font-size: clamp(20px, 3vw, 30px); color: rgba(255,255,255,.88); margin: 0 0 30px; text-shadow: 0 1px 12px rgba(0,0,0,.4); }
   .p-count { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: clamp(14px, 5vw, 34px); }
   .p-count div { text-align: center; }
-  .p-count b { display: block; font-family: var(--font-heading); font-weight: 500; font-size: clamp(28px, 8vw, 40px); color: var(--color-terracotta); line-height: 1; }
-  .p-count span { font-family: var(--mono); font-size: 9.5px; letter-spacing: .22em; color: var(--color-warm-gray); }
+  .p-count b { display: block; font-family: var(--font-heading); font-weight: 500; font-size: clamp(28px, 8vw, 40px); color: #fff; line-height: 1; text-shadow: 0 1px 12px rgba(0,0,0,.4); }
+  .p-count span { font-family: var(--mono); font-size: 9.5px; letter-spacing: .22em; color: rgba(255,255,255,.75); }
 
-  .p-card { max-width: 480px; margin: 20px auto 0; background: #fff; border: 1px solid rgba(44,44,44,.08); box-shadow: var(--shadow-soft); padding: 30px 32px 32px; }
+  .p-card { max-width: 480px; margin: -96px auto 0; position: relative; z-index: 2; background: #fff; border: 1px solid rgba(44,44,44,.08); box-shadow: var(--shadow-soft); padding: 30px 32px 32px; }
   .p-tabs { display: flex; gap: 4px; margin-bottom: 22px; border-bottom: 1px solid rgba(44,44,44,.1); }
   .p-tabs button { flex: 1; background: none; border: none; padding: 10px 4px 12px; font-family: var(--font-body); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-warm-gray); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
   .p-tabs button[aria-selected="true"] { color: var(--color-terracotta); border-bottom-color: var(--color-terracotta); }
@@ -56,7 +59,24 @@
   .p-done dt { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--color-warm-gray); padding-top: 3px; }
   .p-done dd { margin: 0; color: var(--color-charcoal); }
 
-  .p-next { max-width: 480px; margin: 44px auto 80px; padding: 0 24px; }
+  .p-next { max-width: 480px; margin: 44px auto 64px; padding: 0 24px; }
+
+  .p-wk { max-width: 1120px; margin: 72px auto 0; padding: 0 20px; }
+  .p-wk .p-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--color-terracotta); margin-bottom: 12px; }
+  .p-wk h2 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(32px, 5vw, 52px); line-height: 1.05; letter-spacing: -.02em; color: var(--color-charcoal); margin: 0 0 8px; }
+  .p-wk .p-lede { font-family: var(--font-body); font-weight: 300; color: var(--color-warm-gray); max-width: 58ch; line-height: 1.65; margin: 0 0 34px; }
+  .p-days { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; }
+  .p-day { background: #fff; border: 1px solid rgba(44,44,44,.08); box-shadow: var(--shadow-soft); overflow: hidden; display: flex; flex-direction: column; }
+  .p-day img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
+  .p-day .p-body { padding: 20px 22px 24px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .p-day .p-when { font-family: var(--mono); font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; }
+  .p-day h3 { font-family: var(--font-heading); font-weight: 500; font-size: 26px; color: var(--color-charcoal); margin: 0; line-height: 1.15; }
+  .p-day p { font-family: var(--font-body); font-weight: 300; font-size: 14.5px; color: var(--color-warm-gray); line-height: 1.6; margin: 0; flex: 1; }
+  .p-day .p-dress { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--color-olive); padding-top: 10px; border-top: 1px solid rgba(44,44,44,.08); }
+  .p-valley { margin: 72px 0 0; height: clamp(220px, 34vw, 420px); background: url("images/venue/valley.jpg") center 60% / cover no-repeat; position: relative; }
+  .p-valley span { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); white-space: nowrap;
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .3em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,.6); }
+  @media (max-width: 600px) { .p-hero { padding: 90px 20px 130px; } .p-card { margin-top: -80px; } }
   .p-next h3 { font-family: var(--mono); font-size: 10.5px; letter-spacing: .26em; text-transform: uppercase; color: var(--color-terracotta); margin: 0 0 14px; }
   .p-next li { font-weight: 300; color: var(--color-warm-gray); line-height: 1.65; margin-bottom: 8px; }
   .p-next li b { font-weight: 400; color: var(--color-charcoal); }
@@ -173,11 +193,48 @@
   </section>
 </main>
 
+<section class="p-wk">
+  <div class="p-eyebrow">The weekend</div>
+  <h2>Three days, one valley</h2>
+  <p class="p-lede">Two stone villas on a hill above Sansepolcro, both ours for the weekend. Fly in on the Friday, leave on the Monday. Here is the shape of it.</p>
+  <div class="p-days">
+    <article class="p-day">
+      <img src="images/venue/friday-pool.jpg" alt="The pool at Villa Vallorsaia in evening light" loading="lazy">
+      <div class="p-body">
+        <div class="p-when" style="color:var(--color-gold)">Friday 28 May</div>
+        <h3>Arrive and settle in</h3>
+        <p>Find your room, find the pool, find everyone else. Drinks and pizza on the terrace as the sun goes down. Nothing formal.</p>
+        <div class="p-dress">Smart casual</div>
+      </div>
+    </article>
+    <article class="p-day">
+      <img src="images/venue/saturday-night.jpg" alt="Villa Santarsa lit up at night" loading="lazy">
+      <div class="p-body">
+        <div class="p-when" style="color:var(--color-terracotta)">Saturday 29 May</div>
+        <h3>The wedding</h3>
+        <p>Ceremony in the grounds in the afternoon, then a long Italian lunch that turns into dinner, then dancing until the villa says stop.</p>
+        <div class="p-dress">Black tie optional</div>
+      </div>
+    </article>
+    <article class="p-day">
+      <img src="images/venue/sunday-pool.jpg" alt="The pool at Villa Santarsa looking over the valley" loading="lazy">
+      <div class="p-body">
+        <div class="p-when" style="color:var(--color-olive)">Sunday 30 May</div>
+        <h3>Pool day</h3>
+        <p>Nothing before noon. Two pools, the valley, and something for anyone who wants to leave the sun lounger. Home or stay on from Monday.</p>
+        <div class="p-dress">Smart casual</div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<div class="p-valley"><span>Lago di Montedoglio, from the villa</span></div>
+
 <section class="p-next">
   <h3>What happens next</h3>
   <ul>
     <li><b>Now:</b> register above so we have your details.</li>
-    <li><b>Nearer the time:</b> the full site opens, the weekend, travel, where you&rsquo;re sleeping, who you can share a lift with.</li>
+    <li><b>Nearer the time:</b> the full site opens: travel, where you&rsquo;re sleeping, who you can share a lift with.</li>
     <li><b>Early 2027:</b> confirm your place. Paying the &pound;150 is the RSVP.</li>
   </ul>
 </section>
