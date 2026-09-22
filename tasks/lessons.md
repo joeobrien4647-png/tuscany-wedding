@@ -43,3 +43,8 @@ IntersectionObserver never triggers. So computed opacity of 0 on animated elemen
 artefact, not a bug. Do not "fix" it. Verify motion by checking the safety-net state instead
 (html.p-settled after 4s), or by asking Joe to look. Never run an open-ended rAF loop in
 javascript_tool while the pane is hidden: it hangs for 45s.
+
+## 22 Sep 2026: recommended Stripe without checking its terms
+Stripe is for businesses; personal collection needs pre-approval and peer-to-peer isn't supported.
+Joe asked "is this allowed?" and it wasn't. Rule: before recommending any payment, financial or
+account service, check its terms fit the actual use (personal vs business) first.

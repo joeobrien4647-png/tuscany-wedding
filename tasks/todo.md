@@ -88,3 +88,4 @@ itinerary, schedule, guest-map, plus arrivals.html (untracked, transfer-sharing 
   €9,069 due 28 Mar.
 - [ ] **schedule.html has the wrong week**: says Friday 23rd to Sunday 25th May. Wedding is Sat 29 May; weekend is Fri 28 to Mon 31. Fix in the accuracy pass before reveal.
 - Note: of the 10 images in `images/`, only `villa-vallorsaia.jpg` is the venue. The rest are stock of Barcelona, Cinque Terre, Iceland, Florence, Sydney, the Colosseum and a beach resort. Do not use them as "the venue". Real venue photos now in `images/venue/` (from laconca.it; ask Chiara for originals / permission for the public site).
+- **22 Sep 2026: Stripe DROPPED.** Its terms only allow non-business individuals with pre-approval and it does not support personal/peer-to-peer collection. Bank transfer is the main route; card option (if any) via a personal payment link (PayPal.me, Monzo or Revolut). Joe to choose. Natales (US) are the main reason for a card option.
