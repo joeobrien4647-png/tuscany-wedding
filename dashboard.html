@@ -2558,6 +2558,12 @@
               </div>
             );
           })()}
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+            <button onClick={() => downloadCSV("site-registrations.csv", [["Name", "Email", "Mobile", "Address", "Coming", "Paid", "On guest list", "Registered"],
+                ...regs.map(r => [r.name, r.email, r.phone, r.address, INTENT[r.intent] ? INTENT[r.intent][0] : (r.intent || ""), isPaid(r) ? "Yes" : "", matched(r) ? "Yes" : "No",
+                                  r.createdAt ? new Date(r.createdAt).toLocaleDateString("en-GB") : ""])])}
+                    style={{ ...bS, background: P.stoneP, color: P.txtM }}>Download CSV (addresses for thank-yous)</button>
+          </div>
           <BankDetails bank={bank} saveBank={saveBank} />
 
           {regs.length === 0 && (

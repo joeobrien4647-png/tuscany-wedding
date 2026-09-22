@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sophie &amp; Joe, Tuscany 2027</title>
 <meta name="description" content="Sophie and Joe are getting married in Tuscany, 29 May 2027. Register to confirm you got the save-the-date.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://sophieandjoe2027.com/">
+<meta property="og:title" content="Sophie &amp; Joe, Tuscany 2027">
+<meta property="og:description" content="We&rsquo;re getting married in Tuscany on Saturday 29 May 2027. Register here so we know you got the save-the-date.">
+<meta property="og:image" content="https://sophieandjoe2027.com/images/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#FAF6F0">
 <link rel="icon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -111,6 +120,10 @@
   .p-pay dt { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--color-warm-gray); padding-top: 4px; }
   .p-pay dd { margin: 0; color: var(--color-charcoal); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
   .p-pay .p-small { font-size: 12.5px; margin: 12px 0 0; }
+
+  .p-inapp { text-align: center; font-size: 12.5px; line-height: 1.55; color: var(--color-warm-gray); font-weight: 300; margin: 16px 0 0; }
+  .p-cal { font-size: 13px; color: var(--color-warm-gray); margin: -6px 0 18px; }
+  .p-cal a { color: var(--color-terracotta); font-weight: 700; text-decoration: none; border-bottom: 1px solid rgba(196,112,75,.35); }
 
   /* ---- motion ---- */
   @keyframes p-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
@@ -219,6 +232,7 @@
   <section id="done" class="p-done" hidden>
     <h2>Lovely. You&rsquo;re in.</h2>
     <p>Thank you. That&rsquo;s all we need for now. The rest of the site opens up nearer the time and we&rsquo;ll give you a shout when it does.</p>
+    <p class="p-cal">Pop it in your calendar: <a href="tuscany-2027.ics" download>Apple or Outlook</a> &middot; <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Sophie+%26+Joe%2C+Tuscany&amp;dates=20270528/20270601&amp;location=Agriturismo+La+Conca%2C+Sansepolcro%2C+Italy&amp;details=Friday+28+to+Monday+31+May.+The+wedding+is+Saturday+29+May.+https%3A%2F%2Fsophieandjoe2027.com" target="_blank" rel="noopener">Google</a></p>
     <dl>
       <dt>Name</dt><dd id="d-name"></dd>
       <dt>Email</dt><dd id="d-email"></dd>
@@ -434,6 +448,7 @@
     $("ed-address").value = reg.address || "";
     var r = document.querySelector('input[name="ed-intent"][value="' + (reg.intent || "") + '"]'); if (r) r.checked = true;
     showPay(reg);
+    if (!reg.intent) $("form-edit").hidden = false;
   }
 
   // ---- the 150: bank details live in /members/payment (signed-in only), paid flags in /payments/{uid} (admin-set) ----
@@ -516,9 +531,18 @@
   };
   $("signout").onclick = function () { auth.signOut(); };
 
+  // Google blocks sign-in inside the Facebook / Messenger / Instagram in-app browsers, so point people to email instead
+  if (/FBAN|FBAV|FB_IAB|FBIOS|Instagram|Messenger|MicroMessenger/i.test(navigator.userAgent || "")) {
+    document.querySelectorAll("[data-google]").forEach(function (b) {
+      b.hidden = true; var o = b.previousElementSibling; if (o && o.classList.contains("p-or")) o.hidden = true;
+      b.insertAdjacentHTML("afterend", '<p class="p-inapp">Google sign-in doesn&rsquo;t work inside the Facebook app. Use your email above, or tap the menu and open this page in your normal browser.</p>');
+    });
+  }
+
   document.querySelectorAll("[data-google]").forEach(function (b) {
     b.onclick = function () {
       hideErr("up-err"); hideErr("in-err");
+      if (!$("form-up").hidden && !picked("intent")) return showErr("up-err", { message: "Tick whether you think you can come first, then continue with Google." });
       auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(function (res) {
         var u = res.user;
         return db.ref("registrations/" + u.uid).once("value").then(function (s) {

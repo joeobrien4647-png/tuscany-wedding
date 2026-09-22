@@ -92,3 +92,4 @@ itinerary, schedule, guest-map, plus arrivals.html (untracked, transfer-sharing 
 - **22 Sep 2026: bank transfer BUILT.** Guests who said yes see details on index.html after sign-in; data in /members/payment, paid flags in /payments/{uid}. Dashboard Site tab has the bank form, Mark paid per row, Paid count.
 - [ ] Joe: enter Chase details in dashboard Site tab and Save (Claude can't write to Firebase under the rules).
 - [ ] Joe: decide card option (PayPal.me / Monzo / Revolut link, or none).
+- **22 Sep 2026: share + robustness pass.** Link preview card (images/og.jpg), Facebook in-app browser hides Google sign-in with a note, add-to-calendar (tuscany-2027.ics + Google link) on the registered screen, Google sign-up requires a coming? answer, dashboard registrations CSV export.
