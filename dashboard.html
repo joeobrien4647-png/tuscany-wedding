@@ -2453,9 +2453,43 @@
     }
 
     /* ========== ROOMS ========== */
-    /* ========== SITE — registrations + reveal switch ========== */
-    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles }) {
-      const regs = Object.values(safeObj(registrations, {})).filter(r => r && r.name)
+    function BankDetails({ bank, saveBank }) {
+      const b = safeObj(bank, {});
+      const blank = { accountName: "", sortCode: "", accountNumber: "" };
+      const [f, setF] = useState({ ...blank, ...b });
+      const [saved, setSaved] = useState(false);
+      useEffect(() => { setF({ ...blank, ...b }); }, [b.accountName, b.sortCode, b.accountNumber]);
+      const live = !!(b.sortCode && b.accountNumber);
+      const field = (k, label, ph) => (
+        <div style={{ flex: "1 1 160px" }}>
+          <div style={lb}>{label}</div>
+          <input value={f[k] || ""} placeholder={ph} onChange={e => { setF({ ...f, [k]: e.target.value }); setSaved(false); }} style={{ ...iS, width: "100%" }} />
+        </div>
+      );
+      return (
+        <div style={{ background: P.card, borderRadius: 12, padding: 14, marginBottom: 18, boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>Bank details for the £150</div>
+          <div style={{ fontSize: 11, color: live ? P.green : P.gold, margin: "2px 0 10px" }}>
+            {live ? "Showing to guests who said yes, once they sign in." : "Not showing yet. Guests see nothing until you save these."}
+          </div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            {field("accountName", "Name on account", "")}
+            {field("sortCode", "Sort code", "00-00-00")}
+            {field("accountNumber", "Account number", "00000000")}
+          </div>
+          <div style={{ display: "flex", gap: 8, marginTop: 10, alignItems: "center" }}>
+            <button onClick={() => { saveBank({ accountName: (f.accountName || "").trim(), sortCode: (f.sortCode || "").trim(), accountNumber: (f.accountNumber || "").trim() }); setSaved(true); }}
+                    style={{ ...bS, background: P.terra, color: "#fff" }}>Save</button>
+            {live && <button onClick={() => saveBank(blank)} style={{ ...bS, background: P.stoneP, color: P.txtM }}>Hide from guests</button>}
+            {saved && <span style={{ fontSize: 11, color: P.green }}>Saved</span>}
+          </div>
+        </div>
+      );
+    }
+
+    /* ========== SITE: registrations, payments, reveal switch ========== */
+    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, savePayments }) {
+      const regs = Object.entries(safeObj(registrations, {})).map(([k, v]) => ({ ...safeObj(v, {}), _uid: k })).filter(r => r && r.name)
         .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       const names = safeArr(guests).map(g => (g.name || "").trim().toLowerCase());
       const matched = r => names.includes((r.name || "").trim().toLowerCase());
@@ -2463,6 +2497,9 @@
       const revealed = cfg.revealed === true;
       const INTENT = { yes: ["Coming", P.green, P.greenP], maybe: ["Not sure", P.gold, P.goldP], no: ["Can't", P.red, P.redP] };
       const count = k => regs.filter(r => r.intent === k).length;
+      const pays = safeObj(payments, {});
+      const isPaid = r => !!(pays[r._uid] && pays[r._uid].paid);
+      const paidCount = regs.filter(isPaid).length;
       const when = t => t ? new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "";
 
       return (
@@ -2487,7 +2524,7 @@
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 18 }}>
-            {[["Registered", regs.length, P.olive], ["Coming", count("yes"), P.green], ["Not sure", count("maybe"), P.gold],
+            {[["Registered", regs.length, P.olive], ["Coming", count("yes"), P.green], ["Paid", paidCount + " / " + count("yes"), P.terra], ["Not sure", count("maybe"), P.gold],
               ["Can't", count("no"), P.red], ["Not on guest list", regs.filter(r => !matched(r)).length, P.stone]].map(([l, v, c], i) => (
               <div key={i} style={{ flex: "1 1 110px", background: P.card, borderRadius: 12, padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: "3px solid " + c }}>
                 <div style={{ fontSize: 20, fontWeight: 700, color: P.txt }}>{v}</div>
@@ -2521,6 +2558,8 @@
               </div>
             );
           })()}
+          <BankDetails bank={bank} saveBank={saveBank} />
+
           {regs.length === 0 && (
             <div style={{ background: P.card, borderRadius: 12, padding: 18, fontSize: 13, color: P.txtL, fontStyle: "italic" }}>
               Nobody has registered yet. Registrations appear here the moment someone signs up on the site.
@@ -2530,13 +2569,17 @@
             const it = INTENT[r.intent] || [r.intent || "—", P.txtL, P.stoneP];
             const ok = matched(r);
             return (
-              <div key={r.uid || r.email} style={{ background: P.card, borderRadius: 10, padding: "10px 14px", marginBottom: 6,
-                    display: "grid", gridTemplateColumns: "1.3fr 1.4fr 1fr auto auto", gap: 10, alignItems: "center", fontSize: 12.5 }}>
+              <div key={r._uid} style={{ background: P.card, borderRadius: 10, padding: "10px 14px", marginBottom: 6,
+                    display: "grid", gridTemplateColumns: "1.3fr 1.4fr 1fr auto auto auto", gap: 10, alignItems: "center", fontSize: 12.5 }}>
                 <div style={{ fontWeight: 600, color: P.txt }}>{r.name}
                   {!ok && <span style={{ marginLeft: 6, fontSize: 10, color: P.gold }}>not on list</span>}{r.address && <div style={{ fontSize: 10.5, color: P.txtL, fontWeight: 400, marginTop: 2 }}>{r.address}</div>}</div>
                 <div style={{ color: P.txtM, overflow: "hidden", textOverflow: "ellipsis" }}>{r.email}</div>
                 <div style={{ color: P.txtM }}>{r.phone || "—"}</div>
                 <span style={{ padding: "3px 10px", borderRadius: 12, background: it[2], color: it[1], fontSize: 11, fontWeight: 600 }}>{it[0]}</span>
+                <button onClick={() => savePayments({ ...pays, [r._uid]: isPaid(r) ? null : { paid: true, paidAt: Date.now(), name: r.name } })}
+                        style={{ ...bS, background: isPaid(r) ? P.green : P.stoneP, color: isPaid(r) ? "#fff" : P.txtM }}>
+                  {isPaid(r) ? "Paid" : "Mark paid"}
+                </button>
                 <div style={{ fontSize: 10, color: P.txtL }}>{when(r.createdAt)}</div>
               </div>
             );
@@ -3291,6 +3334,8 @@
       const [registrations, , b20] = useStorage("registrations", {}, (v) => safeObj(v, {}));
       const [siteConfig, saveSiteConfig, b21] = useStorage("public/config", { revealed: false }, (v) => safeObj(v, { revealed: false }));
       const [profiles, , b22] = useStorage("public/profiles", {}, (v) => safeObj(v, {}));
+      const [bank, saveBank, b23] = useStorage("members/payment", { accountName: "", sortCode: "", accountNumber: "" }, (v) => safeObj(v, { accountName: "", sortCode: "", accountNumber: "" }));
+      const [payments, savePayments, b24] = useStorage("payments", {}, (v) => safeObj(v, {}));
       const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music, normalizeMusic);
       const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing, safeArr);
       const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating, (v) => ({ tables: safeArr(v?.tables).map(t => ({ ...t, guests: safeArr(t?.guests) })) }));
@@ -3310,7 +3355,7 @@
       const [honeymoon, saveHoneymoon, b18] = useStorage("wedding-honeymoon-v1", { destination: "", dates: "", flights: "", hotel: "", budget: "", notes: "", documents: "", itinerary: [] }, normalizeHoneymoon);
       EUR_RATE = eurRate;
 
-      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19&&b20&&b21&&b22)) return (
+      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19&&b20&&b21&&b22&&b23&&b24)) return (
         <div style={{ minHeight: "100vh", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\uD83D\uDC8D"}</div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15 }}>Loading...</div></div>
         </div>
@@ -3371,7 +3416,7 @@
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} dayKit={dayKit} saveDayKit={saveDayKit} />}
             {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
             {tab === "total" && <TotalCostTab legalSpend={legalSpend} budget={budget} eurRate={eurRate} guests={guests} />}
-            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} />}
+            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} savePayments={savePayments} />}
           </div>
         </div>
       );

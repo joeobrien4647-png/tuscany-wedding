@@ -104,6 +104,14 @@
   .p-profile p { color: var(--color-warm-gray); font-weight: 300; font-size: 13.5px; line-height: 1.6; margin: 0; }
   .p-profile a.p-link { display: inline-block; text-decoration: underline; }
 
+  .p-pay { margin-top: 26px; padding: 20px 20px 18px; background: var(--color-cream); border: 1px solid rgba(201,169,97,.45); border-radius: 4px; }
+  .p-pay h3 { font-family: var(--font-heading); font-weight: 500; font-size: 20px; color: var(--color-charcoal); margin: 0 0 6px; }
+  .p-pay p { color: var(--color-warm-gray); font-weight: 300; font-size: 13.5px; line-height: 1.6; margin: 0 0 12px; }
+  .p-pay dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0 0 10px; font-size: 15px; }
+  .p-pay dt { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--color-warm-gray); padding-top: 4px; }
+  .p-pay dd { margin: 0; color: var(--color-charcoal); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+  .p-pay .p-small { font-size: 12.5px; margin: 12px 0 0; }
+
   /* ---- motion ---- */
   @keyframes p-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
   .p-hero .p-kicker, .p-hero h1, .p-hero .p-sub, .p-hero .p-count { opacity: 0; animation: p-rise .9s cubic-bezier(.2,.7,.2,1) forwards; }
@@ -234,6 +242,20 @@
       <button class="p-primary" type="submit">Save</button>
     </form>
 
+    <div class="p-pay" id="pay" hidden>
+      <h3>Your &pound;150 for the weekend</h3>
+      <p id="pay-intro">This covers your bed at the villa for the three nights. Everything else is on us. Whenever suits, by bank transfer:</p>
+      <dl id="pay-bank">
+        <dt>Name</dt><dd id="pay-name"></dd>
+        <dt>Sort code</dt><dd id="pay-sort"></dd>
+        <dt>Account</dt><dd id="pay-acct"></dd>
+        <dt>Reference</dt><dd id="pay-ref"></dd>
+      </dl>
+      <button class="p-link" type="button" id="pay-copy">Copy these details</button>
+      <p class="p-small" id="pay-two">Paying for two of you? Send &pound;300 with both names in the reference. We tick it off at our end and it will show here once we have.</p>
+      <div class="p-msg p-ok" id="pay-done" hidden>Received, thank you. That&rsquo;s your bed sorted.</div>
+    </div>
+
     <div class="p-profile">
       <h3>Your pocket in the binder</h3>
       <p>One line about you, and one song for the pool on Sunday. Everyone who registers gets a pocket. This fills yours.</p>
@@ -310,7 +332,7 @@
     <li>Every drink</li>
     <li>The pools, the grounds, the lot</li>
   </ul>
-  <p>We&rsquo;ll sort the money nearer the time, once you&rsquo;ve told us you&rsquo;re coming. And please, genuinely, no presents. You being there is the present.</p>
+  <p>Once you&rsquo;ve registered and said you&rsquo;re coming, the details for the &pound;150 appear on your page when you sign in. No rush. And please, genuinely, no presents. You being there is the present.</p>
 </section>
 
 <section class="p-next">
@@ -318,7 +340,7 @@
   <ul>
     <li><b>Now:</b> register above so we can reach you.</li>
     <li><b>Nearer the time:</b> the full site opens: travel, which villa you&rsquo;re in, who you can share a lift with.</li>
-    <li><b>Early 2027:</b> we&rsquo;ll ask you to confirm you&rsquo;re definitely coming, and sort the &pound;150 then.</li>
+    <li><b>Whenever suits:</b> the &pound;150 for your bed. The bank details are on your page once you&rsquo;ve said you&rsquo;re coming.</li>
   </ul>
 </section>
 
@@ -411,7 +433,36 @@
     $("ed-phone").value = reg.phone || "";
     $("ed-address").value = reg.address || "";
     var r = document.querySelector('input[name="ed-intent"][value="' + (reg.intent || "") + '"]'); if (r) r.checked = true;
+    showPay(reg);
   }
+
+  // ---- the 150: bank details live in /members/payment (signed-in only), paid flags in /payments/{uid} (admin-set) ----
+  function showPay(reg) {
+    var box = $("pay");
+    if (!reg || reg.intent !== "yes") { box.hidden = true; return; }
+    var ref = (reg.name || "").replace(/[^A-Za-z0-9 ]/g, "").trim().slice(0, 18);
+    $("pay-ref").textContent = ref || "your name";
+    function paint(b, paid) {
+      $("pay-name").textContent = b.accountName || "";
+      $("pay-sort").textContent = b.sortCode; $("pay-acct").textContent = b.accountNumber;
+      ["pay-intro", "pay-bank", "pay-copy", "pay-two"].forEach(function (id) { $(id).hidden = !!paid; });
+      $("pay-done").hidden = !paid; box.hidden = false;
+    }
+    if (PREVIEW) return paint({ accountName: "Sample Name", sortCode: "00-00-00", accountNumber: "00000000" }, false);
+    var u = auth.currentUser; if (!u) { box.hidden = true; return; }
+    Promise.all([db.ref("members/payment").once("value"), db.ref("payments/" + u.uid).once("value")]).then(function (s) {
+      var b = s[0].val() || {}, p = s[1].val() || {};
+      if (!b.sortCode || !b.accountNumber) { box.hidden = true; return; }
+      paint(b, p.paid);
+    }).catch(function () { box.hidden = true; });
+  }
+  $("pay-copy").onclick = function () {
+    var NL = String.fromCharCode(10);
+    var t = ["Name: " + $("pay-name").textContent, "Sort code: " + $("pay-sort").textContent,
+             "Account: " + $("pay-acct").textContent, "Reference: " + $("pay-ref").textContent, "Amount: 150"].join(NL);
+    var done = function () { $("pay-copy").textContent = "Copied"; setTimeout(function () { $("pay-copy").textContent = "Copy these details"; }, 2000); };
+    if (navigator.clipboard) navigator.clipboard.writeText(t).then(done, function () {}); else done();
+  };
 
   var PREVIEW = /[?&]preview=done/.test(location.search);
   if (PREVIEW) {
