@@ -1,5 +1,6 @@
-/* Reveal switch. Pages including this script stay hidden until /public/config/revealed is true,
-   or the viewer is a signed-in admin (listed under /admins). Fails closed. */
+/* Reveal switch. A page including this script stays hidden until /public/config/revealed is true,
+   or its section is switched on under /public/config/sections, or the viewer is a signed-in admin.
+   Pages not in any section only open with the full reveal. Fails closed. */
 (function () {
   var CFG = {
     apiKey: "AIzaSyAbEpCIPFFqiuElH0DK1dkkl7JBbNyZTc8",
@@ -53,8 +54,19 @@
     });
   }
 
-  db.ref("public/config/revealed").once("value")
-    .then(function (s) { decide(s.val() === true); })
+  // keep in step with SITE_SECTIONS in dashboard.html
+  var SECTIONS = {
+    travel:  ["travel", "accommodation", "things-to-do", "arrivals", "tools"],
+    weekend: ["schedule", "itinerary"],
+    faq:     ["faq", "contact"],
+    story:   ["welcome", "our-story", "timeline", "wedding-party", "gallery"],
+    fun:     ["fun", "bingo", "quiz", "songs", "messages", "memories", "time-capsule"]
+  };
+  var page = (location.pathname.split("/").pop() || "").replace(".html", "");
+  var mine = Object.keys(SECTIONS).filter(function (k) { return SECTIONS[k].indexOf(page) > -1; })[0];
+
+  db.ref("public/config").once("value")
+    .then(function (s) { var c = s.val() || {}; decide(c.revealed === true || !!(mine && c.sections && c.sections[mine] === true)); })
     .catch(function () { decide(false); });
 
   // Safety net: if Firebase never answers, fail closed rather than flashing content.

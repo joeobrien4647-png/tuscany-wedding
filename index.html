@@ -123,6 +123,8 @@
 
   .p-inapp { text-align: center; font-size: 12.5px; line-height: 1.55; color: var(--color-warm-gray); font-weight: 300; margin: 16px 0 0; }
   .p-cal { font-size: 13px; color: var(--color-warm-gray); margin: -6px 0 18px; }
+  .p-open { font-size: 13px; color: var(--color-warm-gray); margin: -8px 0 18px; }
+  .p-open a { color: var(--color-olive); font-weight: 700; text-decoration: none; border-bottom: 1px solid rgba(92,107,74,.35); }
   .p-cal a { color: var(--color-terracotta); font-weight: 700; text-decoration: none; border-bottom: 1px solid rgba(196,112,75,.35); }
 
   /* ---- motion ---- */
@@ -194,6 +196,10 @@
       <input id="up-phone" type="tel" autocomplete="tel" placeholder="Optional, but handy for the weekend">
       <label for="up-address">Postal address</label>
       <textarea id="up-address" autocomplete="street-address" placeholder="Optional. So we can send a proper thank-you afterwards."></textarea>
+      <label for="up-diet">Anything you can&rsquo;t eat?</label>
+      <input id="up-diet" type="text" maxlength="300" placeholder="Optional. Allergies, vegetarian, coeliac, that kind of thing.">
+      <label for="up-access">Anything that would make the weekend easier?</label>
+      <input id="up-access" type="text" maxlength="300" placeholder="Optional. A ground-floor room, fewer steps, anything at all.">
       <label for="up-pw">Choose a password</label>
       <input id="up-pw" type="password" autocomplete="new-password" required minlength="6">
       <label>Are you coming?</label>
@@ -233,11 +239,14 @@
     <h2>Lovely. You&rsquo;re in.</h2>
     <p>Thank you. That&rsquo;s all we need for now. The rest of the site opens up nearer the time and we&rsquo;ll give you a shout when it does.</p>
     <p class="p-cal">Pop it in your calendar: <a href="tuscany-2027.ics" download>Apple or Outlook</a> &middot; <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Sophie+%26+Joe%2C+Tuscany&amp;dates=20270528/20270601&amp;location=Agriturismo+La+Conca%2C+Sansepolcro%2C+Italy&amp;details=Friday+28+to+Monday+31+May.+The+wedding+is+Saturday+29+May.+https%3A%2F%2Fsophieandjoe2027.com" target="_blank" rel="noopener">Google</a></p>
+    <p class="p-open" id="open" hidden></p>
     <dl>
       <dt>Name</dt><dd id="d-name"></dd>
       <dt>Email</dt><dd id="d-email"></dd>
       <dt>Mobile</dt><dd id="d-phone"></dd>
       <dt>Address</dt><dd id="d-address"></dd>
+      <dt>Food</dt><dd id="d-diet"></dd>
+      <dt>Anything else</dt><dd id="d-access"></dd>
       <dt>Coming?</dt><dd id="d-intent"></dd>
     </dl>
     <button class="p-link" type="button" id="edit">Change something</button>
@@ -246,6 +255,10 @@
       <input id="ed-phone" type="tel">
       <label for="ed-address">Postal address</label>
       <textarea id="ed-address"></textarea>
+      <label for="ed-diet">Anything you can&rsquo;t eat?</label>
+      <input id="ed-diet" type="text" maxlength="300">
+      <label for="ed-access">Anything that would make the weekend easier?</label>
+      <input id="ed-access" type="text" maxlength="300">
       <label>Are you coming?</label>
       <div class="p-intent">
         <label style="margin:0"><input type="radio" name="ed-intent" value="yes"><span>Yes!</span></label>
@@ -446,10 +459,24 @@
     $("d-intent").textContent = INTENT[reg.intent] || reg.intent || "not given";
     $("ed-phone").value = reg.phone || "";
     $("ed-address").value = reg.address || "";
+    $("d-diet").textContent = reg.diet || "nothing noted";
+    $("d-access").textContent = reg.access || "nothing noted";
+    $("ed-diet").value = reg.diet || ""; $("ed-access").value = reg.access || "";
     var r = document.querySelector('input[name="ed-intent"][value="' + (reg.intent || "") + '"]'); if (r) r.checked = true;
     showPay(reg);
     if (!reg.intent) $("form-edit").hidden = false;
   }
+
+  // ---- sections opened from the dashboard (/public/config) get a link here ----
+  var OPEN = [["travel", "travel.html", "Travel and stay"], ["weekend", "schedule.html", "The weekend"],
+              ["faq", "faq.html", "Questions"], ["story", "our-story.html", "Our story"], ["fun", "fun.html", "Fun stuff"]];
+  db.ref("public/config").once("value").then(function (s) {
+    var c = s.val() || {};
+    var on = OPEN.filter(function (o) { return c.revealed === true || !!(c.sections && c.sections[o[0]] === true); });
+    if (!on.length) return;
+    $("open").innerHTML = "Now open: " + on.map(function (o) { return '<a href="' + o[1] + '">' + o[2] + " &rarr;</a>"; }).join(" &middot; ");
+    $("open").hidden = false;
+  }).catch(function () {});
 
   // ---- the 150: bank details live in /members/payment (signed-in only), paid flags in /payments/{uid} (admin-set) ----
   function showPay(reg) {
@@ -498,6 +525,7 @@
     ev.preventDefault(); hideErr("up-err");
     var name = $("up-name").value.trim(), email = $("up-email").value.trim(), phone = $("up-phone").value.trim(),
         address = $("up-address").value.trim().slice(0, 300),
+        diet = $("up-diet").value.trim().slice(0, 300), access = $("up-access").value.trim().slice(0, 300),
         pw = $("up-pw").value, intent = picked("intent");
     if (!name) return showErr("up-err", { message: "Tell us your name." });
     if (!email) return showErr("up-err", { message: "We need an email address." });
@@ -506,7 +534,7 @@
     $("up-btn").disabled = true;
     auth.createUserWithEmailAndPassword(email, pw).then(function (cred) {
       var u = cred.user;
-      var rec = { name: name, email: email, phone: phone, address: address, intent: intent, uid: u.uid,
+      var rec = { name: name, email: email, phone: phone, address: address, diet: diet, access: access, intent: intent, uid: u.uid,
                   createdAt: firebase.database.ServerValue.TIMESTAMP, updatedAt: firebase.database.ServerValue.TIMESTAMP };
       return Promise.all([ u.updateProfile({ displayName: name }), db.ref("registrations/" + u.uid).set(rec) ])
         .then(function () { render(rec); });
@@ -549,6 +577,7 @@
           if (s.exists()) return;
           var intent = picked("intent") || "";
           var rec = { name: u.displayName || "", email: u.email || "", phone: $("up-phone").value.trim(), address: $("up-address").value.trim().slice(0, 300),
+                      diet: $("up-diet").value.trim().slice(0, 300), access: $("up-access").value.trim().slice(0, 300),
                       intent: intent, uid: u.uid, createdAt: firebase.database.ServerValue.TIMESTAMP, updatedAt: firebase.database.ServerValue.TIMESTAMP };
           return db.ref("registrations/" + u.uid).set(rec).then(function () { render(rec); });
         });
@@ -561,7 +590,8 @@
   $("form-edit").onsubmit = function (ev) {
     ev.preventDefault(); hideErr("ed-err");
     var u = auth.currentUser; if (!u) return;
-    var upd = { phone: $("ed-phone").value.trim(), address: $("ed-address").value.trim().slice(0, 300), intent: picked("ed-intent") || undefined, updatedAt: firebase.database.ServerValue.TIMESTAMP };
+    var upd = { phone: $("ed-phone").value.trim(), address: $("ed-address").value.trim().slice(0, 300),
+                diet: $("ed-diet").value.trim().slice(0, 300), access: $("ed-access").value.trim().slice(0, 300), intent: picked("ed-intent") || undefined, updatedAt: firebase.database.ServerValue.TIMESTAMP };
     if (!upd.intent) delete upd.intent;
     db.ref("registrations/" + u.uid).update(upd)
       .then(function () { return db.ref("registrations/" + u.uid).once("value"); })

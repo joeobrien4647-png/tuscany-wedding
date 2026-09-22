@@ -66,7 +66,7 @@ itinerary, schedule, guest-map, plus arrivals.html (untracked, transfer-sharing 
 - [ ] Accuracy pass on all of them against today's facts: 5 airports + drive times, Santarsa /
       Vallorsaia, Fri 28 – Mon 31 May 2027, adults-only wording, no "book your room".
 - [ ] Put the £150 / everything-included / no-gifts lines on accommodation.html and faq.html.
-- [ ] Extend the reveal switch to per-section flags (travel+stay first; the rest later).
+- [x] Extend the reveal switch to per-section flags (built 22 Sep: travel, weekend, faq, story, fun; other pages full reveal only).
 - [ ] Reveal travel + accommodation once May 2027 flights are on sale; arrivals board with them.
 - [x] Address field on registration (private, in `/registrations`; shown in dashboard Site tab) — for thank-yous.
 - [x] `index.html?preview=done` renders the registered state with sample data, saves disabled — for reviewing copy without an account.
@@ -93,3 +93,5 @@ itinerary, schedule, guest-map, plus arrivals.html (untracked, transfer-sharing 
 - [ ] Joe: enter Chase details in dashboard Site tab and Save (Claude can't write to Firebase under the rules).
 - [ ] Joe: decide card option (PayPal.me / Monzo / Revolut link, or none).
 - **22 Sep 2026: share + robustness pass.** Link preview card (images/og.jpg), Facebook in-app browser hides Google sign-in with a note, add-to-calendar (tuscany-2027.ics + Google link) on the registered screen, Google sign-up requires a coming? answer, dashboard registrations CSV export.
+- **22 Sep 2026: the register page IS the RSVP (Joe).** Added food and access questions to register + edit; shown in dashboard rows, count card and CSV.
+- [ ] Joe to decide: show guests who else is coming (recommendation: yes-only, first name + surname, signed-in only, opt-out).

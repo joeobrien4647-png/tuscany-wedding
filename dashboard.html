@@ -2453,6 +2453,15 @@
     }
 
     /* ========== ROOMS ========== */
+    // keep in step with SECTIONS in js/reveal.js
+    const SITE_SECTIONS = [
+      ["travel", "Travel and stay", ["travel", "accommodation", "things-to-do", "arrivals", "tools"], "Accuracy pass first: airports, drive times, villas, the £150 line."],
+      ["weekend", "The weekend", ["schedule", "itinerary"], "schedule.html still says 23 to 25 May. Fix before opening."],
+      ["faq", "Questions", ["faq", "contact"], "Add the £150 and no-gifts lines first."],
+      ["story", "Our story", ["welcome", "our-story", "timeline", "wedding-party", "gallery"], "Some photos are stock, not you two."],
+      ["fun", "Fun stuff", ["fun", "bingo", "quiz", "songs", "messages", "memories", "time-capsule"], ""],
+    ];
+
     function BankDetails({ bank, saveBank }) {
       const b = safeObj(bank, {});
       const blank = { accountName: "", sortCode: "", accountNumber: "" };
@@ -2495,6 +2504,7 @@
       const matched = r => names.includes((r.name || "").trim().toLowerCase());
       const cfg = safeObj(siteConfig, {});
       const revealed = cfg.revealed === true;
+      const secs = safeObj(cfg.sections, {});
       const INTENT = { yes: ["Coming", P.green, P.greenP], maybe: ["Not sure", P.gold, P.goldP], no: ["Can't", P.red, P.redP] };
       const count = k => regs.filter(r => r.intent === k).length;
       const pays = safeObj(payments, {});
@@ -2514,7 +2524,7 @@
                 Full site is {revealed ? "REVEALED" : "hidden"}
               </div>
               <div style={{ fontSize: 11, color: P.txtM, marginTop: 3 }}>
-                {revealed ? "Guests can see every page." : "Guests see only the register page. Every other page shows 'Not yet'."}
+                {revealed ? "Guests can see every page." : "Every page, including dress code, gifts, seating and the old RSVP page. Use the sections below instead."}
               </div>
             </div>
             <button onClick={() => saveSiteConfig({ ...cfg, revealed: !revealed })}
@@ -2523,9 +2533,30 @@
             </button>
           </div>
 
+          <div style={{ background: P.card, borderRadius: 12, padding: 14, marginBottom: 18, boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>Open one section at a time</div>
+            <div style={{ fontSize: 11, color: P.txtM, margin: "2px 0 8px" }}>Opening a section shows its pages to everyone and adds a link on the register page. Check the pages are right first.</div>
+            {SITE_SECTIONS.map(([k, label, pages, note]) => {
+              const on = revealed || secs[k] === true;
+              return (
+                <div key={k} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderTop: "1px solid " + P.stoneL }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 12.5, fontWeight: 600, color: P.txt }}>{label}</div>
+                    <div style={{ fontSize: 10.5, color: P.txtL }}>{pages.join(", ")}</div>
+                    {note && !on && <div style={{ fontSize: 10.5, color: P.gold, marginTop: 2 }}>{note}</div>}
+                  </div>
+                  <button disabled={revealed} onClick={() => saveSiteConfig({ ...cfg, sections: { ...secs, [k]: !secs[k] } })}
+                          style={{ ...bS, background: on ? P.green : P.stoneP, color: on ? "#fff" : P.txtM, opacity: revealed ? 0.6 : 1 }}>
+                    {on ? "Open" : "Hidden"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 18 }}>
             {[["Registered", regs.length, P.olive], ["Coming", count("yes"), P.green], ["Paid", paidCount + " / " + count("yes"), P.terra], ["Not sure", count("maybe"), P.gold],
-              ["Can't", count("no"), P.red], ["Not on guest list", regs.filter(r => !matched(r)).length, P.stone]].map(([l, v, c], i) => (
+              ["Can't", count("no"), P.red], ["Food or access notes", regs.filter(r => r.diet || r.access).length, P.blue], ["Not on guest list", regs.filter(r => !matched(r)).length, P.stone]].map(([l, v, c], i) => (
               <div key={i} style={{ flex: "1 1 110px", background: P.card, borderRadius: 12, padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: "3px solid " + c }}>
                 <div style={{ fontSize: 20, fontWeight: 700, color: P.txt }}>{v}</div>
                 <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>{l}</div>
@@ -2559,8 +2590,8 @@
             );
           })()}
           <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-            <button onClick={() => downloadCSV("site-registrations.csv", [["Name", "Email", "Mobile", "Address", "Coming", "Paid", "On guest list", "Registered"],
-                ...regs.map(r => [r.name, r.email, r.phone, r.address, INTENT[r.intent] ? INTENT[r.intent][0] : (r.intent || ""), isPaid(r) ? "Yes" : "", matched(r) ? "Yes" : "No",
+            <button onClick={() => downloadCSV("site-registrations.csv", [["Name", "Email", "Mobile", "Address", "Food", "Access", "Coming", "Paid", "On guest list", "Registered"],
+                ...regs.map(r => [r.name, r.email, r.phone, r.address, r.diet, r.access, INTENT[r.intent] ? INTENT[r.intent][0] : (r.intent || ""), isPaid(r) ? "Yes" : "", matched(r) ? "Yes" : "No",
                                   r.createdAt ? new Date(r.createdAt).toLocaleDateString("en-GB") : ""])])}
                     style={{ ...bS, background: P.stoneP, color: P.txtM }}>Download CSV (addresses for thank-yous)</button>
           </div>
@@ -2578,7 +2609,7 @@
               <div key={r._uid} style={{ background: P.card, borderRadius: 10, padding: "10px 14px", marginBottom: 6,
                     display: "grid", gridTemplateColumns: "1.3fr 1.4fr 1fr auto auto auto", gap: 10, alignItems: "center", fontSize: 12.5 }}>
                 <div style={{ fontWeight: 600, color: P.txt }}>{r.name}
-                  {!ok && <span style={{ marginLeft: 6, fontSize: 10, color: P.gold }}>not on list</span>}{r.address && <div style={{ fontSize: 10.5, color: P.txtL, fontWeight: 400, marginTop: 2 }}>{r.address}</div>}</div>
+                  {!ok && <span style={{ marginLeft: 6, fontSize: 10, color: P.gold }}>not on list</span>}{r.address && <div style={{ fontSize: 10.5, color: P.txtL, fontWeight: 400, marginTop: 2 }}>{r.address}</div>}{(r.diet || r.access) && <div style={{ fontSize: 10.5, color: P.terra, fontWeight: 400, marginTop: 2 }}>{[r.diet && "Food: " + r.diet, r.access && "Needs: " + r.access].filter(Boolean).join(" / ")}</div>}</div>
                 <div style={{ color: P.txtM, overflow: "hidden", textOverflow: "ellipsis" }}>{r.email}</div>
                 <div style={{ color: P.txtM }}>{r.phone || "—"}</div>
                 <span style={{ padding: "3px 10px", borderRadius: 12, background: it[2], color: it[1], fontSize: 11, fontWeight: 600 }}>{it[0]}</span>
