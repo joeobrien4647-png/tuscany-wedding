@@ -23,6 +23,39 @@
 
     <!-- Styles -->
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .airport-list { list-style: none; margin: 0.75rem 0 1rem; }
+        .airport-list li { color: var(--color-warm-gray); font-size: 0.92rem; padding-left: 1rem; position: relative; margin-bottom: 0.35rem; }
+        .airport-list li::before { content: ""; position: absolute; left: 0; top: 0.65em; width: 5px; height: 5px; border-radius: 50%; background: var(--color-gold); }
+        .soon { color: var(--color-olive); font-style: italic; }
+
+        .before-box { max-width: 760px; margin: 0 auto; background: var(--color-white); border-left: 4px solid var(--color-terracotta); border-radius: 8px; box-shadow: var(--shadow-soft); padding: 2rem; }
+        .before-box dl { margin: 0; }
+        .before-box dt { font-family: var(--font-heading); color: var(--color-terracotta); font-size: 1.1rem; margin-top: 1.25rem; }
+        .before-box dt:first-child { margin-top: 0; }
+        .before-box dd { color: var(--color-warm-gray); font-size: 0.95rem; margin: 0.25rem 0 0; }
+
+        .fl-tool { max-width: 760px; margin: 0 auto; }
+        .fl-controls { display: flex; flex-wrap: wrap; gap: 1rem 1.5rem; align-items: flex-end; background: var(--color-white); border-radius: 8px; box-shadow: var(--shadow-soft); padding: 1.5rem; }
+        .fl-controls label, .fl-controls legend { display: block; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; color: var(--color-warm-gray); margin-bottom: 0.4rem; }
+        .fl-controls select { font: inherit; font-size: 1rem; padding: 0.6rem 0.75rem; border: 1px solid rgba(44,44,44,0.2); border-radius: 4px; background: var(--color-white); color: var(--color-charcoal); width: 100%; }
+        .fl-from { flex: 1 1 240px; }
+        .fl-controls fieldset { border: 0; padding: 0; margin: 0; }
+        .fl-days { display: flex; gap: 0.5rem; }
+        .fl-days label { margin: 0; text-transform: none; letter-spacing: 0; font-size: 0.95rem; color: var(--color-charcoal); border: 1px solid rgba(44,44,44,0.2); border-radius: 4px; padding: 0.55rem 0.9rem; cursor: pointer; }
+        .fl-days input { accent-color: var(--color-terracotta); margin-right: 0.35rem; }
+        .fl-back { font-size: 0.95rem; color: var(--color-charcoal); padding-bottom: 0.6rem; }
+        .fl-results { margin-top: 1.25rem; }
+        .fl-row { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem 1rem; background: var(--color-white); border-radius: 8px; box-shadow: var(--shadow-soft); padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+        .fl-route { flex: 1 1 260px; min-width: 0; }
+        .fl-route strong { color: var(--color-charcoal); }
+        .fl-route small { display: block; color: var(--color-warm-gray); font-size: 0.85rem; line-height: 1.5; }
+        .fl-route .fl-note { color: var(--color-olive); }
+        .fl-links { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .fl-links .btn { padding: 0.55rem 1rem; font-size: 0.75rem; }
+        .fl-empty { text-align: center; color: var(--color-warm-gray); padding: 1rem; }
+        .fl-small { color: var(--color-warm-gray); font-size: 0.85rem; margin-top: 1rem; text-align: center; }
+    </style>
     <style id="reveal-gate-style">html{visibility:hidden}</style>
 </head>
 <body>
@@ -59,9 +92,9 @@
     <section class="section">
         <div class="container">
             <div class="section-header">
-                <h2>Nearest Airports</h2>
+                <h2>Where to Fly To</h2>
                 <div class="section-divider"></div>
-                <p>Five airports are within reach of La Conca. Drive times are rough, and which one suits you best depends on where you're flying from.</p>
+                <p>Eight airports are within reach of La Conca, listed here by how long the drive takes without traffic. Which one suits you depends on where you're flying from.</p>
             </div>
 
             <div class="card-grid">
@@ -69,10 +102,12 @@
                     <div class="card-content">
                         <h3>Perugia (PEG)</h3>
                         <p class="text-terracotta"><strong>Closest</strong></p>
-                        <p>A small, easy airport just over the border in Umbria. It has fewer flights than the others, so check it first.</p>
-                        <p class="timeline-meta">
-                            <strong>Drive to La Conca:</strong> about 55 minutes
-                        </p>
+                        <p>A small, easy airport just over the border in Umbria, with only a few UK flights.</p>
+                        <ul class="airport-list">
+                            <li>Ryanair from Stansted</li>
+                            <li>British Airways from Heathrow, but it flies Thu 27 May and not on Fri 28 or Mon 31</li>
+                        </ul>
+                        <p class="timeline-meta"><strong>Drive to La Conca:</strong> about 1 hr 10 min</p>
                     </div>
                 </div>
 
@@ -80,9 +115,35 @@
                     <div class="card-content">
                         <h3>Florence (FLR)</h3>
                         <p>Small and quick to get through.</p>
-                        <p class="timeline-meta">
-                            <strong>Drive to La Conca:</strong> about 1 hour 45 minutes
-                        </p>
+                        <ul class="airport-list">
+                            <li>British Airways from Heathrow and London City</li>
+                            <li>Vueling from Gatwick</li>
+                        </ul>
+                        <p class="timeline-meta"><strong>Drive to La Conca:</strong> about 1 hr 45 min</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Rimini (RMI)</h3>
+                        <p>On the Adriatic coast, over the hills to the east.</p>
+                        <ul class="airport-list">
+                            <li>British Airways from Heathrow (Thu 27 out, Mon 31 back)</li>
+                            <li>easyJet from Gatwick, Wednesdays and Saturdays only</li>
+                            <li class="soon">Ryanair from Stansted: summer 2027 not on sale yet, book when fares load</li>
+                        </ul>
+                        <p class="timeline-meta"><strong>Drive to La Conca:</strong> about 2 hrs</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-content">
+                        <h3>Ancona (AOI)</h3>
+                        <p>Small, on the Adriatic coast.</p>
+                        <ul class="airport-list">
+                            <li>Ryanair from Stansted</li>
+                        </ul>
+                        <p class="timeline-meta"><strong>Drive to La Conca:</strong> about 2 hrs 20 min</p>
                     </div>
                 </div>
 
@@ -90,31 +151,127 @@
                     <div class="card-content">
                         <h3>Bologna (BLQ)</h3>
                         <p>A bigger airport with plenty of routes.</p>
-                        <p class="timeline-meta">
-                            <strong>Drive to La Conca:</strong> about 2 hours
-                        </p>
+                        <ul class="airport-list">
+                            <li>British Airways from Heathrow</li>
+                            <li>Ryanair from Stansted</li>
+                            <li class="soon">Ryanair from Luton, Manchester and Edinburgh: summer 2027 not on sale yet</li>
+                        </ul>
+                        <p class="timeline-meta"><strong>Drive to La Conca:</strong> about 2 hrs 20 min</p>
                     </div>
                 </div>
 
                 <div class="card">
                     <div class="card-content">
                         <h3>Pisa (PSA)</h3>
-                        <p>Lots of budget flights, but further west, so a longer drive.</p>
-                        <p class="timeline-meta">
-                            <strong>Drive to La Conca:</strong> about 2 hours 15 minutes
-                        </p>
+                        <p>The most UK routes, but further west, so a longer drive.</p>
+                        <ul class="airport-list">
+                            <li>easyJet from Gatwick, Luton, Southend, Bristol and Manchester</li>
+                            <li>Ryanair from Stansted</li>
+                            <li>British Airways from Heathrow</li>
+                            <li>Jet2 also sells summer 2027 flights to Pisa: check jet2.com</li>
+                            <li class="soon">Ryanair from Manchester, Edinburgh, Birmingham and Prestwick: summer 2027 not on sale yet</li>
+                        </ul>
+                        <p class="timeline-meta"><strong>Drive to La Conca:</strong> about 2 hrs 50 min</p>
                     </div>
                 </div>
 
                 <div class="card">
                     <div class="card-content">
-                        <h3>Rome (FCO or CIA)</h3>
-                        <p>Fiumicino is Italy's biggest airport, and Ciampino is the smaller one. The longest drive, but handy if you want a few days in Rome too.</p>
-                        <p class="timeline-meta">
-                            <strong>Drive to La Conca:</strong> about 3 hours
-                        </p>
+                        <h3>Rome (CIA or FCO)</h3>
+                        <p>The longest drive, but handy if you want a few days in Rome too.</p>
+                        <ul class="airport-list">
+                            <li>Ciampino: Ryanair from Stansted, Manchester and Edinburgh</li>
+                            <li>Fiumicino: British Airways and ITA from Heathrow; easyJet from Gatwick, Bristol, Birmingham, Manchester, Glasgow, Newcastle and Belfast; Wizz Air from Luton</li>
+                            <li>From Boston: Delta and ITA fly direct to Fiumicino</li>
+                        </ul>
+                        <p class="timeline-meta"><strong>Drive to La Conca:</strong> Ciampino about 3 hrs 5 min, Fiumicino about 3 hrs 40 min</p>
                     </div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Before You Book -->
+    <section class="section section-alt" id="before-you-book">
+        <div class="container">
+            <div class="section-header">
+                <h2>Before You Book</h2>
+                <div class="section-divider"></div>
+                <p>Five things to check first. The passport one catches people out.</p>
+            </div>
+
+            <div class="before-box">
+                <dl>
+                    <dt>Your passport</dt>
+                    <dd>It has to pass two checks. It must be less than 10 years old on the day you land: issued on or after <strong>29 May 2017</strong> if you land on Fri 28 May, or on or after <strong>28 May 2017</strong> if you land on Thu 27 May. It must also be valid until at least <strong>1 September 2027</strong>. This applies to UK and US passports. If yours fails either check, renew it this autumn, before the spring rush. <a href="https://www.gov.uk/foreign-travel-advice/italy/entry-requirements" target="_blank" rel="noopener">UK government guidance</a></dd>
+
+                    <dt>ETIAS</dt>
+                    <dd>Not live yet, so there's nothing to do. We'll tell you if that changes before May. Any website charging for ETIAS now is a scam.</dd>
+
+                    <dt>New passport checks (EES)</dt>
+                    <dd>The first time you enter, border staff take your fingerprints and a photo. It's free and there's nothing to do in advance, but queues can be long, so allow extra time when you land and when you fly home.</dd>
+
+                    <dt>Health cover and travel insurance</dt>
+                    <dd>From the UK: get a free GHIC from the <a href="https://www.nhs.uk/using-the-nhs/healthcare-abroad/apply-for-a-free-uk-global-health-insurance-card-ghic/" target="_blank" rel="noopener">NHS website</a> (it's free, so ignore sites that charge), and buy travel insurance when you book your flights, declaring any medical conditions. From the US: your health plan may not cover you in Italy, so get travel medical cover that includes getting you home.</dd>
+
+                    <dt>Hiring a car</dt>
+                    <dd>Park outside the town walls. Sansepolcro and most Italian towns have camera-enforced ZTL zones, and driving past a ZTL sign means a fine that can arrive months later, so don't follow the satnav through one. A UK photocard licence is fine; US drivers should carry an International Driving Permit (from AAA) with their licence.</dd>
+                </dl>
+            </div>
+        </div>
+    </section>
+
+    <!-- Search Flights -->
+    <section class="section" id="search-flights">
+        <div class="container">
+            <div class="section-header">
+                <h2>Search Flights</h2>
+                <div class="section-divider"></div>
+                <p>Pick where you're flying from and the day you'd go. Each button opens a live search for that route, back on Monday 31 May.</p>
+            </div>
+
+            <div class="fl-tool">
+                <form class="fl-controls" onsubmit="return false">
+                    <div class="fl-from">
+                        <label for="fl-from">Flying from</label>
+                        <select id="fl-from">
+                            <option value="">Choose your airport</option>
+                            <option value="LHR">London Heathrow (LHR)</option>
+                            <option value="LGW">London Gatwick (LGW)</option>
+                            <option value="STN">London Stansted (STN)</option>
+                            <option value="LTN">London Luton (LTN)</option>
+                            <option value="LCY">London City (LCY)</option>
+                            <option value="SEN">London Southend (SEN)</option>
+                            <option value="BRS">Bristol (BRS)</option>
+                            <option value="EXT">Exeter (EXT)</option>
+                            <option value="BHX">Birmingham (BHX)</option>
+                            <option value="EMA">East Midlands (EMA)</option>
+                            <option value="MAN">Manchester (MAN)</option>
+                            <option value="LBA">Leeds Bradford (LBA)</option>
+                            <option value="LPL">Liverpool (LPL)</option>
+                            <option value="NCL">Newcastle (NCL)</option>
+                            <option value="EDI">Edinburgh (EDI)</option>
+                            <option value="GLA">Glasgow (GLA)</option>
+                            <option value="BFS">Belfast International (BFS)</option>
+                            <option value="BOS">Boston, US (BOS)</option>
+                            <option value="OTHER">Somewhere else</option>
+                        </select>
+                    </div>
+                    <fieldset>
+                        <legend>Going out</legend>
+                        <div class="fl-days">
+                            <label><input type="radio" name="fl-day" value="27">Thu 27 May</label>
+                            <label><input type="radio" name="fl-day" value="28" checked>Fri 28 May</label>
+                        </div>
+                    </fieldset>
+                    <div class="fl-back">Back Mon 31 May</div>
+                </form>
+
+                <div class="fl-results" id="fl-results" aria-live="polite">
+                    <p class="fl-empty">Choose an airport to see the direct routes.</p>
+                </div>
+
+                <p class="fl-small">Prices change daily. When we checked in September 2026, Thursday 27 was cheaper than Friday 28 on most routes. Routes marked "not on sale yet" usually open over the winter; the same button will show them once they do.</p>
             </div>
         </div>
     </section>
@@ -240,7 +397,7 @@
                     </div>
                     <div class="faq-answer">
                         <div class="faq-answer-content">
-                            <p>Late May is a popular time in Tuscany, and the Friday before the Spring Bank Holiday is a busy day to fly from the UK, so book as early as you can.</p>
+                            <p>As soon as your route is on sale. Most are already, and Friday 28 May is the start of a bank holiday weekend, so fares on the busiest days tend to rise as seats sell. A few Ryanair routes open later in the winter: the search above shows which.</p>
                         </div>
                     </div>
                 </div>
@@ -294,21 +451,6 @@
             </div>
 
             <div class="card-grid">
-                <!-- Flight Search Links -->
-                <div class="card">
-                    <div class="card-content">
-                        <h3>Find Flights</h3>
-                        <p>Compare prices to the five airports above.</p>
-                        <div style="margin-top: 1rem;">
-                            <a href="https://www.google.com/travel/flights?q=Flights%20to%20Perugia" target="_blank" class="btn btn-outline" style="margin: 0.25rem;">Perugia</a>
-                            <a href="https://www.google.com/travel/flights?q=Flights%20to%20Florence" target="_blank" class="btn btn-outline" style="margin: 0.25rem;">Florence</a>
-                            <a href="https://www.google.com/travel/flights?q=Flights%20to%20Bologna" target="_blank" class="btn btn-outline" style="margin: 0.25rem;">Bologna</a>
-                            <a href="https://www.google.com/travel/flights?q=Flights%20to%20Pisa" target="_blank" class="btn btn-outline" style="margin: 0.25rem;">Pisa</a>
-                            <a href="https://www.google.com/travel/flights?q=Flights%20to%20Rome" target="_blank" class="btn btn-outline" style="margin: 0.25rem;">Rome</a>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Weather -->
                 <div class="card">
                     <div class="card-content">
@@ -357,6 +499,125 @@
         </div>
     </footer>
 
+    <script>
+    /* Flight search links. Routes checked on the airlines' own sites, 24 Sep 2026.
+       [from, to, airlines, outbound days it flies ("" = summer 2027 not on sale yet)].
+       Every listed route also flies back on Mon 31 May; routes that don't are left out. */
+    (function () {
+        var AIRPORTS = {
+            PEG: ["Perugia", "1 hr 10 min"], FLR: ["Florence", "1 hr 45 min"], RMI: ["Rimini", "2 hrs"],
+            AOI: ["Ancona", "2 hrs 20 min"], BLQ: ["Bologna", "2 hrs 20 min"], PSA: ["Pisa", "2 hrs 50 min"],
+            CIA: ["Rome Ciampino", "3 hrs 5 min"], FCO: ["Rome Fiumicino", "3 hrs 40 min"]
+        };
+        var ROUTES = [
+            ["LHR", "FLR", "British Airways", "27 28"],
+            ["LHR", "RMI", "British Airways", "27"],
+            ["LHR", "BLQ", "British Airways", "27 28"],
+            ["LHR", "PSA", "British Airways", "27 28"],
+            ["LHR", "FCO", "British Airways, ITA", "27 28"],
+            ["LGW", "FLR", "Vueling", "27 28"],
+            ["LGW", "PSA", "easyJet", "27 28"],
+            ["LGW", "FCO", "easyJet", "27 28"],
+            ["STN", "PEG", "Ryanair", "27 28"],
+            ["STN", "RMI", "Ryanair", ""],
+            ["STN", "AOI", "Ryanair", "27 28"],
+            ["STN", "BLQ", "Ryanair", "27 28"],
+            ["STN", "PSA", "Ryanair", "27 28"],
+            ["STN", "CIA", "Ryanair", "27 28"],
+            ["LTN", "BLQ", "Ryanair", ""],
+            ["LTN", "PSA", "easyJet", "27 28"],
+            ["LTN", "FCO", "Wizz Air", "27 28"],
+            ["LCY", "FLR", "British Airways", "27 28"],
+            ["SEN", "PSA", "easyJet", "28"],
+            ["BRS", "FCO", "easyJet", "27 28"],
+            ["BHX", "PSA", "Ryanair", ""],
+            ["BHX", "FCO", "easyJet", "27 28"],
+            ["EMA", "CIA", "Ryanair", ""],
+            ["MAN", "RMI", "Ryanair", ""],
+            ["MAN", "BLQ", "Ryanair", ""],
+            ["MAN", "PSA", "easyJet (Ryanair once its summer fares load)", "27"],
+            ["MAN", "CIA", "Ryanair", "27 28"],
+            ["MAN", "FCO", "easyJet", "27 28"],
+            ["LPL", "CIA", "Ryanair", ""],
+            ["NCL", "FCO", "easyJet", "28"],
+            ["EDI", "BLQ", "Ryanair", ""],
+            ["EDI", "PSA", "Ryanair", ""],
+            ["EDI", "CIA", "Ryanair", "27 28"],
+            ["GLA", "FCO", "easyJet", "27 28"],
+            ["BFS", "FCO", "easyJet", "28"],
+            ["BOS", "FCO", "Delta, ITA (overnight, lands the next morning)", "27 28"]
+        ];
+        var ORDER = Object.keys(AIRPORTS);
+        var DAYS = { "27": "Thu 27 May", "28": "Fri 28 May" };
+        var select = document.getElementById("fl-from");
+        var results = document.getElementById("fl-results");
+
+        function googleFlights(from, to, day) {
+            var q = "Flights " + (from ? "from " + from + " " : "") + "to " + to + " on 2027-05-" + day + " through 2027-05-31";
+            var us = from === "BOS";
+            return "https://www.google.com/travel/flights?q=" + encodeURIComponent(q) + (us ? "&hl=en&curr=USD" : "&hl=en-GB&curr=GBP");
+        }
+        function skyscanner(from, to, day) {
+            var site = from === "BOS" ? "https://www.skyscanner.com" : "https://www.skyscanner.net";
+            return site + "/transport/flights/" + from.toLowerCase() + "/" + to.toLowerCase() + "/2705" + day + "/270531/?adultsv2=1&cabinclass=economy&rtn=1&preferdirects=true";
+        }
+        function link(href, text) {
+            return '<a class="btn btn-outline" href="' + href + '" target="_blank" rel="noopener">' + text + "</a>";
+        }
+        function chosenDay() {
+            var r = document.querySelector('input[name="fl-day"]:checked');
+            return r ? r.value : "28";
+        }
+
+        function routeRow(r, day) {
+            var ap = AIRPORTS[r[1]], flies = r[3] ? r[3].split(" ") : [];
+            var useDay = flies.length && flies.indexOf(day) < 0 ? flies[0] : day;
+            var status = !flies.length
+                ? '<small class="fl-note">Summer 2027 not on sale yet: book when fares load</small>'
+                : useDay !== day
+                    ? '<small class="fl-note">No flight on ' + DAYS[day] + ", so this searches " + DAYS[useDay] + "</small>"
+                    : "<small>On sale now</small>";
+            return '<div class="fl-row"><div class="fl-route">'
+                + "<strong>" + ap[0] + " (" + r[1] + ")</strong>"
+                + "<small>" + r[2] + ". Then about " + ap[1] + " to La Conca.</small>"
+                + status + "</div>"
+                + '<div class="fl-links">' + link(googleFlights(r[0], r[1], useDay), "Google Flights")
+                + link(skyscanner(r[0], r[1], useDay), "Skyscanner") + "</div></div>";
+        }
+
+        function connectingRows(from, day, intro) {
+            return '<p class="fl-empty">' + intro + "</p>" + ["PEG", "FLR", "PSA", "FCO"].map(function (to) {
+                return '<div class="fl-row"><div class="fl-route"><strong>' + AIRPORTS[to][0] + " (" + to + ")</strong>"
+                    + "<small>About " + AIRPORTS[to][1] + " to La Conca.</small></div>"
+                    + '<div class="fl-links">' + link(googleFlights(from, to, day), "Google Flights") + "</div></div>";
+            }).join("");
+        }
+
+        function render() {
+            var from = select.value, day = chosenDay();
+            if (!from) {
+                results.innerHTML = '<p class="fl-empty">Choose an airport to see the direct routes.</p>';
+                return;
+            }
+            if (from === "OTHER") {
+                results.innerHTML = connectingRows("", day, "These searches start from wherever Google thinks you are, and include flights with changes.");
+                return;
+            }
+            var rows = ROUTES.filter(function (r) { return r[0] === from; }).sort(function (a, b) {
+                return ORDER.indexOf(a[1]) - ORDER.indexOf(b[1]);
+            });
+            results.innerHTML = rows.length
+                ? rows.map(function (r) { return routeRow(r, day); }).join("")
+                : connectingRows(from, day, "No direct flights from here to these airports that weekend. You could fly from a bigger airport, or search with changes:");
+        }
+
+        select.addEventListener("change", render);
+        Array.prototype.forEach.call(document.querySelectorAll('input[name="fl-day"]'), function (r) {
+            r.addEventListener("change", render);
+        });
+        render();
+    })();
+    </script>
     <script src="js/main.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
