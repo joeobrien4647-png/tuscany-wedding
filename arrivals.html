@@ -300,7 +300,7 @@
 <header class="arrivals-hero">
   <div class="kicker">Fri 28 to Mon 31 May 2027</div>
   <h1>Everyone lands<br>somewhere different</h1>
-  <p>Perugia is about 55 minutes from the villa, Florence about an hour and three quarters, Bologna two hours, Pisa two and a quarter, Rome three. Tell us your flight and this board will find you someone to share the drive with.</p>
+  <p>Perugia is about an hour and ten minutes from the villa and Florence about an hour and three quarters. Rimini, Ancona, Bologna and Pisa are two to three hours away, and Rome more than three. Tell us your flight and this board will find you someone to share the drive with.</p>
 </header>
 
 <div class="board-wrap">
@@ -344,12 +344,14 @@
   var db = firebase.database();
 
   var AIRPORTS = {
-    "Perugia (PEG)":        { code: "PEG", drive: "55 min" },
+    "Perugia (PEG)":        { code: "PEG", drive: "1h10" },
     "Florence (FLR)":       { code: "FLR", drive: "1h45" },
-    "Rome Fiumicino (FCO)": { code: "FCO", drive: "3h" },
-    "Rome Ciampino (CIA)":  { code: "CIA", drive: "3h" },
-    "Pisa (PSA)":           { code: "PSA", drive: "2h15" },
-    "Bologna (BLQ)":        { code: "BLQ", drive: "2h" },
+    "Rimini (RMI)":         { code: "RMI", drive: "2h" },
+    "Ancona (AOI)":         { code: "AOI", drive: "2h20" },
+    "Bologna (BLQ)":        { code: "BLQ", drive: "2h20" },
+    "Pisa (PSA)":           { code: "PSA", drive: "2h50" },
+    "Rome Ciampino (CIA)":  { code: "CIA", drive: "3h05" },
+    "Rome Fiumicino (FCO)": { code: "FCO", drive: "3h40" },
     "Self-driving":         { code: "CAR", drive: "-" },
     "Other":                { code: "-", drive: "-" }
   };
