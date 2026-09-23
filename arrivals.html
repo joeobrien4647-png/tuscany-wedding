@@ -298,9 +298,9 @@
 </nav>
 
 <header class="arrivals-hero">
-  <div class="kicker">Fri 28 &ndash; Mon 31 May 2027</div>
+  <div class="kicker">Fri 28 to Mon 31 May 2027</div>
   <h1>Everyone lands<br>somewhere different</h1>
-  <p>Perugia is 55 minutes from the villa, Florence an hour forty-five, Bologna two hours, Rome three. Tell us your flight and this board will find you someone to share the drive with.</p>
+  <p>Perugia is about 55 minutes from the villa, Florence about an hour and three quarters, Bologna two hours, Pisa two and a quarter, Rome three. Tell us your flight and this board will find you someone to share the drive with.</p>
 </header>
 
 <div class="board-wrap">
@@ -500,9 +500,11 @@
     var guests = snaps[0].val() || [];
     if (!Array.isArray(guests)) guests = Object.keys(guests).map(function (k) { return guests[k]; });
     render(guests.filter(Boolean), snaps[1].val() || {});
-  }).catch(function (e) {
+  }).catch(function () {
+    document.getElementById("board-sub").textContent = "Opens nearer the time";
     document.getElementById("board-body").innerHTML =
-      '<div class="loading">Could not reach the manifest: ' + esc(e.message) + "</div>";
+      '<div class="loading">The board fills up once flights are in. Check back nearer the time.</div>';
+    Array.prototype.forEach.call(document.querySelectorAll(".section, .note"), function (el) { el.style.display = "none"; });
   });
 })();
 </script>
