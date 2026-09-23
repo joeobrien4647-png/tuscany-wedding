@@ -13,7 +13,7 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="Wedding Schedule | Sophie & Joe">
     <meta property="og:description" content="The schedule for Sophie and Joe's wedding weekend in Tuscany, May 2027.">
-    <meta property="og:image" content="images/hero-bg.jpg">
+    <meta property="og:image" content="https://sophieandjoe2027.com/images/og.jpg">
     <meta name="twitter:card" content="summary_large_image">
 
     <!-- Fonts -->
@@ -239,7 +239,7 @@
                 <li><a href="things-to-do.html">Explore</a></li>
                 <li><a href="guests.html">Guests</a></li>
                 <li><a href="faq.html">FAQ</a></li>
-                <li><a href="rsvp.html" class="btn btn-primary">RSVP</a></li>
+                <li><a href="index.html" class="btn btn-primary">RSVP</a></li>
             </ul>
             <div class="nav-toggle">
                 <span></span>
@@ -250,9 +250,9 @@
     </nav>
 
     <!-- Page Header -->
-    <header class="page-header">
+    <header class="page-header" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('images/venue/saturday-night.jpg');">
         <h1>Wedding Weekend</h1>
-        <p>Three days of celebration in beautiful Tuscany</p>
+        <p>Friday 28 to Monday 31 May 2027 at La Conca</p>
     </header>
 
     <!-- Interactive Schedule -->
@@ -261,7 +261,7 @@
             <div class="section-header">
                 <h2>The Schedule</h2>
                 <div class="section-divider"></div>
-                <p>Click on each event for more details. Tap a day to filter.</p>
+                <p>Tap an event for more, or a day to filter. Timings will follow nearer the day.</p>
             </div>
 
             <!-- Day Tabs -->
@@ -272,15 +272,19 @@
                 </button>
                 <button class="day-tab" data-day="friday">
                     <span class="day-name">Friday</span>
-                    <span class="day-date">23rd May</span>
+                    <span class="day-date">28 May</span>
                 </button>
                 <button class="day-tab" data-day="saturday">
                     <span class="day-name">Saturday</span>
-                    <span class="day-date">24th May</span>
+                    <span class="day-date">29 May</span>
                 </button>
                 <button class="day-tab" data-day="sunday">
                     <span class="day-name">Sunday</span>
-                    <span class="day-date">25th May</span>
+                    <span class="day-date">30 May</span>
+                </button>
+                <button class="day-tab" data-day="monday">
+                    <span class="day-name">Monday</span>
+                    <span class="day-date">31 May</span>
                 </button>
             </div>
 
@@ -290,37 +294,54 @@
                 <!-- Friday Events -->
                 <div class="day-section active" data-day="friday">
                     <div class="day-header">
-                        <h3>Friday, 23rd May</h3>
-                        <p>Arrivals & Welcome</p>
+                        <h3>Friday, 28 May</h3>
+                        <p>Arrivals and Pizza</p>
                     </div>
 
-                    <div class="event-card" data-event="welcome">
+                    <div class="event-card" data-event="arrive">
                         <div class="event-header">
-                            <div class="event-icon drinks">&#127863;</div>
+                            <div class="event-icon brunch">&#129523;</div>
                             <div class="event-info">
-                                <div class="event-time">7:00 PM - 10:00 PM</div>
-                                <div class="event-title">Welcome Drinks</div>
-                                <div class="event-location">La Conca Terrace</div>
+                                <div class="event-time">Whenever you land</div>
+                                <div class="event-title">Arrive and Settle In</div>
+                                <div class="event-location">La Conca</div>
                             </div>
                             <div class="event-toggle">&#9660;</div>
                         </div>
                         <div class="event-details">
                             <div class="event-details-inner">
                                 <p class="event-description">
-                                    Kick off the wedding weekend in style! Join us on the terrace for drinks, nibbles, and a chance to catch up with fellow guests. It's the perfect way to shake off the travel and get into the Tuscan spirit. No formalities - just good vibes and great company.
+                                    Find your room, find the pool, find everyone else.
                                 </p>
                                 <div class="event-meta-grid">
                                     <div class="event-meta-item">
-                                        <strong>Dress Code</strong>
-                                        <span>Smart Casual</span>
+                                        <strong>Your Room</strong>
+                                        <span>We'll tell you which villa nearer the time</span>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-card" data-event="welcome">
+                        <div class="event-header">
+                            <div class="event-icon drinks">&#127829;</div>
+                            <div class="event-info">
+                                <div class="event-time">As the sun goes down</div>
+                                <div class="event-title">Drinks and Pizza</div>
+                                <div class="event-location">The terrace</div>
+                            </div>
+                            <div class="event-toggle">&#9660;</div>
+                        </div>
+                        <div class="event-details">
+                            <div class="event-details-inner">
+                                <p class="event-description">
+                                    Drinks and pizza on the terrace as the sun goes down. Nothing formal.
+                                </p>
+                                <div class="event-meta-grid">
                                     <div class="event-meta-item">
-                                        <strong>What to Expect</strong>
-                                        <span>Prosecco, Aperitivo</span>
-                                    </div>
-                                    <div class="event-meta-item">
-                                        <strong>Duration</strong>
-                                        <span>~3 hours</span>
+                                        <strong>Food and Drink</strong>
+                                        <span>On us</span>
                                     </div>
                                 </div>
                             </div>
@@ -331,70 +352,29 @@
                 <!-- Saturday Events -->
                 <div class="day-section active" data-day="saturday">
                     <div class="day-header">
-                        <h3>Saturday, 24th May</h3>
-                        <p>The Big Day</p>
+                        <h3>Saturday, 29 May</h3>
+                        <p>The Wedding</p>
                     </div>
 
                     <div class="event-card" data-event="ceremony">
                         <div class="event-header">
                             <div class="event-icon ceremony">&#128141;</div>
                             <div class="event-info">
-                                <div class="event-time">3:00 PM</div>
-                                <div class="event-title">Wedding Ceremony</div>
-                                <div class="event-location">La Conca Gardens</div>
+                                <div class="event-time">Afternoon</div>
+                                <div class="event-title">The Ceremony</div>
+                                <div class="event-location">In the grounds at La Conca</div>
                             </div>
                             <div class="event-toggle">&#9660;</div>
                         </div>
                         <div class="event-details">
                             <div class="event-details-inner">
                                 <p class="event-description">
-                                    The moment we've all been waiting for! Watch us exchange vows surrounded by the stunning Tuscan landscape. The ceremony will be held in the beautiful gardens with views over the rolling hills. Please be seated by 2:45 PM.
+                                    The reason we're all here: the ceremony, in the grounds at La Conca, with all of you around us.
                                 </p>
                                 <div class="event-meta-grid">
                                     <div class="event-meta-item">
-                                        <strong>Dress Code</strong>
-                                        <span>Formal / Black Tie Optional</span>
-                                    </div>
-                                    <div class="event-meta-item">
-                                        <strong>Arrive By</strong>
-                                        <span>2:45 PM</span>
-                                    </div>
-                                    <div class="event-meta-item">
-                                        <strong>Tip</strong>
-                                        <span>Unplugged ceremony - no phones please!</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="event-card" data-event="drinks">
-                        <div class="event-header">
-                            <div class="event-icon reception">&#127870;</div>
-                            <div class="event-info">
-                                <div class="event-time">4:00 PM - 6:00 PM</div>
-                                <div class="event-title">Drinks Reception</div>
-                                <div class="event-location">La Conca Terrace</div>
-                            </div>
-                            <div class="event-toggle">&#9660;</div>
-                        </div>
-                        <div class="event-details">
-                            <div class="event-details-inner">
-                                <p class="event-description">
-                                    Congratulate the newlyweds (us!) over champagne and delicious Italian canapes. While we sneak off for photos, enjoy the golden hour views, mingle with other guests, and soak in the atmosphere. This is your time to relax and celebrate!
-                                </p>
-                                <div class="event-meta-grid">
-                                    <div class="event-meta-item">
-                                        <strong>Drinks</strong>
-                                        <span>Champagne, Wine, Cocktails</span>
-                                    </div>
-                                    <div class="event-meta-item">
-                                        <strong>Food</strong>
-                                        <span>Italian Canapes</span>
-                                    </div>
-                                    <div class="event-meta-item">
-                                        <strong>Photos</strong>
-                                        <span>Snap away!</span>
+                                        <strong>Timings</strong>
+                                        <span>Coming nearer the day</span>
                                     </div>
                                 </div>
                             </div>
@@ -403,35 +383,52 @@
 
                     <div class="event-card" data-event="dinner">
                         <div class="event-header">
-                            <div class="event-icon party">&#127881;</div>
+                            <div class="event-icon reception">&#127837;</div>
                             <div class="event-info">
-                                <div class="event-time">6:30 PM - Late</div>
-                                <div class="event-title">Wedding Breakfast & Party</div>
-                                <div class="event-location">La Conca Courtyard</div>
+                                <div class="event-time">After the ceremony</div>
+                                <div class="event-title">A Long Italian Lunch</div>
+                                <div class="event-location">La Conca</div>
                             </div>
                             <div class="event-toggle">&#9660;</div>
                         </div>
                         <div class="event-details">
                             <div class="event-details-inner">
                                 <p class="event-description">
-                                    Time to feast! Enjoy a delicious multi-course Italian dinner under the stars, followed by speeches, cake cutting, and then... let's dance! The party will go on late into the night, so pace yourself and bring your dancing shoes.
+                                    A long Italian lunch that turns into dinner. Pull up a chair and settle in.
                                 </p>
                                 <div class="event-meta-grid">
                                     <div class="event-meta-item">
-                                        <strong>Dinner</strong>
-                                        <span>Italian Multi-Course</span>
+                                        <strong>Food and Drink</strong>
+                                        <span>On us</span>
                                     </div>
                                     <div class="event-meta-item">
-                                        <strong>Speeches</strong>
-                                        <span>During Dinner</span>
+                                        <strong>Anything You Can't Eat?</strong>
+                                        <span>Tell us on the register page</span>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-card" data-event="party">
+                        <div class="event-header">
+                            <div class="event-icon party">&#127881;</div>
+                            <div class="event-info">
+                                <div class="event-time">Into the night</div>
+                                <div class="event-title">Dancing</div>
+                                <div class="event-location">La Conca</div>
+                            </div>
+                            <div class="event-toggle">&#9660;</div>
+                        </div>
+                        <div class="event-details">
+                            <div class="event-details-inner">
+                                <p class="event-description">
+                                    Then dancing, until the villa says stop.
+                                </p>
+                                <div class="event-meta-grid">
                                     <div class="event-meta-item">
-                                        <strong>First Dance</strong>
-                                        <span>~9:00 PM</span>
-                                    </div>
-                                    <div class="event-meta-item">
-                                        <strong>Party Until</strong>
-                                        <span>Late!</span>
+                                        <strong>Bring</strong>
+                                        <span>Shoes you can dance in</span>
                                     </div>
                                 </div>
                             </div>
@@ -442,16 +439,16 @@
                 <!-- Sunday Events -->
                 <div class="day-section active" data-day="sunday">
                     <div class="day-header">
-                        <h3>Sunday, 25th May</h3>
-                        <p>Recovery & Farewells</p>
+                        <h3>Sunday, 30 May</h3>
+                        <p>Taking It Easy</p>
                     </div>
 
-                    <div class="event-card" data-event="brunch">
+                    <div class="event-card" data-event="pool">
                         <div class="event-header">
-                            <div class="event-icon brunch">&#9749;</div>
+                            <div class="event-icon brunch">&#127946;</div>
                             <div class="event-info">
-                                <div class="event-time">11:00 AM - 2:00 PM</div>
-                                <div class="event-title">Farewell Brunch</div>
+                                <div class="event-time">Nothing before noon</div>
+                                <div class="event-title">Pool Day</div>
                                 <div class="event-location">La Conca</div>
                             </div>
                             <div class="event-toggle">&#9660;</div>
@@ -459,20 +456,49 @@
                         <div class="event-details">
                             <div class="event-details-inner">
                                 <p class="event-description">
-                                    One last hurrah before we all part ways. Join us for a leisurely brunch to swap stories from the night before, nurse any sore heads, and say your goodbyes. No rush - come when you're ready and stay as long as you like.
+                                    Two pools, the valley, and something for anyone who wants to leave the sun lounger.
                                 </p>
                                 <div class="event-meta-grid">
                                     <div class="event-meta-item">
-                                        <strong>Dress Code</strong>
-                                        <span>Very Casual</span>
+                                        <strong>Soundtrack</strong>
+                                        <span>Everyone's song from the binder</span>
                                     </div>
                                     <div class="event-meta-item">
-                                        <strong>Food</strong>
-                                        <span>Continental Brunch</span>
+                                        <strong>Mornings</strong>
+                                        <span>Yours to sleep through</span>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monday Events -->
+                <div class="day-section active" data-day="monday">
+                    <div class="day-header">
+                        <h3>Monday, 31 May</h3>
+                        <p>Home Time</p>
+                    </div>
+
+                    <div class="event-card" data-event="breakfast">
+                        <div class="event-header">
+                            <div class="event-icon brunch">&#9749;</div>
+                            <div class="event-info">
+                                <div class="event-time">Morning</div>
+                                <div class="event-title">Breakfast and Goodbyes</div>
+                                <div class="event-location">La Conca</div>
+                            </div>
+                            <div class="event-toggle">&#9660;</div>
+                        </div>
+                        <div class="event-details">
+                            <div class="event-details-inner">
+                                <p class="event-description">
+                                    One last breakfast together, then home, or stay on and see a bit more of Italy.
+                                </p>
+                                <div class="event-meta-grid">
                                     <div class="event-meta-item">
-                                        <strong>Vibe</strong>
-                                        <span>Relaxed & Informal</span>
+                                        <strong>Breakfast</strong>
+                                        <span>On us</span>
                                     </div>
                                 </div>
                             </div>
@@ -483,7 +509,7 @@
             </div>
 
             <div class="text-center" style="margin-top: 2rem;">
-                <a href="sophie-joe-wedding.ics" download class="btn btn-outline">Download Full Schedule to Calendar</a>
+                <a href="tuscany-2027.ics" download class="btn btn-outline">Add the Weekend to Your Calendar</a>
             </div>
         </div>
     </section>
@@ -499,15 +525,8 @@
             <div class="card-grid">
                 <div class="card">
                     <div class="card-content">
-                        <h3>Dress Code</h3>
-                        <p>The ceremony and reception are formal - think suits and cocktail dresses. Ladies, consider wedges or block heels for the garden ceremony. Friday and Sunday are relaxed - smart casual is perfect.</p>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-content">
                         <h3>Weather</h3>
-                        <p>Late May in Tuscany is typically warm and sunny (20-25°C). We'll have shade and fans available, but sunglasses and sunscreen are a good idea. Bring a light layer for the evening.</p>
+                        <p>Late May in Tuscany is usually warm and sunny (20 to 25°C). Sunglasses and sunscreen are a good idea, and bring a light layer for the evening.</p>
                     </div>
                 </div>
 
@@ -518,52 +537,28 @@
                     </div>
                 </div>
 
-                <a href="menu.html" class="card" style="text-decoration: none;">
+                <a href="index.html" class="card" style="text-decoration: none;">
                     <div class="card-content">
-                        <h3>&#127837; See the Menu</h3>
-                        <p>Hungry? Take a peek at what Italian delights we'll be serving throughout the weekend.</p>
-                    </div>
-                </a>
-
-                <a href="quiz.html" class="card" style="text-decoration: none;">
-                    <div class="card-content">
-                        <h3>&#127942; Take the Quiz</h3>
-                        <p>Think you know Sophie & Joe? Test your knowledge with our fun wedding quiz!</p>
+                        <h3>&#127837; Anything You Can't Eat?</h3>
+                        <p>Tell us on the register page, along with anything that would make the weekend easier, and we'll make sure you're looked after.</p>
                     </div>
                 </a>
             </div>
         </div>
     </section>
 
-    <!-- Spotify Playlist -->
+    <!-- Your Song -->
     <section class="section">
         <div class="container">
             <div class="section-header">
-                <h2>Get in the Mood</h2>
+                <h2>Your Song for Sunday</h2>
                 <div class="section-divider"></div>
-                <p>We've put together a playlist to get you excited for the celebration. Have a listen!</p>
-            </div>
-
-            <div class="spotify-embed" style="max-width: 700px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow-soft);">
-                <!-- Replace PLAYLIST_ID with your actual Spotify playlist ID -->
-                <iframe
-                    style="border-radius:12px"
-                    src="https://open.spotify.com/embed/playlist/PLAYLIST_ID?utm_source=generator&theme=0"
-                    width="100%"
-                    height="380"
-                    frameBorder="0"
-                    allowfullscreen=""
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy">
-                </iframe>
-                <p style="text-align: center; margin-top: 1rem; color: var(--color-warm-gray); font-size: 0.9rem;">
-                    <em>Replace PLAYLIST_ID above with your Spotify playlist ID to make this work!</em>
-                </p>
+                <p>Everyone who registers gets a pocket in the binder, with room for one song for the pool on Sunday.</p>
             </div>
 
             <div class="text-center" style="margin-top: 2rem;">
-                <p>Got a song that will get you on the dance floor? Let us know in your RSVP!</p>
-                <a href="rsvp.html" class="btn btn-outline" style="margin-top: 1rem;">Submit a Song Request</a>
+                <p>Haven't picked yours yet? Sign in and add it to your pocket.</p>
+                <a href="index.html" class="btn btn-outline" style="margin-top: 1rem;">Add Your Song</a>
             </div>
         </div>
     </section>
