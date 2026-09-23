@@ -2497,7 +2497,71 @@
     }
 
     /* ========== SITE: registrations, payments, reveal switch ========== */
-    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, savePayments }) {
+    /* Who to chase: each link opens a Gmail draft; nothing sends until Joe presses Send in Gmail. */
+    function ChaseList({ regs, guests, isPaid, chase, saveChase }) {
+      const c = safeObj(chase, {});
+      const sent = safeObj(c.sent, {});
+      const [note, setNote] = useState({ answer: c.answer || "", pay: c.pay || "" });
+      useEffect(() => { setNote({ answer: c.answer || "", pay: c.pay || "" }); }, [c.answer, c.pay]);
+      const key = s => (s || "").trim().toLowerCase();
+      const slug = s => key(s).replace(/[^a-z0-9]+/g, "-");
+      const regNames = new Set(regs.map(r => key(r.name)));
+      const notAnswered = [
+        ...safeArr(guests).filter(g => (g.status === "Invited" || g.status === "Confirmed") && !regNames.has(key(g.name)))
+          .map(g => ({ name: g.name, email: g.email || "", why: "not registered" })),
+        ...regs.filter(r => r.intent !== "yes" && r.intent !== "no").map(r => ({ name: r.name, email: r.email || "", why: "not sure yet" }))
+      ];
+      const notPaid = regs.filter(r => r.intent === "yes" && !isPaid(r)).map(r => ({ name: r.name, email: r.email || "", why: "coming, not paid" }));
+      const GROUPS = [
+        ["answer", "Not answered yet", notAnswered, "Sophie & Joe, Tuscany: please reply by 28 February 2027"],
+        ["pay", "Coming but not paid", notPaid, "Sophie & Joe, Tuscany: the £150 for the weekend"]
+      ];
+      const gmail = (to, su, body) => "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(to) + "&su=" + encodeURIComponent(su) + "&body=" + encodeURIComponent(body);
+      const body = k => [(note[k] || "").trim(), "https://sophieandjoe2027.com"].filter(Boolean).join("\n\n");
+      const when = t => new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+
+      return (
+        <div style={{ background: P.card, borderRadius: 12, padding: 14, marginBottom: 18, boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>Who needs a nudge</div>
+          <div style={{ fontSize: 11, color: P.txtM, margin: "2px 0 4px" }}>Each link opens a Gmail draft with your note and the site link. Nothing sends until you press Send in Gmail. Guests marked Pending or Declined are left out; names are matched exactly, so check couples who registered once.</div>
+          {GROUPS.map(([k, label, list, su]) => {
+            const withEmail = list.filter(x => x.email);
+            return (
+              <div key={k} style={{ borderTop: "1px solid " + P.stoneL, padding: "10px 0 4px", marginTop: 6 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: P.txt }}>{label} {"·"} {list.length}</div>
+                  {withEmail.length > 0 && (
+                    <button onClick={() => navigator.clipboard && navigator.clipboard.writeText(withEmail.map(x => x.email).join(", "))}
+                            style={{ ...bS, background: P.stoneP, color: P.txtM }}>Copy {withEmail.length} address{withEmail.length === 1 ? "" : "es"} for Bcc</button>
+                  )}
+                </div>
+                <textarea value={note[k]} rows={3} onChange={e => setNote({ ...note, [k]: e.target.value })}
+                          onBlur={() => note[k] !== (c[k] || "") && saveChase({ ...c, [k]: note[k] })}
+                          placeholder="Your note, written once. It goes into every draft in this group."
+                          style={{ ...iS, margin: "8px 0 4px", resize: "vertical" }} />
+                {list.map(x => {
+                  const id = slug(k + " " + x.name), at = sent[id];
+                  return (
+                    <div key={id} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, padding: "4px 0", flexWrap: "wrap" }}>
+                      <div style={{ flex: 1, minWidth: 140, color: P.txt }}>{x.name} <span style={{ color: P.txtL }}>{"·"} {x.why}</span></div>
+                      {at && <span style={{ fontSize: 10, color: P.txtL }}>draft opened {when(at)}</span>}
+                      {x.email
+                        ? <a href={gmail(x.email, su, body(k))} target="_blank" rel="noopener"
+                             onClick={() => saveChase({ ...c, [k]: note[k], sent: { ...sent, [id]: Date.now() } })}
+                             style={{ ...bS, background: P.blueP, color: P.blue, textDecoration: "none" }}>Gmail draft</a>
+                        : <span style={{ fontSize: 10.5, color: P.gold }}>no email, message them directly</span>}
+                    </div>
+                  );
+                })}
+                {list.length === 0 && <div style={{ fontSize: 12, color: P.txtL, fontStyle: "italic" }}>Nobody.</div>}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, savePayments, chase, saveChase }) {
       const regs = Object.entries(safeObj(registrations, {})).map(([k, v]) => ({ ...safeObj(v, {}), _uid: k })).filter(r => r && r.name)
         .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       const names = safeArr(guests).map(g => (g.name || "").trim().toLowerCase());
@@ -2608,6 +2672,7 @@
                     style={{ ...bS, background: P.stoneP, color: P.txtM }}>Download CSV (addresses, travel)</button>
           </div>
           <BankDetails bank={bank} saveBank={saveBank} />
+          <ChaseList regs={regs} guests={guests} isPaid={isPaid} chase={chase} saveChase={saveChase} />
 
           {regs.length === 0 && (
             <div style={{ background: P.card, borderRadius: 12, padding: 18, fontSize: 13, color: P.txtL, fontStyle: "italic" }}>
@@ -3385,6 +3450,7 @@
       const [profiles, , b22] = useStorage("public/profiles", {}, (v) => safeObj(v, {}));
       const [bank, saveBank, b23] = useStorage("members/payment", { accountName: "", sortCode: "", accountNumber: "" }, (v) => safeObj(v, { accountName: "", sortCode: "", accountNumber: "" }));
       const [payments, savePayments, b24] = useStorage("payments", {}, (v) => safeObj(v, {}));
+      const [chase, saveChase, b25] = useStorage("site-chase", {}, (v) => safeObj(v, {}));
       const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music, normalizeMusic);
       const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing, safeArr);
       const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating, (v) => ({ tables: safeArr(v?.tables).map(t => ({ ...t, guests: safeArr(t?.guests) })) }));
@@ -3404,7 +3470,7 @@
       const [honeymoon, saveHoneymoon, b18] = useStorage("wedding-honeymoon-v1", { destination: "", dates: "", flights: "", hotel: "", budget: "", notes: "", documents: "", itinerary: [] }, normalizeHoneymoon);
       EUR_RATE = eurRate;
 
-      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19&&b20&&b21&&b22&&b23&&b24)) return (
+      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19&&b20&&b21&&b22&&b23&&b24&&b25)) return (
         <div style={{ minHeight: "100vh", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\uD83D\uDC8D"}</div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15 }}>Loading...</div></div>
         </div>
@@ -3465,7 +3531,7 @@
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} dayKit={dayKit} saveDayKit={saveDayKit} />}
             {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
             {tab === "total" && <TotalCostTab legalSpend={legalSpend} budget={budget} eurRate={eurRate} guests={guests} />}
-            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} savePayments={savePayments} />}
+            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} savePayments={savePayments} chase={chase} saveChase={saveChase} />}
           </div>
         </div>
       );
