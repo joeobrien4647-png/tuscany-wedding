@@ -100,7 +100,7 @@ itinerary, schedule, guest-map, plus arrivals.html (untracked, transfer-sharing 
 - Venue photos on the pages come from laconca.it: get Chiara's OK before opening sections.
 - Estimated, not sourced: Arezzo 40m, Siena 1h30, Cortona ~1h, San Gimignano 2h15, 20 to 25C, GBP/EUR 1.17. Pisa 2h15 only from old arrivals page.
 
-## Phase 4: RSVP extension (24 Sep 2026, commits ce7a897, ee0dd73, 4821cc4; NOT pushed)
+## Phase 4: RSVP extension (24 Sep 2026, commits ce7a897, ee0dd73, 4821cc4; pushed 24 Sep)
 
 Decisions (Joe, relayed 24 Sep): RSVP deadline **28 February 2027**; guests leave **Mon 31 May** (default, other days allowed).
 
@@ -110,7 +110,7 @@ Decisions (Joe, relayed 24 Sep): RSVP deadline **28 February 2027**; guests leav
 - [ ] Joe: paste the whole of `firebase.rules.json` into Firebase console > Realtime Database > Rules > Publish.
 - [x] Deadline 28 February 2027 on index, faq, contact, save-the-date (button now goes to the register page) and the old rsvp.html (was 1 March).
 - [x] Reminders: dashboard "Who needs a nudge". Invited/Confirmed guests not registered, unsure registrations, yes-but-unpaid. Each person gets a Gmail compose link (Joe's note + site link); nothing sends until Joe presses Send. Copy-for-Bcc per group. Pending/Declined excluded.
-- [ ] Joe: OK to push (pushing deploys the live site).
+- [x] Joe: OK to push. Pushed 24 Sep (a3c1f99..911f9b8); live site confirmed serving the travel fields, deadline and nudge list.
 - [ ] E2E test (after push). Claude can't create accounts, type passwords or delete data, so:
   1. Joe, in the Browser pane: register on sophieandjoe2027.com as "Test Guest" (e.g. joe.obrien4647+rsvptest@gmail.com), say Yes, fill some travel.
   2. Claude, in that tab: own registration readable; `wedding-guests-v4`, `registrations` (all) and `payments` (others) denied; edit travel via the form.
