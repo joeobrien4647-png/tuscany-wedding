@@ -56,7 +56,7 @@
 
   // keep in step with SITE_SECTIONS in dashboard.html
   var SECTIONS = {
-    travel:  ["travel", "accommodation", "things-to-do", "arrivals", "tools"],
+    travel:  ["travel", "accommodation", "things-to-do", "tools"],
     weekend: ["schedule", "itinerary"],
     faq:     ["faq", "contact"],
     story:   ["welcome", "our-story", "timeline", "wedding-party", "gallery"],

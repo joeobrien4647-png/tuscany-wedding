@@ -63,9 +63,9 @@ Order of Joe's steps matters — populate `/admins` BEFORE applying rules, or th
 
 Pages already exist (Jan 2026 build) and are gated: travel, accommodation, things-to-do, faq,
 itinerary, schedule, guest-map, plus arrivals.html (untracked, transfer-sharing board).
-- [ ] Accuracy pass on all of them against today's facts: 5 airports + drive times, Santarsa /
+- [x] Accuracy pass on all of them against today's facts (done 23 Sep for travel, accommodation, things-to-do, arrivals, tools, schedule, itinerary, faq, contact): 5 airports + drive times, Santarsa /
       Vallorsaia, Fri 28 – Mon 31 May 2027, adults-only wording, no "book your room".
-- [ ] Put the £150 / everything-included / no-gifts lines on accommodation.html and faq.html.
+- [x] Put the £150 / everything-included / no-gifts lines on accommodation.html and faq.html.
 - [x] Extend the reveal switch to per-section flags (built 22 Sep: travel, weekend, faq, story, fun; other pages full reveal only).
 - [ ] Reveal travel + accommodation once May 2027 flights are on sale; arrivals board with them.
 - [x] Address field on registration (private, in `/registrations`; shown in dashboard Site tab) — for thank-yous.
@@ -95,3 +95,7 @@ itinerary, schedule, guest-map, plus arrivals.html (untracked, transfer-sharing 
 - **22 Sep 2026: share + robustness pass.** Link preview card (images/og.jpg), Facebook in-app browser hides Google sign-in with a note, add-to-calendar (tuscany-2027.ics + Google link) on the registered screen, Google sign-up requires a coming? answer, dashboard registrations CSV export.
 - **22 Sep 2026: the register page IS the RSVP (Joe).** Added food and access questions to register + edit; shown in dashboard rows, count card and CSV.
 - [ ] Joe to decide: show guests who else is coming (recommendation: yes-only, first name + surname, signed-in only, opt-out).
+- **23 Sep 2026: accuracy pass pushed** (ec853ea, ac54098, c472796). arrivals.html moved OUT of the Travel section (full reveal only) until guests can submit flights. Old sophie-joe-wedding.ics deleted.
+- Open questions for Joe (removed from pages until answered): RSVP deadline (1 Mar vs 28 Feb), event times and ceremony spot, airport transfers/shuttles, how guests share flight details, Wi-Fi name.
+- Venue photos on the pages come from laconca.it: get Chiara's OK before opening sections.
+- Estimated, not sourced: Arezzo 40m, Siena 1h30, Cortona ~1h, San Gimignano 2h15, 20 to 25C, GBP/EUR 1.17. Pisa 2h15 only from old arrivals page.
