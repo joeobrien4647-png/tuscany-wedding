@@ -121,3 +121,33 @@ Decisions (Joe, relayed 24 Sep): RSVP deadline **28 February 2027**; guests leav
 ### Review (24 Sep 2026)
 Verified locally (one browser pass): register form builds both travel blocks, Mon 31 defaults, "Somewhere else" reveals the text box, travel hides on "can't", preview shows "Manchester (MAN) to Pisa (PSA). Arriving Fri 28 May, afternoon. Leaving Mon 31 May." Dashboard compiles; SiteTab rendered with mock data shows travel lines, 1 / 2 flights given, CSV travel columns, nudge list with Pending excluded and no-email flagged, correct Gmail links. No console errors, no em dashes added.
 Research (cost/terms): Trigger Email needs Blaze + Firestore + SMTP; GitHub Actions scheduled jobs switch off after 60 idle days, need an admin service key in a public repo, and sit in a grey area of GitHub's terms; Gmail API compose scope is restricted. Gmail compose links: free, 500 recipients/day limit, Joe approves each send.
+
+## Phase 5: flight guide and search links (24 Sep 2026, commits b7080d5, e498807; NOT pushed)
+
+Joe's choice: links now, price tracker later. Travel section stays hidden; Joe flips `travel` himself.
+
+- [x] travel.html "Where to Fly To": 8 airports ranked by drive time, UK routes per airport, "not on sale yet" marked.
+- [x] "Before You Book" box: passport (issued on/after 29 May 2017 for a Fri 28 landing, 28 May 2017 for Thu 27; valid to 1 Sep 2027), ETIAS not live, EES queues, GHIC + insurance (US: own cover), car hire ZTL + US IDP.
+- [x] "Search Flights" picker: same departure list and codes as the RSVP `travel.home` field. Each route gives Google Flights + Skyscanner, out Thu 27 or Fri 28, back Mon 31 (Joe, relayed 24 Sep). Routes with no Mon 31 flight back are left out (BA LHR-PEG, easyJet BRS-PSA, easyJet LGW-RMI, BA EDI-FLR). No direct route (EXT, LBA) or "Somewhere else" shows Google searches with changes.
+- [x] arrivals.html drive times aligned; RMI and AOI added.
+- [ ] Joe: RSVP "flying into" list lacks Rimini (RMI) and Ancona (AOI); add them (RSVP session told).
+- [ ] Joe: old FAQ says "your bed is yours from Friday to Monday" but the page offers Thu 27 flights. Is Thursday night at the villa OK?
+- [ ] Joe: "Travel Buddies" card still says send flights to Sophie or Joe; the RSVP now collects them. Reword when the arrivals board is rebuilt.
+- [ ] Re-check Nov 2026 to Jan 2027 as Ryanair loads summer 2027 (RMI from STN/MAN; BLQ from LTN/MAN/EDI; PSA from MAN/EDI/BHX/PIK; CIA from EMA/LPL), then update ROUTES in travel.html. Also Jet2 (site down 24 Sep, nothing verified).
+
+Sources and method (24 Sep 2026):
+- Ryanair: its own timetable and fare APIs (ryanair.com/api/timtbl, farfnd). **Stansted routes to PEG, AOI, BLQ, PSA, CIA and MAN/EDI to CIA are ALREADY on sale for 27/28/31 May**, contrary to the 23 Sep research. Other bases not loaded past March 2027.
+- easyJet: its route and lowest-fare endpoints (on sale to 26 Sep 2027). BA: fare calendar data behind britishairways.com. Vueling: price calendar. Wizz: timetable data. Boston: Google Flights shows Delta and ITA nonstop on 27 and 28 May. ITA Heathrow dates, Aer Lingus, Loganair not checked.
+- Drive times: OSRM road routing from La Conca's OSM point (43.6023, 12.1286), rounded to 5 min: PEG 68, FLR 107, RMI 122, AOI 140, BLQ 141, PSA 168, CIA 185, FCO 220 min. Google Maps would not render in the hidden Browser pane, so not cross-checked there; the old page said Perugia 55 min, worth a spot-check.
+- Links tested: Google Flights `?q=Flights from STN to PEG on 2027-05-28 through 2027-05-31` opens the right route and dates (STN-PEG, LCY-FLR, BOS-FCO checked). Skyscanner `/transport/flights/stn/peg/270528/270531/` resolved to "London to Perugia" then showed a bot check in the automated browser (not completed); normal browsers should be fine.
+- Fares seen 24 Sep (one way, Ryanair): Thu 27 was cheaper than Fri 28 on most routes, e.g. STN-PEG 239 vs 336, STN-AOI 73 vs 345. Google Flights: STN-PEG 28 to 31 May from 561 return, "prices currently high".
+
+### LATER (do not build yet): cached price tracker, Nov 2026 to Jan 2027
+
+- Scheduled GitHub Action, a few times a day, fetches the cheapest direct fare per route (out 27/28, back 31) and commits `data/fares.json` ({updated, routes: [{from, to, airline, out27, out28, back31, currency}]}). travel.html reads it, shows prices next to the search buttons and "last updated"; hides prices if older than ~36h.
+- No API keys in the public repo: GitHub Secrets only.
+- Before choosing a provider, check its terms allow personal, non-business use (Stripe lesson). Candidates to check, none vetted: Amadeus Self-Service, Kiwi Tequila, SerpApi (Google Flights), Skyscanner (partner-only). Airline endpoints used above are undocumented; don't build on them without checking terms.
+- Known constraints (from the RSVP session's research): scheduled workflows in public repos are disabled after 60 days without repo activity; scraping via Actions is a grey area in GitHub's terms. Each commit also redeploys Pages.
+
+### Review (24 Sep 2026)
+One browser pass on an ungated local copy: all 18 departure options produce the expected rows for both days, day fallback works (SEN on Thu searches Fri 28), no console errors besides the uncopied header image, no horizontal scroll at 375px (16px gutters), 3-column grid at 1280px, no em dashes.
