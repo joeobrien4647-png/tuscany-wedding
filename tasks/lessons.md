@@ -48,3 +48,9 @@ javascript_tool while the pane is hidden: it hangs for 45s.
 Stripe is for businesses; personal collection needs pre-approval and peer-to-peer isn't supported.
 Joe asked "is this allowed?" and it wasn't. Rule: before recommending any payment, financial or
 account service, check its terms fit the actual use (personal vs business) first.
+
+## 24 Sep 2026: partial staging with git apply --unidiff-zero corrupted commits
+Staging a subset of -U0 hunks with `git apply --cached --unidiff-zero` put pure insertions one line early, so three
+local commits had broken JS. Also, Python text-mode pipes on Windows add CRLF to patches. Rule: to split one file
+across commits, rebuild the file content in Python and stage it with `git hash-object -w` + `git update-index
+--cacheinfo`; then check `git diff` shows only the leftover hunks before committing.

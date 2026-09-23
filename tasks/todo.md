@@ -34,7 +34,7 @@ place where guests create a login, confirm they got the save-the-date, and give 
 - [x] Joe: enable Email/Password provider, create admin accounts, paste rules (in that order) (rules live 22 Sep)
 - [x] CNAME added; sophieandjoe2027.com serving from GitHub Pages (6 Sep 2026)
 - [ ] Verify end to end: register as a test guest, confirm it appears in the dashboard, confirm a
-      guest cannot read the guest table
+      guest cannot read the guest table (runbook in Phase 4 below; needs Joe for sign-up and clean-up)
 
 ## Review (6 Sep 2026)
 
@@ -99,3 +99,25 @@ itinerary, schedule, guest-map, plus arrivals.html (untracked, transfer-sharing 
 - Open questions for Joe (removed from pages until answered): RSVP deadline (1 Mar vs 28 Feb), event times and ceremony spot, airport transfers/shuttles, how guests share flight details, Wi-Fi name.
 - Venue photos on the pages come from laconca.it: get Chiara's OK before opening sections.
 - Estimated, not sourced: Arezzo 40m, Siena 1h30, Cortona ~1h, San Gimignano 2h15, 20 to 25C, GBP/EUR 1.17. Pisa 2h15 only from old arrivals page.
+
+## Phase 4: RSVP extension (24 Sep 2026, commits ce7a897, ee0dd73, 4821cc4; NOT pushed)
+
+Decisions (Joe, relayed 24 Sep): RSVP deadline **28 February 2027**; guests leave **Mon 31 May** (default, other days allowed).
+
+- [x] Travel on register + edit: flying from (UK list + Boston + other), flying into (PEG, FLR, BLQ, PSA, FCO, CIA, not flying, other), arriving Thu 27 / Fri 28 / Sat 29 + rough time, leaving Sun 30 / Mon 31 (default) / Tue 1 Jun + rough time, flight out / home (optional). Hidden if "can't make it". Stored at `/registrations/{uid}/travel`.
+- [x] Dashboard Site tab: travel line per guest, "Flights given" count, travel columns in the CSV.
+- [x] Rules: `travel/$field` must be a string of 60 chars or fewer. Optional hardening; the feature works without it.
+- [ ] Joe: paste the whole of `firebase.rules.json` into Firebase console > Realtime Database > Rules > Publish.
+- [x] Deadline 28 February 2027 on index, faq, contact, save-the-date (button now goes to the register page) and the old rsvp.html (was 1 March).
+- [x] Reminders: dashboard "Who needs a nudge". Invited/Confirmed guests not registered, unsure registrations, yes-but-unpaid. Each person gets a Gmail compose link (Joe's note + site link); nothing sends until Joe presses Send. Copy-for-Bcc per group. Pending/Declined excluded.
+- [ ] Joe: OK to push (pushing deploys the live site).
+- [ ] E2E test (after push). Claude can't create accounts, type passwords or delete data, so:
+  1. Joe, in the Browser pane: register on sophieandjoe2027.com as "Test Guest" (e.g. joe.obrien4647+rsvptest@gmail.com), say Yes, fill some travel.
+  2. Claude, in that tab: own registration readable; `wedding-guests-v4`, `registrations` (all) and `payments` (others) denied; edit travel via the form.
+  3. Joe signs into the dashboard in the pane; Claude checks the Site tab row, travel line, CSV and nudge list.
+  4. Joe cleans up: Firebase console > Authentication > delete the test user; Realtime Database > delete `registrations/<uid>` (and `public/profiles/<uid>` if made).
+- Later: arrivals.html reads the admin-only guest table, so guests will get nothing under the rules. Rebuild it on registration travel data before the Travel section opens.
+
+### Review (24 Sep 2026)
+Verified locally (one browser pass): register form builds both travel blocks, Mon 31 defaults, "Somewhere else" reveals the text box, travel hides on "can't", preview shows "Manchester (MAN) to Pisa (PSA). Arriving Fri 28 May, afternoon. Leaving Mon 31 May." Dashboard compiles; SiteTab rendered with mock data shows travel lines, 1 / 2 flights given, CSV travel columns, nudge list with Pending excluded and no-email flagged, correct Gmail links. No console errors, no em dashes added.
+Research (cost/terms): Trigger Email needs Blaze + Firestore + SMTP; GitHub Actions scheduled jobs switch off after 60 idle days, need an admin service key in a public repo, and sit in a grey area of GitHub's terms; Gmail API compose scope is restricted. Gmail compose links: free, 500 recipients/day limit, Joe approves each send.
