@@ -45,11 +45,19 @@
   .p-tabs button { flex: 1; background: none; border: none; padding: 10px 4px 12px; font-family: var(--font-body); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-warm-gray); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
   .p-tabs button[aria-selected="true"] { color: var(--color-terracotta); border-bottom-color: var(--color-terracotta); }
   label { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--color-warm-gray); margin: 14px 0 6px; }
-  input[type=text], input[type=email], input[type=password], input[type=tel], textarea {
+  input[type=text], input[type=email], input[type=password], input[type=tel], textarea, select {
     width: 100%; box-sizing: border-box; font-family: var(--font-body); font-size: 15px; padding: 12px 13px;
     border: 1px solid rgba(44,44,44,.18); border-radius: 3px; background: var(--color-cream); color: var(--color-charcoal); }
-  input:focus, textarea:focus { outline: 2px solid var(--color-gold); outline-offset: 1px; border-color: transparent; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid var(--color-gold); outline-offset: 1px; border-color: transparent; }
   textarea { min-height: 76px; resize: vertical; line-height: 1.5; }
+  select { padding: 11px 10px; }
+  .p-travel { border-top: 1px solid rgba(44,44,44,.1); margin-top: 24px; padding-top: 16px; }
+  .p-travel-h { font-family: var(--font-heading); font-size: 19px; color: var(--color-charcoal); }
+  .p-hint { font-size: 13px; font-weight: 300; line-height: 1.55; color: var(--color-warm-gray); margin: 4px 0 0; }
+  .p-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .p-pair > div { min-width: 0; }
+  .p-by { margin-top: 8px; }
+  .p-nudge { display: block; font-size: 12.5px; color: var(--color-warm-gray); margin-top: 2px; }
   .p-intent { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
   .p-intent input { position: absolute; opacity: 0; width: 0; height: 0; }
   .p-intent span { display: block; text-align: center; padding: 11px 6px; border: 1px solid rgba(44,44,44,.18); border-radius: 3px; font-size: 13px; color: var(--color-charcoal); cursor: pointer; background: var(--color-cream); }
@@ -200,6 +208,7 @@
       <input id="up-diet" type="text" maxlength="300" placeholder="Optional. Allergies, vegetarian, coeliac, that kind of thing.">
       <label for="up-access">Anything that would make the weekend easier?</label>
       <input id="up-access" type="text" maxlength="300" placeholder="Optional. A ground-floor room, fewer steps, anything at all.">
+      <div class="p-travel" id="up-travel"></div>
       <label for="up-pw">Choose a password</label>
       <input id="up-pw" type="password" autocomplete="new-password" required minlength="6">
       <label>Are you coming?</label>
@@ -247,6 +256,7 @@
       <dt>Address</dt><dd id="d-address"></dd>
       <dt>Food</dt><dd id="d-diet"></dd>
       <dt>Anything else</dt><dd id="d-access"></dd>
+      <dt>Travel</dt><dd><span id="d-travel"></span><span class="p-nudge" id="d-travel-nudge">Add your flights under &lsquo;Change something&rsquo; once you&rsquo;ve booked.</span></dd>
       <dt>Coming?</dt><dd id="d-intent"></dd>
     </dl>
     <button class="p-link" type="button" id="edit">Change something</button>
@@ -259,6 +269,7 @@
       <input id="ed-diet" type="text" maxlength="300">
       <label for="ed-access">Anything that would make the weekend easier?</label>
       <input id="ed-access" type="text" maxlength="300">
+      <div class="p-travel" id="ed-travel"></div>
       <label>Are you coming?</label>
       <div class="p-intent">
         <label style="margin:0"><input type="radio" name="ed-intent" value="yes"><span>Yes!</span></label>
@@ -442,6 +453,68 @@
   function hideErr(id) { $(id).hidden = true; }
   function picked(name) { var r = document.querySelector('input[name="' + name + '"]:checked'); return r ? r.value : ""; }
 
+  // ---- travel: private, stored at /registrations/{uid}/travel ----
+  var HOME = [["LHR", "London Heathrow (LHR)"], ["LGW", "London Gatwick (LGW)"], ["STN", "London Stansted (STN)"], ["LTN", "London Luton (LTN)"],
+              ["LCY", "London City (LCY)"], ["SEN", "London Southend (SEN)"], ["BRS", "Bristol (BRS)"], ["EXT", "Exeter (EXT)"],
+              ["BHX", "Birmingham (BHX)"], ["EMA", "East Midlands (EMA)"], ["MAN", "Manchester (MAN)"], ["LBA", "Leeds Bradford (LBA)"],
+              ["LPL", "Liverpool (LPL)"], ["NCL", "Newcastle (NCL)"], ["EDI", "Edinburgh (EDI)"], ["GLA", "Glasgow (GLA)"],
+              ["BFS", "Belfast International (BFS)"], ["BOS", "Boston, US (BOS)"], ["OTHER", "Somewhere else"]];
+  var INTO = [["PEG", "Perugia (PEG)"], ["FLR", "Florence (FLR)"], ["BLQ", "Bologna (BLQ)"], ["PSA", "Pisa (PSA)"],
+              ["FCO", "Rome Fiumicino (FCO)"], ["CIA", "Rome Ciampino (CIA)"], ["CAR", "Not flying"], ["OTHER", "Somewhere else"]];
+  var ARRIVE = [["2027-05-27", "Thu 27 May"], ["2027-05-28", "Fri 28 May"], ["2027-05-29", "Sat 29 May"]];
+  var LEAVE = [["2027-05-30", "Sun 30 May"], ["2027-05-31", "Mon 31 May"], ["2027-06-01", "Tue 1 June"]];
+  var WHEN = [["morning", "Morning"], ["afternoon", "Afternoon"], ["evening", "Evening"]];
+  var LEAVE_DEFAULT = "2027-05-31";
+
+  function opts(list) {
+    return '<option value="">Not sure yet</option>' + list.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + "</option>"; }).join("");
+  }
+  function field(p, id, text, control) { return '<div><label for="' + p + "-" + id + '">' + text + "</label>" + control + "</div>"; }
+  function sel(p, id, list) { return '<select id="' + p + "-" + id + '">' + opts(list) + "</select>"; }
+  function txt(p, id, max, ph) { return '<input id="' + p + "-" + id + '" type="text" maxlength="' + max + '"' + (ph ? ' placeholder="' + ph + '"' : "") + ">"; }
+  function buildTravel(p) {
+    var box = $(p + "-travel");
+    box.innerHTML = '<div class="p-travel-h">Your travel</div>'
+      + '<p class="p-hint">Fill in what you know. Most people haven&rsquo;t booked yet, so add flights whenever you do. It helps us plan lifts from the airport.</p>'
+      + '<div class="p-pair">' + field(p, "home", "Flying from", sel(p, "home", HOME)) + field(p, "into", "Flying into", sel(p, "into", INTO)) + "</div>"
+      + '<div id="' + p + '-home-other-row" hidden>' + field(p, "home-other", "Which airport?", txt(p, "home-other", 60)) + "</div>"
+      + '<div class="p-pair">' + field(p, "aday", "Arriving", sel(p, "aday", ARRIVE)) + field(p, "atime", "Roughly when", sel(p, "atime", WHEN)) + "</div>"
+      + '<div class="p-pair">' + field(p, "dday", "Leaving", sel(p, "dday", LEAVE)) + field(p, "dtime", "Roughly when", sel(p, "dtime", WHEN)) + "</div>"
+      + '<div class="p-pair">' + field(p, "fin", "Flight out", txt(p, "fin", 12, "e.g. FR1234")) + field(p, "fout", "Flight home", txt(p, "fout", 12, "Optional")) + "</div>";
+    $(p + "-dday").value = LEAVE_DEFAULT;
+    $(p + "-home").onchange = function () { $(p + "-home-other-row").hidden = this.value !== "OTHER"; };
+  }
+  function readTravel(p) {
+    var v = function (id) { return $(p + "-" + id).value.trim().slice(0, 60); };
+    var flight = function (id) { return v(id).replace(/\s+/g, "").toUpperCase(); };
+    var home = v("home");
+    return { home: home, homeOther: home === "OTHER" ? v("home-other") : "", into: v("into"),
+             arriveDay: v("aday"), arriveTime: v("atime"), flightIn: flight("fin"),
+             departDay: v("dday"), departTime: v("dtime"), flightOut: flight("fout") };
+  }
+  function fillTravel(p, t) {
+    t = t || {};
+    $(p + "-home").value = t.home || ""; $(p + "-home-other").value = t.homeOther || "";
+    $(p + "-home-other-row").hidden = t.home !== "OTHER";
+    $(p + "-into").value = t.into || ""; $(p + "-aday").value = t.arriveDay || ""; $(p + "-atime").value = t.arriveTime || "";
+    $(p + "-dday").value = t.departDay || LEAVE_DEFAULT; $(p + "-dtime").value = t.departTime || "";
+    $(p + "-fin").value = t.flightIn || ""; $(p + "-fout").value = t.flightOut || "";
+  }
+  function named(list, v) { var o = list.filter(function (x) { return x[0] === v; })[0]; return o ? o[1] : v; }
+  function travelText(t) {
+    t = t || {};
+    var leg = function (day, days, time, flight) {
+      return [day && named(days, day), time && named(WHEN, time).toLowerCase(), flight].filter(Boolean).join(", ");
+    };
+    var from = t.home === "OTHER" ? t.homeOther : t.home && named(HOME, t.home);
+    var route = t.into === "CAR" ? "Not flying" : [from, t.into && named(INTO, t.into)].filter(Boolean).join(" to ");
+    var inn = leg(t.arriveDay, ARRIVE, t.arriveTime, t.flightIn), out = leg(t.departDay, LEAVE, t.departTime, t.flightOut);
+    return [route, inn && "Arriving " + inn, out && "Leaving " + out].filter(Boolean).join(". ");
+  }
+  buildTravel("up"); buildTravel("ed");
+  document.querySelectorAll('input[name="intent"]').forEach(function (r) { r.addEventListener("change", function () { $("up-travel").hidden = picked("intent") === "no"; }); });
+  document.querySelectorAll('input[name="ed-intent"]').forEach(function (r) { r.addEventListener("change", function () { $("ed-travel").hidden = picked("ed-intent") === "no"; }); });
+
   // ---- state ----
   function render(reg) {
     $("loading").hidden = true;
@@ -462,6 +535,10 @@
     $("d-diet").textContent = reg.diet || "nothing noted";
     $("d-access").textContent = reg.access || "nothing noted";
     $("ed-diet").value = reg.diet || ""; $("ed-access").value = reg.access || "";
+    var out = reg.intent === "no", tt = travelText(reg.travel);
+    $("d-travel").textContent = out ? "not needed" : tt ? tt + "." : "nothing yet";
+    $("d-travel-nudge").hidden = out || !!(reg.travel && reg.travel.flightIn);
+    fillTravel("ed", reg.travel); $("ed-travel").hidden = out;
     var r = document.querySelector('input[name="ed-intent"][value="' + (reg.intent || "") + '"]'); if (r) r.checked = true;
     showPay(reg);
     if (!reg.intent) $("form-edit").hidden = false;
@@ -509,7 +586,8 @@
   var PREVIEW = /[?&]preview=done/.test(location.search);
   if (PREVIEW) {
     render({ name: "Sample Guest", email: "sample@example.com", phone: "07700 900000",
-             address: "1 Example Street, Sevenoaks, TN13 1AA", intent: "yes" });
+             address: "1 Example Street, Sevenoaks, TN13 1AA", intent: "yes",
+             travel: { home: "MAN", into: "PSA", arriveDay: "2027-05-28", arriveTime: "afternoon", departDay: "2027-05-31" } });
     $("done").insertAdjacentHTML("afterbegin", '<div class="p-msg">Preview with sample data. Nothing on this page is saved.</div>');
     document.querySelectorAll("#done button.p-primary").forEach(function (b) { b.disabled = true; });
   }
@@ -535,6 +613,7 @@
     auth.createUserWithEmailAndPassword(email, pw).then(function (cred) {
       var u = cred.user;
       var rec = { name: name, email: email, phone: phone, address: address, diet: diet, access: access, intent: intent, uid: u.uid,
+                  travel: intent === "no" ? null : readTravel("up"),
                   createdAt: firebase.database.ServerValue.TIMESTAMP, updatedAt: firebase.database.ServerValue.TIMESTAMP };
       return Promise.all([ u.updateProfile({ displayName: name }), db.ref("registrations/" + u.uid).set(rec) ])
         .then(function () { render(rec); });
@@ -578,6 +657,7 @@
           var intent = picked("intent") || "";
           var rec = { name: u.displayName || "", email: u.email || "", phone: $("up-phone").value.trim(), address: $("up-address").value.trim().slice(0, 300),
                       diet: $("up-diet").value.trim().slice(0, 300), access: $("up-access").value.trim().slice(0, 300),
+                      travel: intent && intent !== "no" ? readTravel("up") : null,
                       intent: intent, uid: u.uid, createdAt: firebase.database.ServerValue.TIMESTAMP, updatedAt: firebase.database.ServerValue.TIMESTAMP };
           return db.ref("registrations/" + u.uid).set(rec).then(function () { render(rec); });
         });
@@ -591,7 +671,8 @@
     ev.preventDefault(); hideErr("ed-err");
     var u = auth.currentUser; if (!u) return;
     var upd = { phone: $("ed-phone").value.trim(), address: $("ed-address").value.trim().slice(0, 300),
-                diet: $("ed-diet").value.trim().slice(0, 300), access: $("ed-access").value.trim().slice(0, 300), intent: picked("ed-intent") || undefined, updatedAt: firebase.database.ServerValue.TIMESTAMP };
+                diet: $("ed-diet").value.trim().slice(0, 300), access: $("ed-access").value.trim().slice(0, 300), intent: picked("ed-intent") || undefined, updatedAt: firebase.database.ServerValue.TIMESTAMP,
+                travel: picked("ed-intent") === "no" ? null : readTravel("ed") };
     if (!upd.intent) delete upd.intent;
     db.ref("registrations/" + u.uid).update(upd)
       .then(function () { return db.ref("registrations/" + u.uid).once("value"); })
