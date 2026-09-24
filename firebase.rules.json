@@ -27,7 +27,7 @@
     },
 
     "members": {
-      ".read": "auth != null"
+      ".read": "auth != null && (root.child('admins').child(auth.uid).exists() || root.child('registrations').child(auth.uid).child('intent').val() === 'yes')"
     },
 
     "payments": {

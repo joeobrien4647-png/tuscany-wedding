@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sophie &amp; Joe, Tuscany 2027</title>
-<meta name="description" content="Sophie and Joe are getting married in Tuscany, 29 May 2027. Register to confirm you got the save-the-date.">
+<meta name="description" content="Sophie and Joe are getting married in Tuscany on Saturday 29 May 2027. Register here and let us know if you can come by 28 February 2027.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://sophieandjoe2027.com/">
 <meta property="og:title" content="Sophie &amp; Joe, Tuscany 2027">
-<meta property="og:description" content="We&rsquo;re getting married in Tuscany on Saturday 29 May 2027. Register here so we know you got the save-the-date.">
+<meta property="og:description" content="Sophie and Joe are getting married in Tuscany on Saturday 29 May 2027. Register here and let us know if you can come by 28 February 2027.">
 <meta property="og:image" content="https://sophieandjoe2027.com/images/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -44,7 +44,8 @@
   .p-tabs { display: flex; gap: 4px; margin-bottom: 22px; border-bottom: 1px solid rgba(44,44,44,.1); }
   .p-tabs button { flex: 1; background: none; border: none; padding: 10px 4px 12px; font-family: var(--font-body); font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--color-warm-gray); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
   .p-tabs button[aria-selected="true"] { color: var(--color-terracotta); border-bottom-color: var(--color-terracotta); }
-  label { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--color-warm-gray); margin: 14px 0 6px; }
+  .p-fs { border: 0; margin: 14px 0 0; padding: 0; min-width: 0; }
+  label, .p-fs legend { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--color-warm-gray); margin: 14px 0 6px; }
   input[type=text], input[type=email], input[type=password], input[type=tel], textarea, select {
     width: 100%; box-sizing: border-box; font-family: var(--font-body); font-size: 15px; padding: 12px 13px;
     border: 1px solid rgba(44,44,44,.18); border-radius: 3px; background: var(--color-cream); color: var(--color-charcoal); }
@@ -52,6 +53,9 @@
   textarea { min-height: 76px; resize: vertical; line-height: 1.5; }
   select { padding: 11px 10px; }
   .p-travel { border-top: 1px solid rgba(44,44,44,.1); margin-top: 24px; padding-top: 16px; }
+  .p-fs legend { padding: 0; margin-top: 0; }
+  .p-link.p-more { display: block; margin-top: 22px; }
+  #up-travel:focus { outline: none; }
   .p-travel-h { font-family: var(--font-heading); font-size: 19px; color: var(--color-charcoal); }
   .p-hint { font-size: 13px; font-weight: 300; line-height: 1.55; color: var(--color-warm-gray); margin: 4px 0 0; }
   .p-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -111,7 +115,8 @@
   .p-ask ul { list-style: none; padding: 0; margin: 0 auto 26px; display: inline-grid; gap: 8px; text-align: left; }
   .p-ask li { font-family: var(--font-body); font-size: 15px; color: var(--color-charcoal); }
   .p-ask li::before { content: "\2713"; color: var(--color-olive); margin-right: 10px; }
-  @media (max-width: 600px) { .p-hero { padding: 90px 20px 130px; } .p-card { margin-top: -80px; } }
+  @media (max-width: 600px) { .p-hero { padding: 90px 20px 130px; } .p-card { margin-top: -80px; }
+    input[type=text], input[type=email], input[type=password], input[type=tel], textarea, select { font-size: 16px; } }
   .p-next h3 { font-family: var(--mono); font-size: 10.5px; letter-spacing: .26em; text-transform: uppercase; color: var(--color-terracotta); margin: 0 0 14px; }
   .p-next li { font-weight: 300; color: var(--color-warm-gray); line-height: 1.65; margin-bottom: 8px; }
   .p-next li b { font-weight: 400; color: var(--color-charcoal); }
@@ -126,8 +131,11 @@
   .p-pay p { color: var(--color-warm-gray); font-weight: 300; font-size: 13.5px; line-height: 1.6; margin: 0 0 12px; }
   .p-pay dl { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; margin: 0 0 10px; font-size: 15px; }
   .p-pay dt { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--color-warm-gray); padding-top: 4px; }
-  .p-pay dd { margin: 0; color: var(--color-charcoal); font-variant-numeric: tabular-nums; letter-spacing: .02em; }
+  .p-pay dd { margin: 0; color: var(--color-charcoal); font-variant-numeric: tabular-nums; letter-spacing: .02em; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; }
   .p-pay .p-small { font-size: 12.5px; margin: 12px 0 0; }
+  .p-copy { background: none; border: 1px solid rgba(92,107,74,.4); border-radius: 999px; color: var(--color-olive); font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; padding: 8px 14px; min-height: 32px; cursor: pointer; }
+  .p-sent { display: block; width: 100%; margin-top: 18px; background: transparent; color: var(--color-terracotta); border: 1px solid var(--color-terracotta); border-radius: 999px; padding: 12px; font-family: var(--font-body); font-weight: 700; font-size: 14px; letter-spacing: .06em; cursor: pointer; }
+  .p-sent[disabled] { opacity: .55; cursor: default; }
 
   .p-inapp { text-align: center; font-size: 12.5px; line-height: 1.55; color: var(--color-warm-gray); font-weight: 300; margin: 16px 0 0; }
   .p-cal { font-size: 13px; color: var(--color-warm-gray); margin: -6px 0 18px; }
@@ -174,14 +182,14 @@
 </div>
 
 <header class="p-hero">
-  <div class="p-kicker">Fri 28 &ndash; Mon 31 May 2027 &nbsp;&middot;&nbsp; Sansepolcro, Tuscany</div>
+  <div class="p-kicker">Fri 28 to Mon 31 May 2027 &nbsp;&middot;&nbsp; Sansepolcro, Tuscany</div>
   <h1>Sophie &amp; Joe</h1>
   <p class="p-sub">are getting married in Tuscany</p>
   <div class="p-count" id="count">
-    <div><b id="c-d">&ndash;</b><span>DAYS</span></div>
-    <div><b id="c-h">&ndash;</b><span>HOURS</span></div>
-    <div><b id="c-m">&ndash;</b><span>MINUTES</span></div>
-    <div><b id="c-s">&ndash;</b><span>SECONDS</span></div>
+    <div><b id="c-d">&middot;</b><span>DAYS</span></div>
+    <div><b id="c-h">&middot;</b><span>HOURS</span></div>
+    <div><b id="c-m">&middot;</b><span>MINUTES</span></div>
+    <div><b id="c-s">&middot;</b><span>SECONDS</span></div>
   </div>
   <div class="p-live" id="live" hidden><b id="live-n">0</b> already registered</div>
 </header>
@@ -201,6 +209,17 @@
       <input id="up-name" type="text" autocomplete="name" required placeholder="First and last name">
       <label for="up-email">Email</label>
       <input id="up-email" type="email" autocomplete="email" required>
+      <fieldset class="p-fs">
+        <legend>Are you coming?</legend>
+        <div class="p-intent">
+          <label style="margin:0"><input type="radio" name="intent" value="yes"><span>Yes!</span></label>
+          <label style="margin:0"><input type="radio" name="intent" value="maybe"><span>Not sure yet</span></label>
+          <label style="margin:0"><input type="radio" name="intent" value="no"><span>Can&rsquo;t make it</span></label>
+        </div>
+        <p class="p-hint p-by">Please let us know by 28 February 2027</p>
+      </fieldset>
+      <label for="up-pw">Choose a password</label>
+      <input id="up-pw" type="password" autocomplete="new-password" required minlength="6">
       <label for="up-phone">Mobile</label>
       <input id="up-phone" type="tel" autocomplete="tel" placeholder="Optional, but handy for the weekend">
       <label for="up-address">Postal address</label>
@@ -209,16 +228,8 @@
       <input id="up-diet" type="text" maxlength="300" placeholder="Optional. Allergies, vegetarian, coeliac, that kind of thing.">
       <label for="up-access">Anything that would make the weekend easier?</label>
       <input id="up-access" type="text" maxlength="300" placeholder="Optional. A ground-floor room, fewer steps, anything at all.">
-      <div class="p-travel" id="up-travel"></div>
-      <label for="up-pw">Choose a password</label>
-      <input id="up-pw" type="password" autocomplete="new-password" required minlength="6">
-      <label>Are you coming?</label>
-      <div class="p-intent">
-        <label style="margin:0"><input type="radio" name="intent" value="yes"><span>Yes!</span></label>
-        <label style="margin:0"><input type="radio" name="intent" value="maybe"><span>Not sure yet</span></label>
-        <label style="margin:0"><input type="radio" name="intent" value="no"><span>Can&rsquo;t make it</span></label>
-      </div>
-      <p class="p-hint p-by">Please let us know by 28 February 2027</p>
+      <button class="p-link p-more" type="button" id="up-travel-open" aria-expanded="false" aria-controls="up-travel">Booked already? Add your travel</button>
+      <div class="p-travel" id="up-travel" tabindex="-1" hidden></div>
       <div class="p-msg p-err" id="up-err" hidden></div>
       <button class="p-primary" id="up-btn" type="submit">Register</button>
       <div class="p-or">or</div>
@@ -229,6 +240,7 @@
     </form>
 
     <form id="form-in" novalidate hidden>
+      <div class="p-msg" id="in-note" style="margin-top:0" hidden></div>
       <label for="in-email">Email</label>
       <input id="in-email" type="email" autocomplete="email" required>
       <label for="in-pw">Password</label>
@@ -287,12 +299,16 @@
       <p id="pay-intro">This covers your bed at the villa for the three nights. Everything else is on us. Whenever suits, by bank transfer:</p>
       <dl id="pay-bank">
         <dt>Name</dt><dd id="pay-name"></dd>
-        <dt>Sort code</dt><dd id="pay-sort"></dd>
-        <dt>Account</dt><dd id="pay-acct"></dd>
-        <dt>Reference</dt><dd id="pay-ref"></dd>
+        <dt>Sort code</dt><dd><span id="pay-sort"></span><button class="p-copy" type="button" data-copy="pay-sort" data-digits="1" aria-label="Copy sort code">Copy</button></dd>
+        <dt>Account</dt><dd><span id="pay-acct"></span><button class="p-copy" type="button" data-copy="pay-acct" data-digits="1" aria-label="Copy account number">Copy</button></dd>
+        <dt>Reference</dt><dd><span id="pay-ref"></span><button class="p-copy" type="button" data-copy="pay-ref" aria-label="Copy reference">Copy</button></dd>
       </dl>
+      <p id="pay-soon" hidden>Our bank details will be here soon, so no rush</p>
       <button class="p-link" type="button" id="pay-copy">Copy these details</button>
       <p class="p-small" id="pay-two">Paying for two of you? Send &pound;300 with both names in the reference. We tick it off at our end and it will show here once we have.</p>
+      <button class="p-sent" type="button" id="pay-sent">I&rsquo;ve sent it</button>
+      <div class="p-msg p-ok" id="pay-sent-ok" hidden>Thank you for sending it. We&rsquo;ll tick it off here when it lands.</div>
+      <div class="p-msg p-err" id="pay-err" hidden></div>
       <div class="p-msg p-ok" id="pay-done" hidden>Received, thank you. That&rsquo;s your bed sorted.</div>
     </div>
 
@@ -301,9 +317,9 @@
       <p>One line about you, and one song for the pool on Sunday. Everyone who registers gets a pocket. This fills yours.</p>
       <form id="form-profile" novalidate>
         <label for="pr-line">One line about you</label>
-        <input id="pr-line" type="text" maxlength="120" placeholder="How you know the couple, what you're bringing, anything">
+        <input id="pr-line" type="text" maxlength="120" placeholder="How you know us, or anything you like">
         <label for="pr-song">Your one song</label>
-        <input id="pr-song" type="text" maxlength="120" placeholder="Title &ndash; Artist">
+        <input id="pr-song" type="text" maxlength="120" placeholder="Title, by Artist">
         <div class="p-msg p-err" id="pr-err" hidden></div>
         <div class="p-msg p-ok" id="pr-ok" hidden></div>
         <button class="p-primary" type="submit">Save my pocket</button>
@@ -455,6 +471,22 @@
   function hideErr(id) { $(id).hidden = true; }
   function picked(name) { var r = document.querySelector('input[name="' + name + '"]:checked'); return r ? r.value : ""; }
 
+  // ---- this browser has registered before: remember the email so returning guests land on Sign in ----
+  var SEEN = "sj-registered";
+  var INAPP = /FBAN|FBAV|FB_IAB|FBIOS|Instagram|Messenger|MicroMessenger/i.test(navigator.userAgent || "");
+  function remember(email, google) {
+    try { localStorage.setItem(SEEN, JSON.stringify({ email: email || "", google: !!google })); } catch (e) {}
+  }
+  function recalled() {
+    try { var m = JSON.parse(localStorage.getItem(SEEN) || "null"); return m && typeof m === "object" ? m : null; } catch (e) { return null; }
+  }
+  function isGoogle(u) { return ((u && u.providerData) || []).some(function (p) { return p && p.providerId === "google.com"; }); }
+  function openSignIn(email, text, replace) {
+    showTab(false); hideErr("in-err"); $("in-ok").hidden = true;
+    $("in-note").textContent = text || ""; $("in-note").hidden = !text;
+    if (email && (replace || !$("in-email").value)) $("in-email").value = email;
+  }
+
   // ---- travel: private, stored at /registrations/{uid}/travel ----
   var HOME = [["LHR", "London Heathrow (LHR)"], ["LGW", "London Gatwick (LGW)"], ["STN", "London Stansted (STN)"], ["LTN", "London Luton (LTN)"],
               ["LCY", "London City (LCY)"], ["SEN", "London Southend (SEN)"], ["BRS", "Bristol (BRS)"], ["EXT", "Exeter (EXT)"],
@@ -514,7 +546,17 @@
     return [route, inn && "Arriving " + inn, out && "Leaving " + out].filter(Boolean).join(". ");
   }
   buildTravel("up"); buildTravel("ed");
-  document.querySelectorAll('input[name="intent"]').forEach(function (r) { r.addEventListener("change", function () { $("up-travel").hidden = picked("intent") === "no"; }); });
+  var upTravelOpen = false;
+  function syncUpTravel() {
+    var out = picked("intent") === "no";
+    $("up-travel").hidden = out || !upTravelOpen;
+    $("up-travel-open").hidden = out || upTravelOpen;
+  }
+  $("up-travel-open").onclick = function () {
+    upTravelOpen = true; this.setAttribute("aria-expanded", "true"); syncUpTravel();
+    $("up-travel").focus({ preventScroll: true });
+  };
+  document.querySelectorAll('input[name="intent"]').forEach(function (r) { r.addEventListener("change", syncUpTravel); });
   document.querySelectorAll('input[name="ed-intent"]').forEach(function (r) { r.addEventListener("change", function () { $("ed-travel").hidden = picked("ed-intent") === "no"; }); });
 
   // ---- state ----
@@ -563,26 +605,59 @@
     if (!reg || reg.intent !== "yes") { box.hidden = true; return; }
     var ref = (reg.name || "").replace(/[^A-Za-z0-9 ]/g, "").trim().slice(0, 18);
     $("pay-ref").textContent = ref || "your name";
-    function paint(b, paid) {
-      $("pay-name").textContent = b.accountName || "";
-      $("pay-sort").textContent = b.sortCode; $("pay-acct").textContent = b.accountNumber;
-      ["pay-intro", "pay-bank", "pay-copy", "pay-two"].forEach(function (id) { $(id).hidden = !!paid; });
+    hideErr("pay-err");
+    function paint(b, paid, sent) {
+      var ready = !!(b.sortCode && b.accountNumber);
+      $("pay-name").textContent = ready ? b.accountName || "" : "";
+      $("pay-sort").textContent = ready ? b.sortCode : ""; $("pay-acct").textContent = ready ? b.accountNumber : "";
+      $("pay-intro").hidden = !!paid;
+      ["pay-bank", "pay-copy", "pay-two"].forEach(function (id) { $(id).hidden = !!paid || !ready; });
+      $("pay-soon").hidden = !!paid || ready;
+      $("pay-sent").hidden = !!paid || !ready || !!sent;
+      $("pay-sent-ok").hidden = !!paid || !sent;
       $("pay-done").hidden = !paid; box.hidden = false;
     }
-    if (PREVIEW) return paint({ accountName: "Sample Name", sortCode: "00-00-00", accountNumber: "00000000" }, false);
+    if (PREVIEW) return paint({ accountName: "Sample Name", sortCode: "00-00-00", accountNumber: "00000000" }, false, false);
     var u = auth.currentUser; if (!u) { box.hidden = true; return; }
     Promise.all([db.ref("members/payment").once("value"), db.ref("payments/" + u.uid).once("value")]).then(function (s) {
-      var b = s[0].val() || {}, p = s[1].val() || {};
-      if (!b.sortCode || !b.accountNumber) { box.hidden = true; return; }
-      paint(b, p.paid);
+      paint(s[0].val() || {}, (s[1].val() || {}).paid === true, !!reg.paymentSent);
     }).catch(function () { box.hidden = true; });
+  }
+  function copyText(t, ok) {
+    function fallback() {
+      var ta = document.createElement("textarea"), done = false;
+      ta.value = t; ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;font-size:16px";
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, t.length);
+      try { done = document.execCommand("copy"); } catch (e) {}
+      document.body.removeChild(ta);
+      if (done) ok();
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(ok, fallback); else fallback();
+  }
+  function copied(btn, label) {
+    btn.textContent = "Copied"; clearTimeout(btn.copiedTimer);
+    btn.copiedTimer = setTimeout(function () { btn.textContent = label; }, 2000);
   }
   $("pay-copy").onclick = function () {
     var NL = String.fromCharCode(10);
     var t = ["Name: " + $("pay-name").textContent, "Sort code: " + $("pay-sort").textContent,
              "Account: " + $("pay-acct").textContent, "Reference: " + $("pay-ref").textContent, "Amount: 150"].join(NL);
-    var done = function () { $("pay-copy").textContent = "Copied"; setTimeout(function () { $("pay-copy").textContent = "Copy these details"; }, 2000); };
-    if (navigator.clipboard) navigator.clipboard.writeText(t).then(done, function () {}); else done();
+    copyText(t, function () { copied($("pay-copy"), "Copy these details"); });
+  };
+  document.querySelectorAll(".p-copy").forEach(function (btn) {
+    btn.onclick = function () {
+      var t = $(btn.getAttribute("data-copy")).textContent.trim();
+      if (btn.hasAttribute("data-digits")) t = t.replace(/\D/g, "");
+      if (t) copyText(t, function () { copied(btn, "Copy"); });
+    };
+  });
+  $("pay-sent").onclick = function () {
+    var u = auth.currentUser, btn = $("pay-sent"); if (PREVIEW || !u) return;
+    btn.disabled = true; hideErr("pay-err");
+    db.ref("registrations/" + u.uid).update({ paymentSent: firebase.database.ServerValue.TIMESTAMP }).then(function () {
+      btn.disabled = false; btn.hidden = true; $("pay-sent-ok").hidden = false;
+    }).catch(function (e) { btn.disabled = false; showErr("pay-err", e); });
   };
 
   var PREVIEW = /[?&]preview=done/.test(location.search);
@@ -591,11 +666,18 @@
              address: "1 Example Street, Sevenoaks, TN13 1AA", intent: "yes",
              travel: { home: "MAN", into: "PSA", arriveDay: "2027-05-28", arriveTime: "afternoon", departDay: "2027-05-31" } });
     $("done").insertAdjacentHTML("afterbegin", '<div class="p-msg">Preview with sample data. Nothing on this page is saved.</div>');
-    document.querySelectorAll("#done button.p-primary").forEach(function (b) { b.disabled = true; });
+    document.querySelectorAll("#done button.p-primary, #pay-sent").forEach(function (b) { b.disabled = true; });
   }
   auth.onAuthStateChanged(function (u) {
-    if (!u) return PREVIEW ? null : render(null);
+    if (!u) {
+      if (PREVIEW) return;
+      render(null);
+      var seen = recalled();
+      if (seen) openSignIn(seen.email, seen.google && !INAPP ? "Welcome back. You registered with Google, so use the Google button below. Not you? Tap Register above." : "Not you? Tap Register above");
+      return;
+    }
     db.ref("registrations/" + u.uid).once("value").then(function (s) {
+      if (s.exists()) remember(u.email, isGoogle(u));
       render(s.exists() ? s.val() : { name: u.displayName || "", email: u.email, phone: "", intent: "" });
     }).catch(function () { render({ name: u.displayName || "", email: u.email, phone: "", intent: "" }); });
   });
@@ -615,12 +697,18 @@
     auth.createUserWithEmailAndPassword(email, pw).then(function (cred) {
       var u = cred.user;
       var rec = { name: name, email: email, phone: phone, address: address, diet: diet, access: access, intent: intent, uid: u.uid,
-                  travel: intent === "no" ? null : readTravel("up"),
+                  travel: intent === "no" || !upTravelOpen ? null : readTravel("up"),
                   createdAt: firebase.database.ServerValue.TIMESTAMP, updatedAt: firebase.database.ServerValue.TIMESTAMP };
       return Promise.all([ u.updateProfile({ displayName: name }), db.ref("registrations/" + u.uid).set(rec) ])
-        .then(function () { render(rec); });
-    }).catch(function (e) { showErr("up-err", e); })
-      .then(function () { $("up-btn").disabled = false; });
+        .then(function () { remember(email, false); render(rec); });
+    }).catch(function (e) {
+      if (e && e.code === "auth/email-already-in-use") {
+        openSignIn(email, "You’re already registered with that email, so sign in here. " +
+          (INAPP ? "If you used Google before, tap ‘Forgotten your password?’ to set a password." : "If you used Google before, use the Google button below."), true);
+        $("in-pw").focus(); return;
+      }
+      showErr("up-err", e);
+    }).then(function () { $("up-btn").disabled = false; });
   };
 
   // ---- sign in ----
@@ -628,20 +716,29 @@
     ev.preventDefault(); hideErr("in-err"); $("in-ok").hidden = true;
     $("in-btn").disabled = true;
     auth.signInWithEmailAndPassword($("in-email").value.trim(), $("in-pw").value)
+      .then(function (cred) { remember(cred.user.email, false); })
       .catch(function (e) { showErr("in-err", e); })
       .then(function () { $("in-btn").disabled = false; });
   };
+  function sendReset(email) {
+    var home = /^https?:$/.test(location.protocol) ? { url: location.origin + "/" } : null;
+    if (!home) return auth.sendPasswordResetEmail(email);
+    return auth.sendPasswordResetEmail(email, home).catch(function (e) {
+      if (/continue-uri|unauthorized-domain/.test((e && e.code) || "")) return auth.sendPasswordResetEmail(email);
+      throw e;
+    });
+  }
   $("forgot").onclick = function () {
     hideErr("in-err"); var email = $("in-email").value.trim();
     if (!email) return showErr("in-err", { message: "Put your email in above first, then click this." });
-    auth.sendPasswordResetEmail(email).then(function () {
+    sendReset(email).then(function () {
       $("in-ok").textContent = "Reset email sent to " + email + ". Check spam if it doesn’t appear."; $("in-ok").hidden = false;
     }).catch(function (e) { showErr("in-err", e); });
   };
   $("signout").onclick = function () { auth.signOut(); };
 
   // Google blocks sign-in inside the Facebook / Messenger / Instagram in-app browsers, so point people to email instead
-  if (/FBAN|FBAV|FB_IAB|FBIOS|Instagram|Messenger|MicroMessenger/i.test(navigator.userAgent || "")) {
+  if (INAPP) {
     document.querySelectorAll("[data-google]").forEach(function (b) {
       b.hidden = true; var o = b.previousElementSibling; if (o && o.classList.contains("p-or")) o.hidden = true;
       b.insertAdjacentHTML("afterend", '<p class="p-inapp">Google sign-in doesn&rsquo;t work inside the Facebook app. Use your email above, or tap the menu and open this page in your normal browser.</p>');
@@ -655,13 +752,13 @@
       auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(function (res) {
         var u = res.user;
         return db.ref("registrations/" + u.uid).once("value").then(function (s) {
-          if (s.exists()) return;
+          if (s.exists()) return remember(u.email, true);
           var intent = picked("intent") || "";
           var rec = { name: u.displayName || "", email: u.email || "", phone: $("up-phone").value.trim(), address: $("up-address").value.trim().slice(0, 300),
                       diet: $("up-diet").value.trim().slice(0, 300), access: $("up-access").value.trim().slice(0, 300),
-                      travel: intent && intent !== "no" ? readTravel("up") : null,
+                      travel: intent && intent !== "no" && upTravelOpen ? readTravel("up") : null,
                       intent: intent, uid: u.uid, createdAt: firebase.database.ServerValue.TIMESTAMP, updatedAt: firebase.database.ServerValue.TIMESTAMP };
-          return db.ref("registrations/" + u.uid).set(rec).then(function () { render(rec); });
+          return db.ref("registrations/" + u.uid).set(rec).then(function () { remember(u.email, true); render(rec); });
         });
       }).catch(function (e) { if (e && e.code !== "auth/popup-closed-by-user") showErr($("form-up").hidden ? "in-err" : "up-err", e); });
     };

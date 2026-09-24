@@ -479,11 +479,17 @@
       return { ...base, itinerary: safeArr(base.itinerary) };
     };
 
-    function useStorage(key, def, normalize = (v) => v) {
+    // Registrations, payments, nudges and bank details are never kept in this browser's localStorage.
+    // The guest list (wedding-guests-v4) still is, so the dashboard works offline.
+    const NO_CACHE_KEYS = ["registrations", "members/payment", "payments", "nudges"];
+    NO_CACHE_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch {} });
+
+    function useStorage(key, def, normalize = (v) => v, { noCache = false } = {}) {
       const applyNorm = useCallback((v) => {
         try { return normalize(v); } catch { return def; }
       }, [normalize, def]);
       const [d, setD] = useState(() => {
+        if (noCache) return def;
         try {
           const s = localStorage.getItem(key);
           return s ? applyNorm(JSON.parse(s)) : def;
@@ -499,18 +505,19 @@
           fbOk.current = true;
           const incoming = snap.exists() ? snap.val() : def;
           const val = applyNorm(incoming);
-          if (!snap.exists()) ref.set(val);
+          // no seed for no-cache keys: set({}) deletes the node and could wipe another admin's first write
+          if (!snap.exists() && !noCache) ref.set(val);
           setD(val);
-          try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+          if (!noCache) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
         }, () => { fbOk.current = false; });
         return () => ref.off("value", handler);
-      }, [key, applyNorm, def]);
+      }, [key, applyNorm, def, noCache]);
       const save = useCallback((n) => {
         const next = applyNorm(n);
         setD(next);
-        try { localStorage.setItem(key, JSON.stringify(next)); } catch {}
+        if (!noCache) { try { localStorage.setItem(key, JSON.stringify(next)); } catch {} }
         if (fbOk.current) db.ref(key).set(next);
-      }, [key, applyNorm]);
+      }, [key, applyNorm, noCache]);
       return [d, save, ok];
     }
 
@@ -2497,33 +2504,78 @@
     }
 
     /* ========== SITE: registrations, payments, reveal switch ========== */
-    /* Who to chase: each link opens a Gmail draft; nothing sends until Joe presses Send in Gmail. */
-    function ChaseList({ regs, guests, isPaid, chase, saveChase }) {
+    /* UK mobiles (07..., +44 7..., 0044 7...) become 447...; other +country numbers keep their digits.
+       UK landlines and UK numbers with the wrong length get no WhatsApp button. */
+    const waNumber = raw => {
+      const s = String(raw || "").trim();
+      let d = s.replace(/\D/g, "");
+      if (!d) return "";
+      if (!s.startsWith("+")) {
+        if (d.startsWith("00")) d = d.slice(2);
+        else if (d.startsWith("0")) d = "44" + d.slice(1);
+        else if (/^7\d{9}$/.test(d)) d = "44" + d;
+      }
+      if (d.startsWith("440")) d = "44" + d.slice(3);
+      if (d.startsWith("0")) return "";
+      if (d.startsWith("44")) return /^447\d{9}$/.test(d) ? d : "";
+      return d.length >= 10 && d.length <= 15 ? d : "";
+    };
+
+    /* Who to chase: Gmail and WhatsApp open a draft, Copy message is for Messenger. Nothing sends until Joe or Sophie presses Send. */
+    function ChaseList({ regs, guests, isPaid, chase, saveChase, nudges }) {
       const c = safeObj(chase, {});
       const sent = safeObj(c.sent, {});
+      const nudged = safeObj(nudges, {});
+      const [copied, setCopied] = useState("");
       const [note, setNote] = useState({ answer: c.answer || "", pay: c.pay || "" });
       useEffect(() => { setNote({ answer: c.answer || "", pay: c.pay || "" }); }, [c.answer, c.pay]);
       const key = s => (s || "").trim().toLowerCase();
       const slug = s => key(s).replace(/[^a-z0-9]+/g, "-");
       const regNames = new Set(regs.map(r => key(r.name)));
+      // registered guests fall back to the guest list for email and mobile (the register form's Mobile is optional)
+      const byName = new Map(safeArr(guests).map(g => [key(g.name), g]));
+      const contact = r => { const g = byName.get(key(r.name)) || {}; return { email: r.email || g.email || "", phone: r.phone || g.phone || "" }; };
       const notAnswered = [
         ...safeArr(guests).filter(g => (g.status === "Invited" || g.status === "Confirmed") && !regNames.has(key(g.name)))
-          .map(g => ({ name: g.name, email: g.email || "", why: "not registered" })),
-        ...regs.filter(r => r.intent !== "yes" && r.intent !== "no").map(r => ({ name: r.name, email: r.email || "", why: "not sure yet" }))
+          .map(g => ({ name: g.name, email: g.email || "", phone: g.phone || "", nk: "g-" + (slug(g.name) || g.id), why: "not registered" })),
+        ...regs.filter(r => r.intent !== "yes" && r.intent !== "no").map(r => ({ name: r.name, ...contact(r), nk: r._uid, why: "not sure yet" }))
       ];
-      const notPaid = regs.filter(r => r.intent === "yes" && !isPaid(r)).map(r => ({ name: r.name, email: r.email || "", why: "coming, not paid" }));
+      const notPaid = regs.filter(r => r.intent === "yes" && !isPaid(r)).map(r => ({ name: r.name, ...contact(r), nk: r._uid,
+        why: r.paymentSent ? "says they have sent it, check the bank" : "coming, not paid" }));
       const GROUPS = [
         ["answer", "Not answered yet", notAnswered, "Sophie & Joe, Tuscany: please reply by 28 February 2027"],
         ["pay", "Coming but not paid", notPaid, "Sophie & Joe, Tuscany: the £150 for the weekend"]
       ];
       const gmail = (to, su, body) => "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(to) + "&su=" + encodeURIComponent(su) + "&body=" + encodeURIComponent(body);
-      const body = k => [(note[k] || "").trim(), "https://sophieandjoe2027.com"].filter(Boolean).join("\n\n");
+      const firstName = n => (n || "").trim().split(/\s+/)[0] || "there";
+      const DEFAULT_NOTE = {
+        answer: n => "Hi " + n + ", just a gentle nudge to let us know on our wedding site whether you can join us in Tuscany, whenever you have a moment. It only takes a couple of minutes.",
+        pay: n => "Hi " + n + ", we're so pleased you're coming to Tuscany. Just a gentle reminder about the £150 for the weekend whenever you get a chance. The bank details are on the site once you sign in."
+      };
+      const message = (k, x) => [(note[k] || "").trim() || DEFAULT_NOTE[k](firstName(x.name)), "https://sophieandjoe2027.com"].join("\n\n");
       const when = t => new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+      // calendar days in local time, so a nudge at 23:00 reads "yesterday" the next morning
+      const calDay = t => { const d = new Date(t); return Math.round(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() / 86400000); };
+      const ago = t => { const n = calDay(Date.now()) - calDay(t); return n <= 0 ? "today" : n === 1 ? "yesterday" : n + " days ago"; };
+      // per group, so a nudge to answer doesn't show as a nudge to pay; entries from before groups were logged show in both
+      const nudgeLog = (nk, k) => Object.values(safeObj(nudged[nk], {})).filter(v => v && v.at && (!v.group || v.group === k)).sort((a, b) => b.at - a.at);
+      const record = (x, channel, k) => {
+        const u = firebase.auth().currentUser;
+        db.ref("nudges/" + x.nk).push({ at: Date.now(), channel, by: (u && u.email) || "", group: k }).catch(() => {});
+      };
+      const copyMessage = (id, k, x) => {
+        if (!navigator.clipboard) return;
+        navigator.clipboard.writeText(message(k, x)).then(() => {
+          record(x, "Messenger", k);
+          setCopied(id);
+          setTimeout(() => setCopied(cur => cur === id ? "" : cur), 2000);
+        }).catch(() => {});
+      };
 
       return (
         <div style={{ background: P.card, borderRadius: 12, padding: 14, marginBottom: 18, boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>Who needs a nudge</div>
-          <div style={{ fontSize: 11, color: P.txtM, margin: "2px 0 4px" }}>Each link opens a Gmail draft with your note and the site link. Nothing sends until you press Send in Gmail. Guests marked Pending or Declined are left out; names are matched exactly, so check couples who registered once.</div>
+          <div style={{ fontSize: 11, color: P.txtM, margin: "2px 0 4px" }}>Gmail and WhatsApp open a draft with your note and the site link, and Copy message is for Messenger. Nothing sends until you press Send yourself. Each nudge is logged on the row so you don't both chase the same person. Guests marked Pending or Declined are left out; names are matched exactly, so check couples who registered once.</div>
           {GROUPS.map(([k, label, list, su]) => {
             const withEmail = list.filter(x => x.email);
             return (
@@ -2537,19 +2589,28 @@
                 </div>
                 <textarea value={note[k]} rows={3} onChange={e => setNote({ ...note, [k]: e.target.value })}
                           onBlur={() => note[k] !== (c[k] || "") && saveChase({ ...c, [k]: note[k] })}
-                          placeholder="Your note, written once. It goes into every draft in this group."
+                          placeholder="Your note, written once for every message in this group. Leave it blank to send a short friendly note with the site link."
                           style={{ ...iS, margin: "8px 0 4px", resize: "vertical" }} />
                 {list.map(x => {
                   const id = slug(k + " " + x.name), at = sent[id];
+                  const log = nudgeLog(x.nk, k), last = log[0], wa = waNumber(x.phone);
                   return (
                     <div key={id} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 12, padding: "4px 0", flexWrap: "wrap" }}>
                       <div style={{ flex: 1, minWidth: 140, color: P.txt }}>{x.name} <span style={{ color: P.txtL }}>{"·"} {x.why}</span></div>
-                      {at && <span style={{ fontSize: 10, color: P.txtL }}>draft opened {when(at)}</span>}
-                      {x.email
-                        ? <a href={gmail(x.email, su, body(k))} target="_blank" rel="noopener"
-                             onClick={() => saveChase({ ...c, [k]: note[k], sent: { ...sent, [id]: Date.now() } })}
-                             style={{ ...bS, background: P.blueP, color: P.blue, textDecoration: "none" }}>Gmail draft</a>
-                        : <span style={{ fontSize: 10.5, color: P.gold }}>no email, message them directly</span>}
+                      {last
+                        ? <span title={last.by || ""} style={{ fontSize: 10, color: P.gold, fontWeight: 600 }}>Nudged {ago(last.at)} by {last.channel}{log.length > 1 ? " (" + log.length + " times)" : ""}</span>
+                        : at && <span style={{ fontSize: 10, color: P.txtL }}>draft opened {when(at)}</span>}
+                      {x.email && <a href={gmail(x.email, su, message(k, x))} target="_blank" rel="noopener"
+                             onClick={() => { saveChase({ ...c, [k]: note[k], sent: { ...sent, [id]: Date.now() } }); record(x, "email", k); }}
+                             style={{ ...bS, background: P.blueP, color: P.blue, textDecoration: "none" }}>Gmail draft</a>}
+                      {wa && <a href={"https://wa.me/" + wa + "?text=" + encodeURIComponent(message(k, x))} target="_blank" rel="noopener"
+                             onClick={() => record(x, "WhatsApp", k)}
+                             style={{ ...bS, background: P.greenP, color: P.green, textDecoration: "none" }}>WhatsApp</a>}
+                      <button onClick={() => copyMessage(id, k, x)}
+                              style={{ ...bS, background: P.stoneP, color: P.txtM }}>{copied === id ? "Copied" : "Copy message"}</button>
+                      {!wa && (x.phone
+                        ? <span title={x.phone} style={{ fontSize: 10.5, color: P.gold }}>mobile not recognised</span>
+                        : !x.email && <span style={{ fontSize: 10.5, color: P.gold }}>no email or mobile</span>)}
                     </div>
                   );
                 })}
@@ -2561,7 +2622,8 @@
       );
     }
 
-    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, savePayments, chase, saveChase }) {
+    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, chase, saveChase, nudges }) {
+      const [resetNote, setResetNote] = useState({});
       const regs = Object.entries(safeObj(registrations, {})).map(([k, v]) => ({ ...safeObj(v, {}), _uid: k })).filter(r => r && r.name)
         .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       const names = safeArr(guests).map(g => (g.name || "").trim().toLowerCase());
@@ -2574,6 +2636,20 @@
       const pays = safeObj(payments, {});
       const isPaid = r => !!(pays[r._uid] && pays[r._uid].paid);
       const paidCount = regs.filter(isPaid).length;
+      // one guest's path only, so two admins marking at once can't overwrite each other
+      const togglePaid = r => {
+        const ref = db.ref("payments/" + r._uid);
+        (isPaid(r) ? ref.remove() : ref.set({ paid: true, paidAt: Date.now(), name: r.name }))
+          .catch(e => window.alert("Could not save that payment: " + ((e && e.message) || "unknown error")));
+      };
+      const setReset = (uid, ok, text) => setResetNote(n => ({ ...n, [uid]: { ok, text } }));
+      const sendReset = r => {
+        if (!window.confirm("Send a password reset email to " + r.email + "?")) return;
+        setReset(r._uid, true, "Sending");
+        firebase.auth().sendPasswordResetEmail(r.email, { url: "https://sophieandjoe2027.com/" })
+          .then(() => setReset(r._uid, true, "Reset email sent"))
+          .catch(e => setReset(r._uid, false, "Could not send: " + ((e && e.code) || "unknown error").replace("auth/", "")));
+      };
       const when = t => t ? new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "";
       const trav = r => safeObj(r.travel, {});
       const DAY = { "2027-05-27": "Thu 27", "2027-05-28": "Fri 28", "2027-05-29": "Sat 29", "2027-05-30": "Sun 30", "2027-05-31": "Mon 31", "2027-06-01": "Tue 1 Jun" };
@@ -2672,7 +2748,7 @@
                     style={{ ...bS, background: P.stoneP, color: P.txtM }}>Download CSV (addresses, travel)</button>
           </div>
           <BankDetails bank={bank} saveBank={saveBank} />
-          <ChaseList regs={regs} guests={guests} isPaid={isPaid} chase={chase} saveChase={saveChase} />
+          <ChaseList regs={regs} guests={guests} isPaid={isPaid} chase={chase} saveChase={saveChase} nudges={nudges} />
 
           {regs.length === 0 && (
             <div style={{ background: P.card, borderRadius: 12, padding: 18, fontSize: 13, color: P.txtL, fontStyle: "italic" }}>
@@ -2687,13 +2763,21 @@
                     display: "grid", gridTemplateColumns: "1.3fr 1.4fr 1fr auto auto auto", gap: 10, alignItems: "center", fontSize: 12.5 }}>
                 <div style={{ fontWeight: 600, color: P.txt }}>{r.name}
                   {!ok && <span style={{ marginLeft: 6, fontSize: 10, color: P.gold }}>not on list</span>}{r.address && <div style={{ fontSize: 10.5, color: P.txtL, fontWeight: 400, marginTop: 2 }}>{r.address}</div>}{(r.diet || r.access) && <div style={{ fontSize: 10.5, color: P.terra, fontWeight: 400, marginTop: 2 }}>{[r.diet && "Food: " + r.diet, r.access && "Needs: " + r.access].filter(Boolean).join(" / ")}</div>}{travelLine(r) && <div style={{ fontSize: 10.5, color: P.blue, fontWeight: 400, marginTop: 2 }}>{"Travel: " + travelLine(r)}</div>}</div>
-                <div style={{ color: P.txtM, overflow: "hidden", textOverflow: "ellipsis" }}>{r.email}</div>
+                <div style={{ color: P.txtM, overflow: "hidden", textOverflow: "ellipsis" }}>{r.email}
+                  {r.email && <div><button onClick={() => sendReset(r)}
+                          style={{ background: "none", border: "none", padding: 0, marginTop: 3, cursor: "pointer", fontSize: 10.5, color: P.blue, textDecoration: "underline" }}>Send password reset</button></div>}
+                  {resetNote[r._uid] && <div style={{ fontSize: 10.5, marginTop: 2, color: resetNote[r._uid].ok ? P.green : P.red }}>{resetNote[r._uid].text}</div>}
+                </div>
                 <div style={{ color: P.txtM }}>{r.phone || "—"}</div>
                 <span style={{ padding: "3px 10px", borderRadius: 12, background: it[2], color: it[1], fontSize: 11, fontWeight: 600 }}>{it[0]}</span>
-                <button onClick={() => savePayments({ ...pays, [r._uid]: isPaid(r) ? null : { paid: true, paidAt: Date.now(), name: r.name } })}
-                        style={{ ...bS, background: isPaid(r) ? P.green : P.stoneP, color: isPaid(r) ? "#fff" : P.txtM }}>
-                  {isPaid(r) ? "Paid" : "Mark paid"}
-                </button>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
+                  {!!r.paymentSent && !isPaid(r) && <span title={typeof r.paymentSent === "number" ? "Said sent " + when(r.paymentSent) : ""}
+                        style={{ padding: "2px 7px", borderRadius: 10, background: P.goldP, color: P.gold, fontSize: 10, fontWeight: 600, whiteSpace: "nowrap" }}>Says sent</span>}
+                  <button onClick={() => togglePaid(r)}
+                          style={{ ...bS, background: isPaid(r) ? P.green : P.stoneP, color: isPaid(r) ? "#fff" : P.txtM }}>
+                    {isPaid(r) ? "Paid" : "Mark paid"}
+                  </button>
+                </div>
                 <div style={{ fontSize: 10, color: P.txtL }}>{when(r.createdAt)}</div>
               </div>
             );
@@ -3445,12 +3529,13 @@
       const [milestones, saveMilestones, b5] = useStorage("wedding-milestones-v4", DEFAULT_DATA.milestones);
       const [decisions, saveDecisions, b6] = useStorage("wedding-decisions-v3", DEFAULT_DATA.decisions);
       const [legalSpend, , b19] = useStorage("wedding-legal-spend-v1", { meta: {}, items: [], unpriced: [] }, (v) => safeObj(v, { meta: {}, items: [], unpriced: [] }));
-      const [registrations, , b20] = useStorage("registrations", {}, (v) => safeObj(v, {}));
+      const [registrations, , b20] = useStorage("registrations", {}, (v) => safeObj(v, {}), { noCache: true });
       const [siteConfig, saveSiteConfig, b21] = useStorage("public/config", { revealed: false }, (v) => safeObj(v, { revealed: false }));
       const [profiles, , b22] = useStorage("public/profiles", {}, (v) => safeObj(v, {}));
-      const [bank, saveBank, b23] = useStorage("members/payment", { accountName: "", sortCode: "", accountNumber: "" }, (v) => safeObj(v, { accountName: "", sortCode: "", accountNumber: "" }));
-      const [payments, savePayments, b24] = useStorage("payments", {}, (v) => safeObj(v, {}));
+      const [bank, saveBank, b23] = useStorage("members/payment", { accountName: "", sortCode: "", accountNumber: "" }, (v) => safeObj(v, { accountName: "", sortCode: "", accountNumber: "" }), { noCache: true });
+      const [payments, , b24] = useStorage("payments", {}, (v) => safeObj(v, {}), { noCache: true });
       const [chase, saveChase, b25] = useStorage("site-chase", {}, (v) => safeObj(v, {}));
+      const [nudges, , b26] = useStorage("nudges", {}, (v) => safeObj(v, {}), { noCache: true });
       const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music, normalizeMusic);
       const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing, safeArr);
       const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating, (v) => ({ tables: safeArr(v?.tables).map(t => ({ ...t, guests: safeArr(t?.guests) })) }));
@@ -3470,7 +3555,7 @@
       const [honeymoon, saveHoneymoon, b18] = useStorage("wedding-honeymoon-v1", { destination: "", dates: "", flights: "", hotel: "", budget: "", notes: "", documents: "", itinerary: [] }, normalizeHoneymoon);
       EUR_RATE = eurRate;
 
-      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19&&b20&&b21&&b22&&b23&&b24&&b25)) return (
+      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19&&b20&&b21&&b22&&b23&&b24&&b25&&b26)) return (
         <div style={{ minHeight: "100vh", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\uD83D\uDC8D"}</div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15 }}>Loading...</div></div>
         </div>
@@ -3531,7 +3616,7 @@
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} dayKit={dayKit} saveDayKit={saveDayKit} />}
             {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
             {tab === "total" && <TotalCostTab legalSpend={legalSpend} budget={budget} eurRate={eurRate} guests={guests} />}
-            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} savePayments={savePayments} chase={chase} saveChase={saveChase} />}
+            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} chase={chase} saveChase={saveChase} nudges={nudges} />}
           </div>
         </div>
       );
