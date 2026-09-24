@@ -85,7 +85,8 @@
       .sort(function (a, b) { return (a.name || "").localeCompare(b.name || ""); });
     var cols = 6, pad = Math.max(cols * 2 - list.length, (cols - (list.length % cols)) % cols);
     var html = list.map(function (p, i) {
-      return '<div class="pocket' + (p._uid === uid ? " mine" : "") + '" style="--i:' + i + '">'
+      var mine = p._uid === uid || p._uid === uid + "-p";
+      return '<div class="pocket' + (mine ? " mine" : "") + '" style="--i:' + i + '">'
         + '<div><div class="pk-num">No. ' + String(i + 1).padStart(2, "0") + "</div>"
         + '<div class="pk-name">' + esc(p.name) + "</div>"
         + '<div class="pk-line">' + esc(p.line || "") + "</div></div>"

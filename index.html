@@ -57,6 +57,10 @@
   .p-link.p-more { display: block; margin-top: 22px; }
   #up-travel:focus { outline: none; }
   .p-travel-h { font-family: var(--font-heading); font-size: 19px; color: var(--color-charcoal); }
+  .p-partner { border-bottom: 1px solid rgba(44,44,44,.1); padding-bottom: 16px; }
+  .p-done .p-with { border-top: 1px solid rgba(44,44,44,.1); padding-top: 14px; }
+  .p-done .p-with + dl { margin-top: 10px; }
+  .p-pp { margin-top: 30px; padding-top: 22px; border-top: 1px dashed rgba(44,44,44,.14); }
   .p-hint { font-size: 13px; font-weight: 300; line-height: 1.55; color: var(--color-warm-gray); margin: 4px 0 0; }
   .p-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .p-pair > div { min-width: 0; }
@@ -207,6 +211,7 @@
     <form id="form-up" novalidate>
       <label for="up-name">Your name</label>
       <input id="up-name" type="text" autocomplete="name" required placeholder="First and last name">
+      <p class="p-hint">Coming as a couple? One of you registers for both</p>
       <label for="up-email">Email</label>
       <input id="up-email" type="email" autocomplete="email" required>
       <fieldset class="p-fs">
@@ -218,6 +223,8 @@
         </div>
         <p class="p-hint p-by">Please let us know by 28 February 2027</p>
       </fieldset>
+      <button class="p-link p-more" type="button" id="up-partner-open" aria-expanded="false" aria-controls="up-partner">Coming with someone? Add them</button>
+      <div class="p-travel p-partner" id="up-partner" hidden></div>
       <label for="up-pw">Choose a password</label>
       <input id="up-pw" type="password" autocomplete="new-password" required minlength="6">
       <label for="up-phone">Mobile</label>
@@ -273,6 +280,15 @@
       <dt>Travel</dt><dd><span id="d-travel"></span><span class="p-nudge" id="d-travel-nudge">Add your flights under &lsquo;Change something&rsquo; once you&rsquo;ve booked.</span></dd>
       <dt>Coming?</dt><dd id="d-intent"></dd>
     </dl>
+    <div id="d-partner" hidden>
+      <div class="p-travel-h p-with">Coming with you</div>
+      <dl>
+        <dt>Name</dt><dd id="dp-name"></dd>
+        <dt>Coming?</dt><dd id="dp-intent"></dd>
+        <dt>Food</dt><dd id="dp-diet"></dd>
+        <dt>Anything else</dt><dd id="dp-access"></dd>
+      </dl>
+    </div>
     <button class="p-link" type="button" id="edit">Change something</button>
     <form id="form-edit" novalidate hidden>
       <label for="ed-phone">Mobile</label>
@@ -290,12 +306,14 @@
         <label style="margin:0"><input type="radio" name="ed-intent" value="maybe"><span>Not sure yet</span></label>
         <label style="margin:0"><input type="radio" name="ed-intent" value="no"><span>Can&rsquo;t make it</span></label>
       </div>
+      <button class="p-link p-more" type="button" id="ed-partner-open" aria-expanded="false" aria-controls="ed-partner">Coming with someone? Add them</button>
+      <div class="p-travel p-partner" id="ed-partner" hidden></div>
       <div class="p-msg p-err" id="ed-err" hidden></div>
       <button class="p-primary" type="submit">Save</button>
     </form>
 
     <div class="p-pay" id="pay" hidden>
-      <h3>Your &pound;150 for the weekend</h3>
+      <h3 id="pay-h">Your &pound;150 for the weekend</h3>
       <p id="pay-intro">This covers your bed at the villa for the three nights. Everything else is on us. Whenever suits, by bank transfer:</p>
       <dl id="pay-bank">
         <dt>Name</dt><dd id="pay-name"></dd>
@@ -305,7 +323,7 @@
       </dl>
       <p id="pay-soon" hidden>Our bank details will be here soon, so no rush</p>
       <button class="p-link" type="button" id="pay-copy">Copy these details</button>
-      <p class="p-small" id="pay-two">Paying for two of you? Send &pound;300 with both names in the reference. We tick it off at our end and it will show here once we have.</p>
+      <p class="p-small" id="pay-two">We tick it off at our end and it will show here once we have.</p>
       <button class="p-sent" type="button" id="pay-sent">I&rsquo;ve sent it</button>
       <div class="p-msg p-ok" id="pay-sent-ok" hidden>Thank you for sending it. We&rsquo;ll tick it off here when it lands.</div>
       <div class="p-msg p-err" id="pay-err" hidden></div>
@@ -323,6 +341,17 @@
         <div class="p-msg p-err" id="pr-err" hidden></div>
         <div class="p-msg p-ok" id="pr-ok" hidden></div>
         <button class="p-primary" type="submit">Save my pocket</button>
+      </form>
+      <form class="p-pp" id="form-pprofile" novalidate hidden>
+        <h3 id="pp-h">Their pocket</h3>
+        <p>They get a pocket too. Fill it in for them, or ask them what they&rsquo;d like.</p>
+        <label for="pp-line">One line about them</label>
+        <input id="pp-line" type="text" maxlength="120" placeholder="How they know us, or anything you like">
+        <label for="pp-song">Their one song</label>
+        <input id="pp-song" type="text" maxlength="120" placeholder="Title, by Artist">
+        <div class="p-msg p-err" id="pp-err" hidden></div>
+        <div class="p-msg p-ok" id="pp-ok" hidden></div>
+        <button class="p-primary" type="submit">Save their pocket</button>
       </form>
       <a class="p-link" href="binder.html">See the binder &rarr;</a>
     </div>
@@ -548,18 +577,78 @@
   buildTravel("up"); buildTravel("ed");
   var upTravelOpen = false;
   function syncUpTravel() {
-    var out = picked("intent") === "no";
+    var out = nobodyComing(picked("intent"), openPartner("up"));
     $("up-travel").hidden = out || !upTravelOpen;
     $("up-travel-open").hidden = out || upTravelOpen;
   }
+  function syncEdTravel() { $("ed-travel").hidden = nobodyComing(picked("ed-intent"), openPartner("ed")); }
+  var SYNC_TRAVEL = { up: syncUpTravel, ed: syncEdTravel };
   $("up-travel-open").onclick = function () {
     upTravelOpen = true; this.setAttribute("aria-expanded", "true"); syncUpTravel();
     $("up-travel").focus({ preventScroll: true });
   };
   document.querySelectorAll('input[name="intent"]').forEach(function (r) { r.addEventListener("change", syncUpTravel); });
-  document.querySelectorAll('input[name="ed-intent"]').forEach(function (r) { r.addEventListener("change", function () { $("ed-travel").hidden = picked("ed-intent") === "no"; }); });
+  document.querySelectorAll('input[name="ed-intent"]').forEach(function (r) { r.addEventListener("change", syncEdTravel); });
+
+  // ---- partner: one registration per couple, stored at /registrations/{uid}/partner ----
+  var partnerOpen = { up: false, ed: false };
+  var OWN_INTENT = { up: "intent", ed: "ed-intent" };
+  function firstName(n) { return String(n || "").trim().split(/\s+/)[0] || ""; }
+  function partnerOf(reg) { return reg && reg.partner && reg.partner.name ? reg.partner : null; }
+  function heads(reg) { var pt = partnerOf(reg); return (reg && reg.intent === "yes" ? 1 : 0) + (pt && pt.intent === "yes" ? 1 : 0); }
+  // travel is shared by the couple, so it is only "not needed" when neither of them is coming
+  function nobodyComing(intent, pt) { return intent === "no" && (!pt || pt.intent === "no"); }
+  function openPartner(p) { return partnerOpen[p] ? { intent: picked(p + "-pintent") } : null; }
+  function buildPartner(p) {
+    var radio = function (v, t) { return '<label style="margin:0"><input type="radio" name="' + p + '-pintent" value="' + v + '"><span>' + t + "</span></label>"; };
+    $(p + "-partner").innerHTML = '<div class="p-travel-h">Coming with you</div>'
+      + '<p class="p-hint">Only if they haven&rsquo;t registered themselves</p>'
+      + field(p, "pname", "Their name", '<input id="' + p + '-pname" type="text" maxlength="80" autocomplete="off" placeholder="First and last name">')
+      + '<fieldset class="p-fs"><legend>Are they coming?</legend><div class="p-intent">'
+      + radio("yes", "Yes!") + radio("maybe", "Not sure yet") + radio("no", "Can&rsquo;t make it") + "</div></fieldset>"
+      + field(p, "pdiet", "Anything they can&rsquo;t eat?", txt(p, "pdiet", 300, "Optional. Allergies, vegetarian, that kind of thing."))
+      + field(p, "paccess", "Anything that would make the weekend easier for them?", txt(p, "paccess", 300, "Optional"))
+      + '<button class="p-link" type="button" id="' + p + '-partner-remove">Remove them</button>';
+    $(p + "-partner-open").onclick = function () { setPartner(p, true); $(p + "-pname").focus(); };
+    $(p + "-partner-remove").onclick = function () { setPartner(p, false); $(p + "-partner-open").focus(); };
+    document.querySelectorAll('input[name="' + p + '-pintent"]').forEach(function (r) { r.addEventListener("change", SYNC_TRAVEL[p]); });
+  }
+  function setPartner(p, open) {
+    partnerOpen[p] = open;
+    $(p + "-partner").hidden = !open; $(p + "-partner-open").hidden = open;
+    $(p + "-partner-open").setAttribute("aria-expanded", String(open));
+    if (!open) {
+      ["pname", "pdiet", "paccess"].forEach(function (id) { $(p + "-" + id).value = ""; });
+      document.querySelectorAll('input[name="' + p + '-pintent"]').forEach(function (r) { r.checked = false; });
+    } else if (!picked(p + "-pintent")) {
+      var own = document.querySelector('input[name="' + p + '-pintent"][value="' + picked(OWN_INTENT[p]) + '"]');
+      if (own) own.checked = true;
+    }
+    SYNC_TRAVEL[p]();
+  }
+  function readPartner(p) {
+    if (!partnerOpen[p]) return null;
+    var pt = { name: $(p + "-pname").value.trim().slice(0, 80), intent: picked(p + "-pintent") || picked(OWN_INTENT[p]) || "maybe" };
+    var diet = $(p + "-pdiet").value.trim().slice(0, 300), access = $(p + "-paccess").value.trim().slice(0, 300);
+    if (diet) pt.diet = diet;
+    if (access) pt.access = access;
+    return pt;
+  }
+  function fillPartner(p, pt) {
+    setPartner(p, false);
+    if (!pt) return;
+    $(p + "-pname").value = pt.name || ""; $(p + "-pdiet").value = pt.diet || ""; $(p + "-paccess").value = pt.access || "";
+    var r = document.querySelector('input[name="' + p + '-pintent"][value="' + (pt.intent || "") + '"]'); if (r) r.checked = true;
+    setPartner(p, true);
+  }
+  function partnerMissing(p) { return partnerOpen[p] && !$(p + "-pname").value.trim(); }
+  function partnerUnanswered(p) { return partnerOpen[p] && !picked(p + "-pintent"); }
+  var PARTNER_NAME = "Tell us their name, or tap Remove them";
+  var PARTNER_INTENT = "Let us know if they’re coming. ‘Not sure yet’ is fine.";
+  buildPartner("up"); buildPartner("ed");
 
   // ---- state ----
+  var current = null;
   function render(reg) {
     $("loading").hidden = true;
     var has = !!reg;
@@ -579,11 +668,22 @@
     $("d-diet").textContent = reg.diet || "nothing noted";
     $("d-access").textContent = reg.access || "nothing noted";
     $("ed-diet").value = reg.diet || ""; $("ed-access").value = reg.access || "";
-    var out = reg.intent === "no", tt = travelText(reg.travel);
+    var out = nobodyComing(reg.intent, partnerOf(reg)), tt = travelText(reg.travel);
     $("d-travel").textContent = out ? "not needed" : tt ? tt + "." : "nothing yet";
     $("d-travel-nudge").hidden = out || !!(reg.travel && reg.travel.flightIn);
     fillTravel("ed", reg.travel); $("ed-travel").hidden = out;
     var r = document.querySelector('input[name="ed-intent"][value="' + (reg.intent || "") + '"]'); if (r) r.checked = true;
+    current = reg;
+    var pt = partnerOf(reg);
+    $("d-partner").hidden = !pt; $("form-pprofile").hidden = !pt;
+    if (pt) {
+      $("dp-name").textContent = pt.name;
+      $("dp-intent").textContent = INTENT[pt.intent] || pt.intent || "not given";
+      $("dp-diet").textContent = pt.diet || "nothing noted";
+      $("dp-access").textContent = pt.access || "nothing noted";
+      $("pp-h").textContent = firstName(pt.name) + "’s pocket";
+    }
+    fillPartner("ed", pt);
     showPay(reg);
     if (!reg.intent) $("form-edit").hidden = false;
   }
@@ -600,11 +700,26 @@
   }).catch(function () {});
 
   // ---- the 150: bank details live in /members/payment (signed-in only), paid flags in /payments/{uid} (admin-set) ----
+  var payAmount = 150;
   function showPay(reg) {
     var box = $("pay");
-    if (!reg || reg.intent !== "yes") { box.hidden = true; return; }
-    var ref = (reg.name || "").replace(/[^A-Za-z0-9 ]/g, "").trim().slice(0, 18);
+    var n = heads(reg), pt = partnerOf(reg);
+    if (!n) { box.hidden = true; return; }
+    var both = n === 2;
+    payAmount = 150 * n;
+    var ref = (pt ? firstName(reg.name) + " and " + firstName(pt.name) : reg.name || "").replace(/[^A-Za-z0-9 ]/g, "").trim().slice(0, 18);
     $("pay-ref").textContent = ref || "your name";
+    $("pay-h").textContent = "Your £" + payAmount + " for the weekend";
+    var onlyThem = !both && pt && pt.intent === "yes" && reg.intent !== "yes";
+    var bedOf = onlyThem ? firstName(pt.name) + "’s bed" : "your bed";
+    $("pay-intro").textContent = both
+      ? "This covers a bed at the villa for you both for the three nights. Everything else is on us. Whenever suits, by bank transfer:"
+      : "This covers " + bedOf + " at the villa for the three nights. Everything else is on us. Whenever suits, by bank transfer:";
+    $("pay-two").textContent = (!pt ? "Someone coming with you who hasn’t registered? Add them under ‘Change something’ and the amount will update. "
+      : both ? "One transfer for you both is perfect. "
+      : reg.intent === "yes" ? "If " + firstName(pt.name) + " can make it after all, change their answer under ‘Change something’ and the amount will update. " : "")
+      + "We tick it off at our end and it will show here once we have.";
+    $("pay-done").textContent = both ? "Received, thank you. That’s both your beds sorted." : "Received, thank you. That’s " + bedOf + " sorted.";
     hideErr("pay-err");
     function paint(b, paid, sent) {
       var ready = !!(b.sortCode && b.accountNumber);
@@ -620,7 +735,17 @@
     if (PREVIEW) return paint({ accountName: "Sample Name", sortCode: "00-00-00", accountNumber: "00000000" }, false, false);
     var u = auth.currentUser; if (!u) { box.hidden = true; return; }
     Promise.all([db.ref("members/payment").once("value"), db.ref("payments/" + u.uid).once("value")]).then(function (s) {
-      paint(s[0].val() || {}, (s[1].val() || {}).paid === true, !!reg.paymentSent);
+      // payments/{uid}.heads says how many people a payment covered (older ticks without it covered everyone)
+      var p = s[1].val() || {}, paidN = p.paid === true ? (typeof p.heads === "number" ? p.heads : n) : 0, owe = Math.max(0, n - paidN);
+      if (paidN && owe) {
+        payAmount = 150 * owe;
+        $("pay-h").textContent = "£" + payAmount + " still to come";
+        $("pay-intro").textContent = "You’ve already paid for one bed, thank you. This is for " + (pt ? firstName(pt.name) + "’s bed" : "the second bed")
+          + " for the three nights. Whenever suits, by bank transfer:";
+        $("pay-two").textContent = "We tick it off at our end and it will show here once we have.";
+      }
+      var sent = !!reg.paymentSent && (!paidN || (typeof reg.paymentSent === "number" && reg.paymentSent > (p.paidAt || 0)));
+      paint(s[0].val() || {}, paidN > 0 && owe === 0, sent);
     }).catch(function () { box.hidden = true; });
   }
   function copyText(t, ok) {
@@ -642,7 +767,7 @@
   $("pay-copy").onclick = function () {
     var NL = String.fromCharCode(10);
     var t = ["Name: " + $("pay-name").textContent, "Sort code: " + $("pay-sort").textContent,
-             "Account: " + $("pay-acct").textContent, "Reference: " + $("pay-ref").textContent, "Amount: 150"].join(NL);
+             "Account: " + $("pay-acct").textContent, "Reference: " + $("pay-ref").textContent, "Amount: " + payAmount].join(NL);
     copyText(t, function () { copied($("pay-copy"), "Copy these details"); });
   };
   document.querySelectorAll(".p-copy").forEach(function (btn) {
@@ -664,7 +789,9 @@
   if (PREVIEW) {
     render({ name: "Sample Guest", email: "sample@example.com", phone: "07700 900000",
              address: "1 Example Street, Sevenoaks, TN13 1AA", intent: "yes",
-             travel: { home: "MAN", into: "PSA", arriveDay: "2027-05-28", arriveTime: "afternoon", departDay: "2027-05-31" } });
+             travel: { home: "MAN", into: "PSA", arriveDay: "2027-05-28", arriveTime: "afternoon", departDay: "2027-05-31" },
+             partner: { name: "Alex Sample", intent: "yes", diet: "Vegetarian" } });
+    $("pp-line").value = "Sample line about them"; $("pp-song").value = "Sample Song, by Sample Artist";
     $("done").insertAdjacentHTML("afterbegin", '<div class="p-msg">Preview with sample data. Nothing on this page is saved.</div>');
     document.querySelectorAll("#done button.p-primary, #pay-sent").forEach(function (b) { b.disabled = true; });
   }
@@ -693,11 +820,13 @@
     if (!email) return showErr("up-err", { message: "We need an email address." });
     if (pw.length < 6) return showErr("up-err", { code: "auth/weak-password" });
     if (!intent) return showErr("up-err", { message: "Let us know if you’re coming. ‘Not sure yet’ is fine." });
+    if (partnerMissing("up")) return showErr("up-err", { message: PARTNER_NAME });
+    if (partnerUnanswered("up")) return showErr("up-err", { message: PARTNER_INTENT });
     $("up-btn").disabled = true;
     auth.createUserWithEmailAndPassword(email, pw).then(function (cred) {
-      var u = cred.user;
+      var u = cred.user, partner = readPartner("up");
       var rec = { name: name, email: email, phone: phone, address: address, diet: diet, access: access, intent: intent, uid: u.uid,
-                  travel: intent === "no" || !upTravelOpen ? null : readTravel("up"),
+                  travel: nobodyComing(intent, partner) || !upTravelOpen ? null : readTravel("up"), partner: partner,
                   createdAt: firebase.database.ServerValue.TIMESTAMP, updatedAt: firebase.database.ServerValue.TIMESTAMP };
       return Promise.all([ u.updateProfile({ displayName: name }), db.ref("registrations/" + u.uid).set(rec) ])
         .then(function () { remember(email, false); render(rec); });
@@ -749,14 +878,17 @@
     b.onclick = function () {
       hideErr("up-err"); hideErr("in-err");
       if (!$("form-up").hidden && !picked("intent")) return showErr("up-err", { message: "Tick whether you think you can come first, then continue with Google." });
+      if (!$("form-up").hidden && partnerMissing("up")) return showErr("up-err", { message: PARTNER_NAME });
+      if (!$("form-up").hidden && partnerUnanswered("up")) return showErr("up-err", { message: PARTNER_INTENT });
       auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(function (res) {
         var u = res.user;
         return db.ref("registrations/" + u.uid).once("value").then(function (s) {
           if (s.exists()) return remember(u.email, true);
-          var intent = picked("intent") || "";
+          var intent = picked("intent") || "", partner = partnerMissing("up") ? null : readPartner("up");
           var rec = { name: u.displayName || "", email: u.email || "", phone: $("up-phone").value.trim(), address: $("up-address").value.trim().slice(0, 300),
                       diet: $("up-diet").value.trim().slice(0, 300), access: $("up-access").value.trim().slice(0, 300),
-                      travel: intent && intent !== "no" && upTravelOpen ? readTravel("up") : null,
+                      travel: intent && !nobodyComing(intent, partner) && upTravelOpen ? readTravel("up") : null,
+                      partner: partner,
                       intent: intent, uid: u.uid, createdAt: firebase.database.ServerValue.TIMESTAMP, updatedAt: firebase.database.ServerValue.TIMESTAMP };
           return db.ref("registrations/" + u.uid).set(rec).then(function () { remember(u.email, true); render(rec); });
         });
@@ -769,15 +901,28 @@
   $("form-edit").onsubmit = function (ev) {
     ev.preventDefault(); hideErr("ed-err");
     var u = auth.currentUser; if (!u) return;
+    if (partnerMissing("ed")) return showErr("ed-err", { message: PARTNER_NAME });
+    if (partnerUnanswered("ed")) return showErr("ed-err", { message: PARTNER_INTENT });
+    var partner = readPartner("ed");
     var upd = { phone: $("ed-phone").value.trim(), address: $("ed-address").value.trim().slice(0, 300),
                 diet: $("ed-diet").value.trim().slice(0, 300), access: $("ed-access").value.trim().slice(0, 300), intent: picked("ed-intent") || undefined, updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                travel: picked("ed-intent") === "no" ? null : readTravel("ed") };
+                travel: nobodyComing(picked("ed-intent"), partner) ? null : readTravel("ed"), partner: partner };
     if (!upd.intent) delete upd.intent;
     db.ref("registrations/" + u.uid).update(upd)
-      .then(function () { return db.ref("registrations/" + u.uid).once("value"); })
+      .then(function () { syncPartnerPocket(u.uid, upd.partner); return db.ref("registrations/" + u.uid).once("value"); })
       .then(function (s) { render(s.val()); $("form-edit").hidden = true; })
       .catch(function (e) { showErr("ed-err", e); });
   };
+  // keep the partner's binder pocket in step: gone if they are removed, renamed if their name changes
+  function syncPartnerPocket(uid, pt) {
+    var ref = db.ref("public/profiles/" + uid + "-p");
+    if (!pt) { $("pp-line").value = ""; $("pp-song").value = ""; }
+    ref.once("value").then(function (s) {
+      if (!s.exists()) return;
+      if (!pt) return ref.remove();
+      if ((s.val() || {}).name !== pt.name) return ref.update({ name: pt.name });
+    }).catch(function () {});
+  }
 
   // ---- public binder pocket (/public/profiles/{uid}) ----
   auth.onAuthStateChanged(function (u) {
@@ -786,7 +931,20 @@
       var p = s.val() || {};
       $("pr-line").value = p.line || ""; $("pr-song").value = p.song || "";
     }).catch(function () {});
+    db.ref("public/profiles/" + u.uid + "-p").once("value").then(function (s) {
+      var p = s.val() || {};
+      $("pp-line").value = p.line || ""; $("pp-song").value = p.song || "";
+    }).catch(function () {});
   });
+  $("form-pprofile").onsubmit = function (ev) {
+    ev.preventDefault(); hideErr("pp-err"); $("pp-ok").hidden = true;
+    var u = auth.currentUser, pt = partnerOf(current); if (PREVIEW || !u || !pt) return;
+    var rec = { name: pt.name, line: $("pp-line").value.trim().slice(0, 120), song: $("pp-song").value.trim().slice(0, 120),
+                partnerOf: u.uid, updatedAt: firebase.database.ServerValue.TIMESTAMP };
+    db.ref("public/profiles/" + u.uid + "-p").set(rec).then(function () {
+      $("pp-ok").textContent = "Saved. " + firstName(pt.name) + " is in the binder."; $("pp-ok").hidden = false;
+    }).catch(function (e) { showErr("pp-err", e); });
+  };
   $("form-profile").onsubmit = function (ev) {
     ev.preventDefault(); hideErr("pr-err"); $("pr-ok").hidden = true;
     var u = auth.currentUser; if (!u) return;

@@ -2521,38 +2521,67 @@
       return d.length >= 10 && d.length <= 15 ? d : "";
     };
 
+    /* One registration per couple: registrations/{uid}/partner = { name, intent, diet?, access? }. The partner has no account. */
+    const regPartner = r => { const p = safeObj(r && r.partner, null), n = p && typeof p.name === "string" ? p.name.trim() : ""; return n ? { ...p, name: n } : null; };
+    const regHeads = r => (r.intent === "yes" ? 1 : 0) + ((regPartner(r) || {}).intent === "yes" ? 1 : 0);
+    const FEE = 150;
+
     /* Who to chase: Gmail and WhatsApp open a draft, Copy message is for Messenger. Nothing sends until Joe or Sophie presses Send. */
-    function ChaseList({ regs, guests, isPaid, chase, saveChase, nudges }) {
+    function ChaseList({ regs, guests, owed, saysSent, chase, saveChase, nudges }) {
       const c = safeObj(chase, {});
       const sent = safeObj(c.sent, {});
       const nudged = safeObj(nudges, {});
       const [copied, setCopied] = useState("");
       const [note, setNote] = useState({ answer: c.answer || "", pay: c.pay || "" });
       useEffect(() => { setNote({ answer: c.answer || "", pay: c.pay || "" }); }, [c.answer, c.pay]);
-      const key = s => (s || "").trim().toLowerCase();
+      const key = s => String(s || "").trim().toLowerCase();
       const slug = s => key(s).replace(/[^a-z0-9]+/g, "-");
-      const regNames = new Set(regs.map(r => key(r.name)));
+      // a partner added on someone's registration counts as registered, so they are never nudged to register
+      const ownNames = new Set(regs.map(r => key(r.name)));
+      const regNames = new Set([...ownNames, ...regs.map(r => key((regPartner(r) || {}).name)).filter(Boolean)]);
       // registered guests fall back to the guest list for email and mobile (the register form's Mobile is optional)
       const byName = new Map(safeArr(guests).map(g => [key(g.name), g]));
       const contact = r => { const g = byName.get(key(r.name)) || {}; return { email: r.email || g.email || "", phone: r.phone || g.phone || "" }; };
+      const firstName = n => String(n || "").trim().split(/\s+/)[0] || "there";
+      const unsure = intent => intent !== "yes" && intent !== "no";
+      // a partner has no account, so only the person who registered them can answer for them; one who also registered on their own is chased from there
+      const partnerUnsure = r => { const p = regPartner(r); return p && unsure(p.intent) && !ownNames.has(key(p.name)) ? p.name : ""; };
       const notAnswered = [
         ...safeArr(guests).filter(g => (g.status === "Invited" || g.status === "Confirmed") && !regNames.has(key(g.name)))
           .map(g => ({ name: g.name, email: g.email || "", phone: g.phone || "", nk: "g-" + (slug(g.name) || g.id), why: "not registered" })),
-        ...regs.filter(r => r.intent !== "yes" && r.intent !== "no").map(r => ({ name: r.name, ...contact(r), nk: r._uid, why: "not sure yet" }))
+        ...regs.filter(r => unsure(r.intent) || partnerUnsure(r)).map(r => {
+          const self = unsure(r.intent), pn = partnerUnsure(r);
+          return { name: r.name, ...contact(r), nk: r._uid, about: self ? "" : firstName(pn),
+            why: self ? (pn ? "not sure yet, nor is " + pn : "not sure yet") : pn + " not sure yet" };
+        })
       ];
-      const notPaid = regs.filter(r => r.intent === "yes" && !isPaid(r)).map(r => ({ name: r.name, ...contact(r), nk: r._uid,
-        why: r.paymentSent ? "says they have sent it, check the bank" : "coming, not paid" }));
+      // someone listed as a partner who also registered on their own, so the couple could pay twice
+      const listedAs = new Map();
+      regs.forEach(r => { const p = regPartner(r); if (p && key(p.name) !== key(r.name) && !listedAs.has(key(p.name))) listedAs.set(key(p.name), r.name); });
+      const dupe = r => {
+        const p = regPartner(r), by = listedAs.get(key(r.name));
+        return [p && key(p.name) !== key(r.name) && ownNames.has(key(p.name)) && p.name + " also registered on their own",
+                by && "also listed as " + by + "'s partner"].filter(Boolean).join(", ");
+      };
+      // one payment per registration, covering the partner too; a part payment leaves the rest owing
+      const notPaid = regs.filter(r => owed(r) > 0).map(r => {
+        const p = regPartner(r), pn = p && p.intent === "yes" ? p.name : "", heads = regHeads(r), due = FEE * owed(r), paid = FEE * heads - due, d = dupe(r);
+        const who = r.intent === "yes" ? (pn ? "with " + pn + ", coming" : "coming") : pn + " coming";
+        return { name: r.name, ...contact(r), nk: r._uid, due, both: heads > 1, part: paid > 0, only: r.intent === "yes" ? "" : firstName(pn),
+          why: who + (saysSent(r) ? ", says they have sent it, check the bank" : paid > 0 ? ", £" + paid + " paid, £" + due + " to go" : ", £" + due + " not paid")
+            + (d ? ", " + d + ", sort that first" : "") };
+      });
+      const payFor = x => "the " + (x.part ? "other " : "") + "£" + x.due + (x.both && !x.part ? " for you both" : "") + " for the weekend";
       const GROUPS = [
-        ["answer", "Not answered yet", notAnswered, "Sophie & Joe, Tuscany: please reply by 28 February 2027"],
-        ["pay", "Coming but not paid", notPaid, "Sophie & Joe, Tuscany: the £150 for the weekend"]
+        ["answer", "Not answered yet", notAnswered, () => "Sophie & Joe, Tuscany: please reply by 28 February 2027"],
+        ["pay", "Coming but not paid", notPaid, x => "Sophie & Joe, Tuscany: " + payFor(x)]
       ];
       const gmail = (to, su, body) => "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(to) + "&su=" + encodeURIComponent(su) + "&body=" + encodeURIComponent(body);
-      const firstName = n => (n || "").trim().split(/\s+/)[0] || "there";
       const DEFAULT_NOTE = {
-        answer: n => "Hi " + n + ", just a gentle nudge to let us know on our wedding site whether you can join us in Tuscany, whenever you have a moment. It only takes a couple of minutes.",
-        pay: n => "Hi " + n + ", we're so pleased you're coming to Tuscany. Just a gentle reminder about the £150 for the weekend whenever you get a chance. The bank details are on the site once you sign in."
+        answer: (n, x) => "Hi " + n + ", just a gentle nudge to let us know on our wedding site whether " + (x.about ? x.about + " can" : "you can") + " join us in Tuscany, whenever you have a moment. It only takes a couple of minutes.",
+        pay: (n, x) => "Hi " + n + ", we're so pleased " + (x.only ? x.only + " is" : x.both ? "you're both" : "you're") + " coming to Tuscany. Just a gentle reminder about " + payFor(x) + " whenever you get a chance. The bank details are on the site once you sign in."
       };
-      const message = (k, x) => [(note[k] || "").trim() || DEFAULT_NOTE[k](firstName(x.name)), "https://sophieandjoe2027.com"].join("\n\n");
+      const message = (k, x) => [(note[k] || "").trim() || DEFAULT_NOTE[k](firstName(x.name), x), "https://sophieandjoe2027.com"].join("\n\n");
       const when = t => new Date(t).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
       // calendar days in local time, so a nudge at 23:00 reads "yesterday" the next morning
       const calDay = t => { const d = new Date(t); return Math.round(new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() / 86400000); };
@@ -2575,7 +2604,7 @@
       return (
         <div style={{ background: P.card, borderRadius: 12, padding: 14, marginBottom: 18, boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>Who needs a nudge</div>
-          <div style={{ fontSize: 11, color: P.txtM, margin: "2px 0 4px" }}>Gmail and WhatsApp open a draft with your note and the site link, and Copy message is for Messenger. Nothing sends until you press Send yourself. Each nudge is logged on the row so you don't both chase the same person. Guests marked Pending or Declined are left out; names are matched exactly, so check couples who registered once.</div>
+          <div style={{ fontSize: 11, color: P.txtM, margin: "2px 0 4px" }}>Gmail and WhatsApp open a draft with your note and the site link, and Copy message is for Messenger. Nothing sends until you press Send yourself. Each nudge is logged on the row so you don't both chase the same person. Guests marked Pending or Declined are left out. Names are matched exactly, and a partner added on someone's registration counts as registered, so check any spelling that differs from the guest list.</div>
           {GROUPS.map(([k, label, list, su]) => {
             const withEmail = list.filter(x => x.email);
             return (
@@ -2600,7 +2629,7 @@
                       {last
                         ? <span title={last.by || ""} style={{ fontSize: 10, color: P.gold, fontWeight: 600 }}>Nudged {ago(last.at)} by {last.channel}{log.length > 1 ? " (" + log.length + " times)" : ""}</span>
                         : at && <span style={{ fontSize: 10, color: P.txtL }}>draft opened {when(at)}</span>}
-                      {x.email && <a href={gmail(x.email, su, message(k, x))} target="_blank" rel="noopener"
+                      {x.email && <a href={gmail(x.email, su(x), message(k, x))} target="_blank" rel="noopener"
                              onClick={() => { saveChase({ ...c, [k]: note[k], sent: { ...sent, [id]: Date.now() } }); record(x, "email", k); }}
                              style={{ ...bS, background: P.blueP, color: P.blue, textDecoration: "none" }}>Gmail draft</a>}
                       {wa && <a href={"https://wa.me/" + wa + "?text=" + encodeURIComponent(message(k, x))} target="_blank" rel="noopener"
@@ -2626,20 +2655,42 @@
       const [resetNote, setResetNote] = useState({});
       const regs = Object.entries(safeObj(registrations, {})).map(([k, v]) => ({ ...safeObj(v, {}), _uid: k })).filter(r => r && r.name)
         .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-      const names = safeArr(guests).map(g => (g.name || "").trim().toLowerCase());
-      const matched = r => names.includes((r.name || "").trim().toLowerCase());
+      const norm = s => String(s || "").trim().toLowerCase();
+      const names = safeArr(guests).map(g => norm(g.name));
+      const matchedName = n => names.includes(norm(n));
+      const matched = r => matchedName(r.name);
       const cfg = safeObj(siteConfig, {});
       const revealed = cfg.revealed === true;
       const secs = safeObj(cfg.sections, {});
       const INTENT = { yes: ["Coming", P.green, P.greenP], maybe: ["Not sure", P.gold, P.goldP], no: ["Can't", P.red, P.redP] };
-      const count = k => regs.filter(r => r.intent === k).length;
+      // someone listed as a partner who also registered on their own: flag both rows and count them once, from their own registration
+      const regByName = new Map();
+      regs.forEach(r => { if (!regByName.has(norm(r.name))) regByName.set(norm(r.name), r); });
+      const alsoRegistered = r => { const p = regPartner(r), own = p && regByName.get(norm(p.name)); return own && own._uid !== r._uid ? own : null; };
+      const listedBy = new Map();
+      regs.forEach(r => { const own = alsoRegistered(r); if (own && !listedBy.has(own._uid)) listedBy.set(own._uid, r); });
+      const countedPartner = r => alsoRegistered(r) ? null : regPartner(r);
+      const people = regs.flatMap(r => {
+        const p = countedPartner(r);
+        return [r, ...(p ? [{ name: p.name, intent: p.intent, diet: p.diet, access: p.access, _partner: true }] : [])];
+      });
+      const count = k => people.filter(x => x.intent === k).length;
       const pays = safeObj(payments, {});
-      const isPaid = r => !!(pays[r._uid] && pays[r._uid].paid);
+      // a payment records how many people it covered, so a partner added or changed to coming afterwards still owes; one marked before that covered everyone
+      const payOf = r => { const p = safeObj(pays[r._uid], null); return p && p.paid ? p : null; };
+      const paidFor = r => { const p = payOf(r); return !p ? 0 : typeof p.heads === "number" ? p.heads : regHeads(r); };
+      const isPaid = r => !!payOf(r) && paidFor(r) >= regHeads(r);
+      const owed = r => Math.max(0, regHeads(r) - paidFor(r));
+      // "I've sent it" from before the last payment was marked was for that payment, not for what is still owed
+      const saysSent = r => { const p = payOf(r); return !!r.paymentSent && !isPaid(r) && (!p || (typeof r.paymentSent === "number" && r.paymentSent > (p.paidAt || 0))); };
       const paidCount = regs.filter(isPaid).length;
+      const countedHeads = r => (r.intent === "yes" ? 1 : 0) + ((countedPartner(r) || {}).intent === "yes" ? 1 : 0);
+      const paidHeads = regs.reduce((s, r) => s + Math.min(countedHeads(r), paidFor(r)), 0);
+      const comingRegs = regs.filter(r => regHeads(r) > 0);
       // one guest's path only, so two admins marking at once can't overwrite each other
       const togglePaid = r => {
         const ref = db.ref("payments/" + r._uid);
-        (isPaid(r) ? ref.remove() : ref.set({ paid: true, paidAt: Date.now(), name: r.name }))
+        (isPaid(r) ? ref.remove() : ref.set({ paid: true, paidAt: Date.now(), name: r.name, heads: regHeads(r) }))
           .catch(e => window.alert("Could not save that payment: " + ((e && e.message) || "unknown error")));
       };
       const setReset = (uid, ok, text) => setResetNote(n => ({ ...n, [uid]: { ok, text } }));
@@ -2704,12 +2755,15 @@
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 18 }}>
-            {[["Registered", regs.length, P.olive], ["Coming", count("yes"), P.green], ["Paid", paidCount + " / " + count("yes"), P.terra], ["Not sure", count("maybe"), P.gold],
-              ["Can't", count("no"), P.red], ["Food or access notes", regs.filter(r => r.diet || r.access).length, P.blue],
-              ["Flights given", regs.filter(r => r.intent === "yes" && trav(r).flightIn).length + " / " + count("yes"), P.olive], ["Not on guest list", regs.filter(r => !matched(r)).length, P.stone]].map(([l, v, c], i) => (
+            {[["Registered", regs.length, P.olive], ["Coming", count("yes"), P.green, "people"],
+              ["Paid", paidHeads + " of " + count("yes"), P.terra, "people, " + paidCount + " registration" + (paidCount === 1 ? "" : "s")], ["Not sure", count("maybe"), P.gold, "people"],
+              ["Can't", count("no"), P.red, "people"], ["Food or access notes", people.filter(x => x.diet || x.access).length
+                + regs.filter(r => { const p = regPartner(r), own = alsoRegistered(r); return own && (p.diet || p.access) && !(own.diet || own.access); }).length, P.blue],
+              ["Flights given", comingRegs.filter(r => trav(r).flightIn).length + " / " + comingRegs.length, P.olive, "registrations"], ["Not on guest list", people.filter(x => !matchedName(x.name)).length, P.stone]].map(([l, v, c, sub], i) => (
               <div key={i} style={{ flex: "1 1 110px", background: P.card, borderRadius: 12, padding: "10px 12px", boxShadow: "0 1px 3px rgba(0,0,0,0.03)", borderTop: "3px solid " + c }}>
                 <div style={{ fontSize: 20, fontWeight: 700, color: P.txt }}>{v}</div>
                 <div style={{ fontSize: 9, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 }}>{l}</div>
+                {sub && <div style={{ fontSize: 10, color: P.txtL, marginTop: 1 }}>{sub}</div>}
               </div>
             ))}
           </div>
@@ -2740,15 +2794,19 @@
             );
           })()}
           <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-            <button onClick={() => downloadCSV("site-registrations.csv", [["Name", "Email", "Mobile", "Address", "Food", "Access", "Coming", "Paid", "On guest list", "Registered",
+            <button onClick={() => downloadCSV("site-registrations.csv", [["Name", "Email", "Mobile", "Address", "Food", "Access", "Coming",
+                                                                           "Partner", "Partner coming", "Partner food", "Partner access", "Amount due", "Paid", "On guest list", "Registered",
                                                                            "Flying from", "Flying into", "Arrive day", "Arrive time", "Flight out", "Leave day", "Leave time", "Flight home"],
-                ...regs.map(r => { const t = trav(r); return [r.name, r.email, r.phone, r.address, r.diet, r.access, INTENT[r.intent] ? INTENT[r.intent][0] : (r.intent || ""), isPaid(r) ? "Yes" : "", matched(r) ? "Yes" : "No",
+                ...regs.map(r => { const t = trav(r), p = regPartner(r) || {}, word = k => INTENT[k] ? INTENT[k][0] : (k || "");
+                                  return [r.name, r.email, r.phone, r.address, r.diet, r.access, word(r.intent),
+                                  p.name || "", p.name ? word(p.intent) : "", p.diet, p.access, FEE * regHeads(r),
+                                  isPaid(r) ? "Yes" : paidFor(r) > 0 ? "£" + FEE * paidFor(r) + " of £" + FEE * regHeads(r) : "", matched(r) ? "Yes" : "No",
                                   r.createdAt ? new Date(r.createdAt).toLocaleDateString("en-GB") : "",
                                   fromOf(t), t.into, t.arriveDay, t.arriveTime, t.flightIn, t.departDay, t.departTime, t.flightOut]; })])}
                     style={{ ...bS, background: P.stoneP, color: P.txtM }}>Download CSV (addresses, travel)</button>
           </div>
           <BankDetails bank={bank} saveBank={saveBank} />
-          <ChaseList regs={regs} guests={guests} isPaid={isPaid} chase={chase} saveChase={saveChase} nudges={nudges} />
+          <ChaseList regs={regs} guests={guests} owed={owed} saysSent={saysSent} chase={chase} saveChase={saveChase} nudges={nudges} />
 
           {regs.length === 0 && (
             <div style={{ background: P.card, borderRadius: 12, padding: 18, fontSize: 13, color: P.txtL, fontStyle: "italic" }}>
@@ -2758,11 +2816,24 @@
           {regs.map(r => {
             const it = INTENT[r.intent] || [r.intent || "—", P.txtL, P.stoneP];
             const ok = matched(r);
+            const p = regPartner(r), pit = p && (INTENT[p.intent] || ["No answer", P.txtL, P.stoneP]);
+            const partnerOwn = alsoRegistered(r), listedAs = listedBy.get(r._uid), due = FEE * regHeads(r), toGo = FEE * owed(r), part = toGo > 0 && toGo < due;
             return (
               <div key={r._uid} style={{ background: P.card, borderRadius: 10, padding: "10px 14px", marginBottom: 6,
                     display: "grid", gridTemplateColumns: "1.3fr 1.4fr 1fr auto auto auto", gap: 10, alignItems: "center", fontSize: 12.5 }}>
                 <div style={{ fontWeight: 600, color: P.txt }}>{r.name}
-                  {!ok && <span style={{ marginLeft: 6, fontSize: 10, color: P.gold }}>not on list</span>}{r.address && <div style={{ fontSize: 10.5, color: P.txtL, fontWeight: 400, marginTop: 2 }}>{r.address}</div>}{(r.diet || r.access) && <div style={{ fontSize: 10.5, color: P.terra, fontWeight: 400, marginTop: 2 }}>{[r.diet && "Food: " + r.diet, r.access && "Needs: " + r.access].filter(Boolean).join(" / ")}</div>}{travelLine(r) && <div style={{ fontSize: 10.5, color: P.blue, fontWeight: 400, marginTop: 2 }}>{"Travel: " + travelLine(r)}</div>}</div>
+                  {!ok && <span style={{ marginLeft: 6, fontSize: 10, color: P.gold }}>not on list</span>}
+                  {listedAs && <div style={{ fontSize: 10.5, color: P.red, fontWeight: 600, marginTop: 2 }}>{"Also listed as " + listedAs.name + "'s partner"}</div>}
+                  {p && (
+                    <div style={{ marginTop: 4, paddingLeft: 8, borderLeft: "2px solid " + P.stoneL, fontWeight: 500 }}>
+                      <span>{"+ " + p.name}</span>
+                      <span style={{ marginLeft: 6, padding: "1px 7px", borderRadius: 10, background: pit[2], color: pit[1], fontSize: 10, fontWeight: 600 }}>{pit[0]}</span>
+                      {!matchedName(p.name) && <span style={{ marginLeft: 6, fontSize: 10, color: P.gold }}>not on list</span>}
+                      {partnerOwn && <div style={{ fontSize: 10.5, color: P.red, fontWeight: 600, marginTop: 2 }}>Also registered on their own</div>}
+                      {(p.diet || p.access) && <div style={{ fontSize: 10.5, color: P.terra, fontWeight: 400, marginTop: 2 }}>{[p.diet && "Food: " + p.diet, p.access && "Needs: " + p.access].filter(Boolean).join(" / ")}</div>}
+                    </div>
+                  )}
+                  {r.address &&<div style={{ fontSize: 10.5, color: P.txtL, fontWeight: 400, marginTop: 2 }}>{r.address}</div>}{(r.diet || r.access) && <div style={{ fontSize: 10.5, color: P.terra, fontWeight: 400, marginTop: 2 }}>{[r.diet && "Food: " + r.diet, r.access && "Needs: " + r.access].filter(Boolean).join(" / ")}</div>}{travelLine(r) && <div style={{ fontSize: 10.5, color: P.blue, fontWeight: 400, marginTop: 2 }}>{"Travel: " + travelLine(r)}</div>}</div>
                 <div style={{ color: P.txtM, overflow: "hidden", textOverflow: "ellipsis" }}>{r.email}
                   {r.email && <div><button onClick={() => sendReset(r)}
                           style={{ background: "none", border: "none", padding: 0, marginTop: 3, cursor: "pointer", fontSize: 10.5, color: P.blue, textDecoration: "underline" }}>Send password reset</button></div>}
@@ -2771,8 +2842,10 @@
                 <div style={{ color: P.txtM }}>{r.phone || "—"}</div>
                 <span style={{ padding: "3px 10px", borderRadius: 12, background: it[2], color: it[1], fontSize: 11, fontWeight: 600 }}>{it[0]}</span>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
-                  {!!r.paymentSent && !isPaid(r) && <span title={typeof r.paymentSent === "number" ? "Said sent " + when(r.paymentSent) : ""}
+                  {saysSent(r) && <span title={typeof r.paymentSent === "number" ? "Said sent " + when(r.paymentSent) : ""}
                         style={{ padding: "2px 7px", borderRadius: 10, background: P.goldP, color: P.gold, fontSize: 10, fontWeight: 600, whiteSpace: "nowrap" }}>Says sent</span>}
+                  {due > 0 && <span title={part ? "£" + (due - toGo) + " of £" + due + " paid" : due > FEE ? "For both of them" : ""}
+                        style={{ fontSize: 11, fontWeight: 600, color: part ? P.gold : P.txtM, whiteSpace: "nowrap" }}>{part ? "£" + toGo + " to go" : "£" + due}</span>}
                   <button onClick={() => togglePaid(r)}
                           style={{ ...bS, background: isPaid(r) ? P.green : P.stoneP, color: isPaid(r) ? "#fff" : P.txtM }}>
                     {isPaid(r) ? "Paid" : "Mark paid"}
