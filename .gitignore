@@ -1,0 +1,8 @@
+
+# private planning notes: never publish (repo is public and served on the wedding site)
+tasks/
+guest-list-working.md
+pokemon-cards-plan.md
+_ul
+.cursor/
+*.code-workspace
