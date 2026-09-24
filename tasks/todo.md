@@ -151,3 +151,5 @@ Sources and method (24 Sep 2026):
 
 ### Review (24 Sep 2026)
 One browser pass on an ungated local copy: all 18 departure options produce the expected rows for both days, day fallback works (SEN on Thu searches Fri 28), no console errors besides the uncopied header image, no horizontal scroll at 375px (16px gutters), 3-column grid at 1280px, no em dashes.
+- **24 Sep 2026: welcome video built** (repo Github/tuscany-welcome-video). Live on the site but OFF: js/intro.js on index.html has data-enabled="false". Preview: https://sophieandjoe2027.com/?intro=1. To switch on for guests, set data-enabled="true".
+- [ ] Joe (and Sophie) to watch and approve the welcome video, then switch it on.
