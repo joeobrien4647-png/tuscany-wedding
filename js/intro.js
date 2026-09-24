@@ -21,6 +21,8 @@
     ".sj-intro.sj-out{opacity:0;pointer-events:none}" +
     ".sj-intro video{width:100%;height:100%;object-fit:cover;display:block;background:#FAF6F0}" +
     ".sj-intro button{font-family:ui-monospace,Consolas,'Roboto Mono',monospace;text-transform:uppercase;letter-spacing:.22em;cursor:pointer}" +
+    ".sj-sound{position:absolute;top:max(14px,env(safe-area-inset-top));left:14px;font-size:11px;padding:10px 16px;border-radius:999px;" +
+      "border:1px solid rgba(44,44,44,.18);background:rgba(250,246,240,.82);color:#2C2C2C;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}" +
     ".sj-skip{position:absolute;top:max(14px,env(safe-area-inset-top));right:14px;font-size:11px;padding:10px 16px;border-radius:999px;" +
       "border:1px solid rgba(44,44,44,.18);background:rgba(250,246,240,.82);color:#2C2C2C;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}" +
     ".sj-play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:12px;padding:16px 26px;border-radius:999px;border:0;background:#C45C26;color:#fff}";
@@ -33,12 +35,20 @@
   box.innerHTML =
     '<video muted playsinline autoplay preload="auto" poster="' + base + '-poster.jpg">' +
       '<source src="' + base + '.mp4" type="video/mp4"></video>' +
+    '<button class="sj-sound" type="button" aria-pressed="false">Sound on</button>' +
     '<button class="sj-skip" type="button">Skip</button>' +
     '<button class="sj-play" type="button" hidden>Play the welcome</button>';
   document.body.insertBefore(box, document.body.firstChild);
   document.documentElement.classList.add("sj-intro-open");
 
   var video = box.querySelector("video"), skip = box.querySelector(".sj-skip"), play = box.querySelector(".sj-play");
+  var sound = box.querySelector(".sj-sound");
+  sound.onclick = function () {
+    video.muted = !video.muted;
+    sound.textContent = video.muted ? "Sound on" : "Sound off";
+    sound.setAttribute("aria-pressed", String(!video.muted));
+    if (video.paused) { var p2 = video.play(); if (p2 && p2.catch) p2.catch(function () {}); }
+  };
   var closed = false, started = false;
 
   function close() {
