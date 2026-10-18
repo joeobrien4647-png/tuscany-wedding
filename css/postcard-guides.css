@@ -6,7 +6,7 @@
 .postcard-page .guide-section-title { font: 700 1rem/1.5 'Lato', 'Segoe UI', sans-serif; margin-bottom: .8rem; }
 .weekend-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .4rem; }
 .postcard-page .weekend-tabs a { display: flex; flex-direction: column; justify-content: center; min-height: 66px; padding: .75rem .4rem; color: #233f34; text-align: center; text-decoration: none; background: #e2e8d5; border: 1px solid transparent; border-bottom: 0; border-radius: 6px 6px 0 0; font-weight: 700; }
-.postcard-page .weekend-tabs a:hover { background: #f3d567; }
+.postcard-page .weekend-tabs a:hover { background: #f3d567; color: #233f34; }
 .postcard-page .weekend-tabs [aria-selected="true"] { background: #233f34; color: #fffdf7; }
 .weekend-tab-date { display: block; font-size: .82rem; font-weight: 400; }
 .weekend-chapter { display: grid; grid-template-columns: 1.2fr 1fr; gap: clamp(1.5rem, 4vw, 3rem); padding: clamp(.8rem, 2vw, 1.25rem); background: #fffdf7; border: 1px solid #d1d8c5; margin-bottom: 1.5rem; scroll-margin-top: 1rem; }
