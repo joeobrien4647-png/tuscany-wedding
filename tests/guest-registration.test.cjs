@@ -285,7 +285,7 @@ function paymentPageHarness() {
   const element = id => elements[id] ||= { value: '', textContent: '', hidden: false, disabled: false, readOnly: false, reset() {}, setAttribute() {} };
   element('pay-sent-ok').hidden = true;
   const context = { auth, db: fixture.firebase.database(), firebase: fixture.firebase, PREVIEW: false,
-    paymentOperation: 0, registrationBusy: false, authUid: null, screenVersion: 0, current: null, formOwner: null, INAPP: false,
+    paymentOperation: 0, registrationBusy: false, authUid: null, authVersion: 0, screenVersion: 0, current: null, formOwner: null, INAPP: false, window: {},
     session: { setUser() {} }, $: element, document: { querySelectorAll: () => [] },
     sameUser: user => !!(auth.currentUser && auth.currentUser.uid === user.uid),
     hideErr: id => { element(id).hidden = true; }, showErr: id => { element(id).hidden = false; },

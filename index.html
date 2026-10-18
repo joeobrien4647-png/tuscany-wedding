@@ -13,7 +13,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="theme-color" content="#FAF6F0">
+<meta name="theme-color" content="#f5f2e7">
 <link rel="icon" href="favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,19 +26,6 @@
   .p-top { display: flex; justify-content: space-between; align-items: center; padding: 26px 40px; }
   .p-top .p-mark { font-family: var(--font-heading); font-size: 20px; letter-spacing: .08em; color: var(--color-charcoal); text-decoration: none; }
   .p-top button { background: none; border: none; font-family: var(--font-body); font-size: 13px; letter-spacing: .04em; color: var(--color-warm-gray); cursor: pointer; }
-
-  .p-hero { position: relative; text-align: center; padding: 120px 24px 150px; min-height: 0; color: #fff; overflow: hidden;
-    background: #2C2C2C url("images/venue/hero-drone.jpg") center 45% / cover no-repeat; }
-  .p-hero::before { content: ""; position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(20,16,10,.30) 0%, rgba(20,16,10,.22) 45%, rgba(20,16,10,.62) 100%); }
-  .p-hero > * { position: relative; }
-  .p-kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--color-gold-light); margin-bottom: 18px; text-shadow: 0 1px 8px rgba(0,0,0,.4); }
-  .p-hero h1 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(54px, 10vw, 118px); line-height: .98; letter-spacing: -.02em; color: #fff; margin: 0 0 12px; text-shadow: 0 2px 24px rgba(0,0,0,.35); }
-  .p-hero .p-sub { font-family: var(--font-heading); font-style: italic; font-size: clamp(20px, 3vw, 30px); color: rgba(255,255,255,.88); margin: 0 0 30px; text-shadow: 0 1px 12px rgba(0,0,0,.4); }
-  .p-count { display: inline-flex; flex-wrap: wrap; justify-content: center; gap: clamp(14px, 5vw, 34px); }
-  .p-count div { text-align: center; }
-  .p-count b { display: block; font-family: var(--font-heading); font-weight: 500; font-size: clamp(28px, 8vw, 40px); color: #fff; line-height: 1; text-shadow: 0 1px 12px rgba(0,0,0,.4); }
-  .p-count span { font-family: var(--mono); font-size: 9.5px; letter-spacing: .22em; color: rgba(255,255,255,.75); }
 
   .p-card { max-width: 480px; margin: -96px auto 0; position: relative; z-index: 2; background: #fff; border: 1px solid rgba(44,44,44,.08); box-shadow: var(--shadow-soft); padding: 30px 32px 32px; }
   .p-tabs { display: flex; gap: 4px; margin-bottom: 22px; border-bottom: 1px solid rgba(44,44,44,.1); }
@@ -93,40 +80,7 @@
 
   .p-next { max-width: 480px; margin: 44px auto 64px; padding: 0 24px; }
 
-  .p-wk { max-width: 1120px; margin: 72px auto 0; padding: 0 20px; }
-  .p-wk .p-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--color-terracotta); margin-bottom: 12px; }
-  .p-wk h2 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(32px, 5vw, 52px); line-height: 1.05; letter-spacing: -.02em; color: var(--color-charcoal); margin: 0 0 8px; }
-  .p-wk .p-lede { font-family: var(--font-body); font-weight: 300; color: var(--color-warm-gray); max-width: 58ch; line-height: 1.65; margin: 0 0 34px; }
-  .p-days { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 22px; }
-  .p-day { background: #fff; border: 1px solid rgba(44,44,44,.08); box-shadow: var(--shadow-soft); overflow: hidden; display: flex; flex-direction: column; }
-  .p-day img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; }
-  .p-day .p-body { padding: 20px 22px 24px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
-  .p-day .p-when { font-family: var(--mono); font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; }
-  .p-day h3 { font-family: var(--font-heading); font-weight: 500; font-size: 26px; color: var(--color-charcoal); margin: 0; line-height: 1.15; }
-  .p-day p { font-family: var(--font-body); font-weight: 300; font-size: 14.5px; color: var(--color-warm-gray); line-height: 1.6; margin: 0; flex: 1; }
-  .p-day .p-dress { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--color-olive); padding-top: 10px; border-top: 1px solid rgba(44,44,44,.08); }
-  .p-valley { margin: 72px 0 0; height: clamp(220px, 34vw, 420px); background: url("images/venue/valley.jpg") center 60% / cover no-repeat; position: relative; }
-  .p-valley span { position: absolute; left: 50%; bottom: 28px; transform: translateX(-50%); white-space: nowrap;
-    font-family: var(--mono); font-size: 10.5px; letter-spacing: .3em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 10px rgba(0,0,0,.6); }
-  .p-us { max-width: 1120px; margin: 72px auto 0; padding: 0 20px; }
-  .p-us .p-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--color-terracotta); margin-bottom: 12px; }
-  .p-us h2 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(32px, 5vw, 52px); line-height: 1.05; letter-spacing: -.02em; color: var(--color-charcoal); margin: 0 0 10px; }
-  .p-us .p-lede { font-family: var(--font-body); font-weight: 300; color: var(--color-warm-gray); max-width: 58ch; line-height: 1.65; margin: 0 0 30px; }
-  .p-shots { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 14px; }
-  .p-shots img { display: block; width: 100%; height: 100%; object-fit: cover; aspect-ratio: 4 / 3; }
-  .p-shots img:first-child { grid-row: span 2; aspect-ratio: auto; }
-  @media (max-width: 720px) { .p-shots { grid-template-columns: 1fr 1fr; } .p-shots img:first-child { grid-column: span 2; grid-row: auto; aspect-ratio: 3 / 2; } }
-
-  .p-ask { max-width: 760px; margin: 80px auto 0; padding: 0 24px; text-align: center; }
-  .p-ask .p-eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--color-terracotta); margin-bottom: 14px; }
-  .p-ask h2 { font-family: var(--font-heading); font-weight: 400; font-size: clamp(30px, 4.6vw, 46px); line-height: 1.1; letter-spacing: -.02em; color: var(--color-charcoal); margin: 0 0 22px; }
-  .p-ask p { font-family: var(--font-body); font-weight: 300; font-size: 16.5px; color: var(--color-warm-gray); line-height: 1.75; margin: 0 0 16px; }
-  .p-ask .p-big { font-family: var(--font-heading); font-weight: 500; font-size: clamp(56px, 9vw, 84px); color: var(--color-terracotta); line-height: 1; margin: 26px 0 4px; }
-  .p-ask .p-per { font-family: var(--mono); font-size: 10.5px; letter-spacing: .24em; text-transform: uppercase; color: var(--color-warm-gray); margin-bottom: 26px; }
-  .p-ask ul { list-style: none; padding: 0; margin: 0 auto 26px; display: inline-grid; gap: 8px; text-align: left; }
-  .p-ask li { font-family: var(--font-body); font-size: 15px; color: var(--color-charcoal); }
-  .p-ask li::before { content: "\2713"; color: var(--color-olive); margin-right: 10px; }
-  @media (max-width: 600px) { .p-hero { padding: 90px 20px 130px; } .p-card { margin-top: -80px; }
+  @media (max-width: 600px) {
     input[type=text], input[type=email], input[type=password], input[type=tel], textarea, select { font-size: 16px; }
     #form-up .p-intent { grid-template-columns: 1fr; }
     #form-up .p-intent span { min-height: 48px; font-size: 16px; text-transform: none; letter-spacing: normal; } }
@@ -156,33 +110,9 @@
   .p-open a { color: var(--color-olive); font-weight: 700; text-decoration: none; border-bottom: 1px solid rgba(92,107,74,.35); }
   .p-cal a { color: var(--color-terracotta); font-weight: 700; text-decoration: none; border-bottom: 1px solid rgba(196,112,75,.35); }
 
-  /* ---- motion ---- */
-  @keyframes p-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
-  .p-hero .p-kicker, .p-hero h1, .p-hero .p-sub, .p-hero .p-count { opacity: 0; animation: p-rise .9s cubic-bezier(.2,.7,.2,1) forwards; }
-  .p-hero .p-kicker { animation-delay: .15s; }
-  .p-hero h1 { animation-delay: .35s; }
-  .p-hero .p-sub { animation-delay: .6s; }
-  .p-hero .p-count { animation-delay: .85s; }
-  .p-card { opacity: 0; animation: p-rise .9s cubic-bezier(.2,.7,.2,1) 1.05s forwards; }
-  .p-reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
-  .p-reveal.is-in { opacity: 1; transform: none; }
-  .p-days .p-day:nth-child(2), .p-shots img:nth-child(2) { transition-delay: .12s; }
-  .p-days .p-day:nth-child(3), .p-shots img:nth-child(3) { transition-delay: .24s; }
-  .p-shots img:nth-child(4) { transition-delay: .36s; }
-  .p-swap-out { animation: p-fade-out .35s ease forwards; }
-  @keyframes p-fade-out { to { opacity: 0; transform: translateY(-8px); } }
-  #done { animation: p-rise .6s cubic-bezier(.2,.7,.2,1); }
-  .p-live { display: inline-block; font-family: var(--mono); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: rgba(255,255,255,.85); margin-top: 26px; padding: 7px 14px; border: 1px solid rgba(255,255,255,.35); border-radius: 999px; backdrop-filter: blur(2px); }
-  .p-live b { font-family: var(--font-heading); font-size: 15px; font-weight: 500; color: #fff; letter-spacing: 0; margin-right: 4px; }
   .p-google { width: 100%; margin-top: 12px; background: #fff; color: var(--color-charcoal); border: 1px solid rgba(44,44,44,.22); border-radius: 999px; padding: 13px; font-family: var(--font-body); font-weight: 700; font-size: 13.5px; letter-spacing: .04em; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
   .p-google svg { width: 18px; height: 18px; }
   .p-or { text-align: center; font-family: var(--mono); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--color-warm-gray); margin-top: 18px; }
-  html.p-settled .p-hero .p-kicker, html.p-settled .p-hero h1, html.p-settled .p-hero .p-sub, html.p-settled .p-hero .p-count, html.p-settled .p-card { opacity: 1; animation: none; }
-  html.p-settled .p-reveal { opacity: 1; transform: none; transition: none; }
-  @media (prefers-reduced-motion: reduce) {
-    .p-hero .p-kicker, .p-hero h1, .p-hero .p-sub, .p-hero .p-count, .p-card, #done { animation: none; opacity: 1; }
-    .p-reveal { opacity: 1; transform: none; transition: none; }
-  }
   [hidden] { display: none !important; }
   .p-card input, .p-card select, .p-card textarea { font-size: 16px; min-height: 44px; }
   .p-card button, .p-top button, .p-card summary { min-height: 44px; }
@@ -191,19 +121,21 @@
   .p-card summary { cursor: pointer; display: list-item; padding-top: 12px; box-sizing: border-box; color: var(--color-olive); }
   .p-card :focus-visible, .p-top :focus-visible { outline: 3px solid var(--color-terracotta); outline-offset: 3px; }
   .p-card dd { min-width: 0; overflow-wrap: anywhere; }
-  .guest-home > .guest-nav { justify-content: center; padding: 4px 12px; }
   .p-card .p-intent span { min-height: 44px; box-sizing: border-box; }
   .p-card .guest-actions { margin: 16px 0; }
   .p-card .guest-actions a, .p-card .guest-actions button { min-height: 44px; }
 </style>
 <link rel="stylesheet" href="css/guest-journey.css">
+<link rel="stylesheet" href="css/postcards.css">
+<link rel="stylesheet" href="css/postcard-home.css">
+<script src="js/guest-navigation.js" defer></script>
 </head>
-<body class="guest-home">
+<body class="postcard-home">
 <script src="js/intro.js" data-enabled="false"></script>
 
 <a class="guest-skip" href="#card">Skip to My weekend</a>
 <div class="p-top">
-  <a class="p-mark" href="index.html">S &amp; J</a>
+  <a class="p-mark" href="index.html" aria-label="Sophie and Joe, home">Sophie &amp; Joe</a>
   <button id="signout" hidden>Sign out</button>
 </div>
 <nav class="guest-nav" aria-label="Guest navigation">
@@ -211,19 +143,44 @@
 </nav>
 
 <header class="p-hero">
-  <div class="p-kicker">Fri 28 to Mon 31 May 2027 &nbsp;&middot;&nbsp; Sansepolcro, Tuscany</div>
-  <h1>Sophie &amp; Joe</h1>
-  <p class="p-sub">are getting married in Tuscany</p>
-  <div class="p-count" id="count">
-    <div><b id="c-d">&middot;</b><span>DAYS</span></div>
-    <div><b id="c-h">&middot;</b><span>HOURS</span></div>
-    <div><b id="c-m">&middot;</b><span>MINUTES</span></div>
-    <div><b id="c-s">&middot;</b><span>SECONDS</span></div>
+  <div class="postcard-address">
+    <p>Sansepolcro, Tuscany</p>
+    <p>28–31 May 2027</p>
   </div>
-  <div class="p-live" id="live" hidden><b id="live-n">0</b> already registered</div>
+  <div class="postcard-face">
+    <div class="postcard-photo">
+      <img src="images/postcards/hero-drone-960.webp" srcset="images/postcards/hero-drone-480.webp 480w, images/postcards/hero-drone-960.webp 960w, images/postcards/hero-drone-1440.webp 1440w" sizes="(max-width: 720px) 100vw, 62vw" width="1920" height="1440" alt="The Tuscan hills and stone villas at La Conca" fetchpriority="high">
+      <p class="postcard-photo-caption">A weekend in the hills, with all of you.</p>
+    </div>
+    <div class="postcard-note">
+      <svg class="postcard-stamp" viewBox="0 0 110 138" role="img" aria-label="Sophie and Joe Tuscany 2027 postage stamp">
+        <path d="M6 6H104V132H6Z" fill="#f3d567" stroke="#fffdf7" stroke-width="9" stroke-dasharray="4 5"/>
+        <path d="M18 19H92V120H18Z" fill="none" stroke="#233f34"/>
+        <path d="M24 88Q43 58 64 85Q77 71 86 79V99H24Z" fill="#829775"/>
+        <path d="M61 80V48M56 68Q55 50 61 34Q68 51 66 68Z" fill="#233f34" stroke="#233f34" stroke-width="2"/>
+        <circle cx="37" cy="49" r="10" fill="#fffdf7"/>
+        <text x="55" y="29" text-anchor="middle" fill="#233f34" font-size="10" font-family="Georgia,serif">Toscana</text>
+        <text x="55" y="113" text-anchor="middle" fill="#233f34" font-size="15" font-family="Georgia,serif">S&amp;J · 2027</text>
+      </svg>
+      <h1>Sophie<br>&amp; Joe</h1>
+      <p class="postcard-invitation">We’re getting married in Tuscany.<br>Come and make a weekend of it.</p>
+      <p class="postcard-wedding-date">The wedding: Saturday 29 May 2027</p>
+      <div class="postcard-actions">
+        <a class="postcard-rsvp" href="#card">RSVP / My weekend</a>
+        <a class="postcard-explore" href="weekend-guide.html">Explore the weekend</a>
+      </div>
+      <p class="postcard-reply-date">Let us know by 28 February 2027.</p>
+    </div>
+  </div>
+  <div class="postcard-countline">
+    <div class="p-count" id="count" aria-label="Countdown to the wedding date">
+      <span><b id="c-d">·</b> days</span><span><b id="c-h">·</b> hours</span><span><b id="c-m">·</b> minutes</span><span><b id="c-s">·</b> seconds</span>
+    </div>
+    <div class="p-live" id="live" hidden><b id="live-n">0</b> already registered</div>
+  </div>
 </header>
 
-<main class="p-card" id="card">
+<main class="p-card" id="card" tabindex="-1">
   <div role="status" id="loading" style="text-align:center;color:var(--color-warm-gray);font-size:13px;padding:20px 0">One moment&hellip;</div>
 
   <section id="registration-recovery" hidden aria-labelledby="recovery-heading">
@@ -379,8 +336,19 @@
     </div>
 
     <div class="p-profile">
-      <h3>Your pocket in the binder</h3>
-      <p>One line about you, and one song for the pool on Sunday. Everyone who registers gets a pocket. This fills yours.</p>
+      <h3>Your weekend card</h3>
+      <p id="guest-card-help">Try a line about you and a song below. The preview updates only on this page. Choose <b>Save my pocket</b> to share your name, line and song in the guest binder.</p>
+      <div class="guest-card-workspace">
+      <aside class="guest-pocket-card" id="guest-card-preview" aria-label="Your guest card preview" aria-describedby="guest-card-help" hidden>
+        <div class="guest-pocket-heading"><span>Sophie &amp; Joe</span><span>28–31 May 2027</span></div>
+        <div class="guest-pocket-landscape" aria-hidden="true"><span>S&amp;J</span></div>
+        <div class="guest-pocket-copy">
+          <h4 id="guest-card-name"></h4>
+          <p id="guest-card-line"></p>
+          <dl><dt>One song</dt><dd id="guest-card-song"></dd></dl>
+        </div>
+        <p class="guest-pocket-edition">Tuscany weekend collection</p>
+      </aside>
       <form id="form-profile" novalidate>
         <label for="pr-line">One line about you</label>
         <input id="pr-line" type="text" maxlength="120" placeholder="How you know us, or anything you like">
@@ -390,6 +358,7 @@
         <div class="p-msg p-ok" id="pr-ok" hidden></div>
         <button class="p-primary" type="submit">Save my pocket</button>
       </form>
+      </div>
       <form class="p-pp" id="form-pprofile" novalidate hidden>
         <h3 id="pp-h">Their pocket</h3>
         <p>They get a pocket too. Fill it in for them, or ask them what they&rsquo;d like.</p>
@@ -401,59 +370,51 @@
         <div class="p-msg p-ok" id="pp-ok" hidden></div>
         <button class="p-primary" type="submit">Save their pocket</button>
       </form>
-      <a class="p-link" href="binder.html">See the binder &rarr;</a>
+      <a class="p-link" href="binder.html">See the binder</a>
     </div>
   </section>
 </main>
 
-<section class="p-wk">
-  <div class="p-eyebrow">The weekend</div>
-  <h2>Three days, one valley</h2>
-  <p class="p-lede">Two stone villas on a hill above Sansepolcro, both ours for the weekend. Fly in on the Friday, leave on the Monday. Here is the shape of it.</p>
+<section class="p-wk" aria-labelledby="weekend-heading">
+  <div class="postcard-section-intro">
+    <h2 id="weekend-heading">See you in the hills</h2>
+    <p>Two stone villas above Sansepolcro, together from Friday to Monday. Here’s the shape of our weekend; the final timings and arrangements will follow.</p>
+    <a class="postcard-text-link" href="weekend-guide.html">Open the Friday-to-Monday programme</a>
+  </div>
   <div class="p-days">
     <article class="p-day">
-      <img src="images/venue/friday-pool.jpg" alt="The pool at Villa Vallorsaia in evening light" loading="lazy">
-      <div class="p-body">
-        <div class="p-when" style="color:var(--color-gold)">Friday 28 May</div>
-        <h3>Arrive and settle in</h3>
-        <p>Find your room, find the pool, find everyone else. Drinks and pizza on the terrace as the sun goes down. Nothing formal.</p>
-      </div>
+      <img src="images/postcards/friday-pool-480.webp" srcset="images/postcards/friday-pool-480.webp 480w, images/postcards/friday-pool-960.webp 960w" sizes="(max-width: 720px) calc(100vw - 48px), 32vw" width="1200" height="800" alt="The pool at Villa Vallorsaia in evening light" loading="lazy" decoding="async">
+      <div class="p-body"><p class="p-when">Friday 28 May</p><h3>Arrive and settle in</h3><p>Our first day together at La Conca. Check-in times, room allocations and the evening plans are still to be confirmed.</p></div>
     </article>
     <article class="p-day">
-      <img src="images/venue/saturday-night.jpg" alt="Villa Santarsa lit up at night" loading="lazy">
-      <div class="p-body">
-        <div class="p-when" style="color:var(--color-terracotta)">Saturday 29 May</div>
-        <h3>The wedding</h3>
-        <p>Ceremony in the grounds in the afternoon, then a long Italian lunch that turns into dinner, then dancing until the villa says stop.</p>
-      </div>
+      <img src="images/postcards/saturday-night-480.webp" srcset="images/postcards/saturday-night-480.webp 480w, images/postcards/saturday-night-960.webp 960w" sizes="(max-width: 720px) calc(100vw - 48px), 32vw" width="1400" height="931" alt="Villa Santarsa lit up at night" loading="lazy" decoding="async">
+      <div class="p-body"><p class="p-when">Saturday 29 May</p><h3>The wedding</h3><p>The date is set. Ceremony and celebration timings, locations within the estate and dress guidance will follow.</p></div>
     </article>
     <article class="p-day">
-      <img src="images/venue/sunday-pool.jpg" alt="The pool at Villa Santarsa looking over the valley" loading="lazy">
-      <div class="p-body">
-        <div class="p-when" style="color:var(--color-olive)">Sunday 30 May</div>
-        <h3>Pool day</h3>
-        <p>Nothing before noon. Two pools, the valley, and something for anyone who wants to leave the sun lounger. Home or stay on from Monday.</p>
-      </div>
+      <img src="images/postcards/sunday-pool-480.webp" srcset="images/postcards/sunday-pool-480.webp 480w, images/postcards/sunday-pool-960.webp 960w" sizes="(max-width: 720px) calc(100vw - 48px), 32vw" width="1200" height="800" alt="The pool at Villa Santarsa looking over the valley" loading="lazy" decoding="async">
+      <div class="p-body"><p class="p-when">Sunday 30 May</p><h3>A little more time together</h3><p>Another day in Tuscany before Monday’s departures. Sunday’s plans and Monday’s check-out details are still to be confirmed.</p></div>
     </article>
   </div>
 </section>
 
-<div class="p-valley"><span>Lago di Montedoglio, from the villa</span></div>
+<figure class="p-valley">
+  <img src="images/postcards/valley-960.webp" srcset="images/postcards/valley-480.webp 480w, images/postcards/valley-960.webp 960w, images/postcards/valley-1440.webp 1440w" sizes="100vw" width="1600" height="1064" alt="Lago di Montedoglio and the green Tuscan valley" loading="lazy" decoding="async">
+  <figcaption>Lago di Montedoglio, from the villa</figcaption>
+</figure>
 
-<section class="p-us">
-  <div class="p-eyebrow">The two of us</div>
-  <h2>Sophie &amp; Joe</h2>
-  <p class="p-lede">Engaged on a beach. Married quietly in Kent this July, just the family. The proper one, with all of you, next May in the hills above Sansepolcro.</p>
+<section class="p-us" aria-labelledby="us-heading">
+  <div class="postcard-section-intro">
+    <h2 id="us-heading">From the beach to Tuscany</h2>
+    <p>A few photographs of the two of us, starting with the proposal. Next stop: a weekend with all of you in the hills above Sansepolcro.</p>
+    <a class="postcard-text-link" href="our-story.html">Open our photo album</a>
+  </div>
   <div class="p-shots">
-    <img src="images/us/proposal.jpg" alt="Joe proposing to Sophie on the beach" loading="lazy">
-    <img src="images/us/walk.jpg" alt="Sophie and Joe walking along the beach" loading="lazy">
-    <img src="images/us/laugh.jpg" alt="Sophie and Joe laughing" loading="lazy">
-    <img src="images/us/carry.jpg" alt="Joe carrying Sophie on the beach" loading="lazy">
+    <figure><img src="images/postcards/proposal-960.webp" srcset="images/postcards/proposal-480.webp 480w, images/postcards/proposal-960.webp 960w, images/postcards/proposal-1440.webp 1440w" sizes="(max-width: 720px) calc(100vw - 48px), 48vw" width="1600" height="1066" alt="Joe proposing to Sophie on the beach" loading="lazy" decoding="async"><figcaption>Where this chapter began.</figcaption></figure>
+    <figure><img src="images/postcards/laugh-480.webp" srcset="images/postcards/laugh-480.webp 480w, images/postcards/laugh-960.webp 960w" sizes="(max-width: 720px) 70vw, 35vw" width="1200" height="800" alt="Sophie and Joe laughing on the beach" loading="lazy" decoding="async"><figcaption>The two of us.</figcaption></figure>
   </div>
 </section>
 
 <section class="p-ask">
-  <div class="p-eyebrow">The one thing we ask</div>
   <h2>Come and stay with us for the weekend</h2>
   <p>We&rsquo;ve taken over two old stone villas for the whole weekend so that everyone can stay together, on site, from Friday to Monday. No hotels, no taxis home, everyone in one place.</p>
   <div class="p-big">&pound;150</div>
@@ -477,12 +438,13 @@
   </ul>
 </section>
 
-<footer class="p-mini">SOPHIEANDJOE2027.COM</footer>
+<footer class="p-mini">With love, Sophie &amp; Joe<br><a href="#card">RSVP / My weekend</a></footer>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 <script src="js/guest-registration.js"></script>
+<script src="js/guest-card-preview.js"></script>
 <script>
 (function () {
   firebase.initializeApp({
@@ -492,7 +454,7 @@
   });
   var auth = firebase.auth(), db = firebase.database();
   var session = GuestRegistration.createSession(auth, db), registrationBusy = false, editBusy = false, formOwner = null;
-  var screenVersion = 0, authUid = null, paymentOperation = 0;
+  var screenVersion = 0, authUid = null, authVersion = 0, paymentOperation = 0;
   var entryParams = new URLSearchParams(location.search);
   var nextPage = ["join-in.html", "guest-inbox.html"].indexOf(entryParams.get("next")) >= 0 ? entryParams.get("next") : "";
   function continueToNext(reg) {
@@ -503,7 +465,7 @@
   var INTENT = { yes: "Yes, coming", maybe: "Not sure yet", no: "Can’t make it" };
 
   // ---- countdown ----
-  var target = new Date("2027-05-29T15:00:00").getTime();
+  var target = new Date("2027-05-29T00:00:00+02:00").getTime();
   function tick() {
     var ms = Math.max(0, target - Date.now());
     $("c-d").textContent = Math.floor(ms / 864e5);
@@ -518,20 +480,6 @@
     var v = s.val() || {}, k = Object.keys(v).filter(function (id) { return v[id] && v[id].name; }).length;
     if (k >= 3) { $("live-n").textContent = k; $("live").hidden = false; }
   }).catch(function () {});
-
-  // safety net: whatever happens to animations, nothing stays invisible
-  setTimeout(function () { document.documentElement.classList.add("p-settled"); }, 4000);
-
-  // ---- reveal on scroll ----
-  (function () {
-    var els = document.querySelectorAll(".p-wk .p-eyebrow, .p-wk h2, .p-wk .p-lede, .p-day, .p-valley, .p-us .p-eyebrow, .p-us h2, .p-us .p-lede, .p-shots img, .p-ask > *, .p-next");
-    els.forEach(function (e) { e.classList.add("p-reveal"); });
-    if (!("IntersectionObserver" in window)) { els.forEach(function (e) { e.classList.add("is-in"); }); return; }
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add("is-in"); io.unobserve(en.target); } });
-    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
-    els.forEach(function (e) { io.observe(e); });
-  })();
 
   // ---- tabs ----
   function showTab(up) {
@@ -689,7 +637,7 @@
     $("registration-recovery").hidden = true;
     $("auth").hidden = has; $("done").hidden = !has;
     $("signout").hidden = !auth.currentUser;
-    if (!has) { current = null; $("pay").hidden = true; return; }
+    if (!has) { current = null; $("pay").hidden = true; if (window.GuestCardPreview) window.GuestCardPreview.clear(); return; }
     var declined = nobodyComing(reg.intent, partnerOf(reg));
     $("weekend-summary").textContent = declined ? "Your reply is saved. We will miss you, and you can update it here if plans change." : reg.intent === "yes" ? "Your reply is saved. We cannot wait to see you in Tuscany, 28 to 31 May 2027." : "Your reply is saved as not sure yet. Let us know by 28 February 2027 when you can.";
     $("travel-action").hidden = declined; $("stay-summary").hidden = declined;
@@ -720,6 +668,7 @@
     }
     showPay(reg);
     if (!reg.intent) $("form-edit").hidden = false;
+    if (window.GuestCardPreview) window.GuestCardPreview.refresh();
     continueToNext(reg);
   }
 
@@ -875,6 +824,9 @@
     authUid = u && u.uid;
     session.setUser(u); screenVersion++;
     if (changedAccount) {
+      authVersion++;
+      if (window.GuestCardPreview) window.GuestCardPreview.clear();
+      $("d-name").textContent = "";
       paymentOperation++;
       if (!PREVIEW) $("pay-sent").disabled = false;
       $("pay-sent-ok").hidden = true; hideErr("pay-err");
@@ -1036,13 +988,15 @@
   // ---- public binder pocket (/public/profiles/{uid}) ----
   auth.onAuthStateChanged(function (u) {
     if (!u) return;
+    var profileVersion = authVersion;
     db.ref("public/profiles/" + u.uid).once("value").then(function (s) {
-      if (!sameUser(u)) return;
+      if (!sameUser(u) || profileVersion !== authVersion) return;
       var p = s.val() || {};
       $("pr-line").value = p.line || ""; $("pr-song").value = p.song || "";
+      if (window.GuestCardPreview) window.GuestCardPreview.refresh();
     }).catch(function () {});
     db.ref("public/profiles/" + u.uid + "-p").once("value").then(function (s) {
-      if (!sameUser(u)) return;
+      if (!sameUser(u) || profileVersion !== authVersion) return;
       var p = s.val() || {};
       $("pp-line").value = p.line || ""; $("pp-song").value = p.song || "";
     }).catch(function () {});
