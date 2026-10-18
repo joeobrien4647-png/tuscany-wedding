@@ -57,7 +57,14 @@
   .p-link.p-more { display: block; margin-top: 22px; }
   #up-travel:focus { outline: none; }
   .p-travel-h { font-family: var(--font-heading); font-size: 19px; color: var(--color-charcoal); }
-  .p-partner { border-bottom: 1px solid rgba(44,44,44,.1); padding-bottom: 16px; }
+  .p-progress { display: flex; gap: 20px; list-style: none; padding: 0; margin: 0 0 22px; font-size: 13px; color: var(--color-warm-gray); }
+  .p-progress [aria-current="step"] { color: var(--color-terracotta); font-weight: 700; }
+  .p-step-heading { font-family: var(--font-heading); font-size: 25px; font-weight: 400; margin: 0 0 10px; }
+  .p-step-heading:focus { outline: 2px solid var(--color-gold); outline-offset: 4px; }
+  #form-up .p-intent span { display: flex; align-items: center; justify-content: center; }
+  #up-choice-hint { min-height: 40px; margin-top: 14px; }
+  #up-back { margin-top: 14px; }
+  #up-back + .p-primary { margin-top: 8px; }
   .p-done .p-with { border-top: 1px solid rgba(44,44,44,.1); padding-top: 14px; }
   .p-done .p-with + dl { margin-top: 10px; }
   .p-pp { margin-top: 30px; padding-top: 22px; border-top: 1px dashed rgba(44,44,44,.14); }
@@ -231,11 +238,12 @@
 
     <p class="p-msg" id="completion-note" role="status" hidden></p>
     <form id="form-up" novalidate>
-      <label for="up-name">Your name</label>
-      <input id="up-name" type="text" autocomplete="name" required placeholder="First and last name">
-      <p class="p-hint">Coming as a couple? One of you registers for both</p>
-      <label for="up-email">Email</label>
-      <input id="up-email" type="email" autocomplete="email" required>
+      <ol class="p-progress" aria-label="Registration progress">
+        <li id="up-progress-reply" aria-current="step">1. Your reply</li>
+        <li id="up-progress-details">2. Your details</li>
+      </ol>
+      <div id="up-reply">
+      <h2 class="p-step-heading" id="up-reply-heading" tabindex="-1">Your reply</h2>
       <fieldset class="p-fs">
         <legend>Are you coming?</legend>
         <div class="p-intent">
@@ -245,8 +253,15 @@
         </div>
         <p class="p-hint p-by">Please let us know by 28 February 2027</p>
       </fieldset>
-      <button class="p-link p-more" type="button" id="up-partner-open" aria-expanded="false" aria-controls="up-partner">Coming with someone? Add them</button>
-      <div class="p-travel p-partner" id="up-partner" hidden></div>
+      <p class="p-hint" id="up-choice-hint" aria-live="polite">Choose the reply that fits. You can update it later.</p>
+      <button class="p-primary" id="up-continue" type="submit">Continue</button>
+      </div>
+      <div id="up-details" hidden>
+      <h2 class="p-step-heading" id="up-details-heading" tabindex="-1">Your details</h2>
+      <label for="up-name">Your name</label>
+      <input id="up-name" type="text" autocomplete="name" required placeholder="First and last name">
+      <label for="up-email">Email</label>
+      <input id="up-email" type="email" autocomplete="email" required>
       <div id="password-row"><label for="up-pw">Choose a password</label>
       <input id="up-pw" type="password" autocomplete="new-password" required minlength="6" aria-describedby="password-hint"><p class="p-hint" id="password-hint">At least 6 characters. You can sign in to update your reply later.</p></div>
       <details id="up-optional"><summary>Optional details: food, access and contact</summary>
@@ -261,13 +276,15 @@
       </details>
       <button class="p-link p-more" type="button" id="up-travel-open" aria-expanded="false" aria-controls="up-travel">Booked already? Add your travel</button>
       <div class="p-travel" id="up-travel" tabindex="-1" hidden></div>
-      <div role="alert" class="p-msg p-err" id="up-err" hidden></div>
+      <button class="p-link" id="up-back" type="button">Back to your reply</button>
       <button class="p-primary" id="up-btn" type="submit">Register</button>
       <div class="p-or">or</div>
       <button class="p-google" type="button" data-google>
         <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.5l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.5 0 20.1 0 24s1 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.5-5.8c-2.1 1.4-4.8 2.3-8.1 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
         Continue with Google
       </button>
+      </div>
+      <div role="alert" class="p-msg p-err" id="up-err" hidden></div>
     </form>
 
     <form id="form-in" novalidate hidden>
@@ -312,7 +329,7 @@
       <dt>Coming?</dt><dd id="d-intent"></dd>
     </dl>
     <div id="d-partner" hidden>
-      <div class="p-travel-h p-with">Coming with you</div>
+      <div class="p-travel-h p-with">Also recorded on your reply</div>
       <dl>
         <dt>Name</dt><dd id="dp-name"></dd>
         <dt>Coming?</dt><dd id="dp-intent"></dd>
@@ -337,8 +354,6 @@
         <label style="margin:0"><input type="radio" name="ed-intent" value="maybe"><span>Not sure yet</span></label>
         <label style="margin:0"><input type="radio" name="ed-intent" value="no"><span>Can&rsquo;t make it</span></label>
       </div>
-      <button class="p-link p-more" type="button" id="ed-partner-open" aria-expanded="false" aria-controls="ed-partner">Coming with someone? Add them</button>
-      <div class="p-travel p-partner" id="ed-partner" hidden></div>
       <div role="alert" class="p-msg p-err" id="ed-err" hidden></div>
       <button class="p-primary" id="ed-btn" type="submit">Save changes</button>
     </form>
@@ -521,8 +536,8 @@
     $("tab-up").setAttribute("aria-pressed", up); $("tab-in").setAttribute("aria-pressed", !up);
     $("form-up").hidden = !up; $("form-in").hidden = up;
   }
-  $("tab-up").onclick = function () { showTab(true); };
-  $("tab-in").onclick = function () { showTab(false); };
+  $("tab-up").onclick = function () { if (!registrationBusy) showTab(true); };
+  $("tab-in").onclick = function () { if (!registrationBusy) showTab(false); };
 
   // ---- errors ----
   function friendly(e) {
@@ -539,6 +554,33 @@
   function showErr(id, e) { var el = $(id); el.textContent = friendly(e); el.hidden = false; }
   function hideErr(id) { $(id).hidden = true; }
   function picked(name) { var r = document.querySelector('input[name="' + name + '"]:checked'); return r ? r.value : ""; }
+
+  var signupStep = 1;
+  function setSignupStep(step, focus) {
+    signupStep = step;
+    $("up-reply").hidden = step !== 1; $("up-details").hidden = step !== 2;
+    ["reply", "details"].forEach(function (name, index) {
+      var item = $("up-progress-" + name);
+      if (step === index + 1) item.setAttribute("aria-current", "step"); else item.removeAttribute("aria-current");
+    });
+    hideErr("up-err");
+    if (focus) $(step === 1 ? "up-reply-heading" : "up-details-heading").focus();
+  }
+  function replyChosen() {
+    if (picked("intent")) return true;
+    setSignupStep(1, false);
+    showErr("up-err", { message: "Let us know if you’re coming. ‘Not sure yet’ is fine." });
+    document.querySelector('input[name="intent"]').focus();
+    return false;
+  }
+  function signupError(id, error) { showErr("up-err", error); $(id).focus(); }
+  function syncChoiceHint() {
+    var hints = { yes: "We can’t wait to see you. Add your details next to save your reply.",
+      maybe: "That’s fine. Save your reply now and let us know by 28 February 2027.",
+      no: "We’ll miss you. Add your details next so we can save your reply." };
+    $("up-choice-hint").textContent = hints[picked("intent")] || "Choose the reply that fits. You can update it later.";
+  }
+  $("up-back").onclick = function () { if (!registrationBusy) setSignupStep(1, true); };
 
   // ---- this browser has registered before: remember the email so returning guests land on Sign in ----
   var SEEN = "sj-registered";
@@ -617,75 +659,24 @@
   buildTravel("up"); buildTravel("ed");
   var upTravelOpen = false;
   function syncUpTravel() {
-    var out = nobodyComing(picked("intent"), openPartner("up"));
+    var out = nobodyComing(picked("intent"), null);
     $("up-travel").hidden = out || !upTravelOpen;
     $("up-travel-open").hidden = out || upTravelOpen;
   }
-  function syncEdTravel() { $("ed-travel").hidden = nobodyComing(picked("ed-intent"), openPartner("ed")); }
-  var SYNC_TRAVEL = { up: syncUpTravel, ed: syncEdTravel };
+  function syncEdTravel() { $("ed-travel").hidden = nobodyComing(picked("ed-intent"), partnerOf(current)); }
   $("up-travel-open").onclick = function () {
     upTravelOpen = true; this.setAttribute("aria-expanded", "true"); syncUpTravel();
     $("up-travel").focus({ preventScroll: true });
   };
-  document.querySelectorAll('input[name="intent"]').forEach(function (r) { r.addEventListener("change", syncUpTravel); });
+  document.querySelectorAll('input[name="intent"]').forEach(function (r) { r.addEventListener("change", function () { syncUpTravel(); syncChoiceHint(); }); });
   document.querySelectorAll('input[name="ed-intent"]').forEach(function (r) { r.addEventListener("change", syncEdTravel); });
 
-  // ---- partner: one registration per couple, stored at /registrations/{uid}/partner ----
-  var partnerOpen = { up: false, ed: false };
-  var OWN_INTENT = { up: "intent", ed: "ed-intent" };
+  // Existing replies may include a second guest. Preserve their details and shared travel.
   function firstName(n) { return String(n || "").trim().split(/\s+/)[0] || ""; }
   function partnerOf(reg) { return reg && reg.partner && reg.partner.name ? reg.partner : null; }
   function heads(reg) { var pt = partnerOf(reg); return (reg && reg.intent === "yes" ? 1 : 0) + (pt && pt.intent === "yes" ? 1 : 0); }
   // travel is shared by the couple, so it is only "not needed" when neither of them is coming
   function nobodyComing(intent, pt) { return intent === "no" && (!pt || pt.intent === "no"); }
-  function openPartner(p) { return partnerOpen[p] ? { intent: picked(p + "-pintent") } : null; }
-  function buildPartner(p) {
-    var radio = function (v, t) { return '<label style="margin:0"><input type="radio" name="' + p + '-pintent" value="' + v + '"><span>' + t + "</span></label>"; };
-    $(p + "-partner").innerHTML = '<div class="p-travel-h">Coming with you</div>'
-      + '<p class="p-hint">Only if they haven&rsquo;t registered themselves</p>'
-      + field(p, "pname", "Their name", '<input id="' + p + '-pname" type="text" maxlength="80" autocomplete="off" placeholder="First and last name">')
-      + '<fieldset class="p-fs"><legend>Are they coming?</legend><div class="p-intent">'
-      + radio("yes", "Yes!") + radio("maybe", "Not sure yet") + radio("no", "Can&rsquo;t make it") + "</div></fieldset>"
-      + field(p, "pdiet", "Anything they can&rsquo;t eat?", txt(p, "pdiet", 300, "Optional. Allergies, vegetarian, that kind of thing."))
-      + field(p, "paccess", "Anything that would make the weekend easier for them?", txt(p, "paccess", 300, "Optional"))
-      + '<button class="p-link" type="button" id="' + p + '-partner-remove">Remove them</button>';
-    $(p + "-partner-open").onclick = function () { setPartner(p, true); $(p + "-pname").focus(); };
-    $(p + "-partner-remove").onclick = function () { setPartner(p, false); $(p + "-partner-open").focus(); };
-    document.querySelectorAll('input[name="' + p + '-pintent"]').forEach(function (r) { r.addEventListener("change", SYNC_TRAVEL[p]); });
-  }
-  function setPartner(p, open) {
-    partnerOpen[p] = open;
-    $(p + "-partner").hidden = !open; $(p + "-partner-open").hidden = open;
-    $(p + "-partner-open").setAttribute("aria-expanded", String(open));
-    if (!open) {
-      ["pname", "pdiet", "paccess"].forEach(function (id) { $(p + "-" + id).value = ""; });
-      document.querySelectorAll('input[name="' + p + '-pintent"]').forEach(function (r) { r.checked = false; });
-    } else if (!picked(p + "-pintent")) {
-      var own = document.querySelector('input[name="' + p + '-pintent"][value="' + picked(OWN_INTENT[p]) + '"]');
-      if (own) own.checked = true;
-    }
-    SYNC_TRAVEL[p]();
-  }
-  function readPartner(p) {
-    if (!partnerOpen[p]) return null;
-    var pt = { name: $(p + "-pname").value.trim().slice(0, 80), intent: picked(p + "-pintent") || picked(OWN_INTENT[p]) || "maybe" };
-    var diet = $(p + "-pdiet").value.trim().slice(0, 300), access = $(p + "-paccess").value.trim().slice(0, 300);
-    if (diet) pt.diet = diet;
-    if (access) pt.access = access;
-    return pt;
-  }
-  function fillPartner(p, pt) {
-    setPartner(p, false);
-    if (!pt) return;
-    $(p + "-pname").value = pt.name || ""; $(p + "-pdiet").value = pt.diet || ""; $(p + "-paccess").value = pt.access || "";
-    var r = document.querySelector('input[name="' + p + '-pintent"][value="' + (pt.intent || "") + '"]'); if (r) r.checked = true;
-    setPartner(p, true);
-  }
-  function partnerMissing(p) { return partnerOpen[p] && !$(p + "-pname").value.trim(); }
-  function partnerUnanswered(p) { return partnerOpen[p] && !picked(p + "-pintent"); }
-  var PARTNER_NAME = "Tell us their name, or tap Remove them";
-  var PARTNER_INTENT = "Let us know if they’re coming. ‘Not sure yet’ is fine.";
-  buildPartner("up"); buildPartner("ed");
 
   // ---- state ----
   var current = null;
@@ -725,7 +716,6 @@
       $("dp-access").textContent = pt.access || "nothing noted";
       $("pp-h").textContent = firstName(pt.name) + "’s pocket";
     }
-    fillPartner("ed", pt);
     showPay(reg);
     if (!reg.intent) $("form-edit").hidden = false;
     continueToNext(reg);
@@ -758,9 +748,7 @@
     $("pay-intro").textContent = both
       ? "This covers a bed at the villa for you both for the three nights. Everything else is on us. Whenever suits, by bank transfer:"
       : "This covers " + bedOf + " at the villa for the three nights. Everything else is on us. Whenever suits, by bank transfer:";
-    $("pay-two").textContent = (!pt ? "Someone coming with you who hasn’t registered? Add them under ‘Change something’ and the amount will update. "
-      : both ? "One transfer for you both is perfect. "
-      : reg.intent === "yes" ? "If " + firstName(pt.name) + " can make it after all, change their answer under ‘Change something’ and the amount will update. " : "")
+    $("pay-two").textContent = (both ? "One transfer for you both is perfect. " : "")
       + "We tick it off at our end and it will show here once we have.";
     $("pay-done").textContent = both ? "Received, thank you. That’s both your beds sorted." : "Received, thank you. That’s " + bedOf + " sorted.";
     hideErr("pay-err");
@@ -845,7 +833,7 @@
   }
   function busyRegistration(busy) {
     registrationBusy = busy;
-    $("up-btn").disabled = busy; $("in-btn").disabled = busy;
+    ["up-btn", "in-btn", "up-back", "up-continue", "tab-up", "tab-in"].forEach(function (id) { $(id).disabled = busy; });
     $("form-up").setAttribute("aria-busy", busy);
     $("up-btn").textContent = busy ? "Saving your reply..." : auth.currentUser ? "Save my reply" : "Register";
     document.querySelectorAll("[data-google]").forEach(function (b) { b.disabled = busy; });
@@ -859,10 +847,12 @@
     document.querySelectorAll("[data-google], .p-or").forEach(function (el) { el.hidden = true; });
     if (!retain && formOwner !== u.uid) {
       $("form-up").reset(); $("up-name").value = u.displayName || ""; $("up-email").value = u.email || "";
-      setPartner("up", false); fillTravel("up", null);
+      upTravelOpen = false; $("up-travel-open").setAttribute("aria-expanded", "false"); fillTravel("up", null);
+      $("up-optional").open = false;
     }
     formOwner = u.uid;
     $("up-btn").textContent = "Save my reply";
+    syncUpTravel(); syncChoiceHint(); setSignupStep(picked("intent") ? 2 : 1, false);
   }
   function showLoaded(result, u) {
     if (!sameUser(u) || result.status === "stale" || registrationBusy) return;
@@ -899,7 +889,8 @@
       $("form-up").reset(); $("form-edit").reset(); formOwner = null;
       $("pr-line").value = ""; $("pr-song").value = ""; $("pp-line").value = ""; $("pp-song").value = "";
       $("form-edit").hidden = true;
-      setPartner("up", false); setPartner("ed", false);
+      upTravelOpen = false; $("up-travel-open").setAttribute("aria-expanded", "false");
+      $("up-optional").open = false; fillTravel("up", null); syncUpTravel(); syncChoiceHint(); setSignupStep(1, false);
       hideErr("up-err"); hideErr("ed-err"); $("pr-ok").hidden = true; $("pp-ok").hidden = true;
       busyRegistration(false);
       var seen = recalled();
@@ -912,10 +903,10 @@
   });
 
   function registrationFields() {
-    var intent = picked("intent"), partner = readPartner("up");
+    var intent = picked("intent");
     return { name: $("up-name").value.trim(), email: $("up-email").value.trim(), phone: $("up-phone").value.trim(),
       address: $("up-address").value.trim().slice(0, 300), diet: $("up-diet").value.trim().slice(0, 300), access: $("up-access").value.trim().slice(0, 300),
-      intent: intent, partner: partner, travel: nobodyComing(intent, partner) || !upTravelOpen ? null : readTravel("up") };
+      intent: intent, travel: nobodyComing(intent, null) || !upTravelOpen ? null : readTravel("up") };
   }
   function saveRegistration(u, fields) {
     if (!sameUser(u)) return Promise.resolve({ status: "stale" });
@@ -930,13 +921,13 @@
   // Account creation and the registration write are separate. A retry uses the same signed-in UID.
   $("form-up").onsubmit = function (ev) {
     ev.preventDefault(); if (registrationBusy || PREVIEW) return; hideErr("up-err");
+    if (!replyChosen()) return;
+    if (signupStep === 1) { setSignupStep(2, true); return; }
     var fields = registrationFields(), pw = $("up-pw").value, u = auth.currentUser;
-    if (!fields.name) return showErr("up-err", { message: "Tell us your name." });
-    if (!fields.email) return showErr("up-err", { message: "We need an email address." });
-    if (!u && pw.length < 6) return showErr("up-err", { code: "auth/weak-password" });
-    if (!fields.intent) return showErr("up-err", { message: "Let us know if you’re coming. ‘Not sure yet’ is fine." });
-    if (partnerMissing("up")) return showErr("up-err", { message: PARTNER_NAME });
-    if (partnerUnanswered("up")) return showErr("up-err", { message: PARTNER_INTENT });
+    if (!fields.name) return signupError("up-name", { message: "Tell us your name." });
+    if (!fields.email) return signupError("up-email", { message: "We need an email address." });
+    if (!$("up-email").checkValidity()) return signupError("up-email", { code: "auth/invalid-email" });
+    if (!u && pw.length < 6) return signupError("up-pw", { code: "auth/weak-password" });
     busyRegistration(true);
     var account = u ? Promise.resolve({ user: u }) : auth.createUserWithEmailAndPassword(fields.email, pw);
     account.then(function (cred) {
@@ -992,9 +983,7 @@
       if (registrationBusy || $("in-btn").disabled || PREVIEW) return;
       hideErr("up-err"); hideErr("in-err");
       var signingUp = !$("form-up").hidden, fields = registrationFields(), u = null;
-      if (signingUp && !fields.intent) return showErr("up-err", { message: "Let us know if you think you can come first. ‘Not sure yet’ is fine." });
-      if (signingUp && partnerMissing("up")) return showErr("up-err", { message: PARTNER_NAME });
-      if (signingUp && partnerUnanswered("up")) return showErr("up-err", { message: PARTNER_INTENT });
+      if (signingUp && !replyChosen()) return;
       busyRegistration(true);
       auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(function (res) {
         u = res.user; if (!sameUser(u)) return { status: "stale" };
@@ -1028,32 +1017,19 @@
   $("form-edit").onsubmit = function (ev) {
     ev.preventDefault(); if (editBusy || PREVIEW) return; hideErr("ed-err"); $("registration-saved").hidden = true;
     var u = auth.currentUser; if (!u || session.state().status !== "saved") return;
-    if (partnerMissing("ed")) return showErr("ed-err", { message: PARTNER_NAME });
-    if (partnerUnanswered("ed")) return showErr("ed-err", { message: PARTNER_INTENT });
-    var partner = readPartner("ed");
     var upd = { phone: $("ed-phone").value.trim(), address: $("ed-address").value.trim().slice(0, 300),
                 diet: $("ed-diet").value.trim().slice(0, 300), access: $("ed-access").value.trim().slice(0, 300), intent: picked("ed-intent") || undefined, updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                travel: nobodyComing(picked("ed-intent"), partner) ? null : readTravel("ed"), partner: partner };
+                travel: nobodyComing(picked("ed-intent"), partnerOf(current)) ? null : readTravel("ed") };
     if (!upd.intent) delete upd.intent;
     editBusy = true; $("ed-btn").disabled = true; $("ed-btn").textContent = "Saving...";
     $("form-edit").setAttribute("aria-busy", "true");
     session.save(upd).then(function (result) {
       if (!sameUser(u) || result.status !== "saved") return;
-      syncPartnerPocket(u.uid, upd.partner); render(result.record); $("form-edit").hidden = true;
+      render(result.record); $("form-edit").hidden = true;
       $("registration-saved").textContent = "Your changes are saved."; $("registration-saved").hidden = false;
     }).catch(function (e) { if (sameUser(u)) showErr("ed-err", { message: "We could not confirm your changes were saved. Your answers are still here. Try Save changes again." }); })
       .then(function () { editBusy = false; $("ed-btn").disabled = false; $("ed-btn").textContent = "Save changes"; $("form-edit").setAttribute("aria-busy", "false"); });
   };
-  // keep the partner's binder pocket in step: gone if they are removed, renamed if their name changes
-  function syncPartnerPocket(uid, pt) {
-    var ref = db.ref("public/profiles/" + uid + "-p");
-    if (!pt) { $("pp-line").value = ""; $("pp-song").value = ""; }
-    ref.once("value").then(function (s) {
-      if (!sameUser({ uid: uid }) || !s.exists()) return;
-      if (!pt) return ref.remove();
-      if ((s.val() || {}).name !== pt.name) return ref.update({ name: pt.name });
-    }).catch(function () {});
-  }
 
   // ---- public binder pocket (/public/profiles/{uid}) ----
   auth.onAuthStateChanged(function (u) {
