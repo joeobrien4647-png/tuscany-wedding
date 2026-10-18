@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#FAF6F0">
+  <meta name="theme-color" content="#f5f2e7">
   <meta name="description" content="Plan your journey to Sophie and Joe’s wedding weekend at La Conca, Sansepolcro, 28–31 May 2027.">
   <title>Getting here · Sophie &amp; Joe</title>
   <link rel="icon" href="favicon.svg">
@@ -11,8 +11,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&amp;family=Playfair+Display:wght@400;500&amp;display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/guest-journey.css">
+  <link rel="stylesheet" href="css/postcards.css">
+  <link rel="stylesheet" href="css/postcard-guides.css">
+  <script src="js/guest-navigation.js" defer></script>
+  <script src="js/postcard-guides.js" defer></script>
 </head>
-<body class="guest-page">
+<body class="guest-page postcard-page">
   <a class="guest-skip" href="#main">Skip to content</a>
   <header class="guest-header">
     <a class="guest-brand" href="index.html">Sophie &amp; Joe</a>
@@ -21,36 +25,52 @@
     </nav>
   </header>
   <main class="guest-main" id="main">
-    <section class="guest-hero" aria-labelledby="travel-title">
-      <img class="guest-hero-image" src="images/venue/hero-drone.jpg" width="1920" height="1440" alt="Stone villas and green hills at La Conca" fetchpriority="high">
-      <div class="guest-hero-copy">
-        <p class="guest-kicker">Tuscany · 28–31 May 2027</p>
-        <h1 id="travel-title">Getting here</h1>
+    <section class="travel-postcard" aria-labelledby="travel-title">
+      <figure class="travel-photo"><img src="images/postcards/valley-960.webp" srcset="images/postcards/valley-480.webp 480w, images/postcards/valley-960.webp 960w, images/postcards/valley-1440.webp 1440w" sizes="(max-width: 700px) calc(100vw - 48px), 50vw" width="1600" height="1064" alt="The Tuscan hills and fields around Sansepolcro" fetchpriority="high" decoding="async"><figcaption>Our destination: La Conca, Sansepolcro</figcaption></figure>
+      <div class="travel-copy">
+        <p class="guide-dateline">Tuscany <span>28–31 May 2027</span></p>
+        <h1 id="travel-title">See you in Tuscany.</h1>
         <p class="guest-lede">A little planning now, a long weekend together later.</p>
         <p>We’re getting married on Saturday 29 May 2027 at La Conca, near Sansepolcro in Tuscany.</p>
       </div>
     </section>
-    <div class="guest-notice"><strong>Before you book the final part</strong><p>Check-in and check-out times, the final approach and any shared transfers are still to be confirmed. We’ll share your villa and final arrival instructions nearer the weekend.</p></div>
-    <section class="guest-section" aria-labelledby="flights-title">
-      <p class="guest-kicker">Planning your trip</p>
+    <div class="guide-note"><strong>Before you book the final part</strong><p>Check-in and check-out times, the final approach and any shared transfers are still to be confirmed. We’ll share your villa and final arrival instructions nearer the weekend.</p></div>
+    <section class="route-planner" data-route-planner aria-labelledby="route-title" hidden>
+      <div class="route-heading"><h2 id="route-title">Your way here.</h2><p>Choose your airport and how you’ll travel onwards for a short planning guide.</p></div>
+      <form data-route-form novalidate>
+        <div class="route-fields">
+          <div class="guest-field"><label for="route-airport">I’m flying to</label><select id="route-airport" name="airport" required aria-describedby="route-status"><option value="">Choose an airport</option><option value="perugia">Perugia (PEG)</option><option value="florence">Florence (FLR)</option><option value="bologna">Bologna (BLQ)</option><option value="pisa">Pisa (PSA)</option></select></div>
+          <div class="guest-field"><label for="route-transport">From the airport</label><select id="route-transport" name="transport" required aria-describedby="route-status"><option value="">Choose how to travel</option><option value="car">With a car</option><option value="no-car">Without a car</option></select></div>
+          <button type="submit" class="guest-button">Show my route</button>
+        </div>
+        <p class="guest-status" id="route-status" role="status" aria-live="polite" aria-atomic="true"></p>
+      </form>
+      <section class="route-result" data-route-result aria-labelledby="route-result-title" hidden>
+        <h3 id="route-result-title"></h3>
+        <div class="route-result-steps"><div data-route-airport-result></div><div data-route-transport-result></div></div>
+        <p class="route-final-note">Your final villa, check-in time and any shared transfers will follow. <a href="#villas-title">See the villa planning links</a>.</p>
+      </section>
+    </section>
+    <details class="route-comparison" data-route-comparison hidden><summary>Compare every airport and transport option</summary></details>
+    <section class="guest-section airport-options" data-route-airports aria-labelledby="flights-title">
       <h2 id="flights-title">Compare flights and the onward journey</h2>
       <p>Perugia, Florence, Bologna and Pisa are options to compare for your dates. Look at the whole journey to Sansepolcro, including car hire or public transport and the final trip to your villa. Check current flight availability and operator timetables before booking.</p>
       <div class="guest-grid">
-        <article class="guest-card"><h3>Perugia · PEG</h3><p>Compare the flights that suit you, then plan your onward journey to Sansepolcro.</p><a class="guest-link" href="https://www.airport.umbria.it/en/transportation/" target="_blank" rel="noopener noreferrer">Perugia airport transport ↗</a></article>
-        <article class="guest-card"><h3>Florence · FLR</h3><p>A possible starting point if you’re spending extra time in Florence. Allow for the journey onwards to Sansepolcro.</p><a class="guest-link" href="https://www.aeroporto.firenze.it/en/" target="_blank" rel="noopener noreferrer">Florence airport information ↗</a></article>
-        <article class="guest-card"><h3>Bologna · BLQ</h3><p>Compare your flight options alongside the onward drive or public transport connections.</p><a class="guest-link" href="https://www.bologna-airport.it/en/" target="_blank" rel="noopener noreferrer">Bologna airport information ↗</a></article>
-        <article class="guest-card"><h3>Pisa · PSA</h3><p>Another airport to check if the flights work well for you. Include the onward journey in your plans.</p><a class="guest-link" href="https://www.pisa-airport.com/en/" target="_blank" rel="noopener noreferrer">Pisa airport information ↗</a></article>
+        <article class="guest-card" data-airport-guidance="perugia" data-route-label="Perugia"><h3>Perugia · PEG</h3><p>Compare the flights that suit you, then plan your onward journey to Sansepolcro.</p><a class="guest-link" href="https://www.airport.umbria.it/en/transportation/" target="_blank" rel="noopener noreferrer">Perugia airport transport ↗</a></article>
+        <article class="guest-card" data-airport-guidance="florence" data-route-label="Florence"><h3>Florence · FLR</h3><p>A possible starting point if you’re spending extra time in Florence. Allow for the journey onwards to Sansepolcro.</p><a class="guest-link" href="https://www.aeroporto.firenze.it/en/" target="_blank" rel="noopener noreferrer">Florence airport information ↗</a></article>
+        <article class="guest-card" data-airport-guidance="bologna" data-route-label="Bologna"><h3>Bologna · BLQ</h3><p>Compare your flight options alongside the onward drive or public transport connections.</p><a class="guest-link" href="https://www.bologna-airport.it/en/" target="_blank" rel="noopener noreferrer">Bologna airport information ↗</a></article>
+        <article class="guest-card" data-airport-guidance="pisa" data-route-label="Pisa"><h3>Pisa · PSA</h3><p>Another airport to check if the flights work well for you. Include the onward journey in your plans.</p><a class="guest-link" href="https://www.pisa-airport.com/en/" target="_blank" rel="noopener noreferrer">Pisa airport information ↗</a></article>
       </div>
     </section>
-    <section class="guest-section" aria-labelledby="onward-title">
+    <section class="guest-section onward-options" data-route-transports aria-labelledby="onward-title">
       <h2 id="onward-title">The onward journey</h2>
       <div class="guest-grid">
-        <article class="guest-card"><h3>With a car</h3><p>Use Sansepolcro as a planning destination, then check the named villa links below once your villa is confirmed. Allow time for the final approach; follow the arrival instructions we’ll share.</p><a class="guest-link" href="https://www.google.com/maps/search/?api=1&amp;query=Sansepolcro%20Italy" target="_blank" rel="noopener noreferrer">Find Sansepolcro in Maps ↗</a></article>
-        <article class="guest-card"><h3>Without a car</h3><p>Compare trains to Arezzo and check bus connections towards Sansepolcro. You’ll also need to arrange the final taxi or lift to your villa. Shared wedding transfers are still to be confirmed.</p><ul class="guest-link-list"><li><a href="https://www.trenitalia.com/en.html" target="_blank" rel="noopener noreferrer">Check trains with Trenitalia ↗</a></li><li><a href="https://www.at-bus.it/it" target="_blank" rel="noopener noreferrer">Check buses with Autolinee Toscane ↗</a></li></ul></article>
+        <article class="guest-card" data-transport-guidance="car" data-route-label="with a car"><h3>With a car</h3><p>Use Sansepolcro as a planning destination, then check the named villa links below once your villa is confirmed. Allow time for the final approach; follow the arrival instructions we’ll share.</p><a class="guest-link" href="https://www.google.com/maps/search/?api=1&amp;query=Sansepolcro%20Italy" target="_blank" rel="noopener noreferrer">Find Sansepolcro in Maps ↗</a></article>
+        <article class="guest-card" data-transport-guidance="no-car" data-route-label="without a car"><h3>Without a car</h3><p>Compare trains to Arezzo and check bus connections towards Sansepolcro. You’ll also need to arrange the final taxi or lift to your villa. Shared wedding transfers are still to be confirmed.</p><ul class="guest-link-list"><li><a href="https://www.trenitalia.com/en.html" target="_blank" rel="noopener noreferrer">Check trains with Trenitalia ↗</a></li><li><a href="https://www.at-bus.it/it" target="_blank" rel="noopener noreferrer">Check buses with Autolinee Toscane ↗</a></li></ul></article>
       </div>
     </section>
-    <section class="guest-section" aria-labelledby="villas-title">
-      <p class="guest-kicker">The last part of the journey</p><h2 id="villas-title">Find your named villa</h2>
+    <section class="guest-section villa-directions" aria-labelledby="villas-title">
+      <h2 id="villas-title">The last part of the journey.</h2>
       <p>These links help you plan. They do not confirm your accommodation or replace our final villa arrival instructions. The estate contact address is not a verified villa entrance.</p>
       <div class="guest-grid">
         <article class="guest-card"><h3>Villa Santarsa</h3><ul class="guest-link-list"><li><a href="https://www.google.com/maps/search/?api=1&amp;query=Villa%20Santarsa%20La%20Conca%20Sansepolcro" target="_blank" rel="noopener noreferrer">Plan with Santarsa in Maps ↗</a></li><li><a href="https://laconca.it/en/villas-with-private-pool/villa-santarsa/" target="_blank" rel="noopener noreferrer">La Conca’s Santarsa information ↗</a></li></ul></article>

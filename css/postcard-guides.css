@@ -1,0 +1,80 @@
+/* A dated photo album for the weekend; a planning sheet for the journey. */
+.postcard-page .guide-heading { max-width: 820px; padding-block: clamp(2rem, 5vw, 4.5rem) 1.6rem; }
+.postcard-page .guide-heading h1 { max-width: 14ch; font-size: clamp(3rem, 7vw, 5.5rem); }
+.guide-dateline { display: flex; flex-wrap: wrap; gap: .3rem 1.5rem; color: #43768a; font-size: .95rem; }
+.guide-dateline span { color: #233f34; }
+.postcard-page .guide-section-title { font: 700 1rem/1.5 'Lato', 'Segoe UI', sans-serif; margin-bottom: .8rem; }
+.weekend-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .4rem; }
+.postcard-page .weekend-tabs a { display: flex; flex-direction: column; justify-content: center; min-height: 66px; padding: .75rem .4rem; color: #233f34; text-align: center; text-decoration: none; background: #e2e8d5; border: 1px solid transparent; border-bottom: 0; border-radius: 6px 6px 0 0; font-weight: 700; }
+.postcard-page .weekend-tabs a:hover { background: #f3d567; }
+.postcard-page .weekend-tabs [aria-selected="true"] { background: #233f34; color: #fffdf7; }
+.weekend-tab-date { display: block; font-size: .82rem; font-weight: 400; }
+.weekend-chapter { display: grid; grid-template-columns: 1.2fr 1fr; gap: clamp(1.5rem, 4vw, 3rem); padding: clamp(.8rem, 2vw, 1.25rem); background: #fffdf7; border: 1px solid #d1d8c5; margin-bottom: 1.5rem; scroll-margin-top: 1rem; }
+.chapter-photo, .travel-photo { margin: 0; min-width: 0; }
+.chapter-photo img { display: block; width: 100%; height: 100%; max-height: 560px; min-height: 300px; object-fit: cover; }
+.chapter-photo { display: grid; grid-template-rows: minmax(0, 1fr) auto; }
+.chapter-photo figcaption, .travel-photo figcaption { padding: .75rem .2rem .15rem; color: #43768a; font: italic .95rem/1.4 Georgia, serif; }
+.chapter-copy { align-self: center; padding: 1.5rem 1rem 1.5rem 0; }
+.postcard-page .chapter-date { color: #43768a; margin-bottom: .6rem; font-size: .9rem; }
+.postcard-page .chapter-copy h3 { font-size: clamp(2rem, 3.4vw, 2.8rem); }
+.chapter-intro { font-size: 1.1rem; }
+.chapter-details { margin: 1.5rem 0 .7rem; }
+.chapter-details > div { padding: .65rem 0; border-top: 1px solid #d1d8c5; }
+.chapter-details dt { font-size: .8rem; color: #43768a; font-weight: 700; }
+.chapter-details dd { margin: .15rem 0 0; font-size: .95rem; }
+.guide-note { border-left: 3px solid #43768a; padding: .4rem 0 .4rem 1.1rem; margin-block: 2rem; max-width: 76ch; }
+.guide-note p:last-child { margin-bottom: 0; }
+.guide-update { display: grid; grid-template-columns: 1fr 2.2fr; gap: 2rem; border-top: 1px solid #b6c2a8; padding-top: 2rem; }
+.guide-update-date { display: flex; flex-direction: column; color: #43768a; font-size: .9rem; }
+.guide-update-date span { margin-top: .5rem; font: italic 1.3rem Georgia, serif; color: #233f34; }
+.postcard-page .guide-update h3 { font: 700 1.1rem/1.5 'Lato', 'Segoe UI', sans-serif; }
+.travel-postcard { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(1.5rem, 4vw, 3rem); align-items: center; padding-block: 2.5rem 1rem; }
+.travel-photo { background: #fffdf7; border: 1px solid #d1d8c5; padding: .65rem .65rem .5rem; transform: rotate(-1.5deg); }
+.travel-photo img { display: block; width: 100%; height: auto; aspect-ratio: 1.15; object-fit: cover; }
+.travel-copy h1 { max-width: 11ch; }
+.route-planner { margin-block: 3rem 1.25rem; border-top: 3px solid #233f34; padding-top: 1.5rem; }
+.route-heading { display: grid; grid-template-columns: 1fr 1.2fr; gap: 1.5rem; align-items: center; }
+.route-fields { display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; align-items: end; padding: 1.5rem; background: #e2e8d5; }
+.route-fields .guest-field { margin: 0; }
+.route-fields .guest-button { min-height: 51px; }
+.route-result { margin-top: 1rem; padding: clamp(1.25rem, 3vw, 2rem); background: #fffdf7; border: 1px solid #b6c2a8; }
+.postcard-page .route-result > h3 { font-size: 1.7rem; padding-bottom: .8rem; border-bottom: 1px solid #b6c2a8; }
+.route-result-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.postcard-page .route-result .guest-card { padding: 0; border: 0; background: transparent; }
+.postcard-page .route-result .guest-card h3 { font: 700 1.1rem/1.5 'Lato', 'Segoe UI', sans-serif; }
+.route-final-note { padding-top: 1rem; margin-top: 1rem; border-top: 1px solid #d1d8c5; font-size: .9rem; }
+.postcard-page .route-final-note:last-child { margin-bottom: 0; }
+.route-comparison { border-block: 1px solid #b6c2a8; }
+.route-comparison summary { padding: 1rem 0; min-height: 48px; cursor: pointer; font-weight: 700; }
+.route-comparison .guest-section { margin: 1.5rem 0 2rem; }
+.postcard-page :is(.airport-options, .onward-options, .villa-directions) .guest-card { background: transparent; border: 0; border-top: 1px solid #b6c2a8; padding: 1.25rem 0; border-radius: 0; }
+.postcard-page :is(.airport-options, .onward-options, .villa-directions) .guest-grid { gap: 1rem 2.5rem; }
+.villa-directions > h2 { scroll-margin-top: 2rem; }
+@media (max-width: 700px) {
+  .weekend-chapter, .travel-postcard, .route-heading, .route-result-steps, .guide-update { grid-template-columns: minmax(0, 1fr); }
+  .weekend-chapter { gap: .5rem; }
+  .chapter-photo img { min-height: 0; aspect-ratio: 1.5; height: auto; }
+  .chapter-copy { padding: 1rem .5rem; }
+  .weekend-tabs { gap: .2rem; }
+  .postcard-page .weekend-tabs a { font-size: .83rem; }
+  .weekend-tab-date { font-size: .76rem; }
+  .travel-postcard { padding-top: 1.25rem; gap: 1.5rem; }
+  .travel-photo img { aspect-ratio: 1.7; }
+  .travel-copy h1 { max-width: 13ch; }
+  .route-heading { gap: 0; }
+  .route-fields { grid-template-columns: minmax(0, 1fr); padding: 1rem; }
+  .route-fields .guest-button { width: 100%; }
+  .guide-update { gap: 1rem; }
+  .guide-update-date { flex-direction: row; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; }
+  .guide-update-date span { margin: 0; }
+}
+@media print {
+  .postcard-page [data-weekend-panel][hidden] { display: block !important; }
+  .postcard-page .weekend-chapter { display: block; break-inside: avoid; border: 0; padding: 0; margin: 1rem 0; }
+  .weekend-tabs, .chapter-photo, .travel-photo, .route-fields, #route-status, .route-comparison > summary { display: none !important; }
+  .guide-heading, .chapter-copy, .travel-postcard, .route-planner { padding: 0; }
+  .travel-postcard, .route-heading, .route-result-steps { display: block; }
+  .postcard-page .route-comparison { display: block; border: 0; }
+  .route-comparison > .guest-section { display: block; }
+  .guide-note { margin-block: 1rem; }
+}
