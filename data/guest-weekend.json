@@ -1,0 +1,29 @@
+{
+  "schema": "guest-weekend@1",
+  "updated": "2026-10-18",
+  "updateKind": "website-guides-launch",
+  "weekend": {
+    "startDate": "2027-05-28",
+    "endDate": "2027-05-31",
+    "weddingDate": "2027-05-29",
+    "location": "La Conca, Sansepolcro, Tuscany, Italy",
+    "calendar": "tuscany-2027.ics"
+  },
+  "pending": ["final timings", "check-in and check-out times", "final villa entrance", "villa and room allocations", "shared transfers", "step-free routes and suitable bathrooms"],
+  "days": [
+    {"date": "2027-05-28", "label": "Arrival day", "status": "timings-pending"},
+    {"date": "2027-05-29", "label": "Our wedding", "status": "timings-pending"},
+    {"date": "2027-05-30", "label": "Time together", "status": "plans-pending"},
+    {"date": "2027-05-31", "label": "Heading home", "status": "timings-pending"}
+  ],
+  "villas": [
+    {"name": "Villa Santarsa", "planningMap": "https://www.google.com/maps/search/?api=1&query=Villa%20Santarsa%20La%20Conca%20Sansepolcro", "source": "https://laconca.it/en/villas-with-private-pool/villa-santarsa/"},
+    {"name": "Villa Vallorsaia", "planningMap": "https://www.google.com/maps/search/?api=1&query=Villa%20Vallorsaia%20La%20Conca%20Sansepolcro", "source": "https://laconca.it/en/villas-with-private-pool/villa-vallorsaia/"}
+  ],
+  "sourceNotes": [
+    "Dates approved by Sophie and Joe; existing calendar retained with exclusive end date 2027-06-01.",
+    "Villa planning links and arrival caveats carried from estate-phone-preview/dist/data/arrival-guide.json, verified 2026-10-06. No exact entrance is verified.",
+    "18 October is the website guide publication update, not confirmation of a final programme.",
+    "Travel operator links are for checking current services, not a guarantee of May 2027 availability or prices."
+  ]
+}

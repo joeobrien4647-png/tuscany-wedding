@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Private contributions · Sophie &amp; Joe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/guest-journey.css">
+</head>
+<body class="guest-page">
+  <a class="guest-skip" href="#main">Skip to content</a>
+  <header class="guest-header">
+    <a class="guest-brand" href="index.html">Sophie &amp; Joe</a>
+    <nav class="guest-nav" aria-label="Weekend navigation">
+      <a href="index.html#card">My weekend</a><a href="getting-here.html">Travel</a><a href="weekend-guide.html">Programme</a><a href="join-in.html">Join in</a>
+    </nav>
+  </header>
+  <main class="guest-main" id="main">
+    <section class="guest-section">
+      <p class="guest-kicker">Organisers only</p>
+      <h1>Private contributions</h1>
+      <p class="guest-lede">Song requests and memories sent just to you. Check with the guest before sharing a memory.</p>
+      <p>Contributions load on request, in batches of up to 20 guest records. This view shows sender names, contribution text and save dates.</p>
+      <p id="inbox-status" class="guest-status" role="status" aria-live="polite">Checking organiser access…</p>
+      <div class="guest-actions">
+        <a id="inbox-signin" class="guest-button" href="index.html?signin=1&amp;next=guest-inbox.html#auth" hidden>Sign in</a>
+        <button id="inbox-retry" class="guest-button" type="button" hidden>Check access again</button>
+      </div>
+      <noscript><p>Please enable JavaScript to check organiser access.</p></noscript>
+    </section>
+    <div id="inbox-items" class="guest-grid"></div>
+    <div class="guest-actions"><button id="inbox-load" class="guest-button" type="button" hidden>Load contributions</button></div>
+    <p><a class="guest-link" href="index.html">Back to the wedding website</a></p>
+  </main>
+  <footer class="guest-footer">Sophie &amp; Joe · Tuscany · 28–31 May 2027</footer>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="js/guest-inbox.js"></script>
+</body>
+</html>

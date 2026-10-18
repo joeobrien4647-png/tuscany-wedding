@@ -175,15 +175,31 @@
     .p-reveal { opacity: 1; transform: none; transition: none; }
   }
   [hidden] { display: none !important; }
+  .p-card input, .p-card select, .p-card textarea { font-size: 16px; min-height: 44px; }
+  .p-card button, .p-top button, .p-card summary { min-height: 44px; }
+  .p-card a.p-link { display: inline-flex; align-items: center; min-height: 44px; }
+  .p-card details { margin: 16px 0; border-top: 1px solid rgba(44,44,44,.15); padding-top: 8px; }
+  .p-card summary { cursor: pointer; display: list-item; padding-top: 12px; box-sizing: border-box; color: var(--color-olive); }
+  .p-card :focus-visible, .p-top :focus-visible { outline: 3px solid var(--color-terracotta); outline-offset: 3px; }
+  .p-card dd { min-width: 0; overflow-wrap: anywhere; }
+  .guest-home > .guest-nav { justify-content: center; padding: 4px 12px; }
+  .p-card .p-intent span { min-height: 44px; box-sizing: border-box; }
+  .p-card .guest-actions { margin: 16px 0; }
+  .p-card .guest-actions a, .p-card .guest-actions button { min-height: 44px; }
 </style>
+<link rel="stylesheet" href="css/guest-journey.css">
 </head>
-<body>
+<body class="guest-home">
 <script src="js/intro.js" data-enabled="false"></script>
 
+<a class="guest-skip" href="#card">Skip to My weekend</a>
 <div class="p-top">
   <a class="p-mark" href="index.html">S &amp; J</a>
   <button id="signout" hidden>Sign out</button>
 </div>
+<nav class="guest-nav" aria-label="Guest navigation">
+  <a href="index.html#card" aria-current="page">My weekend</a><a href="getting-here.html">Travel</a><a href="weekend-guide.html">Programme</a><a href="join-in.html">Join in</a>
+</nav>
 
 <header class="p-hero">
   <div class="p-kicker">Fri 28 to Mon 31 May 2027 &nbsp;&middot;&nbsp; Sansepolcro, Tuscany</div>
@@ -199,15 +215,21 @@
 </header>
 
 <main class="p-card" id="card">
-  <div id="loading" style="text-align:center;color:var(--color-warm-gray);font-size:13px;padding:20px 0">One moment&hellip;</div>
+  <div role="status" id="loading" style="text-align:center;color:var(--color-warm-gray);font-size:13px;padding:20px 0">One moment&hellip;</div>
 
+  <section id="registration-recovery" hidden aria-labelledby="recovery-heading">
+    <h2 id="recovery-heading">Your reply could not load</h2>
+    <p role="alert">We could not check your saved details. Try again before making changes.</p>
+    <button class="p-primary" id="registration-retry" type="button">Try loading again</button>
+  </section>
   <!-- ===== sign up / sign in ===== -->
   <section id="auth" hidden>
-    <div class="p-tabs" role="tablist">
-      <button role="tab" id="tab-up" aria-selected="true">Register</button>
-      <button role="tab" id="tab-in" aria-selected="false">Sign in</button>
+    <div class="p-tabs" aria-label="Account options">
+      <button type="button" id="tab-up" aria-pressed="true">Register</button>
+      <button type="button" id="tab-in" aria-pressed="false">Sign in</button>
     </div>
 
+    <p class="p-msg" id="completion-note" role="status" hidden></p>
     <form id="form-up" novalidate>
       <label for="up-name">Your name</label>
       <input id="up-name" type="text" autocomplete="name" required placeholder="First and last name">
@@ -225,8 +247,9 @@
       </fieldset>
       <button class="p-link p-more" type="button" id="up-partner-open" aria-expanded="false" aria-controls="up-partner">Coming with someone? Add them</button>
       <div class="p-travel p-partner" id="up-partner" hidden></div>
-      <label for="up-pw">Choose a password</label>
-      <input id="up-pw" type="password" autocomplete="new-password" required minlength="6">
+      <div id="password-row"><label for="up-pw">Choose a password</label>
+      <input id="up-pw" type="password" autocomplete="new-password" required minlength="6" aria-describedby="password-hint"><p class="p-hint" id="password-hint">At least 6 characters. You can sign in to update your reply later.</p></div>
+      <details id="up-optional"><summary>Optional details: food, access and contact</summary>
       <label for="up-phone">Mobile</label>
       <input id="up-phone" type="tel" autocomplete="tel" placeholder="Optional, but handy for the weekend">
       <label for="up-address">Postal address</label>
@@ -235,9 +258,10 @@
       <input id="up-diet" type="text" maxlength="300" placeholder="Optional. Allergies, vegetarian, coeliac, that kind of thing.">
       <label for="up-access">Anything that would make the weekend easier?</label>
       <input id="up-access" type="text" maxlength="300" placeholder="Optional. A ground-floor room, fewer steps, anything at all.">
+      </details>
       <button class="p-link p-more" type="button" id="up-travel-open" aria-expanded="false" aria-controls="up-travel">Booked already? Add your travel</button>
       <div class="p-travel" id="up-travel" tabindex="-1" hidden></div>
-      <div class="p-msg p-err" id="up-err" hidden></div>
+      <div role="alert" class="p-msg p-err" id="up-err" hidden></div>
       <button class="p-primary" id="up-btn" type="submit">Register</button>
       <div class="p-or">or</div>
       <button class="p-google" type="button" data-google>
@@ -252,7 +276,7 @@
       <input id="in-email" type="email" autocomplete="email" required>
       <label for="in-pw">Password</label>
       <input id="in-pw" type="password" autocomplete="current-password" required>
-      <div class="p-msg p-err" id="in-err" hidden></div>
+      <div role="alert" class="p-msg p-err" id="in-err" hidden></div>
       <button class="p-primary" id="in-btn" type="submit">Sign in</button>
       <button class="p-link" type="button" id="forgot">Forgotten your password?</button>
       <div class="p-msg p-ok" id="in-ok" hidden></div>
@@ -266,8 +290,15 @@
 
   <!-- ===== registered ===== -->
   <section id="done" class="p-done" hidden>
-    <h2>Lovely, you&rsquo;re in</h2>
-    <p>Thank you. That&rsquo;s all we need for now. The rest of the site opens up nearer the time and we&rsquo;ll give you a shout when it does.</p>
+    <h2>My weekend</h2>
+    <p id="weekend-summary"></p>
+    <div class="p-msg p-ok" id="registration-saved" role="status" hidden>Your reply is saved.</div>
+    <div class="guest-actions" aria-label="Your next steps">
+      <button class="p-link" type="button" id="reply-action">Update your reply</button>
+      <button class="p-link" type="button" id="travel-action">Add or update travel</button>
+      <a href="getting-here.html">Plan your journey</a><a href="weekend-guide.html">See the programme</a><a href="join-in.html">Share a song or memory</a>
+    </div>
+    <p id="stay-summary">Three nights at the villa, Friday 28 to Monday 31 May. Final room and arrival details will follow.</p>
     <p class="p-cal">Pop it in your calendar: <a href="tuscany-2027.ics" download>Apple or Outlook</a> &middot; <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Sophie+%26+Joe%2C+Tuscany&amp;dates=20270528/20270601&amp;location=Agriturismo+La+Conca%2C+Sansepolcro%2C+Italy&amp;details=Friday+28+to+Monday+31+May.+The+wedding+is+Saturday+29+May.+https%3A%2F%2Fsophieandjoe2027.com" target="_blank" rel="noopener">Google</a></p>
     <p class="p-open" id="open" hidden></p>
     <dl>
@@ -308,8 +339,8 @@
       </div>
       <button class="p-link p-more" type="button" id="ed-partner-open" aria-expanded="false" aria-controls="ed-partner">Coming with someone? Add them</button>
       <div class="p-travel p-partner" id="ed-partner" hidden></div>
-      <div class="p-msg p-err" id="ed-err" hidden></div>
-      <button class="p-primary" type="submit">Save</button>
+      <div role="alert" class="p-msg p-err" id="ed-err" hidden></div>
+      <button class="p-primary" id="ed-btn" type="submit">Save changes</button>
     </form>
 
     <div class="p-pay" id="pay" hidden>
@@ -326,7 +357,7 @@
       <p class="p-small" id="pay-two">We tick it off at our end and it will show here once we have.</p>
       <button class="p-sent" type="button" id="pay-sent">I&rsquo;ve sent it</button>
       <div class="p-msg p-ok" id="pay-sent-ok" hidden>Thank you for sending it. We&rsquo;ll tick it off here when it lands.</div>
-      <div class="p-msg p-err" id="pay-err" hidden></div>
+      <div role="alert" class="p-msg p-err" id="pay-err" hidden></div>
       <div class="p-msg p-ok" id="pay-done" hidden>Received, thank you. That&rsquo;s your bed sorted.</div>
     </div>
 
@@ -338,7 +369,7 @@
         <input id="pr-line" type="text" maxlength="120" placeholder="How you know us, or anything you like">
         <label for="pr-song">Your one song</label>
         <input id="pr-song" type="text" maxlength="120" placeholder="Title, by Artist">
-        <div class="p-msg p-err" id="pr-err" hidden></div>
+        <div role="alert" class="p-msg p-err" id="pr-err" hidden></div>
         <div class="p-msg p-ok" id="pr-ok" hidden></div>
         <button class="p-primary" type="submit">Save my pocket</button>
       </form>
@@ -349,7 +380,7 @@
         <input id="pp-line" type="text" maxlength="120" placeholder="How they know us, or anything you like">
         <label for="pp-song">Their one song</label>
         <input id="pp-song" type="text" maxlength="120" placeholder="Title, by Artist">
-        <div class="p-msg p-err" id="pp-err" hidden></div>
+        <div role="alert" class="p-msg p-err" id="pp-err" hidden></div>
         <div class="p-msg p-ok" id="pp-ok" hidden></div>
         <button class="p-primary" type="submit">Save their pocket</button>
       </form>
@@ -424,7 +455,7 @@
   <h3>What happens next</h3>
   <ul>
     <li><b>By 28 February 2027:</b> register above and tell us whether you&rsquo;re coming.</li>
-    <li><b>Nearer the time:</b> the full site opens: travel, which villa you&rsquo;re in, who you can share a lift with.</li>
+    <li><b>Available now:</b> <a href="getting-here.html">travel planning</a> and the <a href="weekend-guide.html">weekend guide</a>. Villa allocations and final arrangements will follow nearer the time.</li>
     <li><b>Whenever suits:</b> the &pound;150 for your bed. The bank details are on your page once you&rsquo;ve said you&rsquo;re coming.</li>
   </ul>
 </section>
@@ -434,6 +465,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+<script src="js/guest-registration.js"></script>
 <script>
 (function () {
   firebase.initializeApp({
@@ -442,6 +474,14 @@
     projectId: "tuscany-wedding"
   });
   var auth = firebase.auth(), db = firebase.database();
+  var session = GuestRegistration.createSession(auth, db), registrationBusy = false, editBusy = false, formOwner = null;
+  var screenVersion = 0, authUid = null, paymentOperation = 0;
+  var entryParams = new URLSearchParams(location.search);
+  var nextPage = ["join-in.html", "guest-inbox.html"].indexOf(entryParams.get("next")) >= 0 ? entryParams.get("next") : "";
+  function continueToNext(reg) {
+    if (!PREVIEW && nextPage && reg.name && ["yes", "maybe", "no"].indexOf(reg.intent) >= 0) location.assign(nextPage);
+  }
+  function sameUser(u) { return !!(u && auth.currentUser && auth.currentUser.uid === u.uid); }
   var $ = function (id) { return document.getElementById(id); };
   var INTENT = { yes: "Yes, coming", maybe: "Not sure yet", no: "Can’t make it" };
 
@@ -478,7 +518,7 @@
 
   // ---- tabs ----
   function showTab(up) {
-    $("tab-up").setAttribute("aria-selected", up); $("tab-in").setAttribute("aria-selected", !up);
+    $("tab-up").setAttribute("aria-pressed", up); $("tab-in").setAttribute("aria-pressed", !up);
     $("form-up").hidden = !up; $("form-in").hidden = up;
   }
   $("tab-up").onclick = function () { showTab(true); };
@@ -652,12 +692,14 @@
   function render(reg) {
     $("loading").hidden = true;
     var has = !!reg;
-    if (has && !$("auth").hidden) {
-      $("auth").classList.add("p-swap-out");
-      setTimeout(function () { $("auth").classList.remove("p-swap-out"); $("auth").hidden = true; $("done").hidden = false; }, 330);
-    } else { $("auth").hidden = has; $("done").hidden = !has; }
-    $("signout").hidden = !has;
-    if (!has) return;
+    screenVersion++;
+    $("registration-recovery").hidden = true;
+    $("auth").hidden = has; $("done").hidden = !has;
+    $("signout").hidden = !auth.currentUser;
+    if (!has) { current = null; $("pay").hidden = true; return; }
+    var declined = nobodyComing(reg.intent, partnerOf(reg));
+    $("weekend-summary").textContent = declined ? "Your reply is saved. We will miss you, and you can update it here if plans change." : reg.intent === "yes" ? "Your reply is saved. We cannot wait to see you in Tuscany, 28 to 31 May 2027." : "Your reply is saved as not sure yet. Let us know by 28 February 2027 when you can.";
+    $("travel-action").hidden = declined; $("stay-summary").hidden = declined;
     $("d-name").textContent = reg.name || "";
     $("d-email").textContent = reg.email || "";
     $("d-phone").textContent = reg.phone || "not given";
@@ -686,6 +728,7 @@
     fillPartner("ed", pt);
     showPay(reg);
     if (!reg.intent) $("form-edit").hidden = false;
+    continueToNext(reg);
   }
 
   // ---- sections opened from the dashboard (/public/config) get a link here ----
@@ -734,7 +777,9 @@
     }
     if (PREVIEW) return paint({ accountName: "Sample Name", sortCode: "00-00-00", accountNumber: "00000000" }, false, false);
     var u = auth.currentUser; if (!u) { box.hidden = true; return; }
+    var paymentVersion = screenVersion;
     Promise.all([db.ref("members/payment").once("value"), db.ref("payments/" + u.uid).once("value")]).then(function (s) {
+      if (!sameUser(u) || paymentVersion !== screenVersion) return;
       // payments/{uid}.heads says how many people a payment covered (older ticks without it covered everyone)
       var p = s[1].val() || {}, paidN = p.paid === true ? (typeof p.heads === "number" ? p.heads : n) : 0, owe = Math.max(0, n - paidN);
       if (paidN && owe) {
@@ -746,7 +791,7 @@
       }
       var sent = !!reg.paymentSent && (!paidN || (typeof reg.paymentSent === "number" && reg.paymentSent > (p.paidAt || 0)));
       paint(s[0].val() || {}, paidN > 0 && owe === 0, sent);
-    }).catch(function () { box.hidden = true; });
+    }).catch(function () { if (sameUser(u) && paymentVersion === screenVersion) box.hidden = true; });
   }
   function copyText(t, ok) {
     function fallback() {
@@ -778,11 +823,14 @@
     };
   });
   $("pay-sent").onclick = function () {
-    var u = auth.currentUser, btn = $("pay-sent"); if (PREVIEW || !u) return;
+    var u = auth.currentUser, btn = $("pay-sent"); if (PREVIEW || !u || btn.disabled) return;
+    var operation = ++paymentOperation;
     btn.disabled = true; hideErr("pay-err");
     db.ref("registrations/" + u.uid).update({ paymentSent: firebase.database.ServerValue.TIMESTAMP }).then(function () {
+      if (!sameUser(u) || operation !== paymentOperation) return;
+      if (current) current.paymentSent = Date.now();
       btn.disabled = false; btn.hidden = true; $("pay-sent-ok").hidden = false;
-    }).catch(function (e) { btn.disabled = false; showErr("pay-err", e); });
+    }).catch(function (e) { if (sameUser(u) && operation === paymentOperation) { btn.disabled = false; showErr("pay-err", e); } });
   };
 
   var PREVIEW = /[?&]preview=done/.test(location.search);
@@ -795,57 +843,122 @@
     $("done").insertAdjacentHTML("afterbegin", '<div class="p-msg">Preview with sample data. Nothing on this page is saved.</div>');
     document.querySelectorAll("#done button.p-primary, #pay-sent").forEach(function (b) { b.disabled = true; });
   }
+  function busyRegistration(busy) {
+    registrationBusy = busy;
+    $("up-btn").disabled = busy; $("in-btn").disabled = busy;
+    $("form-up").setAttribute("aria-busy", busy);
+    $("up-btn").textContent = busy ? "Saving your reply..." : auth.currentUser ? "Save my reply" : "Register";
+    document.querySelectorAll("[data-google]").forEach(function (b) { b.disabled = busy; });
+  }
+  function completeReply(u, retain) {
+    render(null); showTab(true);
+    $("completion-note").textContent = "Signed in as " + (u.email || "your account") + ". Finish your reply below, then save.";
+    $("completion-note").hidden = false; $("password-row").hidden = true;
+    $("up-email").readOnly = true; $("up-email").value = u.email || "";
+    $("tab-up").textContent = "Complete your reply"; $("tab-in").hidden = true;
+    document.querySelectorAll("[data-google], .p-or").forEach(function (el) { el.hidden = true; });
+    if (!retain && formOwner !== u.uid) {
+      $("form-up").reset(); $("up-name").value = u.displayName || ""; $("up-email").value = u.email || "";
+      setPartner("up", false); fillTravel("up", null);
+    }
+    formOwner = u.uid;
+    $("up-btn").textContent = "Save my reply";
+  }
+  function showLoaded(result, u) {
+    if (!sameUser(u) || result.status === "stale" || registrationBusy) return;
+    $("loading").hidden = true;
+    if (result.status === "error") {
+      render(null); $("auth").hidden = true; $("registration-recovery").hidden = false;
+    } else if (result.status === "missing") completeReply(u, formOwner === u.uid);
+    else if (result.status === "saved") { remember(u.email, isGoogle(u)); render(result.record); }
+  }
+  function loadReply(u) {
+    $("registration-recovery").hidden = true; $("auth").hidden = true; $("done").hidden = true;
+    $("loading").hidden = false; $("signout").hidden = false;
+    return session.load().then(function (result) { showLoaded(result, u); });
+  }
+  $("registration-retry").onclick = function () { var u = auth.currentUser; if (u) loadReply(u); };
   auth.onAuthStateChanged(function (u) {
+    var changedAccount = authUid !== (u && u.uid);
+    authUid = u && u.uid;
+    session.setUser(u); screenVersion++;
+    if (changedAccount) {
+      paymentOperation++;
+      if (!PREVIEW) $("pay-sent").disabled = false;
+      $("pay-sent-ok").hidden = true; hideErr("pay-err");
+      $("pr-line").value = ""; $("pr-song").value = ""; $("pp-line").value = ""; $("pp-song").value = "";
+      $("pr-ok").hidden = true; $("pp-ok").hidden = true; hideErr("pr-err"); hideErr("pp-err");
+      $("form-edit").hidden = true; current = null; $("pay").hidden = true;
+    }
+    if (PREVIEW) return;
+    $("registration-saved").hidden = true;
     if (!u) {
-      if (PREVIEW) return;
-      render(null);
+      render(null); $("completion-note").hidden = true; $("password-row").hidden = false;
+      $("up-email").readOnly = false; $("tab-up").textContent = "Register"; $("tab-in").hidden = false;
+      document.querySelectorAll("[data-google], .p-or").forEach(function (el) { el.hidden = INAPP; });
+      $("form-up").reset(); $("form-edit").reset(); formOwner = null;
+      $("pr-line").value = ""; $("pr-song").value = ""; $("pp-line").value = ""; $("pp-song").value = "";
+      $("form-edit").hidden = true;
+      setPartner("up", false); setPartner("ed", false);
+      hideErr("up-err"); hideErr("ed-err"); $("pr-ok").hidden = true; $("pp-ok").hidden = true;
+      busyRegistration(false);
       var seen = recalled();
-      if (seen) openSignIn(seen.email, seen.google && !INAPP ? "Welcome back. You registered with Google, so use the Google button below. Not you? Tap Register above." : "Not you? Tap Register above");
+      if (entryParams.get("signin") === "1") openSignIn(seen && seen.email, "Sign in to continue.");
+      else if (seen) openSignIn(seen.email, seen.google && !INAPP ? "Welcome back. You registered with Google, so use the Google button below." : "Sign in to see your saved reply. Or choose Register for a new account.");
       return;
     }
-    db.ref("registrations/" + u.uid).once("value").then(function (s) {
-      if (s.exists()) remember(u.email, isGoogle(u));
-      render(s.exists() ? s.val() : { name: u.displayName || "", email: u.email, phone: "", intent: "" });
-    }).catch(function () { render({ name: u.displayName || "", email: u.email, phone: "", intent: "" }); });
+    if (registrationBusy) return;
+    loadReply(u);
   });
 
-  // ---- register ----
+  function registrationFields() {
+    var intent = picked("intent"), partner = readPartner("up");
+    return { name: $("up-name").value.trim(), email: $("up-email").value.trim(), phone: $("up-phone").value.trim(),
+      address: $("up-address").value.trim().slice(0, 300), diet: $("up-diet").value.trim().slice(0, 300), access: $("up-access").value.trim().slice(0, 300),
+      intent: intent, partner: partner, travel: nobodyComing(intent, partner) || !upTravelOpen ? null : readTravel("up") };
+  }
+  function saveRegistration(u, fields) {
+    if (!sameUser(u)) return Promise.resolve({ status: "stale" });
+    session.setUser(u); formOwner = u.uid; fields.email = u.email || fields.email;
+    return session.save(fields).then(function (result) {
+      if (result.status !== "saved" || !sameUser(u)) return result;
+      remember(u.email, isGoogle(u)); render(result.record); $("registration-saved").hidden = false;
+      $("up-pw").value = "";
+      return result;
+    });
+  }
+  // Account creation and the registration write are separate. A retry uses the same signed-in UID.
   $("form-up").onsubmit = function (ev) {
-    ev.preventDefault(); hideErr("up-err");
-    var name = $("up-name").value.trim(), email = $("up-email").value.trim(), phone = $("up-phone").value.trim(),
-        address = $("up-address").value.trim().slice(0, 300),
-        diet = $("up-diet").value.trim().slice(0, 300), access = $("up-access").value.trim().slice(0, 300),
-        pw = $("up-pw").value, intent = picked("intent");
-    if (!name) return showErr("up-err", { message: "Tell us your name." });
-    if (!email) return showErr("up-err", { message: "We need an email address." });
-    if (pw.length < 6) return showErr("up-err", { code: "auth/weak-password" });
-    if (!intent) return showErr("up-err", { message: "Let us know if you’re coming. ‘Not sure yet’ is fine." });
+    ev.preventDefault(); if (registrationBusy || PREVIEW) return; hideErr("up-err");
+    var fields = registrationFields(), pw = $("up-pw").value, u = auth.currentUser;
+    if (!fields.name) return showErr("up-err", { message: "Tell us your name." });
+    if (!fields.email) return showErr("up-err", { message: "We need an email address." });
+    if (!u && pw.length < 6) return showErr("up-err", { code: "auth/weak-password" });
+    if (!fields.intent) return showErr("up-err", { message: "Let us know if you’re coming. ‘Not sure yet’ is fine." });
     if (partnerMissing("up")) return showErr("up-err", { message: PARTNER_NAME });
     if (partnerUnanswered("up")) return showErr("up-err", { message: PARTNER_INTENT });
-    $("up-btn").disabled = true;
-    auth.createUserWithEmailAndPassword(email, pw).then(function (cred) {
-      var u = cred.user, partner = readPartner("up");
-      var rec = { name: name, email: email, phone: phone, address: address, diet: diet, access: access, intent: intent, uid: u.uid,
-                  travel: nobodyComing(intent, partner) || !upTravelOpen ? null : readTravel("up"), partner: partner,
-                  createdAt: firebase.database.ServerValue.TIMESTAMP, updatedAt: firebase.database.ServerValue.TIMESTAMP };
-      return Promise.all([ u.updateProfile({ displayName: name }), db.ref("registrations/" + u.uid).set(rec) ])
-        .then(function () { remember(email, false); render(rec); });
+    busyRegistration(true);
+    var account = u ? Promise.resolve({ user: u }) : auth.createUserWithEmailAndPassword(fields.email, pw);
+    account.then(function (cred) {
+      u = cred.user;
+      return saveRegistration(u, fields);
     }).catch(function (e) {
-      if (e && e.code === "auth/email-already-in-use") {
-        openSignIn(email, "You’re already registered with that email, so sign in here. " +
-          (INAPP ? "If you used Google before, tap ‘Forgotten your password?’ to set a password." : "If you used Google before, use the Google button below."), true);
-        $("in-pw").focus(); return;
-      }
-      showErr("up-err", e);
-    }).then(function () { $("up-btn").disabled = false; });
+      if (u && sameUser(u)) {
+        completeReply(u, true);
+        showErr("up-err", { message: "Your account is ready, but we could not confirm your reply was saved. Your answers are still here. Try Save my reply again." });
+      } else if (!auth.currentUser && e && e.code === "auth/email-already-in-use") {
+        openSignIn(fields.email, "There is an account with that email. Sign in to see or finish your reply. If you used Google before, use Google or reset your password.", true);
+        $("in-pw").focus();
+      } else if (!auth.currentUser) showErr("up-err", e);
+    }).then(function () { busyRegistration(false); });
   };
 
   // ---- sign in ----
   $("form-in").onsubmit = function (ev) {
-    ev.preventDefault(); hideErr("in-err"); $("in-ok").hidden = true;
+    ev.preventDefault(); if ($("in-btn").disabled || registrationBusy || PREVIEW) return; hideErr("in-err"); $("in-ok").hidden = true;
     $("in-btn").disabled = true;
     auth.signInWithEmailAndPassword($("in-email").value.trim(), $("in-pw").value)
-      .then(function (cred) { remember(cred.user.email, false); })
+      .then(function (cred) { if (sameUser(cred.user)) remember(cred.user.email, false); })
       .catch(function (e) { showErr("in-err", e); })
       .then(function () { $("in-btn").disabled = false; });
   };
@@ -876,31 +989,45 @@
 
   document.querySelectorAll("[data-google]").forEach(function (b) {
     b.onclick = function () {
+      if (registrationBusy || $("in-btn").disabled || PREVIEW) return;
       hideErr("up-err"); hideErr("in-err");
-      if (!$("form-up").hidden && !picked("intent")) return showErr("up-err", { message: "Tick whether you think you can come first, then continue with Google." });
-      if (!$("form-up").hidden && partnerMissing("up")) return showErr("up-err", { message: PARTNER_NAME });
-      if (!$("form-up").hidden && partnerUnanswered("up")) return showErr("up-err", { message: PARTNER_INTENT });
+      var signingUp = !$("form-up").hidden, fields = registrationFields(), u = null;
+      if (signingUp && !fields.intent) return showErr("up-err", { message: "Let us know if you think you can come first. ‘Not sure yet’ is fine." });
+      if (signingUp && partnerMissing("up")) return showErr("up-err", { message: PARTNER_NAME });
+      if (signingUp && partnerUnanswered("up")) return showErr("up-err", { message: PARTNER_INTENT });
+      busyRegistration(true);
       auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(function (res) {
-        var u = res.user;
-        return db.ref("registrations/" + u.uid).once("value").then(function (s) {
-          if (s.exists()) return remember(u.email, true);
-          var intent = picked("intent") || "", partner = partnerMissing("up") ? null : readPartner("up");
-          var rec = { name: u.displayName || "", email: u.email || "", phone: $("up-phone").value.trim(), address: $("up-address").value.trim().slice(0, 300),
-                      diet: $("up-diet").value.trim().slice(0, 300), access: $("up-access").value.trim().slice(0, 300),
-                      travel: intent && !nobodyComing(intent, partner) && upTravelOpen ? readTravel("up") : null,
-                      partner: partner,
-                      intent: intent, uid: u.uid, createdAt: firebase.database.ServerValue.TIMESTAMP, updatedAt: firebase.database.ServerValue.TIMESTAMP };
-          return db.ref("registrations/" + u.uid).set(rec).then(function () { remember(u.email, true); render(rec); });
-        });
-      }).catch(function (e) { if (e && e.code !== "auth/popup-closed-by-user") showErr($("form-up").hidden ? "in-err" : "up-err", e); });
+        u = res.user; if (!sameUser(u)) return { status: "stale" };
+        session.setUser(u); return session.load();
+      }).then(function (result) {
+        if (!result || result.status === "stale" || !sameUser(u)) return;
+        if (result.status === "error") throw result.error;
+        if (result.status === "saved") { remember(u.email, true); render(result.record); return; }
+        if (!signingUp) { completeReply(u, false); return; }
+        fields.name = fields.name || u.displayName || "";
+        if (!fields.name) { completeReply(u, true); return; }
+        return saveRegistration(u, fields);
+      }).catch(function (e) {
+        if (u && sameUser(u)) {
+          if (session.state().status === "error") { render(null); $("auth").hidden = true; $("registration-recovery").hidden = false; }
+          else { completeReply(u, true); showErr("up-err", { message: "We could not confirm your reply was saved. Your answers are still here. Try Save my reply again." }); }
+        } else if (!auth.currentUser && e && e.code !== "auth/popup-closed-by-user") showErr(signingUp ? "up-err" : "in-err", e);
+      }).then(function () { busyRegistration(false); });
     };
   });
 
   // ---- edit ----
-  $("edit").onclick = function () { $("form-edit").hidden = !$("form-edit").hidden; };
+  function openEdit(travel) {
+    $("form-edit").hidden = false;
+    if (travel) { $("ed-travel").hidden = false; $("ed-home").focus(); }
+    else { var radio = document.querySelector('input[name="ed-intent"]'); if (radio) radio.focus(); }
+  }
+  $("edit").onclick = function () { if (!editBusy) $("form-edit").hidden = !$("form-edit").hidden; };
+  $("reply-action").onclick = function () { openEdit(false); };
+  $("travel-action").onclick = function () { openEdit(true); };
   $("form-edit").onsubmit = function (ev) {
-    ev.preventDefault(); hideErr("ed-err");
-    var u = auth.currentUser; if (!u) return;
+    ev.preventDefault(); if (editBusy || PREVIEW) return; hideErr("ed-err"); $("registration-saved").hidden = true;
+    var u = auth.currentUser; if (!u || session.state().status !== "saved") return;
     if (partnerMissing("ed")) return showErr("ed-err", { message: PARTNER_NAME });
     if (partnerUnanswered("ed")) return showErr("ed-err", { message: PARTNER_INTENT });
     var partner = readPartner("ed");
@@ -908,17 +1035,21 @@
                 diet: $("ed-diet").value.trim().slice(0, 300), access: $("ed-access").value.trim().slice(0, 300), intent: picked("ed-intent") || undefined, updatedAt: firebase.database.ServerValue.TIMESTAMP,
                 travel: nobodyComing(picked("ed-intent"), partner) ? null : readTravel("ed"), partner: partner };
     if (!upd.intent) delete upd.intent;
-    db.ref("registrations/" + u.uid).update(upd)
-      .then(function () { syncPartnerPocket(u.uid, upd.partner); return db.ref("registrations/" + u.uid).once("value"); })
-      .then(function (s) { render(s.val()); $("form-edit").hidden = true; })
-      .catch(function (e) { showErr("ed-err", e); });
+    editBusy = true; $("ed-btn").disabled = true; $("ed-btn").textContent = "Saving...";
+    $("form-edit").setAttribute("aria-busy", "true");
+    session.save(upd).then(function (result) {
+      if (!sameUser(u) || result.status !== "saved") return;
+      syncPartnerPocket(u.uid, upd.partner); render(result.record); $("form-edit").hidden = true;
+      $("registration-saved").textContent = "Your changes are saved."; $("registration-saved").hidden = false;
+    }).catch(function (e) { if (sameUser(u)) showErr("ed-err", { message: "We could not confirm your changes were saved. Your answers are still here. Try Save changes again." }); })
+      .then(function () { editBusy = false; $("ed-btn").disabled = false; $("ed-btn").textContent = "Save changes"; $("form-edit").setAttribute("aria-busy", "false"); });
   };
   // keep the partner's binder pocket in step: gone if they are removed, renamed if their name changes
   function syncPartnerPocket(uid, pt) {
     var ref = db.ref("public/profiles/" + uid + "-p");
     if (!pt) { $("pp-line").value = ""; $("pp-song").value = ""; }
     ref.once("value").then(function (s) {
-      if (!s.exists()) return;
+      if (!sameUser({ uid: uid }) || !s.exists()) return;
       if (!pt) return ref.remove();
       if ((s.val() || {}).name !== pt.name) return ref.update({ name: pt.name });
     }).catch(function () {});
@@ -928,10 +1059,12 @@
   auth.onAuthStateChanged(function (u) {
     if (!u) return;
     db.ref("public/profiles/" + u.uid).once("value").then(function (s) {
+      if (!sameUser(u)) return;
       var p = s.val() || {};
       $("pr-line").value = p.line || ""; $("pr-song").value = p.song || "";
     }).catch(function () {});
     db.ref("public/profiles/" + u.uid + "-p").once("value").then(function (s) {
+      if (!sameUser(u)) return;
       var p = s.val() || {};
       $("pp-line").value = p.line || ""; $("pp-song").value = p.song || "";
     }).catch(function () {});
@@ -942,19 +1075,21 @@
     var rec = { name: pt.name, line: $("pp-line").value.trim().slice(0, 120), song: $("pp-song").value.trim().slice(0, 120),
                 partnerOf: u.uid, updatedAt: firebase.database.ServerValue.TIMESTAMP };
     db.ref("public/profiles/" + u.uid + "-p").set(rec).then(function () {
+      if (!sameUser(u)) return;
       $("pp-ok").textContent = "Saved. " + firstName(pt.name) + " is in the binder."; $("pp-ok").hidden = false;
-    }).catch(function (e) { showErr("pp-err", e); });
+    }).catch(function (e) { if (sameUser(u)) showErr("pp-err", e); });
   };
   $("form-profile").onsubmit = function (ev) {
     ev.preventDefault(); hideErr("pr-err"); $("pr-ok").hidden = true;
-    var u = auth.currentUser; if (!u) return;
+    var u = auth.currentUser; if (PREVIEW || !u) return;
     var name = ($("d-name").textContent || u.displayName || "").trim();
     if (!name) return showErr("pr-err", { message: "We don’t have your name yet. Register first." });
     var rec = { name: name, line: $("pr-line").value.trim().slice(0, 120), song: $("pr-song").value.trim().slice(0, 120),
                 updatedAt: firebase.database.ServerValue.TIMESTAMP };
     db.ref("public/profiles/" + u.uid).set(rec).then(function () {
+      if (!sameUser(u)) return;
       $("pr-ok").textContent = "Saved. You’re in the binder."; $("pr-ok").hidden = false;
-    }).catch(function (e) { showErr("pr-err", e); });
+    }).catch(function (e) { if (sameUser(u)) showErr("pr-err", e); });
   };
 })();
 </script>

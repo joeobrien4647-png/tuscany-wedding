@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Send Sophie and Joe a private song request or memory for their wedding weekend.">
+  <title>Join in · Sophie &amp; Joe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/guest-journey.css">
+</head>
+<body class="guest-page">
+  <a class="guest-skip" href="#main">Skip to content</a>
+  <header class="guest-header">
+    <a class="guest-brand" href="index.html">Sophie &amp; Joe</a>
+    <nav class="guest-nav" aria-label="Weekend navigation">
+      <a href="index.html#card">My weekend</a><a href="getting-here.html">Travel</a><a href="weekend-guide.html">Programme</a><a href="join-in.html" aria-current="page">Join in</a>
+    </nav>
+  </header>
+  <main class="guest-main" id="main">
+    <section class="guest-section">
+      <p class="guest-kicker">A little of you, in our weekend</p>
+      <h1>Join in</h1>
+      <p class="guest-lede">A song you would love to hear, or a memory you would like to share with us.</p>
+      <p class="guest-notice">These are private: visible only to Sophie and Joe. Your request will not be added to a public playlist. We will ask you separately before sharing a memory.</p>
+      <p id="participation-status" class="guest-status" role="status" aria-live="polite">Checking your account…</p>
+      <div class="guest-actions">
+        <a id="participation-signin" class="guest-button" href="index.html?signin=1&amp;next=join-in.html#auth" hidden>Sign in / register</a>
+        <button id="participation-retry" class="guest-button" type="button" hidden>Try loading again</button>
+      </div>
+      <noscript><p>Please enable JavaScript to sign in and save a contribution.</p></noscript>
+    </section>
+    <div class="guest-grid" id="participation-forms" hidden>
+      <form class="guest-card" id="song-form">
+        <h2>Your song request</h2>
+        <p>One song to get us on the dance floor. You can change it later.</p>
+        <label class="guest-field" for="song-text">Song title and artist
+          <input id="song-text" name="song" type="text" maxlength="240" required aria-describedby="song-status" disabled>
+        </label>
+        <button id="song-save" class="guest-button" type="submit" disabled>Save song request</button>
+        <p id="song-status" class="guest-status" role="status" aria-live="polite"></p>
+      </form>
+      <form class="guest-card" id="memory-form">
+        <h2>A memory for us</h2>
+        <p>A moment, a story, or a few words you would like us to keep. Up to 4,000 characters; edit it whenever you like.</p>
+        <label class="guest-field" for="memory-text">Your memory
+          <textarea id="memory-text" name="memory" rows="7" maxlength="4000" required aria-describedby="memory-status" disabled></textarea>
+        </label>
+        <button id="memory-save" class="guest-button" type="submit" disabled>Save memory</button>
+        <p id="memory-status" class="guest-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+    <section class="guest-card guest-section" aria-labelledby="photos-heading">
+      <p class="guest-kicker">Photos · later</p>
+      <h2 id="photos-heading">A place for weekend photos</h2>
+      <p>Photo sharing will open nearer the wedding. Uploads are not available yet, so please keep your photos until we share the details.</p>
+    </section>
+    <p><a class="guest-link" href="index.html">Back to the wedding website</a></p>
+  </main>
+  <footer class="guest-footer">Sophie &amp; Joe · Tuscany · 28–31 May 2027</footer>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+  <script src="js/guest-participation.js"></script>
+</body>
+</html>
