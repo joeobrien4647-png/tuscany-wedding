@@ -27,17 +27,26 @@
 .weekend-days time { font-weight: 700; }
 .practical-page .weekend-days h2 { font-size: 1.65rem; margin-bottom: .25rem; }
 .weekend-days p { margin-bottom: 0; }
+.wedding-setting { border-top: 1px solid #bec8b8; padding-top: 1.5rem; }
+.wedding-photos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+.wedding-photos figure { margin: 0; min-width: 0; }
+.wedding-photos img { display: block; width: 100%; height: auto; }
+.wedding-photos figcaption { padding-top: .5rem; }
+.venue-photo-credit { margin-top: .5rem; font-size: .9rem; }
+.venue-photo-credit a { display: inline-flex; align-items: center; min-height: 44px; padding-inline: .25rem; }
 @media (max-width: 640px) {
   .practical-heading-photo { grid-template-columns: minmax(0, 1fr); gap: .25rem; }
   .practical-heading-photo img { height: 140px; }
   .airport-list > div { grid-template-columns: 6.2rem minmax(0, 1fr); gap: .75rem; }
   .airport-list dt span { display: block; margin-left: 0; }
   .weekend-days li { grid-template-columns: minmax(0, 1fr); gap: .25rem; padding-block: 1rem; }
+  .wedding-photos { grid-template-columns: minmax(0, 1fr); }
 }
 @media print {
   .practical-page .practical-heading { padding: 0; }
   .practical-heading-photo { display: block; }
   .practical-heading-photo img { display: none; }
+  .wedding-setting { display: none; }
   .practical-page .practical-heading h1 { font-size: 26pt; }
   .practical-page h2, .practical-page .weekend-days h2 { font-size: 16pt; }
   .practical-page .guest-section { margin-block: 1rem; }

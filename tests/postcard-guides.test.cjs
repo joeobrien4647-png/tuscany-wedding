@@ -56,11 +56,11 @@ test('the stay price and inclusions appear before flight planning and agree with
   assert.match(travel, /Payment details appear in <a href="index\.html#card">your saved reply<\/a> once you’ve said you’re coming/);
 });
 
-test('practical pages use at most one compact image and no retired guide controller', () => {
+test('practical pages use bounded responsive photos and no additional runtime', () => {
   for (const page of pages) {
     const html = read(page);
     const images = Array.from(html.matchAll(/<img\b[^>]*>/g));
-    assert.equal(images.length, page === 'getting-here.html' ? 1 : 0);
+    assert.equal(images.length, { 'getting-here.html': 1, 'weekend-guide.html': 2, 'arrival-essentials.html': 0 }[page]);
     for (const [tag] of images) {
       assert.match(tag, /width="\d+" height="\d+"/);
       assert.match(tag, /srcset=/);
@@ -76,4 +76,31 @@ test('practical pages use at most one compact image and no retired guide control
   assert.match(css, /min-height: 44px/);
   assert.match(css, /@media print/);
   assert.doesNotMatch(css, /animation|transition|weekend-tabs|route-planner/);
+});
+
+test('venue photographs preserve essential actions, reserve space and stay within transfer budgets', () => {
+  const html = read('weekend-guide.html');
+  const section = html.match(/<section class="guest-section wedding-setting"[\s\S]*?<\/section>/)[0];
+  assert.ok(html.indexOf('href="tuscany-2027.ics"') < html.indexOf(section));
+  assert.ok(html.indexOf('still to be confirmed') < html.indexOf(section));
+  const images = Array.from(section.matchAll(/<img\b[^>]*>/g), match => match[0]);
+  const bytes = { 480: 0, 960: 0 };
+  for (const tag of images) {
+    assert.match(tag, /loading="lazy"/);
+    assert.match(tag, /decoding="async"/);
+    assert.match(tag, /alt="[^"]+"/);
+    assert.match(tag, /sizes="\(max-width: 640px\)/);
+    const [width, height] = tag.match(/width="(\d+)" height="(\d+)"/).slice(1).map(Number);
+    const sources = [...tag.matchAll(/(images\/postcards\/[^\s",]+\.webp) (480|960)w/g)];
+    assert.equal(sources.length, 2);
+    for (const [, asset, breakpoint] of sources) {
+      const buffer = fs.readFileSync(path.join(root, asset));
+      assert.equal(buffer.toString('ascii', 8, 12), 'WEBP');
+      bytes[breakpoint] += buffer.length;
+    }
+    assert.ok(width / height > 1.49 && width / height < 1.51);
+  }
+  assert.ok(bytes[480] < 60000, 'combined small photos must remain below 60 KB');
+  assert.ok(bytes[960] < 200000, 'combined large photos must remain below 200 KB');
+  assert.doesNotMatch(section, /<script|<iframe|<video|onclick=/);
 });
