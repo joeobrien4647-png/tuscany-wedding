@@ -11,7 +11,7 @@ function setup() {
   return { fixture, auth, session };
 }
 
-async function signupPageHarness() {
+async function signupPageHarness(userAgent = 'Fictional test browser') {
   const fs = require('node:fs'), vm = require('node:vm'), path = require('node:path');
   const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
   const fixture = createFixture(), auth = fixture.firebase.auth(), elements = {}, writes = [];
@@ -57,14 +57,14 @@ async function signupPageHarness() {
   fixture.firebase.database.ServerValue = factory.ServerValue;
   const context = { document, window: {}, firebase: fixture.firebase, GuestRegistration: { createSession },
     location: { search: '', protocol: 'http:', origin: 'http://fictional.test', assign() {} },
-    navigator: { userAgent: 'Fictional test browser' }, URLSearchParams, Date,
+    navigator: { userAgent }, URLSearchParams, Date,
     localStorage: { setItem(key, value) { store[key] = value; }, getItem(key) { return store[key]; } },
     setTimeout() {}, setInterval() {}, clearTimeout() {} };
   const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1];
   vm.runInNewContext(script, context, { filename: 'index.html inline script' });
   const settle = () => new Promise(resolve => setImmediate(resolve));
   await settle();
-  return { fixture, auth, element, document, writes, google, settle,
+  return { fixture, auth, element, document, writes, google, dividers, settle,
     choose(name, value) { radios[name].forEach(radio => { radio.checked = radio.value === value; }); const selected = radios[name].find(radio => radio.checked); if (selected?.listeners.change) selected.listeners.change(); },
     submit(id = 'form-up') { element(id).onsubmit({ preventDefault() {} }); },
     details() { element('up-name').value = 'Fictional Guest'; element('up-email').value = 'fictional@example.test'; element('up-pw').value = 'fictional-password'; }
@@ -162,7 +162,7 @@ test('Google existing-account load preserves saved couple details and payment co
   assert.equal(h.writes.length, 0);
 });
 
-test('ordinary reply and travel edits preserve saved partner and their public binder pocket', async () => {
+test('ordinary reply and travel edits preserve saved partner and retired profile records', async () => {
   const h = await signupPageHarness(), partner = { name: 'Existing Partner', intent: 'yes', diet: 'Vegan' };
   const pocket = { name: partner.name, line: 'Keep this', song: 'Keep that', partnerOf: 'couple' };
   h.fixture.seed({ registrations: { couple: { name: 'Existing Guest', intent: 'yes', partner, travel: { home: 'LHR', into: 'PSA' } } }, public: { profiles: { 'couple-p': pocket } } });
@@ -175,10 +175,42 @@ test('ordinary reply and travel edits preserve saved partner and their public bi
   assert.deepEqual(data.registrations.couple.partner, partner);
   assert.equal(data.registrations.couple.travel.flightIn, 'AB123');
   assert.deepEqual(data.public.profiles['couple-p'], pocket);
+  assert.equal(h.fixture.history.filter(x => x.path?.startsWith('public/')).length, 0, 'retired profiles must not be read or written');
   assert.equal(h.element('pay-h').textContent, 'Your £150 for the weekend');
+  assert.match(h.element('weekend-summary').textContent, /unable to attend/);
   assert.ok(h.writes.every(write => !Object.hasOwn(write.patch, 'partner')));
   assert.equal(h.fixture.history.filter(x => x.method === 'remove').length, 0);
 });
+test('homepage never accesses public profiles during signup, edit, signout and account load', async () => {
+  const h = await signupPageHarness();
+  h.choose('intent', 'yes'); h.submit(); h.details(); h.submit(); await h.settle();
+  h.choose('ed-intent', 'maybe'); h.submit('form-edit'); await h.settle();
+  h.fixture.signOut(); await h.settle();
+  h.fixture.signIn({ uid: 'fictional-1', email: 'fictional@example.test' }); await h.settle();
+  assert.equal(h.element('d-intent').textContent, 'Not sure yet');
+  assert.equal(h.fixture.history.filter(x => x.path?.startsWith('public/')).length, 0);
+  assert.ok(h.fixture.history.some(x => x.path === 'registrations/fictional-1' && x.method === 'update'));
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '../index.html'), 'utf8');
+  assert.equal((html.match(/auth\.onAuthStateChanged\(/g) || []).length, 1);
+  assert.doesNotMatch(html, /public\/profiles|form-profile|form-pprofile|guest-card-preview|public\/config/);
+});
+
+test('Google is offered before email fields and stays hidden inside unsupported in-app browsers', async () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '../index.html'), 'utf8');
+  for (const [formId, field] of [['form-up', 'up-name'], ['form-in', 'in-email']]) {
+    const form = html.slice(html.indexOf('<form id="' + formId + '"')).split('</form>')[0];
+    assert.ok(form.indexOf('data-google') < form.indexOf('id="' + field + '"'));
+  }
+  const h = await signupPageHarness('Mozilla/5.0 [FBAN/FBIOS;FBAV/fictional]');
+  assert.ok(h.google.every(button => button.hidden));
+  assert.ok(h.dividers.every(divider => divider.hidden));
+  h.choose('intent', 'yes'); h.submit(); h.details(); h.submit(); await h.settle();
+  assert.equal(h.element('done').hidden, false);
+  h.fixture.signOut(); await h.settle();
+  assert.ok(h.google.every(button => button.hidden));
+  assert.ok(h.dividers.every(divider => divider.hidden));
+});
+
 test('account with no record stays missing until a registration is acknowledged', async () => {
   const { fixture, auth, session } = setup();
   const account = await auth.createUserWithEmailAndPassword('guest@example.test', 'fictional-password');

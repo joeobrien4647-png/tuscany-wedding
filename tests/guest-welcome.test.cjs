@@ -40,39 +40,23 @@ function ready() {
   return h;
 }
 
-test('welcome uses the saved name as text and one action suited to each reply', () => {
+test('welcome renders one literal line without a fabricated letter or extra action', () => {
   const h = ready();
   h.element('d-name').textContent = '<img src=x onerror=alert(1)>';
   h.controller.refresh('yes');
   assert.equal(h.element('guest-welcome').hidden, false);
-  assert.equal(h.element('guest-welcome-name').textContent, '<img src=x onerror=alert(1)>');
-  assert.equal(h.element('guest-welcome-link').getAttribute('href'), 'weekend-guide.html');
-  assert.equal(h.element('guest-welcome-link').hidden, false);
-  assert.equal(h.element('guest-welcome-reply').hidden, true);
-  h.controller.refresh('no');
-  assert.equal(h.element('guest-welcome-link').getAttribute('href'), 'our-world.html');
-  assert.match(h.element('guest-welcome-note').textContent, /miss you/i);
-  assert.doesNotMatch(h.element('guest-welcome-note').textContent, /see you in|coming|travel details/i);
-  for (const intent of ['maybe', '', undefined, 'unexpected']) {
+  assert.equal(h.element('guest-welcome').textContent, '<img src=x onerror=alert(1)>, see you in Tuscany.');
+  for (const intent of ['no', 'maybe', '', undefined, 'unexpected']) {
     h.controller.refresh(intent);
-    assert.equal(h.element('guest-welcome-link').hidden, true);
-    assert.equal(h.element('guest-welcome-link').getAttribute('href'), null);
-    assert.equal(h.element('guest-welcome-reply').hidden, false);
+    assert.equal(h.element('guest-welcome').textContent, '<img src=x onerror=alert(1)>, thank you for letting us know.');
+    assert.doesNotMatch(h.element('guest-welcome').textContent, /see you|letter|with love/i);
   }
-});
-
-test('reply action delegates to the existing editor without saving anything', () => {
-  const h = ready(); let clicks = 0;
-  h.element('reply-action').onclick = () => { clicks++; };
-  h.controller.refresh('maybe'); h.element('guest-welcome-reply').click();
-  assert.equal(clicks, 1);
 });
 
 test('clear, missing name and hidden reply erase the previous welcome', () => {
   const h = ready(); h.controller.refresh('yes'); h.controller.clear();
   assert.equal(h.element('guest-welcome').hidden, true);
-  for (const id of ['guest-welcome-name', 'guest-welcome-note', 'guest-welcome-link']) assert.equal(h.element(id).textContent, '');
-  assert.equal(h.element('guest-welcome-link').getAttribute('href'), null);
+  assert.equal(h.element('guest-welcome').textContent, '');
   h.element('done').hidden = true; h.controller.refresh('yes');
   assert.equal(h.element('guest-welcome').hidden, true);
   h.element('done').hidden = false; h.element('d-name').textContent = ' '; h.controller.refresh('yes');
@@ -106,14 +90,13 @@ test('real page hides old identity immediately on account swap and rejects delay
   const h = await page();
   h.fixture.seed({ registrations: { one: { name: 'Fictional One', intent: 'yes' }, two: { name: 'Fictional Two', intent: 'no' } } });
   h.fixture.signIn({ uid: 'one' }); await h.settle();
-  assert.equal(h.element('guest-welcome-name').textContent, 'Fictional One');
+  assert.equal(h.element('guest-welcome').textContent, 'Fictional One, see you in Tuscany.');
   const release = h.fixture.delayNext('once', 'registrations/two');
   h.fixture.signIn({ uid: 'two' });
   assert.equal(h.element('guest-welcome').hidden, true);
-  assert.equal(h.element('guest-welcome-name').textContent, '');
+  assert.equal(h.element('guest-welcome').textContent, '');
   h.fixture.signIn({ uid: 'one' }); await h.settle(); release(); await h.settle();
-  assert.equal(h.element('guest-welcome-name').textContent, 'Fictional One');
-  assert.equal(h.element('guest-welcome-link').getAttribute('href'), 'weekend-guide.html');
+  assert.equal(h.element('guest-welcome').textContent, 'Fictional One, see you in Tuscany.');
 });
 
 test('signout and a return to the same account ignore an earlier session read', async () => {
@@ -123,12 +106,11 @@ test('signout and a return to the same account ignore an earlier session read', 
   h.fixture.signIn({ uid: 'one' }); await h.settle();
   h.fixture.signOut();
   assert.equal(h.element('guest-welcome').hidden, true);
-  assert.equal(h.element('guest-welcome-name').textContent, '');
+  assert.equal(h.element('guest-welcome').textContent, '');
   h.fixture.signIn({ uid: 'one' }); await h.settle();
   h.choose('ed-intent', 'no'); h.element('form-edit').onsubmit({ preventDefault() {} }); await h.settle();
   release(); await h.settle();
-  assert.equal(h.element('guest-welcome-link').getAttribute('href'), 'our-world.html');
-  assert.match(h.element('guest-welcome-note').textContent, /miss you/i);
+  assert.equal(h.element('guest-welcome').textContent, 'Fictional One, thank you for letting us know.');
 });
 
 test('missing and failed registrations do not show stale personal notes', async () => {
@@ -137,28 +119,27 @@ test('missing and failed registrations do not show stale personal notes', async 
   h.fixture.signIn({ uid: 'one' }); await h.settle();
   h.fixture.signIn({ uid: 'missing' }); await h.settle();
   assert.equal(h.element('guest-welcome').hidden, true);
-  assert.equal(h.element('guest-welcome-name').textContent, '');
+  assert.equal(h.element('guest-welcome').textContent, '');
   h.fixture.failNext('once', 'registrations/failure');
   h.fixture.signIn({ uid: 'failure' }); await h.settle();
   assert.equal(h.element('registration-recovery').hidden, false);
   assert.equal(h.element('guest-welcome').hidden, true);
-  assert.equal(h.element('guest-welcome-name').textContent, '');
+  assert.equal(h.element('guest-welcome').textContent, '');
 });
 
-test('real page action opens its editor, saved intent refreshes the note, and database work is unchanged', async () => {
+test('existing reply editor refreshes the plain welcome without additional database work', async () => {
   async function scenario(enabled) {
     const h = await page(enabled);
     h.fixture.seed({ registrations: { one: { name: 'Fictional One', intent: 'maybe', partner: { name: 'Saved companion', intent: 'yes' } } } });
     h.fixture.signIn({ uid: 'one' }); await h.settle();
     if (enabled) {
-      h.element('guest-welcome-reply').click();
+      h.element('reply-action').click();
       assert.equal(h.element('form-edit').hidden, false);
       assert.equal(h.document.activeElement.name, 'ed-intent');
     }
     h.choose('ed-intent', 'yes'); h.element('form-edit').onsubmit({ preventDefault() {} }); await h.settle();
     if (enabled) {
-      assert.equal(h.element('guest-welcome-link').getAttribute('href'), 'weekend-guide.html');
-      assert.equal(h.element('guest-welcome-reply').hidden, true);
+      assert.equal(h.element('guest-welcome').textContent, 'Fictional One, see you in Tuscany.');
     }
     return h;
   }

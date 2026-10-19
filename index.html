@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sophie &amp; Joe, Tuscany 2027</title>
-<meta name="description" content="Sophie and Joe are getting married in Tuscany on Saturday 29 May 2027. Register here and let us know if you can come by 28 February 2027.">
+<meta name="description" content="Sophie and Joe are getting married in Tuscany on Saturday 29 May 2027. Let us know if you can come by 28 February 2027.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://sophieandjoe2027.com/">
 <meta property="og:title" content="Sophie &amp; Joe, Tuscany 2027">
-<meta property="og:description" content="Sophie and Joe are getting married in Tuscany on Saturday 29 May 2027. Register here and let us know if you can come by 28 February 2027.">
+<meta property="og:description" content="Sophie and Joe are getting married in Tuscany on Saturday 29 May 2027. Let us know if you can come by 28 February 2027.">
 <meta property="og:image" content="https://sophieandjoe2027.com/images/og.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -54,7 +54,6 @@
   #up-back + .p-primary { margin-top: 8px; }
   .p-done .p-with { border-top: 1px solid rgba(44,44,44,.1); padding-top: 14px; }
   .p-done .p-with + dl { margin-top: 10px; }
-  .p-pp { margin-top: 30px; padding-top: 22px; border-top: 1px dashed rgba(44,44,44,.14); }
   .p-hint { font-size: 13px; font-weight: 300; line-height: 1.55; color: var(--color-warm-gray); margin: 4px 0 0; }
   .p-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .p-pair > div { min-width: 0; }
@@ -78,20 +77,12 @@
   .p-done dt { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--color-warm-gray); padding-top: 3px; }
   .p-done dd { margin: 0; color: var(--color-charcoal); }
 
-  .p-next { max-width: 480px; margin: 44px auto 64px; padding: 0 24px; }
 
   @media (max-width: 600px) {
     input[type=text], input[type=email], input[type=password], input[type=tel], textarea, select { font-size: 16px; }
     #form-up .p-intent { grid-template-columns: 1fr; }
     #form-up .p-intent span { min-height: 48px; font-size: 16px; text-transform: none; letter-spacing: normal; } }
-  .p-next h3 { font-family: var(--mono); font-size: 10.5px; letter-spacing: .26em; text-transform: uppercase; color: var(--color-terracotta); margin: 0 0 14px; }
-  .p-next li { font-weight: 300; color: var(--color-warm-gray); line-height: 1.65; margin-bottom: 8px; }
-  .p-next li b { font-weight: 400; color: var(--color-charcoal); }
   footer.p-mini { text-align: center; padding: 28px; font-family: var(--mono); font-size: 10.5px; letter-spacing: .18em; color: var(--color-warm-gray); }
-  .p-profile { margin-top: 28px; padding-top: 22px; border-top: 1px solid rgba(44,44,44,.1); }
-  .p-profile h3 { font-family: var(--font-heading); font-weight: 500; font-size: 20px; color: var(--color-charcoal); margin: 0 0 6px; }
-  .p-profile p { color: var(--color-warm-gray); font-weight: 300; font-size: 13.5px; line-height: 1.6; margin: 0; }
-  .p-profile a.p-link { display: inline-block; text-decoration: underline; }
 
   .p-pay { margin-top: 26px; padding: 20px 20px 18px; background: var(--color-cream); border: 1px solid rgba(201,169,97,.45); border-radius: 4px; }
   .p-pay h3 { font-family: var(--font-heading); font-weight: 500; font-size: 20px; color: var(--color-charcoal); margin: 0 0 6px; }
@@ -106,8 +97,6 @@
 
   .p-inapp { text-align: center; font-size: 12.5px; line-height: 1.55; color: var(--color-warm-gray); font-weight: 300; margin: 16px 0 0; }
   .p-cal { font-size: 13px; color: var(--color-warm-gray); margin: -6px 0 18px; }
-  .p-open { font-size: 13px; color: var(--color-warm-gray); margin: -8px 0 18px; }
-  .p-open a { color: var(--color-olive); font-weight: 700; text-decoration: none; border-bottom: 1px solid rgba(92,107,74,.35); }
   .p-cal a { color: var(--color-terracotta); font-weight: 700; text-decoration: none; border-bottom: 1px solid rgba(196,112,75,.35); }
 
   .p-google { width: 100%; margin-top: 12px; background: #fff; color: var(--color-charcoal); border: 1px solid rgba(44,44,44,.22); border-radius: 999px; padding: 13px; font-family: var(--font-body); font-weight: 700; font-size: 13.5px; letter-spacing: .04em; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
@@ -129,58 +118,45 @@
 <link rel="stylesheet" href="css/postcards.css">
 <link rel="stylesheet" href="css/postcard-home.css">
 <script src="js/guest-navigation.js" defer></script>
+<noscript><style>#loading { display: none; }</style></noscript>
 </head>
 <body class="postcard-home">
-<script src="js/intro.js" data-enabled="false"></script>
 
-<a class="guest-skip" href="#card">Skip to My weekend</a>
+<a class="guest-skip" href="#card">Skip to RSVP</a>
 <div class="p-top">
   <a class="p-mark" href="index.html" aria-label="Sophie and Joe, home">Sophie &amp; Joe</a>
   <button id="signout" hidden>Sign out</button>
 </div>
 <nav class="guest-nav" aria-label="Guest navigation">
-  <a href="index.html#card" aria-current="page">My weekend</a><a href="getting-here.html">Travel</a><a href="weekend-guide.html">Programme</a><a href="join-in.html">Join in</a>
+  <a href="index.html#card" aria-current="page">RSVP</a><a href="getting-here.html">Travel &amp; stay</a><a href="weekend-guide.html">Weekend</a><a href="index.html#help">Help</a>
 </nav>
 
 <header class="p-hero">
-  <div class="postcard-address">
-    <p>Sansepolcro, Tuscany</p>
-    <p>28–31 May 2027</p>
-  </div>
   <div class="postcard-face">
     <div class="postcard-photo">
-      <img src="images/postcards/hero-drone-960.webp" srcset="images/postcards/hero-drone-480.webp 480w, images/postcards/hero-drone-960.webp 960w, images/postcards/hero-drone-1440.webp 1440w" sizes="(max-width: 720px) 100vw, 62vw" width="1920" height="1440" alt="The Tuscan hills and stone villas at La Conca" fetchpriority="high">
-      <p class="postcard-photo-caption">A weekend in the hills, with all of you.</p>
+      <img src="images/postcards/proposal-960.webp" srcset="images/postcards/proposal-480.webp 480w, images/postcards/proposal-960.webp 960w, images/postcards/proposal-1440.webp 1440w" sizes="(max-width: 720px) 100vw, 46vw" width="1600" height="1066" alt="Joe proposing to Sophie on the beach" fetchpriority="high">
     </div>
     <div class="postcard-note">
-      <svg class="postcard-stamp" viewBox="0 0 110 138" role="img" aria-label="Sophie and Joe Tuscany 2027 postage stamp">
-        <path d="M6 6H104V132H6Z" fill="#f3d567" stroke="#fffdf7" stroke-width="9" stroke-dasharray="4 5"/>
-        <path d="M18 19H92V120H18Z" fill="none" stroke="#233f34"/>
-        <path d="M24 88Q43 58 64 85Q77 71 86 79V99H24Z" fill="#829775"/>
-        <path d="M61 80V48M56 68Q55 50 61 34Q68 51 66 68Z" fill="#233f34" stroke="#233f34" stroke-width="2"/>
-        <circle cx="37" cy="49" r="10" fill="#fffdf7"/>
-        <text x="55" y="29" text-anchor="middle" fill="#233f34" font-size="10" font-family="Georgia,serif">Toscana</text>
-        <text x="55" y="113" text-anchor="middle" fill="#233f34" font-size="15" font-family="Georgia,serif">S&amp;J · 2027</text>
-      </svg>
-      <h1>Sophie<br>&amp; Joe</h1>
-      <p class="postcard-invitation">We’re getting married in Tuscany.<br>Come and make a weekend of it.</p>
-      <p class="postcard-wedding-date">The wedding: Saturday 29 May 2027</p>
+      <p class="postcard-kicker">28–31 May 2027 · Tuscany</p>
+      <h1>Sophie &amp; Joe</h1>
+      <p class="postcard-invitation">We’re getting married. Join us for the weekend.</p>
+      <dl class="postcard-essentials" aria-label="Wedding essentials">
+        <div><dt>When</dt><dd>Friday 28 to Monday 31 May 2027.<br>The wedding is Saturday 29 May.</dd></div>
+        <div><dt>Where</dt><dd>La Conca, Sansepolcro, Tuscany.<br>Villas Santarsa and Vallorsaia.</dd></div>
+        <div><dt>Your stay</dt><dd><strong>&pound;150 per person for three nights.</strong><br>Meals from Friday evening to Monday morning and drinks are on us.</dd></div>
+      </dl>
+      <p class="postcard-travel-note">Arrange your flights and travel to the villas separately.</p>
       <div class="postcard-actions">
-        <a class="postcard-rsvp" href="#card">RSVP / My weekend</a>
-        <a class="postcard-explore" href="weekend-guide.html">Explore the weekend</a>
+        <a class="postcard-rsvp" href="#card">Reply to your invitation</a>
+        <a class="postcard-explore" href="getting-here.html">Travel &amp; stay</a>
       </div>
-      <p class="postcard-reply-date">Let us know by 28 February 2027.</p>
+      <p class="postcard-reply-date">Please reply by 28 February 2027. No presents, please.</p>
     </div>
-  </div>
-  <div class="postcard-countline">
-    <div class="p-count" id="count" aria-label="Countdown to the wedding date">
-      <span><b id="c-d">·</b> days</span><span><b id="c-h">·</b> hours</span><span><b id="c-m">·</b> minutes</span><span><b id="c-s">·</b> seconds</span>
-    </div>
-    <div class="p-live" id="live" hidden><b id="live-n">0</b> already registered</div>
   </div>
 </header>
 
 <main class="p-card" id="card" tabindex="-1">
+  <noscript><p>To reply online, enable JavaScript. You can also message Sophie or Joe directly, the way you normally would.</p></noscript>
   <div role="status" id="loading" style="text-align:center;color:var(--color-warm-gray);font-size:13px;padding:20px 0">One moment&hellip;</div>
 
   <section id="registration-recovery" hidden aria-labelledby="recovery-heading">
@@ -191,13 +167,13 @@
   <!-- ===== sign up / sign in ===== -->
   <section id="auth" hidden>
     <div class="p-tabs" aria-label="Account options">
-      <button type="button" id="tab-up" aria-pressed="true">Register</button>
+      <button type="button" id="tab-up" aria-pressed="true">Reply</button>
       <button type="button" id="tab-in" aria-pressed="false">Sign in</button>
     </div>
 
     <p class="p-msg" id="completion-note" role="status" hidden></p>
     <form id="form-up" novalidate>
-      <ol class="p-progress" aria-label="Registration progress">
+      <ol class="p-progress" aria-label="Reply progress">
         <li id="up-progress-reply" aria-current="step">1. Your reply</li>
         <li id="up-progress-details">2. Your details</li>
       </ol>
@@ -217,6 +193,12 @@
       </div>
       <div id="up-details" hidden>
       <h2 class="p-step-heading" id="up-details-heading" tabindex="-1">Your details</h2>
+      <p class="p-hint" id="up-account-help">Save with Google or use your email and a password, so you can update your reply later.</p>
+      <button class="p-google" type="button" data-google>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.5l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.5 0 20.1 0 24s1 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.5-5.8c-2.1 1.4-4.8 2.3-8.1 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+      <div class="p-or">or use email</div>
       <label for="up-name">Your name</label>
       <input id="up-name" type="text" autocomplete="name" required placeholder="First and last name">
       <label for="up-email">Email</label>
@@ -236,18 +218,18 @@
       <button class="p-link p-more" type="button" id="up-travel-open" aria-expanded="false" aria-controls="up-travel">Booked already? Add your travel</button>
       <div class="p-travel" id="up-travel" tabindex="-1" hidden></div>
       <button class="p-link" id="up-back" type="button">Back to your reply</button>
-      <button class="p-primary" id="up-btn" type="submit">Register</button>
-      <div class="p-or">or</div>
-      <button class="p-google" type="button" data-google>
-        <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.5l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.5 0 20.1 0 24s1 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.5-5.8c-2.1 1.4-4.8 2.3-8.1 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
-        Continue with Google
-      </button>
+      <button class="p-primary" id="up-btn" type="submit">Save my reply</button>
       </div>
       <div role="alert" class="p-msg p-err" id="up-err" hidden></div>
     </form>
 
     <form id="form-in" novalidate hidden>
       <div class="p-msg" id="in-note" style="margin-top:0" hidden></div>
+      <button class="p-google" type="button" data-google>
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.5l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.5 0 20.1 0 24s1 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.5-5.8c-2.1 1.4-4.8 2.3-8.1 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+      <div class="p-or">or use email</div>
       <label for="in-email">Email</label>
       <input id="in-email" type="email" autocomplete="email" required>
       <label for="in-pw">Password</label>
@@ -256,35 +238,22 @@
       <button class="p-primary" id="in-btn" type="submit">Sign in</button>
       <button class="p-link" type="button" id="forgot">Forgotten your password?</button>
       <div class="p-msg p-ok" id="in-ok" hidden></div>
-      <div class="p-or">or</div>
-      <button class="p-google" type="button" data-google>
-        <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.5l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4.1 7.1-10.1 7.1-17.5z"/><path fill="#FBBC05" d="M10.5 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.5 0 20.1 0 24s1 7.5 2.6 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.3 0 11.7-2.1 15.6-5.7l-7.5-5.8c-2.1 1.4-4.8 2.3-8.1 2.3-6.3 0-11.6-4.1-13.5-9.9l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
-        Continue with Google
-      </button>
     </form>
   </section>
 
   <!-- ===== registered ===== -->
   <section id="done" class="p-done" hidden>
-    <h2>My weekend</h2>
+    <h2>Your reply</h2>
     <p id="weekend-summary"></p>
     <div class="p-msg p-ok" id="registration-saved" role="status" hidden>Your reply is saved.</div>
-    <aside class="guest-welcome" id="guest-welcome" aria-labelledby="guest-welcome-heading" hidden>
-      <p class="guest-welcome-label">A note from the two of us</p>
-      <h3 id="guest-welcome-heading">Hello, <span id="guest-welcome-name"></span>.</h3>
-      <p id="guest-welcome-note"></p>
-      <p class="guest-welcome-signature">With love, Sophie &amp; Joe</p>
-      <a class="guest-welcome-action" id="guest-welcome-link" hidden></a>
-      <button class="guest-welcome-action" id="guest-welcome-reply" type="button" hidden>Update your reply</button>
-    </aside>
+    <p class="guest-welcome" id="guest-welcome" hidden></p>
     <div class="guest-actions" aria-label="Your next steps">
       <button class="p-link" type="button" id="reply-action">Update your reply</button>
       <button class="p-link" type="button" id="travel-action">Add or update travel</button>
-      <a href="getting-here.html">Plan your journey</a><a href="weekend-guide.html">See the programme</a><a href="join-in.html">Share a song or memory</a>
+      <a href="getting-here.html">Plan your journey</a><a href="weekend-guide.html">Weekend details</a><a href="join-in.html">Share a song or memory</a>
     </div>
     <p id="stay-summary">Three nights at the villa, Friday 28 to Monday 31 May. Final room and arrival details will follow.</p>
-    <p class="p-cal">Pop it in your calendar: <a href="tuscany-2027.ics" download>Apple or Outlook</a> &middot; <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Sophie+%26+Joe%2C+Tuscany&amp;dates=20270528/20270601&amp;location=Agriturismo+La+Conca%2C+Sansepolcro%2C+Italy&amp;details=Friday+28+to+Monday+31+May.+The+wedding+is+Saturday+29+May.+https%3A%2F%2Fsophieandjoe2027.com" target="_blank" rel="noopener">Google</a></p>
-    <p class="p-open" id="open" hidden></p>
+    <p class="p-cal">Add to your calendar: <a href="tuscany-2027.ics" download>Apple or Outlook</a> &middot; <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;text=Sophie+%26+Joe%2C+Tuscany&amp;dates=20270528/20270601&amp;location=Agriturismo+La+Conca%2C+Sansepolcro%2C+Italy&amp;details=Friday+28+to+Monday+31+May.+The+wedding+is+Saturday+29+May.+https%3A%2F%2Fsophieandjoe2027.com" target="_blank" rel="noopener">Google</a></p>
     <dl>
       <dt>Name</dt><dd id="d-name"></dd>
       <dt>Email</dt><dd id="d-email"></dd>
@@ -307,9 +276,9 @@
     <button class="p-link" type="button" id="edit">Change something</button>
     <form id="form-edit" novalidate hidden>
       <label for="ed-phone">Mobile</label>
-      <input id="ed-phone" type="tel">
+      <input id="ed-phone" type="tel" autocomplete="tel">
       <label for="ed-address">Postal address</label>
-      <textarea id="ed-address"></textarea>
+      <textarea id="ed-address" autocomplete="street-address"></textarea>
       <label for="ed-diet">Anything you can&rsquo;t eat?</label>
       <input id="ed-diet" type="text" maxlength="300">
       <label for="ed-access">Anything that would make the weekend easier?</label>
@@ -343,120 +312,29 @@
       <div class="p-msg p-ok" id="pay-done" hidden>Received, thank you. That&rsquo;s your bed sorted.</div>
     </div>
 
-    <div class="p-profile">
-      <h3>Your weekend card</h3>
-      <p id="guest-card-help">Try a line about you and a song below. The preview updates only on this page. Choose <b>Save my pocket</b> to share your name, line and song in the guest binder.</p>
-      <div class="guest-card-workspace">
-      <aside class="guest-pocket-card" id="guest-card-preview" aria-label="Your guest card preview" aria-describedby="guest-card-help" hidden>
-        <div class="guest-pocket-heading"><span>Sophie &amp; Joe</span><span>28–31 May 2027</span></div>
-        <div class="guest-pocket-landscape" aria-hidden="true"><span>S&amp;J</span></div>
-        <div class="guest-pocket-copy">
-          <h4 id="guest-card-name"></h4>
-          <p id="guest-card-line"></p>
-          <dl><dt>One song</dt><dd id="guest-card-song"></dd></dl>
-        </div>
-        <p class="guest-pocket-edition">Tuscany weekend collection</p>
-      </aside>
-      <form id="form-profile" novalidate>
-        <label for="pr-line">One line about you</label>
-        <input id="pr-line" type="text" maxlength="120" placeholder="How you know us, or anything you like">
-        <label for="pr-song">Your one song</label>
-        <input id="pr-song" type="text" maxlength="120" placeholder="Title, by Artist">
-        <div role="alert" class="p-msg p-err" id="pr-err" hidden></div>
-        <div class="p-msg p-ok" id="pr-ok" hidden></div>
-        <button class="p-primary" type="submit">Save my pocket</button>
-      </form>
-      </div>
-      <form class="p-pp" id="form-pprofile" novalidate hidden>
-        <h3 id="pp-h">Their pocket</h3>
-        <p>They get a pocket too. Fill it in for them, or ask them what they&rsquo;d like.</p>
-        <label for="pp-line">One line about them</label>
-        <input id="pp-line" type="text" maxlength="120" placeholder="How they know us, or anything you like">
-        <label for="pp-song">Their one song</label>
-        <input id="pp-song" type="text" maxlength="120" placeholder="Title, by Artist">
-        <div role="alert" class="p-msg p-err" id="pp-err" hidden></div>
-        <div class="p-msg p-ok" id="pp-ok" hidden></div>
-        <button class="p-primary" type="submit">Save their pocket</button>
-      </form>
-      <a class="p-link" href="binder.html">See the binder</a>
-    </div>
+
   </section>
 </main>
 
-<section class="p-wk" aria-labelledby="weekend-heading">
-  <div class="postcard-section-intro">
-    <h2 id="weekend-heading">See you in the hills</h2>
-    <p>Two stone villas above Sansepolcro, together from Friday to Monday. Here’s the shape of our weekend; the final timings and arrangements will follow.</p>
-    <a class="postcard-text-link" href="weekend-guide.html">Open the Friday-to-Monday programme</a>
-  </div>
-  <div class="p-days">
-    <article class="p-day">
-      <img src="images/postcards/friday-pool-480.webp" srcset="images/postcards/friday-pool-480.webp 480w, images/postcards/friday-pool-960.webp 960w" sizes="(max-width: 720px) calc(100vw - 48px), 32vw" width="1200" height="800" alt="The pool at Villa Vallorsaia in evening light" loading="lazy" decoding="async">
-      <div class="p-body"><p class="p-when">Friday 28 May</p><h3>Arrive and settle in</h3><p>Our first day together at La Conca. Check-in times, room allocations and the evening plans are still to be confirmed.</p></div>
-    </article>
-    <article class="p-day">
-      <img src="images/postcards/saturday-night-480.webp" srcset="images/postcards/saturday-night-480.webp 480w, images/postcards/saturday-night-960.webp 960w" sizes="(max-width: 720px) calc(100vw - 48px), 32vw" width="1400" height="931" alt="Villa Santarsa lit up at night" loading="lazy" decoding="async">
-      <div class="p-body"><p class="p-when">Saturday 29 May</p><h3>The wedding</h3><p>The date is set. Ceremony and celebration timings, locations within the estate and dress guidance will follow.</p></div>
-    </article>
-    <article class="p-day">
-      <img src="images/postcards/sunday-pool-480.webp" srcset="images/postcards/sunday-pool-480.webp 480w, images/postcards/sunday-pool-960.webp 960w" sizes="(max-width: 720px) calc(100vw - 48px), 32vw" width="1200" height="800" alt="The pool at Villa Santarsa looking over the valley" loading="lazy" decoding="async">
-      <div class="p-body"><p class="p-when">Sunday 30 May</p><h3>A little more time together</h3><p>Another day in Tuscany before Monday’s departures. Sunday’s plans and Monday’s check-out details are still to be confirmed.</p></div>
-    </article>
-  </div>
+<section class="p-help" id="help" aria-labelledby="help-heading">
+  <h2 id="help-heading">Need a hand?</h2>
+  <p>Message Sophie or Joe directly, the way you normally would.</p>
+  <p>Room allocations and final arrival details will follow. Bank transfer details appear with your saved reply if you’re coming.</p>
+  <div class="postcard-help-links"><a href="getting-here.html">Travel &amp; stay</a><a href="weekend-guide.html">Weekend details</a><a href="arrival-essentials.html">Arrival essentials</a></div>
 </section>
 
-<figure class="p-valley">
-  <img src="images/postcards/valley-960.webp" srcset="images/postcards/valley-480.webp 480w, images/postcards/valley-960.webp 960w, images/postcards/valley-1440.webp 1440w" sizes="100vw" width="1600" height="1064" alt="Lago di Montedoglio and the green Tuscan valley" loading="lazy" decoding="async">
-  <figcaption>Lago di Montedoglio, from the villa</figcaption>
-</figure>
-
-<section class="p-us" aria-labelledby="us-heading">
-  <div class="postcard-section-intro">
-    <h2 id="us-heading">From the beach to Tuscany</h2>
-    <p>A few photographs of the two of us, starting with the proposal. Next stop: a weekend with all of you in the hills above Sansepolcro.</p>
-    <a class="postcard-text-link" href="our-story.html">Open our photo album</a>
-    <div class="postcard-world-invitation">
-      <p>The places, little stories and illustrated cards that make this weekend ours.</p>
-      <a class="postcard-text-link" href="our-world.html">A little more us <span aria-hidden="true">&rarr;</span></a>
-    </div>
-  </div>
-  <div class="p-shots">
-    <figure><img src="images/postcards/proposal-960.webp" srcset="images/postcards/proposal-480.webp 480w, images/postcards/proposal-960.webp 960w, images/postcards/proposal-1440.webp 1440w" sizes="(max-width: 720px) calc(100vw - 48px), 48vw" width="1600" height="1066" alt="Joe proposing to Sophie on the beach" loading="lazy" decoding="async"><figcaption>Where this chapter began.</figcaption></figure>
-    <figure><img src="images/postcards/laugh-480.webp" srcset="images/postcards/laugh-480.webp 480w, images/postcards/laugh-960.webp 960w" sizes="(max-width: 720px) 70vw, 35vw" width="1200" height="800" alt="Sophie and Joe laughing on the beach" loading="lazy" decoding="async"><figcaption>The two of us.</figcaption></figure>
-  </div>
+<section class="p-personal" aria-labelledby="personal-heading">
+  <h2 id="personal-heading">A few of our favourite moments</h2>
+  <p>Photographs of the two of us and the artwork we’ve chosen for the wedding.</p>
+  <a class="postcard-text-link" href="our-story.html">Our photographs &amp; wedding cards</a>
 </section>
 
-<section class="p-ask">
-  <h2>Come and stay with us for the weekend</h2>
-  <p>We&rsquo;ve taken over two old stone villas for the whole weekend so that everyone can stay together, on site, from Friday to Monday. No hotels, no taxis home, everyone in one place.</p>
-  <div class="p-big">&pound;150</div>
-  <div class="p-per">per person, for the whole weekend</div>
-  <p>That covers your bed for the three nights. Everything else, from the moment you arrive to the moment you leave, is on us.</p>
-  <ul>
-    <li>Your room in one of the villas</li>
-    <li>Every meal, Friday night to Monday morning</li>
-    <li>Every drink</li>
-    <li>The pools, the grounds, the lot</li>
-  </ul>
-  <p>Once you&rsquo;ve registered and said you&rsquo;re coming, the details for the &pound;150 appear on your page when you sign in. No rush. And please, genuinely, no presents. You being there is the present.</p>
-</section>
-
-<section class="p-next">
-  <h3>What happens next</h3>
-  <ul>
-    <li><b>By 28 February 2027:</b> register above and tell us whether you&rsquo;re coming.</li>
-    <li><b>Available now:</b> <a href="getting-here.html">travel planning</a> and the <a href="weekend-guide.html">weekend guide</a>. Villa allocations and final arrangements will follow nearer the time.</li>
-    <li><b>Whenever suits:</b> the &pound;150 for your bed. The bank details are on your page once you&rsquo;ve said you&rsquo;re coming.</li>
-  </ul>
-</section>
-
-<footer class="p-mini">With love, Sophie &amp; Joe<br><a href="#card">RSVP / My weekend</a></footer>
+<footer class="p-mini">Sophie &amp; Joe · 28–31 May 2027<br><a href="#card">Reply to your invitation</a></footer>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 <script src="js/guest-registration.js"></script>
-<script src="js/guest-card-preview.js"></script>
 <script src="js/guest-welcome.js"></script>
 <script>
 (function () {
@@ -467,7 +345,7 @@
   });
   var auth = firebase.auth(), db = firebase.database();
   var session = GuestRegistration.createSession(auth, db), registrationBusy = false, editBusy = false, formOwner = null;
-  var screenVersion = 0, authUid = null, authVersion = 0, paymentOperation = 0;
+  var screenVersion = 0, authUid = null, paymentOperation = 0;
   var entryParams = new URLSearchParams(location.search);
   var nextPage = ["join-in.html", "guest-inbox.html"].indexOf(entryParams.get("next")) >= 0 ? entryParams.get("next") : "";
   function continueToNext(reg) {
@@ -476,23 +354,6 @@
   function sameUser(u) { return !!(u && auth.currentUser && auth.currentUser.uid === u.uid); }
   var $ = function (id) { return document.getElementById(id); };
   var INTENT = { yes: "Yes, coming", maybe: "Not sure yet", no: "Can’t make it" };
-
-  // ---- countdown ----
-  var target = new Date("2027-05-29T00:00:00+02:00").getTime();
-  function tick() {
-    var ms = Math.max(0, target - Date.now());
-    $("c-d").textContent = Math.floor(ms / 864e5);
-    $("c-h").textContent = Math.floor(ms / 36e5) % 24;
-    $("c-m").textContent = Math.floor(ms / 6e4) % 60;
-    $("c-s").textContent = String(Math.floor(ms / 1e3) % 60).padStart(2, "0");
-  }
-  tick(); setInterval(tick, 1000);
-
-  // ---- who's in so far (public count, no names) ----
-  db.ref("public/profiles").once("value").then(function (s) {
-    var v = s.val() || {}, k = Object.keys(v).filter(function (id) { return v[id] && v[id].name; }).length;
-    if (k >= 3) { $("live-n").textContent = k; $("live").hidden = false; }
-  }).catch(function () {});
 
   // ---- tabs ----
   function showTab(up) {
@@ -650,9 +511,9 @@
     $("registration-recovery").hidden = true;
     $("auth").hidden = has; $("done").hidden = !has;
     $("signout").hidden = !auth.currentUser;
-    if (!has) { current = null; $("pay").hidden = true; if (window.GuestCardPreview) window.GuestCardPreview.clear(); if (window.GuestWelcome) window.GuestWelcome.clear(); return; }
+    if (!has) { current = null; $("pay").hidden = true; if (window.GuestWelcome) window.GuestWelcome.clear(); return; }
     var declined = nobodyComing(reg.intent, partnerOf(reg));
-    $("weekend-summary").textContent = declined ? "Your reply is saved. We will miss you, and you can update it here if plans change." : reg.intent === "yes" ? "Your reply is saved. We cannot wait to see you in Tuscany, 28 to 31 May 2027." : "Your reply is saved as not sure yet. Let us know by 28 February 2027 when you can.";
+    $("weekend-summary").textContent = reg.intent === "no" ? "Your reply is saved as unable to attend. You can update it here if plans change." : reg.intent === "yes" ? "Your reply is saved as attending." : "Your reply is saved as not sure yet. Let us know by 28 February 2027 when you can.";
     $("travel-action").hidden = declined; $("stay-summary").hidden = declined;
     $("d-name").textContent = reg.name || "";
     $("d-email").textContent = reg.email || "";
@@ -671,31 +532,18 @@
     var r = document.querySelector('input[name="ed-intent"][value="' + (reg.intent || "") + '"]'); if (r) r.checked = true;
     current = reg;
     var pt = partnerOf(reg);
-    $("d-partner").hidden = !pt; $("form-pprofile").hidden = !pt;
+    $("d-partner").hidden = !pt;
     if (pt) {
       $("dp-name").textContent = pt.name;
       $("dp-intent").textContent = INTENT[pt.intent] || pt.intent || "not given";
       $("dp-diet").textContent = pt.diet || "nothing noted";
       $("dp-access").textContent = pt.access || "nothing noted";
-      $("pp-h").textContent = firstName(pt.name) + "’s pocket";
     }
     showPay(reg);
     if (!reg.intent) $("form-edit").hidden = false;
-    if (window.GuestCardPreview) window.GuestCardPreview.refresh();
     if (window.GuestWelcome) window.GuestWelcome.refresh(reg.intent);
     continueToNext(reg);
   }
-
-  // ---- sections opened from the dashboard (/public/config) get a link here ----
-  var OPEN = [["travel", "travel.html", "Travel and stay"], ["weekend", "schedule.html", "The weekend"],
-              ["faq", "faq.html", "Questions"], ["story", "our-story.html", "Our story"], ["fun", "fun.html", "Fun stuff"]];
-  db.ref("public/config").once("value").then(function (s) {
-    var c = s.val() || {};
-    var on = OPEN.filter(function (o) { return c.revealed === true || !!(c.sections && c.sections[o[0]] === true); });
-    if (!on.length) return;
-    $("open").innerHTML = "Now open: " + on.map(function (o) { return '<a href="' + o[1] + '">' + o[2] + " &rarr;</a>"; }).join(" &middot; ");
-    $("open").hidden = false;
-  }).catch(function () {});
 
   // ---- the 150: bank details live in /members/payment (signed-in only), paid flags in /payments/{uid} (admin-set) ----
   var payAmount = 150;
@@ -792,7 +640,6 @@
              address: "1 Example Street, Sevenoaks, TN13 1AA", intent: "yes",
              travel: { home: "MAN", into: "PSA", arriveDay: "2027-05-28", arriveTime: "afternoon", departDay: "2027-05-31" },
              partner: { name: "Alex Sample", intent: "yes", diet: "Vegetarian" } });
-    $("pp-line").value = "Sample line about them"; $("pp-song").value = "Sample Song, by Sample Artist";
     $("done").insertAdjacentHTML("afterbegin", '<div class="p-msg">Preview with sample data. Nothing on this page is saved.</div>');
     document.querySelectorAll("#done button.p-primary, #pay-sent").forEach(function (b) { b.disabled = true; });
   }
@@ -800,13 +647,13 @@
     registrationBusy = busy;
     ["up-btn", "in-btn", "up-back", "up-continue", "tab-up", "tab-in"].forEach(function (id) { $(id).disabled = busy; });
     $("form-up").setAttribute("aria-busy", busy);
-    $("up-btn").textContent = busy ? "Saving your reply..." : auth.currentUser ? "Save my reply" : "Register";
+    $("up-btn").textContent = busy ? "Saving your reply..." : "Save my reply";
     document.querySelectorAll("[data-google]").forEach(function (b) { b.disabled = busy; });
   }
   function completeReply(u, retain) {
     render(null); showTab(true);
     $("completion-note").textContent = "Signed in as " + (u.email || "your account") + ". Finish your reply below, then save.";
-    $("completion-note").hidden = false; $("password-row").hidden = true;
+    $("completion-note").hidden = false; $("password-row").hidden = true; $("up-account-help").hidden = true;
     $("up-email").readOnly = true; $("up-email").value = u.email || "";
     $("tab-up").textContent = "Complete your reply"; $("tab-in").hidden = true;
     document.querySelectorAll("[data-google], .p-or").forEach(function (el) { el.hidden = true; });
@@ -838,33 +685,28 @@
     authUid = u && u.uid;
     session.setUser(u); screenVersion++;
     if (changedAccount) {
-      authVersion++;
-      if (window.GuestCardPreview) window.GuestCardPreview.clear();
       if (window.GuestWelcome) window.GuestWelcome.clear();
       $("d-name").textContent = "";
       paymentOperation++;
       if (!PREVIEW) $("pay-sent").disabled = false;
       $("pay-sent-ok").hidden = true; hideErr("pay-err");
-      $("pr-line").value = ""; $("pr-song").value = ""; $("pp-line").value = ""; $("pp-song").value = "";
-      $("pr-ok").hidden = true; $("pp-ok").hidden = true; hideErr("pr-err"); hideErr("pp-err");
       $("form-edit").hidden = true; current = null; $("pay").hidden = true;
     }
     if (PREVIEW) return;
     $("registration-saved").hidden = true;
     if (!u) {
-      render(null); $("completion-note").hidden = true; $("password-row").hidden = false;
-      $("up-email").readOnly = false; $("tab-up").textContent = "Register"; $("tab-in").hidden = false;
+      render(null); $("completion-note").hidden = true; $("password-row").hidden = false; $("up-account-help").hidden = false;
+      $("up-email").readOnly = false; $("tab-up").textContent = "Reply"; $("tab-in").hidden = false;
       document.querySelectorAll("[data-google], .p-or").forEach(function (el) { el.hidden = INAPP; });
       $("form-up").reset(); $("form-edit").reset(); formOwner = null;
-      $("pr-line").value = ""; $("pr-song").value = ""; $("pp-line").value = ""; $("pp-song").value = "";
       $("form-edit").hidden = true;
       upTravelOpen = false; $("up-travel-open").setAttribute("aria-expanded", "false");
       $("up-optional").open = false; fillTravel("up", null); syncUpTravel(); syncChoiceHint(); setSignupStep(1, false);
-      hideErr("up-err"); hideErr("ed-err"); $("pr-ok").hidden = true; $("pp-ok").hidden = true;
+      hideErr("up-err"); hideErr("ed-err");
       busyRegistration(false);
       var seen = recalled();
       if (entryParams.get("signin") === "1") openSignIn(seen && seen.email, "Sign in to continue.");
-      else if (seen) openSignIn(seen.email, seen.google && !INAPP ? "Welcome back. You registered with Google, so use the Google button below." : "Sign in to see your saved reply. Or choose Register for a new account.");
+      else if (seen) openSignIn(seen.email, seen.google && !INAPP ? "Welcome back. You registered with Google, so use the Google button below." : "Sign in to see your saved reply. Or choose Reply if you have not replied yet.");
       return;
     }
     if (registrationBusy) return;
@@ -941,9 +783,10 @@
 
   // Google blocks sign-in inside the Facebook / Messenger / Instagram in-app browsers, so point people to email instead
   if (INAPP) {
+    document.querySelectorAll(".p-or").forEach(function (el) { el.hidden = true; });
     document.querySelectorAll("[data-google]").forEach(function (b) {
-      b.hidden = true; var o = b.previousElementSibling; if (o && o.classList.contains("p-or")) o.hidden = true;
-      b.insertAdjacentHTML("afterend", '<p class="p-inapp">Google sign-in doesn&rsquo;t work inside the Facebook app. Use your email above, or tap the menu and open this page in your normal browser.</p>');
+      b.hidden = true;
+      b.insertAdjacentHTML("afterend", '<p class="p-inapp">Google sign-in doesn&rsquo;t work inside the Facebook app. Use your email below, or tap the menu and open this page in your normal browser.</p>');
     });
   }
 
@@ -1000,44 +843,6 @@
       .then(function () { editBusy = false; $("ed-btn").disabled = false; $("ed-btn").textContent = "Save changes"; $("form-edit").setAttribute("aria-busy", "false"); });
   };
 
-  // ---- public binder pocket (/public/profiles/{uid}) ----
-  auth.onAuthStateChanged(function (u) {
-    if (!u) return;
-    var profileVersion = authVersion;
-    db.ref("public/profiles/" + u.uid).once("value").then(function (s) {
-      if (!sameUser(u) || profileVersion !== authVersion) return;
-      var p = s.val() || {};
-      $("pr-line").value = p.line || ""; $("pr-song").value = p.song || "";
-      if (window.GuestCardPreview) window.GuestCardPreview.refresh();
-    }).catch(function () {});
-    db.ref("public/profiles/" + u.uid + "-p").once("value").then(function (s) {
-      if (!sameUser(u) || profileVersion !== authVersion) return;
-      var p = s.val() || {};
-      $("pp-line").value = p.line || ""; $("pp-song").value = p.song || "";
-    }).catch(function () {});
-  });
-  $("form-pprofile").onsubmit = function (ev) {
-    ev.preventDefault(); hideErr("pp-err"); $("pp-ok").hidden = true;
-    var u = auth.currentUser, pt = partnerOf(current); if (PREVIEW || !u || !pt) return;
-    var rec = { name: pt.name, line: $("pp-line").value.trim().slice(0, 120), song: $("pp-song").value.trim().slice(0, 120),
-                partnerOf: u.uid, updatedAt: firebase.database.ServerValue.TIMESTAMP };
-    db.ref("public/profiles/" + u.uid + "-p").set(rec).then(function () {
-      if (!sameUser(u)) return;
-      $("pp-ok").textContent = "Saved. " + firstName(pt.name) + " is in the binder."; $("pp-ok").hidden = false;
-    }).catch(function (e) { if (sameUser(u)) showErr("pp-err", e); });
-  };
-  $("form-profile").onsubmit = function (ev) {
-    ev.preventDefault(); hideErr("pr-err"); $("pr-ok").hidden = true;
-    var u = auth.currentUser; if (PREVIEW || !u) return;
-    var name = ($("d-name").textContent || u.displayName || "").trim();
-    if (!name) return showErr("pr-err", { message: "We don’t have your name yet. Register first." });
-    var rec = { name: name, line: $("pr-line").value.trim().slice(0, 120), song: $("pr-song").value.trim().slice(0, 120),
-                updatedAt: firebase.database.ServerValue.TIMESTAMP };
-    db.ref("public/profiles/" + u.uid).set(rec).then(function () {
-      if (!sameUser(u)) return;
-      $("pr-ok").textContent = "Saved. You’re in the binder."; $("pr-ok").hidden = false;
-    }).catch(function (e) { if (sameUser(u)) showErr("pr-err", e); });
-  };
 })();
 </script>
 </body>
