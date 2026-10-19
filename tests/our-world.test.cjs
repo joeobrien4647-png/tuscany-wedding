@@ -184,9 +184,12 @@ test('every score from zero to five is correct; completion and restart fully res
 });
 
 test('incomplete quiz markup retains its readable static questions', () => {
-  const h = quizFixture(); delete h.root.selectors['[data-quiz-next]'];
-  assert.equal(createQuiz(h.root), null);
-  assert.ok(h.questions.every(question => !question.hidden));
+  for (const selector of ['[data-quiz-next]', '.world-quiz-paper']) {
+    const h = quizFixture(); delete h.root.selectors[selector];
+    assert.equal(createQuiz(h.root), null);
+    assert.ok(h.questions.every(question => !question.hidden));
+    assert.ok(h.questions.every(question => !question.querySelector('[data-quiz-explanation]').hidden));
+  }
   assert.equal(createQuiz(null), null);
 });
 
