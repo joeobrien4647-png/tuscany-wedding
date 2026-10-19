@@ -15,7 +15,7 @@ test('responsive postcard photos stay substantially below the original hero payl
 });
 
 test('guest presentation has a small aggregate script budget without a new rendering runtime', () => {
-  const names = ['js/guest-navigation.js', 'js/guest-card-preview.js', 'js/postcard-guides.js'];
+  const names = ['js/guest-navigation.js', 'js/guest-card-preview.js', 'js/postcard-guides.js', 'js/guest-welcome.js', 'js/our-world.js'];
   let total = 0;
   for (const name of names) {
     const source = fs.readFileSync(path.join(root, name), 'utf8');
@@ -23,4 +23,15 @@ test('guest presentation has a small aggregate script budget without a new rende
     assert.doesNotMatch(source, /requestAnimationFrame|setInterval|WebGL|IntersectionObserver|firebase\./, name);
   }
   assert.ok(total < 18000, `added interaction scripts total ${total} bytes`);
+});
+
+test('personal card art stays isolated from the homepage and within delivery budgets', () => {
+  for (const page of ['index.html', 'our-story.html']) {
+    assert.doesNotMatch(fs.readFileSync(path.join(root, page), 'utf8'), /images\/our-world|js\/our-world/);
+  }
+  for (const name of fs.readdirSync(path.join(root, 'images/our-world'))) {
+    assert.ok(name.endsWith('.webp'), name);
+    const cap = name.endsWith('-240.webp') ? 22000 : 120000;
+    assert.ok(fs.statSync(path.join(root, 'images/our-world', name)).size < cap, name);
+  }
 });
