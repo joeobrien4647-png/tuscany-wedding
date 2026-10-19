@@ -22,6 +22,9 @@
 .postcard-page .guest-button-secondary { background: transparent; color: var(--post-ink); }
 .postcard-page .guest-button:hover, .postcard-page button:hover { background: #162a22; color: #fff; }
 .postcard-page :focus-visible, .postcard-home :focus-visible { outline-color: var(--post-lake); }
+.postcard-page :is(input, select, textarea):focus-visible,
+.postcard-home .p-card :is(input, select, textarea):focus-visible { border-color: var(--post-lake); outline: 2px solid var(--post-lake); outline-offset: 2px; }
+.postcard-page a, .postcard-home a { text-underline-offset: .2em; }
 .postcard-page .guest-nav, .postcard-home .guest-nav { gap: .2rem; }
 .postcard-page .guest-nav a, .postcard-home .guest-nav a {
   min-height: 48px;
