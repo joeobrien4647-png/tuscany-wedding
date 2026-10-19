@@ -269,6 +269,14 @@
     <h2>My weekend</h2>
     <p id="weekend-summary"></p>
     <div class="p-msg p-ok" id="registration-saved" role="status" hidden>Your reply is saved.</div>
+    <aside class="guest-welcome" id="guest-welcome" aria-labelledby="guest-welcome-heading" hidden>
+      <p class="guest-welcome-label">A note from the two of us</p>
+      <h3 id="guest-welcome-heading">Hello, <span id="guest-welcome-name"></span>.</h3>
+      <p id="guest-welcome-note"></p>
+      <p class="guest-welcome-signature">With love, Sophie &amp; Joe</p>
+      <a class="guest-welcome-action" id="guest-welcome-link" hidden></a>
+      <button class="guest-welcome-action" id="guest-welcome-reply" type="button" hidden>Update your reply</button>
+    </aside>
     <div class="guest-actions" aria-label="Your next steps">
       <button class="p-link" type="button" id="reply-action">Update your reply</button>
       <button class="p-link" type="button" id="travel-action">Add or update travel</button>
@@ -407,6 +415,10 @@
     <h2 id="us-heading">From the beach to Tuscany</h2>
     <p>A few photographs of the two of us, starting with the proposal. Next stop: a weekend with all of you in the hills above Sansepolcro.</p>
     <a class="postcard-text-link" href="our-story.html">Open our photo album</a>
+    <div class="postcard-world-invitation">
+      <p>The places, little stories and illustrated cards that make this weekend ours.</p>
+      <a class="postcard-text-link" href="our-world.html">A little more us <span aria-hidden="true">&rarr;</span></a>
+    </div>
   </div>
   <div class="p-shots">
     <figure><img src="images/postcards/proposal-960.webp" srcset="images/postcards/proposal-480.webp 480w, images/postcards/proposal-960.webp 960w, images/postcards/proposal-1440.webp 1440w" sizes="(max-width: 720px) calc(100vw - 48px), 48vw" width="1600" height="1066" alt="Joe proposing to Sophie on the beach" loading="lazy" decoding="async"><figcaption>Where this chapter began.</figcaption></figure>
@@ -445,6 +457,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 <script src="js/guest-registration.js"></script>
 <script src="js/guest-card-preview.js"></script>
+<script src="js/guest-welcome.js"></script>
 <script>
 (function () {
   firebase.initializeApp({
@@ -637,7 +650,7 @@
     $("registration-recovery").hidden = true;
     $("auth").hidden = has; $("done").hidden = !has;
     $("signout").hidden = !auth.currentUser;
-    if (!has) { current = null; $("pay").hidden = true; if (window.GuestCardPreview) window.GuestCardPreview.clear(); return; }
+    if (!has) { current = null; $("pay").hidden = true; if (window.GuestCardPreview) window.GuestCardPreview.clear(); if (window.GuestWelcome) window.GuestWelcome.clear(); return; }
     var declined = nobodyComing(reg.intent, partnerOf(reg));
     $("weekend-summary").textContent = declined ? "Your reply is saved. We will miss you, and you can update it here if plans change." : reg.intent === "yes" ? "Your reply is saved. We cannot wait to see you in Tuscany, 28 to 31 May 2027." : "Your reply is saved as not sure yet. Let us know by 28 February 2027 when you can.";
     $("travel-action").hidden = declined; $("stay-summary").hidden = declined;
@@ -669,6 +682,7 @@
     showPay(reg);
     if (!reg.intent) $("form-edit").hidden = false;
     if (window.GuestCardPreview) window.GuestCardPreview.refresh();
+    if (window.GuestWelcome) window.GuestWelcome.refresh(reg.intent);
     continueToNext(reg);
   }
 
@@ -826,6 +840,7 @@
     if (changedAccount) {
       authVersion++;
       if (window.GuestCardPreview) window.GuestCardPreview.clear();
+      if (window.GuestWelcome) window.GuestWelcome.clear();
       $("d-name").textContent = "";
       paymentOperation++;
       if (!PREVIEW) $("pay-sent").disabled = false;
