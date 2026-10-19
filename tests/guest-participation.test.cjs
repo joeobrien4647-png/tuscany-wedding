@@ -222,7 +222,7 @@ test('both page mounts initialise against the shared fictional Firebase fixture'
     assert.equal(fixture.history.some(entry => entry.method === 'once'), true);
   }
 });
-test('pages use safe text rendering, private messaging, shared navigation and locked photos', () => {
+test('pages use safe text rendering, private messaging, shared navigation and no unavailable uploads', () => {
   for (const file of ['js/guest-participation.js', 'js/guest-inbox.js']) {
     const source = fs.existsSync(path.join(root, file)) ? fs.readFileSync(path.join(root, file), 'utf8') : '';
     assert.match(source, /textContent/);
@@ -235,6 +235,6 @@ test('pages use safe text rendering, private messaging, shared navigation and lo
   }
   const join = fs.readFileSync(path.join(root, 'join-in.html'), 'utf8');
   assert.match(join, /only.*Sophie and Joe/i);
-  assert.match(join, /photos.*later/i);
+  assert.doesNotMatch(join, /photos.*later/i);
   assert.doesNotMatch(join, /type="file"/);
 });

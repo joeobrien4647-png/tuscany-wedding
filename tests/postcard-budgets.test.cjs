@@ -15,20 +15,21 @@ test('responsive postcard photos stay substantially below the original hero payl
 });
 
 test('guest presentation has a small aggregate script budget without a new rendering runtime', () => {
-  const names = ['js/guest-navigation.js', 'js/guest-card-preview.js', 'js/postcard-guides.js', 'js/guest-welcome.js', 'js/our-world.js'];
+  const names = ['js/guest-navigation.js', 'js/guest-welcome.js', 'js/guest-journey.js'];
   let total = 0;
   for (const name of names) {
     const source = fs.readFileSync(path.join(root, name), 'utf8');
     total += Buffer.byteLength(source);
     assert.doesNotMatch(source, /requestAnimationFrame|setInterval|WebGL|IntersectionObserver|firebase\./, name);
   }
-  assert.ok(total < 18000, `added interaction scripts total ${total} bytes`);
+  assert.ok(total < 4000, `essential presentation scripts total ${total} bytes`);
 });
 
 test('personal card art stays isolated from the homepage and within delivery budgets', () => {
-  for (const page of ['index.html', 'our-story.html']) {
-    assert.doesNotMatch(fs.readFileSync(path.join(root, page), 'utf8'), /images\/our-world|js\/our-world/);
-  }
+  assert.doesNotMatch(fs.readFileSync(path.join(root, 'index.html'), 'utf8'), /images\/our-world|js\/our-world/);
+  const story = fs.readFileSync(path.join(root, 'our-story.html'), 'utf8');
+  assert.doesNotMatch(story, /<img[^>]+src="[^"]+-720\.webp"/);
+  assert.match(story, /href="images\/our-world\/the-host-720\.webp"/);
   for (const name of fs.readdirSync(path.join(root, 'images/our-world'))) {
     assert.ok(name.endsWith('.webp'), name);
     const cap = name.endsWith('-240.webp') ? 22000 : 120000;
