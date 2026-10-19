@@ -26,7 +26,8 @@ test('guest navigation prioritises essentials and links to real help', () => {
   for (const file of ['index.html', 'getting-here.html', 'weekend-guide.html', 'arrival-essentials.html', 'our-story.html', 'join-in.html']) {
     const nav = read(file).match(/<nav class="guest-nav"[\s\S]*?<\/nav>/)?.[0];
     assert.ok(nav, file);
-    for (const href of ['index.html#card', 'getting-here.html', 'weekend-guide.html', 'index.html#help']) assert.ok(nav.includes(`href="${href}"`), `${file}: ${href}`);
+    const home = file === 'index.html' ? '' : 'index.html';
+    for (const href of [home + '#card', 'getting-here.html', 'weekend-guide.html', home + '#help']) assert.ok(nav.includes(`href="${href}"`), `${file}: ${href}`);
     assert.equal((nav.match(/<a /g) || []).length, 4, file);
   }
   const home = read('index.html');
