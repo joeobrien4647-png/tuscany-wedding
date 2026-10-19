@@ -181,6 +181,150 @@ test('ordinary reply and travel edits preserve saved partner and retired profile
   assert.ok(h.writes.every(write => !Object.hasOwn(write.patch, 'partner')));
   assert.equal(h.fixture.history.filter(x => x.method === 'remove').length, 0);
 });
+
+test('saved replies show supplied optional details without empty rows and preserve them when collapsed', async () => {
+  const h = await signupPageHarness();
+  const partner = { name: 'Existing Partner', intent: 'yes', diet: 'Vegan', access: '' };
+  h.fixture.seed({ registrations: { guest: { name: 'Existing Guest', email: 'guest@example.test', intent: 'yes', phone: '07700 900000', address: '', diet: 'Vegetarian', access: ' ', partner } } });
+  h.fixture.signIn({ uid: 'guest' }); await h.settle();
+  assert.equal(h.element('saved-details').open, false);
+  for (const field of ['email', 'phone', 'diet']) assert.equal(h.element('d-' + field + '-row').hidden, false, field);
+  for (const field of ['address', 'access']) assert.equal(h.element('d-' + field + '-row').hidden, true, field);
+  assert.equal(h.element('dp-diet-row').hidden, false);
+  assert.equal(h.element('dp-access-row').hidden, true);
+  assert.equal(h.element('d-partner').hidden, false);
+  assert.equal(h.element('dp-intent').textContent, 'Yes, coming');
+  h.element('reply-action').onclick();
+  assert.equal(h.element('ed-optional').open, false);
+  h.choose('ed-intent', 'maybe'); h.submit('form-edit'); await h.settle();
+  const saved = h.fixture.inspect().registrations.guest;
+  assert.equal(saved.phone, '07700 900000');
+  assert.equal(saved.diet, 'Vegetarian');
+  assert.deepEqual(saved.partner, partner);
+  assert.equal(h.element('form-edit').hidden, true);
+  assert.equal(h.element('reply-action').getAttribute('aria-expanded'), 'false');
+});
+
+test('saved shared travel and payment remain available for an attending partner', async () => {
+  const h = await signupPageHarness();
+  h.fixture.seed({ registrations: {
+    couple: { name: 'Primary Guest', intent: 'no', partner: { name: 'Attending Partner', intent: 'yes' }, travel: { home: 'LHR', into: 'PSA', flightIn: 'AB123' } },
+    declining: { name: 'Declining Guest', intent: 'no', partner: { name: 'Declining Partner', intent: 'no' } }
+  } });
+  h.fixture.signIn({ uid: 'couple' }); await h.settle();
+  assert.equal(h.element('d-travel-block').hidden, false);
+  assert.match(h.element('d-travel').textContent, /AB123/);
+  assert.equal(h.element('stay-summary').hidden, false);
+  assert.equal(h.element('pay').hidden, false);
+  assert.equal(h.element('pay-h').textContent, 'Your £150 for the weekend');
+  h.fixture.signIn({ uid: 'declining' }); await h.settle();
+  assert.equal(h.element('d-travel-block').hidden, true);
+  assert.equal(h.element('stay-summary').hidden, true);
+  assert.equal(h.element('pay').hidden, true);
+  assert.equal(h.element('saved-details').hidden, true);
+});
+
+test('reply editing focuses the saved attendance and cancel restores saved values without writing', async () => {
+  const h = await signupPageHarness();
+  h.fixture.seed({ registrations: { guest: { name: 'Existing Guest', intent: 'maybe', phone: '07700 900000', travel: { home: 'LHR', into: 'PSA' } } } });
+  h.fixture.signIn({ uid: 'guest' }); await h.settle();
+  h.element('reply-action').onclick();
+  assert.equal(h.document.activeElement?.value, 'maybe');
+  assert.equal(h.element('reply-action').getAttribute('aria-expanded'), 'true');
+  h.choose('ed-intent', 'no'); h.element('ed-phone').value = 'Draft number'; h.element('ed-optional').open = true;
+  h.element('ed-cancel').onclick();
+  assert.equal(h.element('form-edit').hidden, true);
+  assert.equal(h.element('reply-action').getAttribute('aria-expanded'), 'false');
+  assert.equal(h.document.activeElement?.id, 'reply-action');
+  h.element('reply-action').onclick();
+  assert.equal(h.document.activeElement?.value, 'maybe');
+  assert.equal(h.element('ed-phone').value, '07700 900000');
+  assert.equal(h.element('ed-travel').hidden, false);
+  assert.equal(h.element('ed-optional').open, false);
+  assert.equal(h.writes.length, 0);
+});
+
+test('failed edit keeps optional draft visible and a successful retry closes disclosures', async () => {
+  const h = await signupPageHarness();
+  h.fixture.seed({ registrations: { guest: { name: 'Existing Guest', intent: 'yes', diet: 'Vegetarian' } } });
+  h.fixture.signIn({ uid: 'guest' }); await h.settle();
+  h.element('saved-details').open = true; h.element('reply-action').onclick();
+  h.element('ed-optional').open = true; h.element('ed-diet').value = 'Vegan';
+  h.fixture.failNext('update', 'registrations/guest'); h.submit('form-edit'); await h.settle();
+  assert.equal(h.element('form-edit').hidden, false);
+  assert.equal(h.element('ed-optional').open, true);
+  assert.equal(h.element('ed-diet').value, 'Vegan');
+  assert.equal(h.element('ed-err').hidden, false);
+  assert.equal(h.fixture.inspect().registrations.guest.diet, 'Vegetarian');
+  h.submit('form-edit'); await h.settle();
+  assert.equal(h.fixture.inspect().registrations.guest.diet, 'Vegan');
+  assert.equal(h.element('form-edit').hidden, true);
+  assert.equal(h.element('ed-optional').open, false);
+  assert.equal(h.element('saved-details').open, false);
+  assert.equal(h.document.activeElement?.id, 'reply-action');
+});
+
+test('account changes close disclosures and clear optional partner rows from the next reply', async () => {
+  const h = await signupPageHarness();
+  h.fixture.seed({ registrations: { one: { name: 'One', intent: 'yes', phone: '07700 900000', partner: { name: 'Partner', intent: 'yes', diet: 'Vegan' } }, two: { name: 'Two', intent: 'maybe' } } });
+  h.fixture.signIn({ uid: 'one' }); await h.settle();
+  h.element('saved-details').open = true; h.element('reply-action').onclick(); h.element('ed-optional').open = true;
+  h.fixture.signIn({ uid: 'two' });
+  assert.equal(h.element('saved-details').open, false);
+  assert.equal(h.element('ed-optional').open, false);
+  assert.equal(h.element('form-edit').hidden, true);
+  await h.settle();
+  assert.equal(h.element('d-phone-row').hidden, true);
+  assert.equal(h.element('dp-details').hidden, true);
+  assert.equal(h.element('dp-diet').textContent, '');
+  assert.equal(h.element('saved-details').hidden, true);
+  h.element('reply-action').onclick(); h.element('ed-optional').open = true;
+  h.fixture.signOut(); await h.settle();
+  assert.equal(h.element('ed-optional').open, false);
+  assert.equal(h.element('reply-action').getAttribute('aria-expanded'), 'false');
+});
+
+test('a saved record without attendance opens the reply editor without selecting a stale answer', async () => {
+  const h = await signupPageHarness();
+  h.fixture.seed({ registrations: { one: { name: 'One', intent: 'yes' }, incomplete: { name: 'Incomplete' } } });
+  h.fixture.signIn({ uid: 'one' }); await h.settle();
+  h.fixture.signIn({ uid: 'incomplete' }); await h.settle();
+  assert.equal(h.element('form-edit').hidden, false);
+  assert.equal(h.element('reply-action').getAttribute('aria-expanded'), 'true');
+  assert.equal(h.document.querySelector('input[name="ed-intent"]:checked'), null);
+  assert.equal(h.element('d-intent').textContent, 'Reply needed');
+  h.element('ed-phone').value = '07700 900000'; h.submit('form-edit'); await h.settle();
+  assert.equal(h.element('form-edit').hidden, false, 'saving optional details must not hide a missing reply');
+  assert.equal(h.element('reply-action').getAttribute('aria-expanded'), 'true');
+  assert.equal(h.fixture.inspect().registrations.incomplete.intent, undefined);
+});
+
+test('a new account can edit while an earlier save is pending and ignores its late completion', async () => {
+  const h = await signupPageHarness();
+  h.fixture.seed({ registrations: { one: { name: 'One', intent: 'yes' }, two: { name: 'Two', intent: 'maybe' } } });
+  h.fixture.signIn({ uid: 'one' }); await h.settle();
+  h.element('reply-action').onclick();
+  const releaseOne = h.fixture.delayNext('update', 'registrations/one');
+  h.choose('ed-intent', 'no'); h.submit('form-edit'); await h.settle();
+  assert.equal(h.element('reply-action').disabled, true);
+  h.fixture.signIn({ uid: 'two' }); await h.settle();
+  assert.equal(h.element('reply-action').disabled, false);
+  h.element('reply-action').onclick();
+  assert.equal(h.element('form-edit').hidden, false);
+  const releaseTwo = h.fixture.delayNext('update', 'registrations/two');
+  h.choose('ed-intent', 'yes'); h.submit('form-edit'); await h.settle();
+  releaseOne(); await h.settle();
+  assert.equal(h.element('ed-btn').disabled, true);
+  assert.equal(h.element('ed-cancel').disabled, true);
+  assert.equal(h.element('reply-action').disabled, true);
+  assert.equal(h.element('d-name').textContent, 'Two');
+  assert.equal(h.element('registration-saved').hidden, true);
+  releaseTwo(); await h.settle();
+  assert.equal(h.element('ed-btn').disabled, false);
+  assert.equal(h.element('reply-action').disabled, false);
+  assert.equal(h.element('d-name').textContent, 'Two');
+  assert.equal(h.element('d-intent').textContent, 'Yes, coming');
+});
 test('homepage never accesses public profiles during signup, edit, signout and account load', async () => {
   const h = await signupPageHarness();
   h.choose('intent', 'yes'); h.submit(); h.details(); h.submit(); await h.settle();
@@ -317,7 +461,7 @@ function paymentPageHarness() {
   const element = id => elements[id] ||= { value: '', textContent: '', hidden: false, disabled: false, readOnly: false, reset() {}, setAttribute() {} };
   element('pay-sent-ok').hidden = true;
   const context = { auth, db: fixture.firebase.database(), firebase: fixture.firebase, PREVIEW: false,
-    paymentOperation: 0, registrationBusy: false, authUid: null, authVersion: 0, screenVersion: 0, current: null, formOwner: null, INAPP: false, window: {},
+    paymentOperation: 0, editOperation: 0, editBusy: false, registrationBusy: false, authUid: null, authVersion: 0, screenVersion: 0, current: null, formOwner: null, INAPP: false, window: {},
     session: { setUser() {} }, $: element, document: { querySelectorAll: () => [] },
     sameUser: user => !!(auth.currentUser && auth.currentUser.uid === user.uid),
     hideErr: id => { element(id).hidden = true; }, showErr: id => { element(id).hidden = false; },
