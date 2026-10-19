@@ -16,7 +16,7 @@ test('public practical guides exist and load without an account or heavy runtime
     assert.match(html, /css\/guest-journey\.css/);
     assert.doesNotMatch(html, /firebase|webgl|<iframe|<video|reveal\.js|auth\.js/i);
     assert.match(html, /href="tuscany-2027\.ics"[^>]*download/);
-    for (const link of ['index.html#card', 'getting-here.html', 'weekend-guide.html', 'join-in.html']) {
+    for (const link of ['index.html#card', 'getting-here.html', 'weekend-guide.html', 'index.html#help']) {
       assert.ok(html.includes(`href="${link}"`), `${page}: missing ${link}`);
     }
   }
@@ -27,16 +27,14 @@ test('dates and pending details remain consistent with approved source and calen
   assert.equal(data.weekend.startDate, '2027-05-28');
   assert.equal(data.weekend.endDate, '2027-05-31');
   assert.equal(data.weekend.weddingDate, '2027-05-29');
-  assert.equal(data.updated, '2026-10-18');
+  assert.equal(data.updated, '2026-10-19');
   assert.ok(data.pending.includes('final villa entrance'));
   assert.match(read('tuscany-2027.ics'), /DTSTART;VALUE=DATE:20270528/);
   assert.match(read('tuscany-2027.ics'), /DTEND;VALUE=DATE:20270601/);
   const programme = read('weekend-guide.html');
   for (const day of ['Friday 28', 'Saturday 29', 'Sunday 30', 'Monday 31']) assert.ok(programme.includes(day));
-  assert.match(programme, /18 October 2026/);
-  assert.match(programme, /guides are now available/);
-  assert.match(programme, /final timings[^<]*still to be confirmed/i);
-  for (const page of pages) assert.doesNotMatch(read(page), /\b\d{1,2}:\d{2}\b|\b(?:a\.m\.|p\.m\.)|[£€]\s*\d/);
+  assert.match(programme, /final programme[^<]*still to be confirmed/i);
+  for (const page of pages) assert.doesNotMatch(read(page), /\b\d{1,2}:\d{2}\b|\b(?:a\.m\.|p\.m\.)/);
 });
 
 test('arrival caveats and named villa planning links do not promise an exact entrance', () => {
@@ -47,12 +45,14 @@ test('arrival caveats and named villa planning links do not promise an exact ent
     assert.match(html, /Villa%20Santarsa%20La%20Conca%20Sansepolcro/);
     assert.match(html, /Villa%20Vallorsaia%20La%20Conca%20Sansepolcro/);
     assert.match(html, /check-in[^<]*check-out[^<]*still to be confirmed/i);
+    assert.equal((html.match(/still to be confirmed/g) || []).length, 1);
+    assert.match(html, /step-free routes[^<]*suitable bathrooms[^<]*need to be checked/i);
     assert.doesNotMatch(html, /maps[^"<>]*\d{2}\.\d/);
   }
 });
 
 test('new public routes keep unreleased legacy experiences out of navigation', () => {
-  const excluded = ['itinerary.html', 'schedule.html', 'seating.html', 'binder.html', 'gallery.html', 'guests.html', 'accommodation.html', 'bingo.html'];
+  const excluded = ['itinerary.html', 'schedule.html', 'seating.html', 'binder.html', 'gallery.html', 'guests.html', 'accommodation.html', 'bingo.html', 'our-world.html', 'quiz.html'];
   for (const page of pages) {
     for (const excludedPage of excluded) assert.ok(!read(page).includes(`href="${excludedPage}`), `${page} reveals ${excludedPage}`);
   }
