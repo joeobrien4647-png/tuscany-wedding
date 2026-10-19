@@ -158,7 +158,7 @@ test('Google existing-account load preserves saved couple details and payment co
   h.choose('intent', 'no'); h.submit(); h.google[0].onclick(); await h.settle();
   assert.equal(h.element('d-name').textContent, 'Existing Guest');
   assert.equal(h.element('dp-name').textContent, 'Existing Partner');
-  assert.equal(h.element('pay-h').textContent, 'Your £300 for the weekend');
+  assert.equal(h.element('pay-h').textContent, 'Your £300 for your stay');
   assert.equal(h.writes.length, 0);
 });
 
@@ -176,7 +176,7 @@ test('ordinary reply and travel edits preserve saved partner and retired profile
   assert.equal(data.registrations.couple.travel.flightIn, 'AB123');
   assert.deepEqual(data.public.profiles['couple-p'], pocket);
   assert.equal(h.fixture.history.filter(x => x.path?.startsWith('public/')).length, 0, 'retired profiles must not be read or written');
-  assert.equal(h.element('pay-h').textContent, 'Your £150 for the weekend');
+  assert.equal(h.element('pay-h').textContent, 'Your £150 for your stay');
   assert.match(h.element('weekend-summary').textContent, /unable to attend/);
   assert.ok(h.writes.every(write => !Object.hasOwn(write.patch, 'partner')));
   assert.equal(h.fixture.history.filter(x => x.method === 'remove').length, 0);
@@ -216,7 +216,7 @@ test('saved shared travel and payment remain available for an attending partner'
   assert.match(h.element('d-travel').textContent, /AB123/);
   assert.equal(h.element('stay-summary').hidden, false);
   assert.equal(h.element('pay').hidden, false);
-  assert.equal(h.element('pay-h').textContent, 'Your £150 for the weekend');
+  assert.equal(h.element('pay-h').textContent, 'Your £150 for your stay');
   h.fixture.signIn({ uid: 'declining' }); await h.settle();
   assert.equal(h.element('d-travel-block').hidden, true);
   assert.equal(h.element('stay-summary').hidden, true);

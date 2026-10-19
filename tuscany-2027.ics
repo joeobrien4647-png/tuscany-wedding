@@ -5,10 +5,10 @@ CALSCALE:GREGORIAN
 METHOD:PUBLISH
 BEGIN:VEVENT
 UID:wedding-weekend-2027@sophieandjoe2027.com
-DTSTAMP:20260922T120000Z
+DTSTAMP:20261019T095510Z
 DTSTART;VALUE=DATE:20270528
 DTEND;VALUE=DATE:20270601
-SUMMARY:Sophie & Joe\, Tuscany
+SUMMARY:Sophie & Joe's wedding celebrations
 LOCATION:Agriturismo La Conca\, Sansepolcro\, Italy
 DESCRIPTION:Friday 28 to Monday 31 May. The wedding is Saturday 29 May. Details at https://sophieandjoe2027.com
 URL:https://sophieandjoe2027.com
