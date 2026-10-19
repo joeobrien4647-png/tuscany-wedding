@@ -1,0 +1,101 @@
+.world-main { padding-top: 1rem; }
+.world-intro { display: grid; grid-template-columns: 1.4fr 1fr; gap: 0 3rem; padding: 2rem 0 0; border-top: 1px solid #bec8b8; }
+.world-eyebrow { font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+.world-intro > .world-eyebrow { grid-column: 1 / -1; }
+.world-intro h1 { font-size: clamp(4.2rem, 10vw, 8.5rem); line-height: .94; margin-bottom: .35em; letter-spacing: -.055em; }
+.world-intro h1 em { font-weight: 400; }
+.world-intro-note { align-self: end; max-width: 26ch; padding-bottom: 1.5rem; }
+.world-monogram { display: flex; align-items: center; justify-content: center; width: 100px; height: 100px; margin-bottom: 1.2rem; border: 1px solid; border-radius: 50%; font: 2.4rem 'Playfair Display', Georgia, serif; transform: rotate(-9deg); }
+.world-monogram span { font-size: 1.2rem; padding-inline: .1em; }
+.world-chapters { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem 2rem; padding: 1rem 0; border-block: 1px solid #bec8b8; }
+.world-chapters a { min-height: 44px; display: inline-flex; align-items: center; gap: .65rem; text-decoration: none; }
+.world-chapters a:hover { text-decoration: underline; }
+.world-chapters span, .world-number { font: italic 1.1rem 'Playfair Display', Georgia, serif; }
+.world-chapters span { color: #67735b; }
+.world-section { margin-block: clamp(3rem, 7vw, 6rem); }
+.world-section-heading { display: grid; grid-template-columns: 3rem minmax(0, 1fr); gap: 1rem; max-width: 46rem; margin-bottom: 2rem; }
+.world-section-heading p:last-child { margin-bottom: 0; }
+.world-number { margin-top: .5rem; }
+.world-card-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1rem, 4vw, 3rem); }
+.world-card { min-width: 0; border-top: 1px solid #bec8b8; }
+.world-card-cover { position: relative; display: grid; justify-items: center; background: var(--post-sage); padding: 2rem 1rem; border-bottom: 1px solid #bec8b8; }
+.world-card:nth-child(2) .world-card-cover { background: #eee4c9; }
+.world-card-cover img { display: block; width: min(100%, 240px); height: auto; box-shadow: 0 8px 16px #233f3426; }
+.world-card-number { position: absolute; top: 1rem; left: 1rem; writing-mode: vertical-rl; font: .8rem 'Lato', sans-serif; letter-spacing: .1em; }
+.world-card-copy { padding: 1.5rem 0; }
+.world-card-copy h3 { font-size: 2rem; }
+.world-card-copy .world-eyebrow { font-size: .72rem; margin-bottom: .6rem; }
+.world-page summary { min-height: 48px; padding: .7rem .2rem; cursor: pointer; font-weight: 700; }
+.world-page summary:hover { text-decoration: underline; }
+.world-card details { border-block: 1px solid #bec8b8; }
+.world-card details > p { padding-top: .6rem; }
+.world-full-art img { display: block; width: 100%; max-width: 450px; height: auto; margin-inline: auto; }
+.world-card details > a { font-size: .85rem; }
+.world-map-layout { display: grid; grid-template-columns: 1.3fr 1fr; gap: clamp(1.25rem, 4vw, 3rem); align-items: center; }
+.world-map { min-width: 0; height: 410px; position: relative; background: var(--post-sage); border: 1px solid #bac6ad; overflow: hidden; }
+.world-contours { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: #879d7138; stroke-width: 2; pointer-events: none; }
+.world-map-caption { position: absolute; top: 1.25rem; right: 1.25rem; text-align: right; font: italic 1.2rem/1.2 'Playfair Display', Georgia, serif; }
+.world-map .world-pin { position: absolute; min-height: 48px; padding: .6rem .85rem; display: inline-flex; align-items: center; gap: .5rem; background: var(--post-white); border: 1px solid var(--post-ink); box-shadow: 3px 3px 0 #233f3414; text-decoration: none; font-size: .9rem; font-weight: 700; }
+.world-map .world-pin:hover, .world-map .world-pin[aria-expanded="true"] { background: var(--post-gold); }
+.world-pin span { font-size: 1.1rem; }
+.world-pin-nottingham { top: 82px; left: 7%; }
+.world-pin-wimbledon { top: 165px; left: 17%; }
+.world-pin-sevenoaks { top: 246px; left: 37%; }
+.world-pin-tuscany { bottom: 34px; right: 7%; }
+.world-map-footnote { position: absolute; bottom: 6px; left: 1rem; font-size: .65rem; letter-spacing: .03em; }
+.world-place-stories details { border-top: 1px solid #bec8b8; padding-block: .5rem; }
+.world-place-stories details:last-child { border-bottom: 1px solid #bec8b8; }
+.world-place-stories summary { font: 1.35rem/1.5 'Playfair Display', Georgia, serif; }
+.world-place-stories p { padding: .6rem .2rem .25rem; }
+.world-quiz { padding: clamp(1.25rem, 4vw, 3rem); background: var(--post-ink); color: var(--post-white); }
+.world-quiz-paper { background: var(--post-white); color: var(--post-ink); padding: clamp(1.25rem, 4vw, 2.5rem); border-top: 5px solid var(--post-gold); }
+.world-quiz-paper article + article { margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid #bec8b8; }
+.world-quiz-paper[data-enhanced] article { margin: 0; padding: 0; border: 0; }
+.world-quiz-paper h3 { font-size: clamp(1.4rem, 3vw, 2rem); }
+.world-quiz-paper [data-quiz-explanation] { margin-top: 1rem; }
+.world-quiz-paper [data-quiz-explanation] p { padding-top: .4rem; }
+.world-quiz-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin-top: 1.25rem; }
+.world-quiz-choices button { min-height: 54px; font-size: 1.1rem; }
+.world-page .world-quiz-choices button[aria-pressed="true"] { background: var(--post-gold); color: var(--post-ink); opacity: 1; }
+.world-quiz-feedback { margin-block: 1rem !important; }
+.world-quiz-feedback:empty { display: none; }
+.world-quiz-result h3 { font-size: clamp(2.5rem, 6vw, 4rem); }
+.world-next { padding-top: 2rem; border-top: 1px solid #bec8b8; }
+@media (max-width: 700px) {
+  .world-intro { grid-template-columns: minmax(0, 1fr); gap: 0 1rem; }
+  .world-intro h1 { font-size: clamp(4.4rem, 14vw, 6rem); }
+  .world-intro-note { display: flex; gap: 1rem; max-width: 31rem; align-items: center; font-size: .95rem; padding-bottom: 1rem; }
+  .world-intro-note p { margin: 0; }
+  .world-monogram { width: 65px; height: 65px; flex-shrink: 0; margin: 0; font-size: 1.6rem; }
+  .world-chapters { gap: .2rem 1rem; }
+  .world-chapters a { font-size: .85rem; }
+  .world-card-pair, .world-map-layout { grid-template-columns: minmax(0, 1fr); }
+  .world-card-pair { gap: 1rem; }
+  .world-card { display: grid; grid-template-columns: 1fr; }
+  .world-card-cover { padding-block: 1.5rem; }
+  .world-card-cover img { width: min(70%, 210px); }
+  .world-map { height: 370px; }
+  .world-pin-nottingham { top: 65px; }
+  .world-pin-wimbledon { top: 137px; left: 10%; }
+  .world-pin-sevenoaks { top: 210px; left: 25%; }
+  .world-section-heading { grid-template-columns: 1.8rem minmax(0, 1fr); gap: .6rem; }
+}
+@media (max-width: 370px) {
+  .world-intro { grid-template-columns: minmax(0, 1fr); }
+  .world-intro-note { display: flex; gap: 1rem; max-width: none; align-items: center; }
+  .world-monogram { flex-shrink: 0; margin: 0; }
+  .world-intro-note p { margin: 0; }
+  .world-intro h1 { font-size: 4.4rem; }
+  .world-quiz { padding: 1rem; }
+  .world-quiz-paper { padding: 1rem; }
+}
+@media print {
+  .world-intro h1 { font-size: 40pt; }
+  .world-chapters, .world-map, .world-quiz-choices, [data-quiz-controls], [data-quiz-result] { display: none; }
+  .world-section { margin-block: 1.5rem; }
+  .world-card-pair, .world-map-layout { display: block; }
+  .world-card-cover { display: none; }
+  .world-card-copy { padding: .5rem 0; }
+  .world-quiz { padding: 0; background: none; color: #000; }
+  .world-quiz-paper { border: 0; padding: 0; }
+}
