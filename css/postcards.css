@@ -1,18 +1,18 @@
 /* Shared postcard identity. Existing account fields retain their own styles. */
 .postcard-page, .postcard-home {
-  --post-ink: #233f34;
-  --post-paper: #f5f2e7;
-  --post-white: #fffdf7;
-  --post-sage: #e2e8d5;
-  --post-gold: #f3d567;
-  --post-art-blue: #c5dae7;
-  --post-art-gold: #ebd12f;
-  --post-lake: #43768a;
+  --post-ink: #25385b;
+  --post-paper: #f7f7ef;
+  --post-white: #fffef8;
+  --post-sage: #e6ecd9;
+  --post-gold: #e2c75c;
+  --post-art-blue: #e2edf1;
+  --post-art-gold: #d6c46c;
+  --post-lake: #1f3886;
   background-color: var(--post-paper);
   color: var(--post-ink);
 }
-.postcard-page { --guest-cream: #f5f2e7; --guest-charcoal: #233f34; --guest-terracotta: #233f34; --guest-olive: #233f34; }
-.postcard-page .guest-header { max-width: 1280px; padding-block: 1.2rem; background: var(--post-art-blue); border-bottom: 4px solid var(--post-art-gold); }
+.postcard-page { --guest-cream: #f7f7ef; --guest-charcoal: #25385b; --guest-terracotta: #25385b; --guest-olive: #25385b; }
+.postcard-page .guest-header { max-width: 1280px; padding-block: 1.2rem; background: var(--post-art-blue); border-bottom: 2px solid var(--post-art-gold); }
 .postcard-page .guest-brand { color: var(--post-ink); }
 .postcard-page .guest-main { max-width: 1200px; }
 .postcard-page .guest-kicker, .postcard-page .guest-eyebrow { text-transform: none; letter-spacing: .025em; font-size: .9rem; color: var(--post-ink); }
@@ -56,7 +56,7 @@
     padding: .4rem max(.35rem, env(safe-area-inset-right, 0px)) calc(.4rem + env(safe-area-inset-bottom, 0px)) max(.35rem, env(safe-area-inset-left, 0px));
     background: var(--post-white);
     border-top: 1px solid #bec8b8;
-    box-shadow: 0 -3px 12px #233f340a;
+    box-shadow: 0 -3px 12px #25385b0a;
   }
   .postcard-page .guest-nav a, .postcard-home .guest-nav a {
     display: flex;
@@ -70,7 +70,7 @@
     border: 0;
     border-radius: 4px;
   }
-  .postcard-page .guest-nav a[aria-current], .postcard-home .guest-nav a[aria-current] { background: var(--post-ink); color: #fffdf7; }
+  .postcard-page .guest-nav a[aria-current], .postcard-home .guest-nav a[aria-current] { background: var(--post-ink); color: #fffef8; }
   .postcard-editing .guest-nav { visibility: hidden; pointer-events: none; }
   .postcard-page .guest-footer { padding-bottom: 1.5rem; }
   .postcard-page [id], .postcard-home [id] { scroll-margin-bottom: 90px; }
