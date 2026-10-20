@@ -5,12 +5,14 @@
   --post-white: #fffdf7;
   --post-sage: #e2e8d5;
   --post-gold: #f3d567;
+  --post-art-blue: #c5dae7;
+  --post-art-gold: #ebd12f;
   --post-lake: #43768a;
   background-color: var(--post-paper);
   color: var(--post-ink);
 }
 .postcard-page { --guest-cream: #f5f2e7; --guest-charcoal: #233f34; --guest-terracotta: #233f34; --guest-olive: #233f34; }
-.postcard-page .guest-header { max-width: 1280px; padding-block: 1.2rem; }
+.postcard-page .guest-header { max-width: 1280px; padding-block: 1.2rem; background: var(--post-art-blue); border-bottom: 4px solid var(--post-art-gold); }
 .postcard-page .guest-brand { color: var(--post-ink); }
 .postcard-page .guest-main { max-width: 1200px; }
 .postcard-page .guest-kicker, .postcard-page .guest-eyebrow { text-transform: none; letter-spacing: .025em; font-size: .9rem; color: var(--post-ink); }
@@ -78,5 +80,6 @@
 }
 @media print {
   .postcard-page, .postcard-home { padding-bottom: 0; background: #fff; color: #000; }
+  .postcard-page .guest-header { background: transparent; border: 0; }
   .postcard-page .guest-nav, .postcard-home .guest-nav { display: none !important; }
 }
