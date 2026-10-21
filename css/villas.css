@@ -357,7 +357,7 @@ main a:focus-visible, main button:focus-visible { outline: 2px solid var(--color
     pointer-events: none;
 }
 
-.vx-note-credit::before { content: "\00b7  "; }
+.vx-note-credit::before { content: ""; display: inline-block; width: .75em; }
 .vx-note a { color: inherit; text-decoration: underline; text-underline-offset: 2px; pointer-events: auto; }
 
 .vx-toast {

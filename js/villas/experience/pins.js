@@ -4,7 +4,7 @@
 import { STATUS } from '../api.js';
 import { esc } from './dom.js';
 
-export const pinName = (p) => p.label || String(p.kicker || p.id).split(' · ').pop();
+export const pinName = (p) => p.label || String(p.kicker || p.id).split(', ').pop();
 const villaName = (id) => (id ? ` Villa ${id[0].toUpperCase()}${id.slice(1)}` : '');
 
 export function fillPin(el, place) {

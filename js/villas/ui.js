@@ -258,7 +258,7 @@ export function createUI(app, root, api) {
     const el = document.createElement('button');
     el.type = 'button';
     el.className = 'vx-tag';
-    el.innerHTML = `<span class="vx-tag-name">${esc(v.name)}</span><span class="vx-tag-sub">${v.bedrooms} bedrooms · sleeps ${v.sleeps}</span>`;
+    el.innerHTML = `<span class="vx-tag-name">${esc(v.name)}</span><span class="vx-tag-sub">${v.bedrooms} bedrooms, sleeps ${v.sleeps}</span>`;
     el.addEventListener('click', () => app.openVilla(v.id));
     return el;
   }

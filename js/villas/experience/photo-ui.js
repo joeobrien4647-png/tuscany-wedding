@@ -115,7 +115,7 @@ export function createPhoto(ctx) {
       const img = $('.vx-pm-result img');
       img.src = canvas.toDataURL('image/png');
       img.alt = `A still of La Conca in the model${wk ? `, ${shot.time.toLowerCase()}` : ` at ${shot.time}`}`;
-      $('.vx-pm-result figcaption').textContent = `${shot.time} · the model · ${canvas.width} × ${canvas.height}`;
+      $('.vx-pm-result figcaption').textContent = `${shot.time} in the model, ${canvas.width} × ${canvas.height}`;
       const canShare = !!navigator.canShare && navigator.canShare({ files: [new File([new Blob()], 'a.png', { type: 'image/png' })] });
       $('[data-pm="share"]').hidden = !canShare;
       // where a download does nothing, the button opens the picture to press and hold
