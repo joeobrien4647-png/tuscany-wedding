@@ -75,7 +75,7 @@
         list.replaceChildren();
         state.rows.forEach(function (item) {
           var card = doc.createElement('article'), title = doc.createElement('h2'), body = doc.createElement('p');
-          card.className = 'guest-card'; title.textContent = item.sender + ' · ' + (item.kind === 'song' ? 'Song request' : 'Memory');
+          card.className = 'guest-card'; title.textContent = item.sender + ': ' + (item.kind === 'song' ? 'Song request' : 'Memory');
           body.textContent = item.text; body.style.whiteSpace = 'pre-wrap';
           card.append(title, body);
           if (item.updatedAt) { var time = doc.createElement('p'); time.textContent = 'Saved ' + new Date(item.updatedAt).toLocaleDateString('en-GB'); card.append(time); }

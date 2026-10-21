@@ -40,7 +40,7 @@ test('dates and pending details remain consistent with approved source and calen
 test('arrival caveats and named villa planning links do not promise an exact entrance', () => {
   for (const page of ['getting-here.html', 'arrival-essentials.html']) {
     const html = read(page);
-    assert.match(html, /not a verified (?:villa )?(?:arrival )?entrance/);
+    assert.match(html, /postal address may not take you to your villa’s entrance/);
     assert.match(html, /final (?:villa )?arrival instructions/i);
     assert.match(html, /Villa%20Santarsa%20La%20Conca%20Sansepolcro/);
     assert.match(html, /Villa%20Vallorsaia%20La%20Conca%20Sansepolcro/);

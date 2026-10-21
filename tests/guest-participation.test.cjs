@@ -146,7 +146,7 @@ test('inbox renders hostile saved text literally using DOM text nodes', async ()
   await new Promise(resolve => setImmediate(resolve));
   elements['inbox-load'].handlers.click();
   await new Promise(resolve => setImmediate(resolve));
-  assert.equal(elements['inbox-items'].children[0].children[0].textContent, hostileName.slice(0, 120) + ' · Memory');
+  assert.equal(elements['inbox-items'].children[0].children[0].textContent, hostileName.slice(0, 120) + ': Memory');
   assert.equal(elements['inbox-items'].children[0].children[1].textContent, '<img src=x onerror=alert(1)>');
   assert.doesNotMatch(JSON.stringify(elements['inbox-items']), /fictional@example|PRIVATE_PHONE|PRIVATE_ADDRESS/);
 });
