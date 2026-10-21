@@ -512,6 +512,12 @@
     upTravelOpen = true; this.setAttribute("aria-expanded", "true"); syncUpTravel();
     $("up-travel").focus({ preventScroll: true });
   };
+  // getting-there.html links here with ?into=PEG: that airport starts picked, after each form reset. Nothing is saved until the guest sends it.
+  var intoPick = (/^(PEG|FLR|BLQ|PSA|FCO|CIA)$/.exec(entryParams.get("into") || "") || [])[1] || "";
+  function pickInto() {
+    if (!intoPick) return;
+    $("up-into").value = intoPick; upTravelOpen = true; $("up-travel-open").setAttribute("aria-expanded", "true"); syncUpTravel();
+  }
   document.querySelectorAll('input[name="intent"]').forEach(function (r) { r.addEventListener("change", function () { syncUpTravel(); syncChoiceHint(); }); });
   document.querySelectorAll('input[name="ed-intent"]').forEach(function (r) { r.addEventListener("change", syncEdTravel); });
 
@@ -532,6 +538,7 @@
   function fillEditor(reg) {
     ["phone", "address", "diet", "access"].forEach(function (field) { $("ed-" + field).value = reg[field] || ""; });
     fillTravel("ed", reg.travel);
+    if (intoPick && !(reg.travel && reg.travel.into)) $("ed-into").value = intoPick;
     document.querySelectorAll('input[name="ed-intent"]').forEach(function (radio) { radio.checked = radio.value === reg.intent; });
     $("ed-travel").hidden = nobodyComing(reg.intent, partnerOf(reg));
   }
@@ -687,7 +694,7 @@
     if (!retain && formOwner !== u.uid) {
       $("form-up").reset(); $("up-name").value = u.displayName || ""; $("up-email").value = u.email || "";
       upTravelOpen = false; $("up-travel-open").setAttribute("aria-expanded", "false"); fillTravel("up", null);
-      $("up-optional").open = false;
+      $("up-optional").open = false; pickInto();
     }
     formOwner = u.uid;
     $("up-btn").textContent = "Save my reply";
@@ -733,7 +740,7 @@
       $("form-up").reset(); $("form-edit").reset(); formOwner = null;
       $("form-edit").hidden = true;
       upTravelOpen = false; $("up-travel-open").setAttribute("aria-expanded", "false");
-      $("up-optional").open = false; fillTravel("up", null); syncUpTravel(); syncChoiceHint(); setSignupStep(1, false);
+      $("up-optional").open = false; fillTravel("up", null); pickInto(); syncUpTravel(); syncChoiceHint(); setSignupStep(1, false);
       hideErr("up-err"); hideErr("ed-err");
       busyRegistration(false);
       var seen = recalled();
