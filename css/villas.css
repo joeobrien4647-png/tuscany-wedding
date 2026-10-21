@@ -1,0 +1,1513 @@
+/* ============================================
+   The Villas: the 3D explorer page (villas.html)
+   Same language as the rest of the site: cream paper, Cinzel caps, Playfair with one italic accent,
+   Lato for reading, gold hairlines. The stage itself is the welcome film's warm dusk.
+   ============================================ */
+
+.vx-skip { position: absolute; left: -9999px; top: 0; z-index: 2000; padding: 10px 16px; background: var(--paper); color: var(--color-charcoal); border: 1px solid var(--hair); font: 700 14px/1.2 var(--font-body); }
+.vx-skip:focus { left: 0; }
+main a:focus-visible, main button:focus-visible { outline: 2px solid var(--color-olive); outline-offset: 3px; }
+
+/* the header and the explorer share the first screen, so the model's small print and map credit are in view:
+   below the postcard header, and above the postcard nav where a phone pins it to the bottom */
+.vx-hero {
+    --vx-top: 88px;
+    --vx-bottom: 0px;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--vx-top) - var(--vx-bottom));
+    height: calc(100svh - var(--vx-top) - var(--vx-bottom));
+    max-height: 1180px;
+}
+@media (max-width: 640px) {
+    .vx-hero { --vx-top: 68px; --vx-bottom: calc(62px + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* left-aligned on the postcard pages' 1200 px column */
+.vx-head {
+    flex: none;
+    padding: 20px max(clamp(1rem, 4vw, 3rem), calc((100% - 1200px) / 2 + clamp(1rem, 4vw, 3rem))) 16px;
+    background: var(--color-cream);
+}
+
+.vx-head .guest-kicker { margin-bottom: 6px; }
+
+.vx-head h1 {
+    font-size: clamp(2.3rem, 7vw, 3.8rem);
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    margin: 0 0 6px;
+}
+
+.vx-lede {
+    font-family: var(--font-heading);
+    font-style: italic;
+    font-size: clamp(1rem, 2.4vw, 1.25rem);
+    line-height: 1.4;
+    color: var(--text-soft);
+    max-width: 560px;
+    margin: 0;
+}
+
+/* ---------- the stage ---------- */
+.vx [hidden], .vx-roomlist [hidden] { display: none !important; }
+
+.vx {
+    --vx-gap: 12px;
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 360px;
+    max-height: 980px;
+    overflow: hidden;
+    background: #2a2420;
+    border-top: 1px solid var(--color-gold);
+    border-bottom: 1px solid var(--color-gold);
+    color: var(--color-charcoal);
+    -webkit-tap-highlight-color: transparent;
+    scroll-margin-top: var(--nav-h);
+}
+
+.vx-stage { position: absolute; inset: 0; }
+.vx-canvas { display: block; width: 100%; height: 100%; touch-action: none; outline: none; }
+
+.vx-labels {
+    position: absolute;
+    z-index: 4;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.vx-labels > * { pointer-events: auto; }
+
+/* the poster under the model while it loads: a golden-hour sky over the hills */
+.vx-poster {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #3f5b8f 0%, #8d86a6 38%, #e7a879 66%, #f3c995 78%, #7c7466 100%);
+    transition: opacity 0.9s ease;
+    pointer-events: none;
+}
+
+.vx-poster-hills { position: absolute; left: 0; right: 0; bottom: 0; width: 100%; height: 46%; }
+
+.vx-poster-sun {
+    position: absolute;
+    left: 28%;
+    top: 58%;
+    width: 120px;
+    height: 120px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(255, 236, 196, 0.95), rgba(255, 196, 120, 0.45) 40%, rgba(255, 170, 90, 0));
+}
+
+.vx.is-ready .vx-poster { opacity: 0; }
+
+.vx-loading {
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 22px;
+    max-width: min(86%, 380px);
+    text-align: center;
+    color: var(--cream-ink);
+    background: rgba(23, 19, 17, 0.55);
+    border: 1px solid rgba(201, 169, 97, 0.45);
+    border-radius: 14px;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    transition: opacity 0.5s ease;
+}
+
+.vx.is-ready .vx-loading { opacity: 0; pointer-events: none; }
+
+.vx-loading-text {
+    font: 600 11.5px/1.5 var(--caps);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+}
+
+.vx-loading.is-failed .vx-loading-text { font: 400 15px/1.5 var(--font-body); letter-spacing: 0; text-transform: none; }
+
+.vx-loading-bar {
+    position: relative;
+    width: 140px;
+    height: 2px;
+    overflow: hidden;
+    background: rgba(251, 240, 210, 0.2);
+}
+
+.vx-loading-bar span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 40%;
+    background: linear-gradient(90deg, rgba(230, 194, 126, 0), var(--glow), rgba(230, 194, 126, 0));
+    animation: vx-slide 1.4s ease-in-out infinite;
+}
+
+@keyframes vx-slide { from { transform: translateX(-100%); } to { transform: translateX(250%); } }
+
+/* ---------- shared control styling: cream paper, gold hairline ---------- */
+.vx-search,
+.vx-time,
+.vx-gfx-btn,
+.vx-tour-btn,
+.vx-places,
+.vx-floors,
+.vx-card,
+.vx-gfx-menu,
+.vx-toast {
+    background: rgba(255, 253, 248, 0.94);
+    border: 1px solid var(--hair);
+    box-shadow: 0 16px 34px -22px rgba(40, 25, 10, 0.6), 0 2px 8px rgba(40, 25, 10, 0.08);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.vx button { font: inherit; color: inherit; cursor: pointer; background: none; border: 0; }
+.vx .vx-gfx-btn, .vx .vx-tour-btn { background: rgba(255, 253, 248, 0.94); border: 1px solid var(--hair); }
+.vx button:focus-visible, .vx input:focus-visible { outline: 2px solid var(--terra-ink); outline-offset: 2px; }
+
+/* ---------- search ---------- */
+.vx-search {
+    position: absolute;
+    z-index: 30;
+    top: var(--vx-gap);
+    left: var(--vx-gap);
+    right: var(--vx-gap);
+    display: flex;
+    align-items: center;
+    height: 46px;
+    padding: 0 6px 0 14px;
+    border-radius: 999px;
+}
+
+.vx-search-icon { flex: none; width: 18px; height: 18px; color: var(--gold-ink); }
+
+.vx-search input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0 10px;
+    border: 0;
+    background: transparent;
+    font: 400 16px/1 var(--font-body);
+    color: var(--color-charcoal);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.vx-search input::placeholder { color: #8a8076; }
+.vx-search input:focus { outline: none; }
+.vx-search input::-webkit-search-cancel-button { -webkit-appearance: none; }
+
+.vx-results {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    max-height: min(56vh, 380px);
+    overflow-y: auto;
+    list-style: none;
+    padding: 6px;
+    background: var(--paper);
+    border: 1px solid var(--hair);
+    border-radius: 14px;
+    box-shadow: 0 22px 44px -26px rgba(40, 25, 10, 0.6);
+}
+
+.vx-result {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.vx-result[aria-selected="true"], .vx-result:hover { background: var(--panel); }
+.vx-result--none { cursor: default; }
+.vx-result-title { font-family: var(--font-heading); font-size: 17px; line-height: 1.25; }
+.vx-result-sub { font-size: 13px; line-height: 1.35; color: var(--text-soft); }
+.vx-result--note .vx-result-sub { font-style: italic; }
+
+/* ---------- light and graphics ---------- */
+.vx-side {
+    position: absolute;
+    z-index: 20;
+    top: calc(var(--vx-gap) + 58px);
+    right: var(--vx-gap);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.vx-gfx-btn,
+.vx-tour-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    color: var(--gold-ink);
+}
+
+.vx-gfx-btn svg, .vx-tour-btn svg { width: 20px; height: 20px; flex: none; }
+.vx-gfx-btn span, .vx-tour-btn span { display: none; }
+.vx-tour-btn .vx-tour-pause, .vx-tour-btn[aria-pressed="true"] .vx-tour-play { display: none; }
+.vx-tour-btn[aria-pressed="true"] .vx-tour-pause { display: inline; }
+.vx .vx-tour-btn[aria-pressed="true"] { background: var(--terra-ink); border-color: var(--terra-ink); color: #fff; }
+
+/* save the snippet, or share a link to the spot */
+.vx-snap-tools { position: absolute; z-index: 2; right: 14px; bottom: 10px; display: flex; gap: 6px; }
+.vx-snap.is-loading .vx-snap-tools { display: none; }
+.vx .vx-snap-tools button {
+    display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%;
+    background: rgba(23, 19, 17, 0.55); border: 1px solid rgba(251, 240, 210, 0.6); color: var(--cream-ink);
+}
+.vx-snap-tools svg { width: 18px; height: 18px; }
+
+.vx-gfx { position: relative; }
+
+.vx-gfx-menu {
+    position: absolute;
+    top: 0;
+    right: calc(100% + 8px);
+    width: 200px;
+    padding: 12px 14px;
+    border-radius: 14px;
+}
+
+.vx-gfx-menu p {
+    margin: 0 0 6px;
+    font: 600 11px/1.3 var(--caps);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-ink);
+}
+
+.vx-gfx-menu label { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 15px; cursor: pointer; }
+.vx-gfx-menu input { accent-color: var(--terra-ink); }
+.vx-gfx-menu small { display: block; margin-top: 6px; font-size: 12.5px; line-height: 1.4; color: var(--text-soft); }
+
+/* ---------- dock: where to go, and floors ---------- */
+.vx-dock {
+    position: absolute;
+    z-index: 20;
+    left: var(--vx-gap);
+    right: var(--vx-gap);
+    bottom: 26px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+}
+
+.vx-dock > * { pointer-events: auto; }
+
+.vx-places,
+.vx-floors {
+    display: flex;
+    max-width: 100%;
+    padding: 4px;
+    border-radius: 999px;
+}
+
+.vx-places button,
+.vx-floors button {
+    min-width: 0;
+    padding: 10px 14px;
+    border-radius: 999px;
+    font: 600 11.5px/1.2 var(--caps);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-charcoal);
+}
+
+.vx-floors button { padding: 8px 13px; font-size: 10.5px; }
+.vx-places button[aria-pressed="true"],
+.vx-floors button[aria-pressed="true"] { background: var(--terra-ink); color: #fff; }
+
+.vx-note {
+    position: absolute;
+    z-index: 10;
+    left: 50%;
+    bottom: 6px;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: calc(100% - 24px);
+    margin: 0;
+    font-size: 10.5px;
+    line-height: 1.3;
+    text-align: center;
+    color: rgba(251, 240, 210, 0.9);
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+    pointer-events: none;
+}
+
+.vx-note-credit::before { content: "\00b7  "; }
+.vx-note a { color: inherit; text-decoration: underline; text-underline-offset: 2px; pointer-events: auto; }
+
+.vx-toast {
+    position: absolute;
+    z-index: 40;
+    left: 50%;
+    top: 70px;
+    transform: translateX(-50%);
+    padding: 10px 16px;
+    border-radius: 999px;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+/* ---------- the card: a room, a place and its snippet ---------- */
+.vx-card {
+    position: absolute;
+    z-index: 25;
+    left: 8px;
+    right: 8px;
+    bottom: 84px;
+    max-height: 56%;
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    overflow: hidden;
+    animation: vx-rise 0.35s ease both;
+}
+
+.vx[data-view="santarsa"] .vx-card,
+.vx[data-view="vallorsaia"] .vx-card { bottom: 128px; max-height: 50%; }
+
+@keyframes vx-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+.vx-card-close {
+    position: absolute;
+    z-index: 2;
+    top: 8px;
+    right: 8px;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: rgba(255, 253, 248, 0.9) !important;
+    border: 1px solid var(--hair) !important;
+    color: var(--color-charcoal);
+}
+
+.vx-card-close svg { width: 18px; height: 18px; }
+
+/* the snippet: a still of the view, framed like the site's photos, graded like the welcome film */
+.vx-snap {
+    position: relative;
+    flex: none;
+    margin: 0;
+    aspect-ratio: 2 / 1;
+    background: #2a2420;
+    border-bottom: 1px solid var(--color-gold);
+    overflow: hidden;
+}
+
+@supports not (aspect-ratio: 1 / 1) {
+    .vx-snap { height: 0; padding-top: 50%; }
+    .vx-snap img { position: absolute; inset: 0; }
+}
+
+.vx-snap img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(1.06) contrast(1.05) sepia(0.1);
+}
+
+.vx-snap::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: radial-gradient(ellipse 80% 70% at 50% 45%, rgba(20, 16, 10, 0) 55%, rgba(20, 16, 10, 0.45) 100%),
+                linear-gradient(180deg, rgba(20, 16, 10, 0.35) 0%, rgba(20, 16, 10, 0) 18%, rgba(20, 16, 10, 0) 72%, rgba(20, 16, 10, 0.55) 100%);
+    pointer-events: none;
+}
+
+.vx-snap::after {
+    content: "";
+    position: absolute;
+    inset: 8px;
+    z-index: 1;
+    border: 1px solid rgba(251, 240, 210, 0.7);
+    pointer-events: none;
+}
+
+.vx-snap figcaption {
+    position: absolute;
+    z-index: 2;
+    left: 18px;
+    bottom: 14px;
+    font: 600 10.5px/1.3 var(--caps);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--cream-ink);
+    text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+.vx-snap.is-loading img { opacity: 0; }
+.vx-snap.is-loading { background: linear-gradient(110deg, #2a2420 30%, #3a322b 50%, #2a2420 70%); background-size: 300% 100%; animation: vx-shimmer 1.2s linear infinite; }
+@keyframes vx-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+.vx-card-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 14px 16px 14px;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+}
+
+/* more below: the last lines fade, so a short card on a phone reads as one that scrolls */
+.vx-card-body.has-more {
+    -webkit-mask-image: linear-gradient(180deg, #000 calc(100% - 44px), rgba(0, 0, 0, 0.12));
+    mask-image: linear-gradient(180deg, #000 calc(100% - 44px), rgba(0, 0, 0, 0.12));
+}
+
+.vx-card-kicker {
+    margin: 0 40px 4px 0;
+    font: 600 10.5px/1.4 var(--caps);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-ink);
+}
+
+.vx-card-title {
+    margin: 0 36px 6px 0;
+    font-size: 24px;
+    line-height: 1.12;
+    letter-spacing: -0.01em;
+}
+
+.vx-card[data-kind="place"] .vx-card-kicker,
+.vx-card[data-kind="place"] .vx-card-title { margin-right: 0; }
+
+.vx-card-text { margin: 0 0 8px; font-size: 15px; line-height: 1.55; color: var(--text-soft); }
+
+.vx-card-facts { margin: 0 0 8px; padding: 0; list-style: none; }
+
+.vx-card-facts li {
+    position: relative;
+    padding-left: 16px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.vx-card-facts li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 0.62em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-gold);
+}
+
+.vx-card-where,
+.vx-card-note {
+    margin: 0 0 8px;
+    padding: 8px 10px;
+    border-left: 2px solid var(--color-gold);
+    background: var(--panel);
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--text-soft);
+}
+
+.vx-card-where.is-approx { border-left-style: dashed; border-left-color: var(--terra-ink); }
+
+.vx-card-moment {
+    margin: 0 0 10px;
+    padding: 0 !important;
+    font: 700 13px/1.4 var(--font-body) !important;
+    color: var(--terra-ink) !important;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.vx-photo { margin: 0 0 10px; }
+.vx-photo img { display: block; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border: 1px solid var(--hair); }
+.vx-photo figcaption { margin-top: 4px; font-size: 11.5px; color: var(--text-soft); }
+
+.vx-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.vx-btn {
+    flex: 1 1 auto;
+    padding: 11px 16px !important;
+    border-radius: 999px;
+    border: 1px solid var(--hair) !important;
+    font: 700 13px/1.2 var(--font-body) !important;
+    letter-spacing: 0.04em;
+    color: var(--color-charcoal);
+}
+
+.vx-btn--primary { background: var(--terra-ink) !important; border-color: var(--terra-ink) !important; color: #fff !important; }
+
+/* ---------- labels in the scene ---------- */
+.vx-pin {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    translate: -11px -50%;
+    padding: 0 !important;
+}
+
+.vx-pin-dot {
+    position: relative;
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff 0 3px, var(--color-gold) 4px 6px, rgba(201, 169, 97, 0.25) 7px);
+    box-shadow: 0 0 0 1px rgba(255, 253, 248, 0.8), 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+
+.vx-pin-dot::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+    border: 1px solid rgba(230, 194, 126, 0.9);
+    border-radius: 50%;
+    animation: vx-ping 2.4s ease-out infinite;
+}
+
+.vx-pin.is-approx .vx-pin-dot::after { border-style: dashed; }
+
+@keyframes vx-ping { 0% { transform: scale(0.6); opacity: 1; } 80%, 100% { transform: scale(1.5); opacity: 0; } }
+
+.vx-pin-name {
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(255, 253, 248, 0.92);
+    border: 1px solid var(--hair);
+    font: 600 10px/1.2 var(--caps);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--color-charcoal);
+}
+
+.vx-tag {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    translate: -50% -100%;
+    padding: 6px 12px !important;
+    border-radius: 10px;
+    background: rgba(23, 19, 17, 0.62) !important;
+    border: 1px solid rgba(230, 194, 126, 0.55) !important;
+    color: var(--cream-ink) !important;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+.vx-tag-name { font: 600 11.5px/1.25 var(--caps); letter-spacing: 0.16em; text-transform: uppercase; white-space: nowrap; }
+.vx-tag-sub { font-size: 11px; line-height: 1.3; opacity: 0.85; white-space: nowrap; }
+
+.vx-room {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    translate: -50% -50%;
+    min-width: 30px;
+    padding: 3px 8px !important;
+    border-radius: 9px;
+    background: rgba(255, 253, 248, 0.95) !important;
+    border: 1px solid var(--color-gold) !important;
+    box-shadow: 0 3px 10px rgba(30, 20, 10, 0.3);
+}
+
+.vx-room-bed { display: block; width: 20px; height: 20px; color: var(--terra-ink); }
+.vx-room-name { font: 600 9.5px/1.3 var(--caps); letter-spacing: 0.12em; text-transform: uppercase; white-space: nowrap; }
+.vx-room--shared { background: rgba(23, 19, 17, 0.7) !important; color: var(--cream-ink) !important; }
+
+/* a bigger target than it looks, for fingers */
+.vx-room::after, .vx-card-close::after { content: ""; position: absolute; inset: -8px; }
+
+.vx-room.is-selected { background: var(--terra-ink) !important; border-color: var(--terra-ink) !important; z-index: 2000 !important; }
+.vx-room.is-selected .vx-room-bed { color: #fff; }
+
+/* ---------- phones and tablets: the card is a sheet over the bottom of the model ---------- */
+@media (max-width: 899px) {
+    .vx.has-card .vx-dock { display: none; }
+    .vx-card,
+    .vx[data-view="santarsa"] .vx-card,
+    .vx[data-view="vallorsaia"] .vx-card { bottom: 30px; max-height: min(64%, 560px); }
+}
+
+@media (max-width: 639px) {
+    .vx-dock { bottom: 36px; }
+    .vx-note { bottom: 4px; }
+    .vx.has-card .vx-side { display: none; }
+    .vx-snap { aspect-ratio: 2.4 / 1; }
+    .vx-card-title { font-size: 22px; }
+    .vx-card-text { font-size: 14.5px; }
+    .vx-room { min-width: 28px; padding: 3px 6px !important; }
+    .vx-places button { padding: 10px 12px; letter-spacing: 0.08em; font-size: 11px; }
+}
+
+/* short phones (an iPhone SE, or smaller): a slimmer snippet so the words get the room */
+@media (max-width: 639px) and (max-height: 740px) {
+    .vx-card,
+    .vx[data-view="santarsa"] .vx-card,
+    .vx[data-view="vallorsaia"] .vx-card { max-height: 70%; }
+    .vx-snap { aspect-ratio: 3.2 / 1; }
+    .vx-head { padding: 14px 16px 12px; }
+    .vx-head h1 { font-size: 2.1rem; }
+}
+
+/* phones on their side: the model fills the screen below the menu bar, the card sits beside the controls */
+@media (max-height: 520px) and (orientation: landscape) {
+    .vx-hero { height: auto; max-height: none; }
+    .vx { flex: none; height: calc(100vh - var(--nav-h)); height: calc(100svh - var(--nav-h)); min-height: 280px; }
+    .vx-head { padding: 12px 16px 10px; }
+    .vx-head h1 { font-size: 2.2rem; }
+    .vx-card,
+    .vx[data-view="santarsa"] .vx-card,
+    .vx[data-view="vallorsaia"] .vx-card { left: 8px; right: 76px; top: 66px; bottom: 26px; width: auto; max-height: none; flex-direction: row; }
+    .vx.has-card .vx-side { display: flex; }
+    .vx-snap { flex: none; width: 42%; aspect-ratio: auto; border-bottom: 0; border-right: 1px solid var(--color-gold); }
+    .vx-card-body { padding: 12px 14px; }
+}
+
+/* ---------- touch screens: controls at least 44 px tall ---------- */
+@media (pointer: coarse) {
+    .vx-places button, .vx-floors button { min-height: 44px; }
+    .vx-floors button { padding: 8px 14px; font-size: 11px; }
+    .vx-gfx-btn, .vx-tour-btn { width: 44px; height: 44px; }
+    .vx .vx-snap-tools button { width: 40px; height: 40px; }
+    .vx-card-close { width: 40px; height: 40px; }
+    .vx-pin { min-height: 44px; }
+    .vx-tag { min-height: 44px; justify-content: center; }
+    .vx-room { min-width: 34px; min-height: 30px; justify-content: center; }
+    .vx-btn { min-height: 44px; }
+}
+
+/* ---------- computers: controls round the edges, the card on the left ---------- */
+@media (min-width: 900px) {
+    .vx { --vx-gap: 20px; min-height: 520px; }
+    .vx-head { padding-top: 24px; padding-bottom: 18px; }
+    .vx-search { right: auto; width: 380px; }
+    .vx-side { top: var(--vx-gap); flex-direction: row; align-items: flex-start; }
+    .vx-gfx-btn, .vx-tour-btn { width: auto; padding: 0 14px; }
+    .vx-gfx-btn span, .vx-tour-btn span { display: inline; font: 600 10.5px/1 var(--caps); letter-spacing: 0.14em; text-transform: uppercase; }
+    .vx-gfx-menu { top: calc(100% + 8px); right: 0; }
+    .vx-card,
+    .vx[data-view="santarsa"] .vx-card,
+    .vx[data-view="vallorsaia"] .vx-card { left: var(--vx-gap); right: auto; top: 80px; bottom: auto; width: 390px; max-height: calc(100% - 180px); }
+    .vx-snap { aspect-ratio: 16 / 10; }
+    .vx-card-title { font-size: 28px; }
+    .vx-dock { bottom: 30px; }
+    .vx-note { font-size: 11.5px; bottom: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vx-pin-dot::after, .vx-loading-bar span, .vx-snap.is-loading { animation: none; }
+    .vx-card { animation: none; }
+}
+
+/* ---------- below the stage: each villa's counts and the small print ---------- */
+.vx-roomlist {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 1.5rem;
+    max-width: 860px;
+    margin: 0 auto;
+}
+
+.vx-roomcol {
+    padding: 1.6rem 1.5rem 1.5rem;
+    text-align: center;
+    background: var(--paper);
+    border: 1px solid var(--hair);
+    border-radius: 8px;
+    box-shadow: var(--shadow-soft), inset 0 0 0 7px var(--paper), inset 0 0 0 8px var(--hair-soft);
+}
+
+.vx-roomcol h3 { margin: 0 0 1rem; font-size: 1.8rem; line-height: 1.1; }
+.vx-roomcol h3 em { font-style: italic; color: var(--terra-ink); }
+.vx-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 1.2rem; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
+.vx-counts > div { padding: 0.8rem 0.3rem; }
+.vx-counts > div + div { border-left: 1px solid var(--hair-soft); }
+.vx-counts dt { font: 600 10.5px/1.4 var(--caps); letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold-ink); }
+.vx-counts dd { margin: 0.2rem 0 0; font: 400 1.9rem/1.1 var(--font-heading); color: var(--color-charcoal); }
+.vx-look { margin: 0; }
+.vx-look[hidden] { display: none; }
+.vx-roomlist-wait { text-align: center; color: var(--text-soft); }
+
+.vx-about {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+    gap: 2rem;
+    max-width: 940px;
+    margin: 0 auto;
+}
+
+.vx-about h3 { font-size: 1.4rem; margin-bottom: 0.6rem; }
+.vx-about ul { margin: 0 0 1rem; padding-left: 1.1rem; }
+.vx-about li { margin-bottom: 0.45rem; line-height: 1.6; color: var(--text-soft); }
+.vx-about p { color: var(--text-soft); }
+
+.vx-back { margin-top: 2rem; }
+
+.vx-credits {
+    max-width: 760px;
+    margin: 2rem auto 0;
+    font-size: 13px;
+    line-height: 1.6;
+    text-align: center;
+    color: var(--text-soft);
+}
+
+/* ============================================
+   v2: the time bar. The real sun of Saturday 29 May 2027 on a slider painted with the sky's own colours,
+   the facts marked on it, and Day, Sunset and Night as quick buttons beside the clock
+   ============================================ */
+.vx-time {
+    width: min(100%, 560px);
+    padding: 7px 12px 4px 14px;
+    border-radius: 18px;
+}
+
+.vx-time-head { display: flex; align-items: center; gap: 10px; min-height: 36px; }
+
+.vx-clock {
+    flex: none;
+    font: 500 22px/1 var(--font-heading);
+    font-variant-numeric: lining-nums tabular-nums;
+    letter-spacing: 0.01em;
+    color: var(--color-charcoal);
+}
+
+.vx-phase {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font: 600 10.5px/1.2 var(--caps);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--gold-ink);
+}
+
+.vx-light { display: flex; flex: none; gap: 2px; margin-right: -6px; }
+
+.vx-light button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    color: var(--gold-ink);
+}
+
+.vx-light button svg { width: 19px; height: 19px; flex: none; }
+.vx-light button span { display: none; }
+.vx-light button[aria-pressed="true"] { background: var(--terra-ink); color: #fff; }
+
+.vx-time-track { position: relative; height: 30px; --vx-thumb: 26px; }
+
+.vx-time-rail {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 8px;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    background: var(--vx-sky, linear-gradient(90deg, #26305a, #ef9f63 6%, #a9c6dc 30%, #f4c07e 82%, #26305a 92%));
+    box-shadow: inset 0 0 0 1px rgba(40, 25, 10, 0.16), 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* the marks sit on the rail, under the thumb; inset by the thumb's radius so they line up with its centre */
+.vx-marks { position: absolute; top: 0; bottom: 0; left: calc(var(--vx-thumb) / 2); right: calc(var(--vx-thumb) / 2); pointer-events: none; }
+
+.vx-mark {
+    position: absolute;
+    top: 50%;
+    width: 2px;
+    height: 12px;
+    transform: translate(-50%, -50%);
+    border-radius: 1px;
+    background: rgba(255, 253, 248, 0.95);
+    box-shadow: 0 0 0 1px rgba(40, 25, 10, 0.22);
+}
+
+.vx-mark.is-major { height: 16px; }
+.vx-mark.is-here { background: var(--terra-ink); box-shadow: 0 0 0 1px #fff; }
+.vx-mark-label { display: none; }
+
+.vx-time input[type="range"] {
+    position: relative;
+    z-index: 2;
+    display: block;
+    width: 100%;
+    height: 30px;
+    margin: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    touch-action: pan-y;
+}
+
+.vx-time input[type="range"]::-webkit-slider-runnable-track { height: 30px; background: transparent; border: 0; }
+.vx-time input[type="range"]::-moz-range-track { height: 30px; background: transparent; border: 0; }
+
+/* the thumb is the sun by day, a pale moon after dark */
+.vx-time input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: var(--vx-thumb);
+    height: var(--vx-thumb);
+    margin-top: 2px;
+    border-radius: 50%;
+    border: 2px solid #fffdf8;
+    background: radial-gradient(circle at 42% 38%, #fff6d8 0 22%, #f6cf7a 48%, #e9a24c 100%);
+    box-shadow: 0 0 0 1px rgba(40, 25, 10, 0.25), 0 0 14px 3px rgba(246, 196, 110, 0.55), 0 3px 8px rgba(40, 25, 10, 0.3);
+}
+
+.vx-time input[type="range"]::-moz-range-thumb {
+    width: var(--vx-thumb);
+    height: var(--vx-thumb);
+    border-radius: 50%;
+    border: 2px solid #fffdf8;
+    background: radial-gradient(circle at 42% 38%, #fff6d8 0 22%, #f6cf7a 48%, #e9a24c 100%);
+    box-shadow: 0 0 0 1px rgba(40, 25, 10, 0.25), 0 0 14px 3px rgba(246, 196, 110, 0.55), 0 3px 8px rgba(40, 25, 10, 0.3);
+}
+
+.vx-time[data-phase="blue"] input[type="range"]::-webkit-slider-thumb,
+.vx-time[data-phase="night"] input[type="range"]::-webkit-slider-thumb {
+    background: radial-gradient(circle at 62% 36%, #ffffff 0 18%, #e3e6f2 45%, #aab2cc 100%);
+    box-shadow: 0 0 0 1px rgba(20, 24, 50, 0.4), 0 0 12px 2px rgba(190, 200, 240, 0.5), 0 3px 8px rgba(20, 24, 50, 0.35);
+}
+
+.vx-time[data-phase="blue"] input[type="range"]::-moz-range-thumb,
+.vx-time[data-phase="night"] input[type="range"]::-moz-range-thumb {
+    background: radial-gradient(circle at 62% 36%, #ffffff 0 18%, #e3e6f2 45%, #aab2cc 100%);
+}
+
+.vx-time input[type="range"]:focus-visible { outline: none; }
+.vx-time input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--terra-ink); outline-offset: 2px; }
+
+@media (min-width: 640px) {
+    .vx-time-track { height: 42px; }
+    .vx-time-rail { top: 15px; }
+    .vx-time input[type="range"] { height: 30px; }
+    .vx-mark { top: 15px; }
+    .vx-mark.is-major .vx-mark-label {
+        display: block;
+        position: absolute;
+        top: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+        font: 600 9px/1 var(--caps);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        white-space: nowrap;
+        color: var(--text-soft);
+    }
+}
+
+@media (pointer: coarse) {
+    .vx-light button { width: 40px; height: 40px; }
+    .vx-time-track { --vx-thumb: 30px; }
+    .vx-time input[type="range"]::-webkit-slider-thumb { margin-top: 0; }
+}
+
+/* ============================================
+   v2: the side buttons, the "How it could look" notice, the weekend chips, pins with their status tags,
+   the far landmarks and the card's status tag
+   ============================================ */
+.vx-side-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    color: var(--gold-ink);
+}
+
+.vx .vx-side-btn {
+    background: rgba(255, 253, 248, 0.94);
+    border: 1px solid var(--hair);
+    box-shadow: 0 16px 34px -22px rgba(40, 25, 10, 0.6), 0 2px 8px rgba(40, 25, 10, 0.08);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.vx-side-btn svg { width: 20px; height: 20px; flex: none; }
+.vx-side-btn span { display: none; }
+.vx .vx-side-btn[aria-pressed="true"] { background: var(--terra-ink); border-color: var(--terra-ink); color: #fff; }
+.vx-side-btn[aria-busy] svg { animation: vx-spin 1.1s linear infinite; }
+@keyframes vx-spin { to { transform: rotate(360deg); } }
+.vx-layer-btns { display: contents; }
+
+.vx-gfx-menu { width: 220px; }
+.vx-menu-item {
+    display: flex !important;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 6px 0 10px !important;
+    margin-bottom: 8px;
+    border-bottom: 1px solid var(--hair-soft, rgba(0, 0, 0, 0.08)) !important;
+    font: 700 14px/1.2 var(--font-body) !important;
+    text-align: left;
+    color: var(--color-charcoal);
+}
+
+.vx-menu-item svg { width: 18px; height: 18px; flex: none; color: var(--gold-ink); }
+
+/* the layer's notice: on screen for as long as the layer is */
+.vx-notice {
+    position: absolute;
+    z-index: 22;
+    top: calc(var(--vx-gap) + 54px);
+    left: var(--vx-gap);
+    right: calc(var(--vx-gap) + 52px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 5px 5px 12px;
+    border-radius: 14px;
+    background: rgba(23, 19, 17, 0.74);
+    border: 1px solid rgba(230, 194, 126, 0.6);
+    color: var(--cream-ink);
+    font: 400 13px/1.35 var(--font-body);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    animation: vx-rise 0.3s ease both;
+}
+
+.vx-notice-mark::before { content: "\2726"; color: var(--glow, #e6c27e); font-size: 14px; }
+.vx-notice-text { flex: 1; min-width: 0; }
+/* a cut-open floor's own notice, under the layer's when both are up */
+.vx-inside { right: auto; max-width: calc(100% - 2 * var(--vx-gap) - 52px); }
+.vx.has-notice .vx-inside { top: calc(var(--vx-gap) + 98px); }
+
+.vx .vx-notice-off {
+    flex: none;
+    min-height: 32px;
+    padding: 0 11px;
+    border-radius: 999px;
+    border: 1px solid rgba(251, 240, 210, 0.55);
+    font: 600 9.5px/1 var(--caps);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--cream-ink);
+}
+
+/* the weekend chips */
+.vx-week {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    max-width: 100%;
+    padding: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.vx-week::-webkit-scrollbar { display: none; }
+.vx-week:empty { display: none; }
+
+.vx .vx-chip {
+    flex: none;
+    padding: 7px 11px;
+    border-radius: 999px;
+    background: rgba(255, 253, 248, 0.94);
+    border: 1px solid var(--hair);
+    box-shadow: 0 10px 24px -18px rgba(40, 25, 10, 0.7);
+    font: 400 12.5px/1.2 var(--font-body);
+    white-space: nowrap;
+    color: var(--color-charcoal);
+}
+
+.vx-chip b { margin-right: 3px; font: 600 9.5px/1 var(--caps); letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-ink); }
+.vx .vx-chip[aria-pressed="true"] { background: var(--terra-ink); border-color: var(--terra-ink); color: #fff; }
+.vx-chip[aria-pressed="true"] b { color: #fbe9c8; }
+
+/* pins: the name, and under it the status tag when the spot is not a plain fact */
+.vx-pin-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: rgba(255, 253, 248, 0.92);
+    border: 1px solid var(--hair);
+}
+
+.vx-pin-text:has(.vx-pin-tag) { border-radius: 11px; padding: 3px 9px 4px; }
+.vx-pin-name { padding: 0; border: 0; background: none; border-radius: 0; }
+.vx-pin-tag { font: italic 400 10.5px/1.2 var(--font-body); color: var(--terra-ink); white-space: nowrap; }
+.vx-pin.is-could .vx-pin-text { background: var(--terra-ink); border-color: var(--terra-ink); }
+.vx-pin.is-could .vx-pin-name, .vx-pin.is-could .vx-pin-tag { color: #fff; }
+.vx-pin.is-idea .vx-pin-dot { background: radial-gradient(circle, #fff 0 3px, #e6c27e 4px 6px, rgba(230, 194, 126, 0.3) 7px); }
+.vx-pin.is-idea .vx-pin-dot::after, .vx-pin.is-could .vx-pin-dot::after { border-style: dashed; }
+
+/* the far landmarks, standing on the hills like a peak finder */
+.vx-labels > .vx-landmark { pointer-events: none; }
+.vx-landmark {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    translate: -50% -100%;
+    text-align: center;
+    color: var(--cream-ink);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 1px 10px rgba(0, 0, 0, 0.5);
+}
+
+.vx-landmark-name { font: 600 10px/1.25 var(--caps); letter-spacing: 0.16em; text-transform: uppercase; white-space: nowrap; }
+.vx-landmark-sub { font: 400 10.5px/1.2 var(--font-body); opacity: 0.85; white-space: nowrap; }
+.vx-landmark-sun { max-width: 150px; margin-top: 2px; font: italic 400 12px/1.25 var(--font-heading); color: #ffe0a8; }
+.vx-landmark-stem { width: 1px; height: 16px; margin-top: 3px; background: linear-gradient(rgba(251, 240, 210, 0.9), rgba(251, 240, 210, 0)); }
+
+/* the card's status tag, beside its kicker */
+.vx-card-kicker { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+.vx-card-status {
+    padding: 2px 8px;
+    border-radius: 999px;
+    border: 1px dashed var(--terra-ink);
+    font: 600 9px/1.4 var(--caps);
+    letter-spacing: 0.14em;
+    color: var(--terra-ink);
+}
+
+.vx-card-status[data-status="idea"] { border-style: solid; border-color: var(--color-gold); background: rgba(201, 169, 97, 0.16); color: var(--gold-ink); }
+
+@media (max-width: 899px) {
+    .vx[data-view="santarsa"] .vx-week, .vx[data-view="vallorsaia"] .vx-week { display: none; }
+}
+
+@media (max-width: 639px) {
+    .vx .vx-chip { padding: 6px 9px; font-size: 12px; }
+}
+
+@media (pointer: coarse) {
+    .vx-side-btn { width: 44px; height: 44px; }
+    .vx .vx-chip { min-height: 34px; }
+}
+
+@media (min-width: 900px) {
+    .vx-side-btn { width: auto; padding: 0 14px; }
+    .vx-side-btn span { display: inline; font: 600 10.5px/1 var(--caps); letter-spacing: 0.14em; text-transform: uppercase; white-space: nowrap; }
+    .vx-notice { right: auto; width: 380px; }
+    .vx.has-notice .vx-card, .vx.has-inside .vx-card { top: 132px; max-height: calc(100% - 232px); }
+    .vx.has-notice.has-inside .vx-card { top: 176px; max-height: calc(100% - 276px); }
+    .vx-inside { width: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .vx-notice { animation: none; }
+    .vx-side-btn[aria-busy] svg { animation: none; }
+}
+
+/* ============================================
+   v2: the minimap and compass. An inset in the corner on computers, a sheet from the compass button on phones
+   ============================================ */
+.vx-compass-btn svg { transition: none; }
+.vx-compass-btn .vx-needle { transform-origin: 12px 12px; transform: rotate(var(--vx-heading, 0deg)); }
+
+.vx-map {
+    position: absolute;
+    z-index: 26;
+    left: 12px;
+    right: 12px;
+    bottom: 36px;
+    width: auto;
+    max-width: 360px;
+    margin: 0 auto;
+    padding: 8px;
+    border-radius: 18px;
+    background: rgba(255, 253, 248, 0.96);
+    border: 1px solid var(--hair);
+    box-shadow: 0 22px 44px -24px rgba(40, 25, 10, 0.7);
+    animation: vx-rise 0.3s ease both;
+}
+
+.vx-map-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 4px 8px 6px; }
+.vx-map-facing { font: italic 400 15px/1.3 var(--font-heading); color: var(--color-charcoal); }
+.vx-map-facing::first-letter { text-transform: uppercase; }
+.vx .vx-map-close { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--hair); background: var(--paper); }
+.vx-map-close svg { width: 16px; height: 16px; }
+.vx-map-svg svg { display: block; width: 100%; height: auto; border-radius: 12px; cursor: crosshair; touch-action: manipulation; }
+
+.vx-m-meadow { fill: #b7c48a; opacity: 0.72; }
+.vx-m-fell { fill: #a9b47c; opacity: 0.45; }
+.vx-m-water { fill: #6fa3b5; stroke: #4f8496; stroke-width: 0.6; }
+.vx-m-stream { fill: none; stroke: #6fa3b5; stroke-width: 0.9; opacity: 0.8; }
+.vx-m-road { fill: none; stroke: #efe3c6; stroke-linecap: round; stroke-linejoin: round; }
+.vx-m-track { stroke: #e2d3ae; stroke-dasharray: 3 2; }
+.vx-m-path { stroke: #e9dcc0; stroke-dasharray: 1.4 1.8; opacity: 0.9; }
+.vx-m-house { fill: #b5603e; stroke: #6d3320; stroke-width: 0.6; }
+.vx-m-out { fill: #c79a62; stroke: #7a5a33; stroke-width: 0.5; }
+.vx-m-pool { fill: #39b3c6; stroke: #f4f1ea; stroke-width: 1; }
+.vx-m-label { font: 600 8.5px/1 var(--caps); letter-spacing: 0.12em; text-transform: uppercase; fill: #fffaf0; text-anchor: middle; paint-order: stroke; stroke: rgba(40, 25, 10, 0.55); stroke-width: 2.4px; }
+.vx-m-pin circle { fill: #fff; stroke: var(--color-gold, #c9a961); stroke-width: 2; cursor: pointer; }
+.vx-m-pin:hover circle { fill: #fbe9c8; }
+.vx-m-cone { fill: rgba(255, 236, 196, 0.35); stroke: rgba(255, 250, 235, 0.9); stroke-width: 1; }
+.vx-m-eye { fill: #b3482b; stroke: #fff; stroke-width: 1.5; }
+.vx-m-eye.is-off { opacity: 0.5; }
+.vx-m-north circle { fill: rgba(255, 253, 248, 0.92); stroke: rgba(40, 25, 10, 0.25); }
+.vx-m-north path { fill: #b3482b; }
+.vx-m-north text { font: 700 6px/1 var(--font-body); text-anchor: middle; fill: var(--color-charcoal); }
+
+@media (max-width: 899px) {
+    .vx.has-map .vx-dock { visibility: hidden; }
+}
+
+@media (min-width: 900px) {
+    .vx-compass-btn { display: none !important; }
+    .vx-map {
+        left: auto;
+        right: var(--vx-gap);
+        bottom: 30px;
+        width: 200px;
+        padding: 6px;
+        animation: none;
+    }
+    .vx-map-head { padding: 0 4px 5px; }
+    .vx-map-facing { font-size: 13px; }
+    .vx-map-close { display: none !important; }
+}
+
+@media (min-width: 900px) and (max-height: 640px) {
+    .vx-map { width: 150px; }
+}
+
+.vx-result-tag { margin-left: 4px; padding: 1px 7px; border-radius: 999px; background: rgba(201, 169, 97, 0.18); font: 600 8.5px/1.5 var(--caps); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold-ink); vertical-align: 2px; }
+
+/* ============================================
+   v2: the tour. Its captions are a slim strip at the bottom (the card in caption mode); with reduced motion the
+   tour is a cross-fade of eye-level stills
+   ============================================ */
+.vx-card.is-caption {
+    top: auto;
+    bottom: 30px;
+    left: 50%;
+    right: auto;
+    width: min(calc(100% - 24px), 520px);
+    max-height: none;
+    transform: translateX(-50%);
+    background: rgba(23, 19, 17, 0.66);
+    border-color: rgba(230, 194, 126, 0.5);
+    color: var(--cream-ink);
+    animation: vx-caption 0.5s ease both;
+}
+
+@keyframes vx-caption { from { opacity: 0; } to { opacity: 1; } }
+.vx-card.is-caption .vx-snap, .vx-card.is-caption .vx-photo, .vx-card.is-caption .vx-card-text,
+.vx-card.is-caption .vx-card-facts, .vx-card.is-caption .vx-card-where, .vx-card.is-caption .vx-card-note,
+.vx-card.is-caption .vx-card-moment, .vx-card.is-caption .vx-card-actions { display: none !important; }
+.vx-card.is-caption .vx-card-body { padding: 10px 52px 11px 16px; -webkit-mask-image: none; mask-image: none; }
+.vx-card.is-caption .vx-card-kicker { color: #e6c27e; margin: 0 0 2px; }
+.vx-card.is-caption .vx-card-title { margin: 0; font-size: 21px; color: #fffaf0; }
+.vx-card.is-caption .vx-card-title em { color: #f3c98a; }
+.vx-card.is-caption .vx-card-close { top: 50%; transform: translateY(-50%); background: rgba(255, 253, 248, 0.16) !important; border-color: rgba(251, 240, 210, 0.45) !important; color: var(--cream-ink); }
+.vx-card.is-caption .vx-card-status { border-color: #e6c27e; color: #e6c27e; }
+
+@media (max-width: 899px) {
+    .vx-card.is-caption,
+    .vx[data-view="santarsa"] .vx-card.is-caption,
+    .vx[data-view="vallorsaia"] .vx-card.is-caption { bottom: 30px; max-height: none; }
+}
+
+@media (min-width: 900px) {
+    .vx-card.is-caption,
+    .vx[data-view="santarsa"] .vx-card.is-caption,
+    .vx[data-view="vallorsaia"] .vx-card.is-caption { left: 50%; right: auto; top: auto; bottom: 34px; width: 560px; max-height: none; }
+    .vx.is-touring .vx-map { opacity: 0.85; }
+}
+
+.vx.is-touring .vx-dock, .vx.is-touring .vx-notice { visibility: hidden; }
+
+.vx-stills {
+    position: absolute;
+    z-index: 5;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 70px 12px 110px;
+    background: rgba(18, 14, 12, 0.72);
+}
+
+.vx-stills-frame { position: relative; width: min(100%, 880px); aspect-ratio: 2 / 1; border: 1px solid rgba(251, 240, 210, 0.7); background: #2a2420; overflow: hidden; }
+.vx-stills-frame img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 1.2s ease; }
+.vx-stills-frame img.is-in { opacity: 1; }
+@media (min-width: 640px) { .vx-stills-frame { aspect-ratio: 1.6 / 1; } }
+/* the tour is a film: names and pins step back while it flies (the far landmarks stay) */
+.vx.is-touring .vx-labels .vx-pin, .vx.is-touring .vx-labels .vx-tag, .vx.is-touring .vx-labels .vx-room { opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+
+/* tap to hop: a ring where the tap landed */
+.vx-hop {
+    position: absolute;
+    z-index: 4;
+    width: 34px;
+    height: 34px;
+    margin: -17px 0 0 -17px;
+    border: 2px solid rgba(255, 250, 235, 0.95);
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    animation: vx-hop 0.85s ease-out both;
+}
+
+@keyframes vx-hop { from { transform: scale(0.4) scaleY(0.45); opacity: 1; } to { transform: scale(1.4) scaleY(0.45); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .vx-hop { animation-duration: 0.01s; } }
+
+/* first visit: a hint at a time, over the model, never in the way of a tap */
+.vx-hint {
+    position: absolute;
+    z-index: 24;
+    top: 40%;
+    left: 50%;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    max-width: calc(100% - 40px);
+    padding: 9px 16px 9px 12px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: rgba(23, 19, 17, 0.72);
+    border: 1px solid rgba(230, 194, 126, 0.6);
+    color: var(--cream-ink);
+    font: 400 14px/1.3 var(--font-body);
+    white-space: nowrap;
+    pointer-events: none;
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    animation: vx-hint-in 0.4s ease both;
+}
+
+.vx-hint svg { width: 22px; height: 22px; flex: none; color: #e6c27e; }
+.vx-hint[data-hint="turn"] svg { animation: vx-hint-turn 2.2s ease-in-out infinite; }
+.vx-hint[data-hint="all"] { white-space: normal; text-align: center; border-radius: 16px; }
+@keyframes vx-hint-in { from { opacity: 0; margin-top: 8px; } to { opacity: 1; margin-top: 0; } }
+@keyframes vx-hint-turn { 0%, 100% { transform: rotate(-14deg); } 50% { transform: rotate(14deg); } }
+.vx.has-card .vx-hint, .vx.is-touring .vx-hint { display: none; }
+@media (prefers-reduced-motion: reduce) { .vx-hint, .vx-hint svg { animation: none !important; } }
+.vx-dock > .vx-hint { position: static; transform: none; align-self: center; }
+
+/* ============================================
+   v2: sound, photo mode and walking
+   ============================================ */
+.vx-sound-btn .vx-sound-waves { display: none; }
+.vx-sound-btn[aria-pressed="true"] .vx-sound-waves { display: inline; }
+.vx-sound-btn[aria-pressed="true"] .vx-sound-off { display: none; }
+
+/* photo mode: everything but the frame and its bar steps aside */
+.vx.is-photo .vx-search, .vx.is-photo .vx-side, .vx.is-photo .vx-dock, .vx.is-photo .vx-labels, .vx.is-photo .vx-map,
+.vx.is-photo .vx-notice, .vx.is-photo .vx-card, .vx.is-photo .vx-hint, .vx.is-photo .vx-toast { visibility: hidden; }
+.vx-photo-mode { position: absolute; z-index: 35; inset: 0; pointer-events: none; }
+.vx-pm-frame { position: absolute; inset: 0; }
+.vx-pm-window {
+    position: absolute;
+    box-shadow: 0 0 0 200vmax rgba(14, 11, 9, 0.5);
+    outline: 1px solid rgba(255, 250, 235, 0.9);
+    outline-offset: -1px;
+    transition: width 0.25s ease, height 0.25s ease, left 0.25s ease, top 0.25s ease;
+}
+
+.vx-pm-bar {
+    position: absolute;
+    left: 50%;
+    bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: rgba(23, 19, 17, 0.72);
+    border: 1px solid rgba(230, 194, 126, 0.5);
+    pointer-events: auto;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.vx .vx-pm-close { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; color: var(--cream-ink); border: 1px solid rgba(251, 240, 210, 0.4); }
+.vx-pm-close svg { width: 18px; height: 18px; }
+.vx-pm-shapes { display: flex; gap: 2px; }
+.vx .vx-pm-shapes button { min-width: 44px; height: 36px; padding: 0 9px; border-radius: 999px; font: 600 10.5px/1 var(--caps); letter-spacing: 0.12em; color: var(--cream-ink); }
+.vx .vx-pm-shapes button[aria-checked="true"] { background: rgba(251, 240, 210, 0.92); color: var(--color-charcoal); }
+.vx .vx-pm-shutter { position: relative; width: 58px; height: 58px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.vx-pm-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.vx-pm-ring circle { fill: none; stroke: rgba(255, 250, 235, 0.85); stroke-width: 3; }
+.vx-pm-ring .vx-pm-progress { stroke: #e6c27e; stroke-width: 4; stroke-dasharray: 100; stroke-dashoffset: 100; transition: stroke-dashoffset 0.15s linear; }
+.vx-pm-dot { width: 42px; height: 42px; border-radius: 50%; background: #fffaf0; transition: transform 0.15s ease; }
+.vx.is-shooting .vx-pm-dot { transform: scale(0.82); background: #f3d9a3; }
+.vx-pm-tip { position: absolute; left: 0; right: 0; bottom: 92px; margin: 0; text-align: center; font: italic 400 15px/1.3 var(--font-heading); color: var(--cream-ink); text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7); }
+.vx-pm-tip:empty { display: none; }
+
+.vx-pm-result {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 20px 16px 24px;
+    background: rgba(14, 11, 9, 0.86);
+    pointer-events: auto;
+}
+
+.vx-pm-result figure { margin: 0; max-width: 100%; max-height: calc(100% - 90px); display: flex; flex-direction: column; align-items: center; min-height: 0; }
+.vx-pm-result img { display: block; max-width: 100%; max-height: 100%; min-height: 0; object-fit: contain; border: 1px solid rgba(251, 240, 210, 0.7); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); }
+.vx-pm-result figcaption { margin-top: 8px; font: 600 10px/1.3 var(--caps); letter-spacing: 0.18em; text-transform: uppercase; color: rgba(251, 240, 210, 0.85); }
+.vx-pm-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.vx-pm-actions .vx-btn:not(.vx-btn--primary) { color: var(--cream-ink); border-color: rgba(251, 240, 210, 0.45) !important; }
+
+/* walking: a thumb joystick on phones, a bar to stop */
+.vx-walk { position: absolute; z-index: 32; inset: 0; pointer-events: none; }
+.vx-joy {
+    position: absolute;
+    left: 22px;
+    bottom: 96px;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 250, 235, 0.12), rgba(255, 250, 235, 0.22));
+    border: 1px solid rgba(255, 250, 235, 0.6);
+    pointer-events: auto;
+    touch-action: none;
+}
+
+.vx-joy-knob { position: absolute; left: 50%; top: 50%; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: rgba(255, 250, 235, 0.9); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); }
+.vx-walk-bar {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.vx-walk-tip { font: italic 400 14px/1.3 var(--font-heading); color: var(--cream-ink); text-shadow: 0 1px 8px rgba(0, 0, 0, 0.75); }
+.vx-walk-stop { flex: none; pointer-events: auto; }
+.vx.is-walking .vx-labels .vx-pin, .vx.is-walking .vx-labels .vx-tag { opacity: 0.55; }
+@media (max-width: 899px) {
+    .vx.is-walking .vx-dock, .vx.is-walking .vx-side, .vx.is-walking .vx-hint { visibility: hidden; }
+    .vx-walk-tip { display: none; }
+}
+@media (pointer: fine) { .vx-joy { display: none; } .vx-walk-bar { bottom: auto; top: calc(var(--vx-gap) + 56px); } }
+
+/* phones: the dock packed tighter so the model's middle third stays clear; short phones get a one-row time bar
+   (the weekend is still in search: "friday", "wedding", "pool day") */
+@media (max-width: 639px) {
+    .vx-dock { gap: 6px; }
+    .vx-time { padding: 5px 10px 2px 12px; }
+    .vx .vx-chip { min-height: 32px; padding: 5px 9px; }
+}
+
+@media (max-width: 639px) and (max-height: 740px) {
+    .vx-week { display: none; }
+    .vx-dock { bottom: 30px; gap: 5px; }
+    .vx-time { display: flex; align-items: center; gap: 8px; padding: 2px 8px 2px 12px; }
+    .vx-time-head { min-height: 0; }
+    .vx-phase, .vx-time .vx-light { display: none; }
+    .vx-clock { font-size: 18px; }
+    .vx-time-track { flex: 1; height: 38px; }
+    .vx-time input[type="range"] { height: 38px; }
+    .vx-places button { min-height: 40px; }
+}
+.vx-photo-mode.has-result .vx-pm-bar, .vx-photo-mode.has-result .vx-pm-tip, .vx-photo-mode.has-result .vx-pm-frame { visibility: hidden; }
+.vx-pm-result { background: rgba(14, 11, 9, 0.94); }
+
+/* keeping a picture or a link where the browser cannot download or copy (experience/keep.js) */
+.vx-keep {
+    position: absolute;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: rgba(20, 16, 12, 0.66);
+}
+.vx-keep-box {
+    width: min(100%, 560px);
+    max-height: 100%;
+    overflow: auto;
+    padding: 14px;
+    border-radius: 16px;
+    background: rgba(255, 253, 248, 0.97);
+    color: var(--color-charcoal, #2b2723);
+    box-shadow: 0 20px 40px -24px rgba(0, 0, 0, 0.7);
+}
+.vx-keep-title { margin: 0 0 10px; font: 600 15px/1.35 var(--font-body); }
+.vx-keep img { display: block; width: 100%; height: auto; border-radius: 10px; -webkit-touch-callout: default; user-select: auto; }
+.vx-keep input { width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--hair); border-radius: 10px; font: 400 15px/1.3 var(--font-body); background: #fff; }
+.vx-keep-actions { display: flex; justify-content: flex-end; margin-top: 12px; }
+
+/* ---------- small and sideways phones (5 Oct review): the side buttons never run into the bottom controls ---------- */
+@media (pointer: coarse) {
+    /* tap targets at least 44 px: the weekend chips, the light buttons, the time slider, the map credit */
+    /* the chips and the slider keep their size on screen (the dock must leave the model's middle third clear), and
+       reach 44 px to the touch: the chip's hit area runs past its edge, the slider's box past its track */
+    .vx .vx-chip { position: relative; }
+    .vx .vx-chip::after { content: ""; position: absolute; left: 0; right: 0; top: -6px; bottom: -6px; }
+    .vx-light button { width: 44px; height: 44px; }
+    .vx-time input[type="range"] { height: 44px; margin-top: -7px; margin-bottom: -7px; }
+    .vx-note a { display: inline-block; padding: 28px 6px 2px; margin: -28px -6px -2px; }
+}
+
+/* short phones upright (an iPhone SE, 375 x 667): the side buttons go in a row under the search */
+@media (max-width: 639px) and (max-height: 740px) {
+    .vx-side { top: calc(var(--vx-gap) + 56px); left: var(--vx-gap); right: var(--vx-gap); flex-direction: row; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+    .vx-gfx-menu { top: calc(100% + 8px); right: 0; }
+    .vx-notice { top: calc(var(--vx-gap) + 108px); right: var(--vx-gap); }
+    .vx.has-notice .vx-inside { top: calc(var(--vx-gap) + 152px); }
+    .vx-places button { min-height: 44px; }
+}
+
+/* phones on their side: two columns of side buttons at the top right, the time bar and the places in one row */
+@media (max-height: 520px) and (orientation: landscape) {
+    .vx-side { top: var(--vx-gap); display: grid; grid-auto-flow: column; grid-template-rows: repeat(3, auto); direction: rtl; gap: 6px; align-items: start; }
+    .vx-side > *, .vx-layer-btns > * { direction: ltr; }
+    .vx.has-card .vx-side { display: grid; }
+    .vx-search { right: calc(var(--vx-gap) + 104px); }
+    .vx-notice, .vx-inside { right: calc(var(--vx-gap) + 104px); }
+    .vx-week { display: none; }
+    .vx-dock { right: calc(var(--vx-gap) + 104px); bottom: 24px; flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; }
+    .vx-time { flex: 1 1 240px; max-width: 420px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 12px; }
+    .vx-time-head { min-height: 0; }
+    .vx-phase, .vx-time .vx-light, .vx-mark-label { display: none !important; }
+    .vx-clock { font-size: 18px; }
+    .vx-time-track { flex: 1; }
+    .vx-time-rail, .vx-mark { top: 50% !important; }
+    .vx-card,
+    .vx[data-view="santarsa"] .vx-card,
+    .vx[data-view="vallorsaia"] .vx-card { right: calc(var(--vx-gap) + 104px); }
+    .vx-hint { top: calc(var(--vx-gap) + 56px); }
+}
+
+/* walking on a phone: the joystick's tip shows as a toast when the walk starts (experience/walk.js) */

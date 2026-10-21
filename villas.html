@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f5f2e7">
+  <title>The villas, Sophie &amp; Joe</title>
+  <meta name="description" content="Fly round La Conca in 3D: both villas, both pools and the view west, for Sophie and Joe’s wedding weekend, 28 to 31 May 2027.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sophieandjoe2027.com/villas.html">
+  <meta property="og:title" content="The villas, Sophie &amp; Joe">
+  <meta property="og:description" content="Fly round La Conca in 3D: both villas, both pools and the view west.">
+  <meta property="og:image" content="https://sophieandjoe2027.com/images/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;family=Playfair+Display:ital,wght@0,400;0,500;1,400&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/postcard-features.css">
+  <link rel="stylesheet" href="css/villas.css">
+  <script src="js/guest-navigation.js" defer></script>
+</head>
+<body class="guest-page postcard-page feature-page villas-page">
+  <a class="guest-skip" href="#main">Skip to content</a>
+  <header class="guest-header"><a class="guest-brand" href="index.html">Sophie &amp; Joe</a><nav class="guest-nav" aria-label="Guest navigation"><a href="index.html#card">RSVP</a><a href="getting-here.html" aria-current="location">Travel &amp; stay</a><a href="weekend-guide.html">Our wedding</a><a href="index.html#help">Help</a></nav></header>
+
+    <main id="main">
+    <!-- The header and the explorer fill the first screen together, so the model's small print and map credit show from the start -->
+    <div class="vx-hero">
+    <header class="vx-head">
+        <p class="guest-kicker">La Conca, Sansepolcro</p>
+        <h1>The villas</h1>
+        <p class="vx-lede">Fly round the estate and peek inside both houses</p>
+    </header>
+
+    <!-- The explorer: a 3D model that loads after the page, with a plain list of rooms below as a fallback -->
+    <section class="vx" id="explorer" aria-label="Interactive 3D model of Villa Santarsa and Villa Vallorsaia">
+        <div class="vx-stage" id="vx-stage">
+            <div class="vx-poster" id="vx-poster" aria-hidden="true">
+                <svg class="vx-poster-hills" viewBox="0 0 400 160" preserveAspectRatio="none">
+                    <path d="M0 96 C60 84 92 70 140 78 C190 86 230 64 290 70 C340 75 370 86 400 82 L400 160 L0 160 Z" fill="#6d6a7c" opacity=".55"/>
+                    <path d="M0 118 C50 104 100 112 150 100 C200 88 250 104 300 98 C350 92 380 104 400 100 L400 160 L0 160 Z" fill="#3f4636" opacity=".85"/>
+                    <path d="M0 140 C70 128 120 136 180 126 C240 116 300 132 400 122 L400 160 L0 160 Z" fill="#26301f"/>
+                </svg>
+                <div class="vx-poster-sun"></div>
+            </div>
+            <div class="vx-loading" id="vx-loading" role="status" aria-live="polite">
+                <span class="vx-loading-bar"><span></span></span>
+                <span class="vx-loading-text" id="vx-loading-text">Loading the estate</span>
+            </div>
+            <div class="vx-labels" id="vx-labels"></div>
+            <div class="vx-stills" id="vx-stills" hidden><div class="vx-stills-frame"></div></div>
+        </div>
+
+        <form class="vx-search" id="vx-search" role="search" autocomplete="off" hidden>
+            <svg class="vx-search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M15.5 15.5 L21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <input type="search" id="vx-q" placeholder="Find a place, like the pool" aria-label="Find a place, like the pool, the pizza oven or the sunset" aria-controls="vx-results" aria-autocomplete="list" enterkeyhint="search">
+            <ul class="vx-results" id="vx-results" role="listbox" aria-label="Search results" hidden></ul>
+        </form>
+
+        <div class="vx-side" id="vx-side" hidden>
+            <button type="button" class="vx-side-btn vx-compass-btn" id="vx-compass" aria-expanded="false" aria-controls="vx-map" title="Map and compass"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".45"/><g class="vx-needle"><path d="M12 3.6 14.6 12H9.4Z" fill="#b3482b"/><path d="M12 20.4 9.4 12h5.2Z" fill="currentColor" opacity=".6"/></g></svg><span>Map</span></button>
+            <button type="button" class="vx-side-btn vx-tour-btn" id="vx-tour" aria-pressed="false" title="Take the tour"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="vx-tour-play" d="M8 5.5v13l10.5-6.5Z" fill="currentColor"/><g class="vx-tour-pause" fill="currentColor"><rect x="7" y="5.5" width="3.6" height="13" rx="1"/><rect x="13.4" y="5.5" width="3.6" height="13" rx="1"/></g></svg><span>Tour</span></button>
+            <div class="vx-layer-btns" id="vx-layer-btns" hidden></div>
+            <button type="button" class="vx-side-btn vx-walk-btn" id="vx-walk" title="Walk about from here" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.6 3.6c1.3 0 2.1 1.6 1.9 3.6-.2 1.8-1.1 3-2.2 3s-1.8-1.3-1.7-3.2c.1-2 .8-3.4 2-3.4ZM7.2 12.2l3.1.4-.4 2.2c-.2 1.2-1.1 1.9-2 1.7-.9-.1-1.4-1.1-1.2-2.2ZM15.4 8.4c1.2 0 1.9 1.4 1.8 3.3-.2 1.7-1 2.8-2.1 2.8s-1.7-1.2-1.6-3c.1-1.8.8-3.1 1.9-3.1ZM14.1 16.4l2.9.3-.4 2.1c-.2 1.1-1 1.8-1.9 1.6-.8-.1-1.3-1-1.1-2.1Z" fill="currentColor"/></svg><span>Walk</span></button>
+            <button type="button" class="vx-side-btn vx-sound-btn" id="vx-sound" aria-pressed="false" title="Sound: what you might hear here"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.2L12 5.6v12.8l-4.8-3.9H4Z" fill="currentColor"/><g class="vx-sound-waves" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M15.2 9.4a3.8 3.8 0 0 1 0 5.2"/><path d="M17.6 7.2a7 7 0 0 1 0 9.6"/></g><path class="vx-sound-off" d="M15.5 9.5l5 5M20.5 9.5l-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Sound</span></button>
+            <button type="button" class="vx-side-btn vx-shoot-btn" id="vx-shoot" title="Photo mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.2h3.1l1.6-2.4h6.6l1.6 2.4H20v10.3H4Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="13.2" r="3.3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><span>Photo</span></button>
+            <div class="vx-gfx">
+                <button type="button" class="vx-side-btn vx-gfx-btn" id="vx-gfx-btn" aria-expanded="false" aria-controls="vx-gfx-menu" title="More: share this view, graphics"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="1.8" fill="currentColor"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/><circle cx="18.5" cy="12" r="1.8" fill="currentColor"/></svg><span>More</span></button>
+                <div class="vx-gfx-menu" id="vx-gfx-menu" hidden>
+                    <button type="button" class="vx-menu-item" id="vx-wk-menu-open"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5h14M5 12h14M5 17.5h9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>The weekend</button>
+                    <button type="button" class="vx-menu-item" id="vx-wk-menu-reel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5Z" fill="currentColor"/></svg>The weekend in 60 seconds</button>
+                    <button type="button" class="vx-menu-item" id="vx-share-view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M6 12.5V19h12v-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Share this view</button>
+                    <div class="vx-gfx-set" role="radiogroup" aria-labelledby="vx-gfx-title">
+                        <p id="vx-gfx-title">Graphics</p>
+                        <div id="vx-gfx-modes"></div>
+                        <small id="vx-gfx-note">Auto picks for this device</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="vx-map" id="vx-map" hidden>
+            <div class="vx-map-head"><span class="vx-map-facing" id="vx-map-facing" aria-live="polite">Facing west</span><button type="button" class="vx-map-close" id="vx-map-close" aria-label="Close the map"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
+            <div class="vx-map-svg" id="vx-map-svg"></div>
+        </div>
+
+        <div class="vx-notice vx-inside" id="vx-inside" role="status" hidden><span class="vx-notice-mark" aria-hidden="true"></span><span class="vx-notice-text">Inside: how it could look</span><button type="button" class="vx-notice-off" id="vx-inside-more">Why</button></div>
+        <div class="vx-notice" id="vx-notice" role="status" hidden><span class="vx-notice-mark" aria-hidden="true"></span><span class="vx-notice-text" id="vx-notice-text"></span><button type="button" class="vx-notice-off" id="vx-notice-off">As it is</button></div>
+
+        <div class="vx-dock" id="vx-dock" hidden>
+            <div class="vx-week" id="vx-week" role="group" aria-label="The weekend on the map"></div>
+            <div class="vx-time" id="vx-time" role="group" aria-label="Time of day on Saturday 29 May 2027">
+                <div class="vx-time-head">
+                    <output class="vx-clock" id="vx-clock" for="vx-time-range">20:00</output>
+                    <span class="vx-phase" id="vx-phase">Golden hour</span>
+                    <div class="vx-light" role="group" aria-label="Light">
+                        <button type="button" data-moment="day" aria-pressed="false" title="Day"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M5.3 18.7 7 17M17 7l1.7-1.7"/></g></svg><span>Day</span></button>
+                        <button type="button" data-moment="sunset" aria-pressed="true" title="Sunset"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16a6 6 0 0 1 12 0Z" fill="currentColor"/><g stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2.5 19.5h19M12 5.5v2.2M4.6 9.4l1.6 1.4M19.4 9.4l-1.6 1.4"/></g></svg><span>Sunset</span></button>
+                        <button type="button" data-moment="night" aria-pressed="false" title="Night"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 3.5a8.5 8.5 0 1 0 5 15 7 7 0 0 1-5-15Z" fill="currentColor"/></svg><span>Night</span></button>
+                    </div>
+                </div>
+                <div class="vx-time-track">
+                    <div class="vx-time-rail" aria-hidden="true"></div>
+                    <div class="vx-marks" id="vx-marks" aria-hidden="true"></div>
+                    <input type="range" id="vx-time-range" min="300" max="1440" step="1" value="1200" aria-label="Time of day on Saturday 29 May 2027">
+                </div>
+            </div>
+            <div class="vx-floors" id="vx-floors" role="group" aria-label="Floor" hidden>
+                <button type="button" data-floor="outside" aria-pressed="true">Outside</button>
+                <button type="button" data-floor="0" aria-pressed="false">Ground</button>
+                <button type="button" data-floor="1" aria-pressed="false">First</button>
+            </div>
+            <div class="vx-places" role="group" aria-label="Go to">
+                <button type="button" data-go="estate" aria-pressed="true">Estate</button>
+                <button type="button" data-go="santarsa" aria-pressed="false">Santarsa</button>
+                <button type="button" data-go="vallorsaia" aria-pressed="false">Vallorsaia</button>
+            </div>
+        </div>
+
+        <article class="vx-card" id="vx-card" hidden aria-live="polite">
+            <button type="button" class="vx-card-close" id="vx-card-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+            <figure class="vx-snap" id="vx-snap" hidden>
+                <img alt="" id="vx-snap-img">
+                <figcaption><span id="vx-snap-tag">Sunset</span> · the model</figcaption>
+                <div class="vx-snap-tools">
+                    <button type="button" id="vx-snap-save" aria-label="Save this picture" title="Save this picture"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <button type="button" id="vx-snap-share" aria-label="Share this spot" title="Share this spot"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7.5 8.5 12 4l4.5 4.5M6 12.5V19h12v-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                </div>
+            </figure>
+            <div class="vx-card-body">
+                <p class="vx-card-kicker"><span id="vx-card-kicker"></span><span class="vx-card-status" id="vx-card-status" hidden></span></p>
+                <h2 class="vx-card-title" id="vx-card-title"></h2>
+                <p class="vx-card-text" id="vx-card-text"></p>
+                <ul class="vx-card-facts" id="vx-card-facts"></ul>
+                <p class="vx-card-where" id="vx-card-where" hidden></p>
+                <p class="vx-card-note" id="vx-card-note" hidden></p>
+                <button type="button" class="vx-card-moment" id="vx-card-moment" hidden>See it at sunset</button>
+                <figure class="vx-photo" id="vx-photo" hidden>
+                    <img alt="" id="vx-photo-img" loading="lazy">
+                    <figcaption>The real thing · Photo: La Conca</figcaption>
+                </figure>
+                <div class="vx-card-actions" id="vx-card-actions"></div>
+            </div>
+        </article>
+
+        <div id="vx-weekend" hidden></div>
+
+        <p class="vx-note" id="vx-note"><span>An illustrative model, not an exact plan</span> <span class="vx-note-credit">Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a></span></p>
+        <div class="vx-toast" id="vx-toast" role="status" hidden></div>
+        <div class="vx-hint" id="vx-hint" role="status" aria-live="polite" hidden></div>
+    </section>
+    </div>
+
+    <!-- Each villa's counts: the way in without 3D, and a quick reference -->
+    <section class="section" id="rooms">
+        <div class="container">
+            <div class="section-header">
+                <p class="eyebrow">Beds and bedrooms</p>
+                <h2>The <em>bedrooms</em></h2>
+                <div class="section-divider"></div>
+                <p>La Conca’s own figures for each villa. The beds in each room are still to be confirmed, so the model draws every bedroom the same and numbers none. We’ll sort out who sleeps where and tell you which villa you’re in nearer the time.</p>
+            </div>
+            <div class="vx-roomlist" id="vx-roomlist" aria-live="polite">
+                <p class="vx-roomlist-wait">Loading the villas</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Honest small print -->
+    <section class="section section-alt" id="about-the-model">
+        <div class="container">
+            <div class="section-header">
+                <h2>About the <em>model</em></h2>
+                <div class="section-divider"></div>
+            </div>
+            <div class="vx-about">
+                <div>
+                    <h3>What is real</h3>
+                    <ul>
+                        <li>Where the villas, outbuildings, pools, lanes and meadows are, from OpenStreetMap</li>
+                        <li>The hills, the valley and the ridges to the west, from EU-DEM terrain data</li>
+                        <li>Pool sizes, the salone, the kitchens, the old stable and the covered terrace, from La Conca</li>
+                        <li>Each villa’s bedrooms, bathrooms and how many it sleeps, from La Conca</li>
+                        <li>When the sun sets at the end of May, worked out for this hillside</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>What is a guess</h3>
+                    <ul>
+                        <li>Storeys, heights and roofs: no floor plan is public, so the houses and outbuildings are drawn simply</li>
+                        <li>Where each room sits inside a house. Every bedroom is drawn the same, with one bed, because the beds in each room are not public</li>
+                        <li>The furniture and decor inside, drawn in the style of the listing photos to show how it could look</li>
+                        <li>Exactly where Santarsa’s new pool sits: the map may still show the old one</li>
+                        <li>Which side of Santarsa’s pool the covered terrace is on</li>
+                        <li>Where Vallorsaia’s wood oven and covered terrace stand, and where Santarsa’s cars park: each is drawn on a likely spot, marked Approximate spot</li>
+                        <li>Which building is the chapel: probably the little stone one by Santarsa’s pool, marked Probably</li>
+                        <li>Trees, furniture and fences, which set the scene</li>
+                    </ul>
+                    <p>The How it could look button adds ideas seen at other weddings at La Conca, like string lights and one long table. They are ideas, not our plan: nothing here shows how the weekend itself will be set up, and the ceremony’s spot and time are not decided, so the model does not mark them.</p>
+                </div>
+            </div>
+            <p class="vx-credits">Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a> (ODbL). Terrain: EU-DEM v1.1, produced using Copernicus data and information funded by the European Union. Venue details and room counts: La Conca. Photos: La Conca. 3D: three.js.<span class="vx-credits-extra" id="vx-credits-extra"></span></p>
+            <p class="vx-back"><a href="getting-here.html" class="btn btn-outline">Back to Travel &amp; stay</a></p>
+        </div>
+    </section>
+
+    </main>
+
+  <footer class="guest-footer"><p>Sophie &amp; Joe<br>28–31 May 2027 at La Conca, Sansepolcro</p><a href="index.html#help">Need a hand? Contact us</a></footer>
+
+  <script type="module" src="js/villas/boot.js"></script>
+</body>
+</html>
