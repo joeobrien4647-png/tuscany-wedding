@@ -28,6 +28,15 @@ test('villa explorer and Plan the drive use the postcard chrome without the old 
   }
 });
 
+test('Travel & stay links to both ported pages while the nav keeps its four links', () => {
+  const html = read('getting-here.html');
+  const nav = html.match(/<nav class="guest-nav"[\s\S]*?<\/nav>/)[0];
+  for (const file of pages) {
+    assert.ok(html.includes(`href="${file}"`), file);
+    assert.ok(!nav.includes(file), file);
+  }
+});
+
 test('every local file the ported pages and modules load exists', () => {
   for (const file of pages) {
     for (const [, ref] of read(file).matchAll(/(?:src|href|data-src(?:-small)?|poster)="([^"#?:]+\.(?:css|js|json|jpg|png|svg|mp4|html))"/g)) assert.ok(exists(ref), `${file}: ${ref}`);
