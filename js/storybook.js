@@ -113,9 +113,9 @@
 <canvas class="sb-dust" aria-hidden="true"></canvas>`;
   }
 
-  function createBook(doc, { scenes, art, walls, grounds, stars = () => '', sound, win }) {
+  function createBook(doc, { scenes, art, walls, grounds, stars = () => '', defs = '', sound, win }) {
     const W = win || doc.defaultView, root = doc.getElementById('storybook'), sfx = sound || NO_SOUND;
-    root.insertAdjacentHTML('afterbegin', markup());
+    root.insertAdjacentHTML('afterbegin', defs + markup());
     const q = sel => root.querySelector(sel);
     const el = { book: q('.sb-book'), card: q('.sb-card'), world: q('.sb-world'), wall: q('.sb-wall'), wallFront: q('.sb-front'), floor: q('.sb-floor'), ground: q('.sb-ground'),
       foreL: q('.sb-fore.l'), foreR: q('.sb-fore.r'), caption: q('.sb-caption'), kicker: q('.sb-kicker'), title: q('.sb-title'), heading: q('#sb-heading'), live: q('.sb-live'),
@@ -138,7 +138,7 @@
     const pops = () => Array.from(root.querySelectorAll('.sb-pop'));
 
     function renderScene(i) {
-      const s = scenes[i], [sx, sy, sr, sc] = s.sun;
+      const s = scenes[i], [sx, sy, sr, sc] = s.sun, light = { side: sx < 50 ? 'l' : 'r', night: !!s.stars };
       const sun = sr ? `<div class="sb-sun" style="left:${sx}%;top:${sy}%;width:${sr}px;height:${sr}px;background:${sc};box-shadow:0 0 ${sr}px ${sr / 2}px ${sc}88"></div>` : '';
       el.wallFront.innerHTML = `<div class="sb-sky" style="background:${s.sky}"></div>${s.stars ? stars(s.stars) : ''}${sun}${walls[s.id]()}`;
       el.ground.innerHTML = `<svg viewBox="0 0 300 200" preserveAspectRatio="none">${grounds[s.id]()}</svg>`;
@@ -150,7 +150,7 @@
         h.style.width = (p.w / FLOOR_W * 100) + '%';
         h.style.top = p.depth + '%';
         const cls = ['sb-pop', p.act && 'tap', p.cls, p.flat && 'flat', p.depth <= 6 && !p.flat && 'far'].filter(Boolean).join(' ');
-        h.innerHTML = `${p.flat ? '' : `<div class="sb-cshadow" style="transition-delay:${k * 70}ms"></div>`}<div class="${cls}"${p.act ? ` data-act="${p.act}"` : ''} style="transition-delay:${k * 70}ms">${art[p.art](p.opts || {})}</div>`;
+        h.innerHTML = `${p.flat ? '' : `<div class="sb-cshadow" style="transition-delay:${k * 70}ms"></div>`}<div class="${cls}"${p.act ? ` data-act="${p.act}"` : ''} style="transition-delay:${k * 70}ms">${art[p.art](Object.assign({}, light, p.opts))}</div>`;
         el.floor.appendChild(h);
       });
       el.card.querySelectorAll('svg').forEach(v => { if (!v.closest('[data-act]')) v.setAttribute('aria-hidden', 'true'); });
@@ -194,7 +194,7 @@
     function syncCover() { el.goReply.hidden = opened || !replyState(doc).saved; }
     function popUp() {
       pops().forEach((p, k) => { p.classList.remove('fold'); p.classList.add('up'); p.parentNode.classList.add('on'); later(k * 70 + 120, () => sfx.pop(k)); });
-      later(900, () => root.querySelectorAll('.sb-pop.tap').forEach(p => p.classList.add('hint')));
+      later(900, () => root.querySelectorAll('.sb-pop.tap, .sb-card .lights').forEach(p => p.classList.add('hint')));
       el.foreL.classList.remove('hide'); el.foreR.classList.remove('hide');
       if (scenes[index].auto === 'drive') later(1700, () => { const c = root.querySelector('[data-act="drive"] .car'); if (c) restart(c, 'driving'); });
     }
@@ -501,7 +501,7 @@
     const A = win.StorybookArt, scenes = win.StorybookScenes;
     if (!A || !scenes || !doc.getElementById('storybook')) return null;
     const sound = win.StorybookSound ? win.StorybookSound.createSound(win) : null;
-    return createBook(doc, { scenes, art: A.ART, walls: A.WALLS, grounds: A.GROUNDS, stars: A.STARS, sound, win });
+    return createBook(doc, { scenes, art: A.ART, walls: A.WALLS, grounds: A.GROUNDS, stars: A.STARS, defs: A.DEFS, sound, win });
   }
 
   const api = { shouldShowBook, copyProblems, nextIndex, tiltFrom, motionAllowed, chooseReply, replyState, coverLine, createBook, WORDS };

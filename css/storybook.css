@@ -29,7 +29,8 @@ html.sb-open, html.sb-open body { overflow: hidden; }
 .storybook .sb-pop.up { transform: rotateX(calc(-1 * var(--floor))); }
 .storybook .sb-pop.fold { transition: transform .32s cubic-bezier(.5,0,.8,.4); }
 .storybook .sb-pop svg { display: block; width: 100%; height: auto; overflow: visible; }
-.storybook .sb-pop:not(.flat) svg path, .storybook .sb-pop:not(.flat) svg rect, .storybook .sb-pop:not(.flat) svg circle, .storybook .sb-pop:not(.flat) svg ellipse { stroke: rgba(255,250,238,.6); stroke-width: 1px; paint-order: stroke; vector-effect: non-scaling-stroke; }
+.storybook .sb-pop svg .cut { stroke: #fff4df; stroke-opacity: .9; stroke-width: 1.5px; paint-order: stroke; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.storybook .sb-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 .storybook .sb-pop.flat, .storybook .sb-pop.flat.up { transform: none; filter: none; }
 .storybook .tap { cursor: pointer; }
 .storybook .sb-pop.hint { animation: sb-hintglow 1.6s ease-in-out 2; }
@@ -50,6 +51,13 @@ html.sb-open, html.sb-open body { overflow: hidden; }
 .storybook .lit .puffs circle:nth-child(3) { animation-delay: 1.6s; }
 @keyframes sb-puff { 0% { opacity: .9; transform: translate(0, 0) scale(.6) } 100% { opacity: 0; transform: translate(10px, -46px) scale(1.8) } }
 .storybook .flame { animation: sb-flicker .25s infinite alternate; transform-box: fill-box; transform-origin: 50% 100%; }
+.storybook .ember, .storybook .floorglow { opacity: .3; transition: opacity .4s; }
+.storybook .lit .ember, .storybook .lit .floorglow { opacity: 1; }
+.storybook .wave { transform-box: fill-box; transform-origin: 50% 100%; animation: sb-wave .5s ease-in-out infinite alternate; }
+@keyframes sb-wave { from { transform: rotate(-14deg) } to { transform: rotate(12deg) } }
+.storybook .lights { cursor: pointer; }
+.storybook .lights.hint { animation: sb-lightshint 1.6s ease-in-out 2; }
+@keyframes sb-lightshint { 50% { filter: drop-shadow(0 0 10px rgba(255,214,120,1)); } }
 .storybook .bulb { animation: sb-twinkle 2.6s ease-in-out infinite; }
 .storybook .chase .bulb { animation: sb-chase .9s ease-in-out 3; }
 @keyframes sb-chase { 0%, 100% { opacity: .35; r: 2.5 } 50% { opacity: 1; r: 5 } }
