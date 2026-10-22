@@ -240,16 +240,22 @@
       showCaption(true);
     }
 
+    // Focus on something a turn takes away (a tap piece, a reply button, a pocket card) lets go at once, so nothing
+    // hidden can be pressed, and lands on the new page's heading.
+    const onPage = () => [el.card, el.reply, el.pocket].some(n => n.contains(doc.activeElement));
     function turn(n) {
       // Sounds, hints and the auto drive still queued for the old page must not fire on the new one.
       clearTimers();
-      if (!moving()) { index = n; renderScene(index); settle(); announce(); return; }
+      const refocus = onPage();
+      if (refocus) doc.activeElement.blur();
+      const land = () => { if (refocus && !root.contains(doc.activeElement)) el.heading.focus({ preventScroll: true }); };
+      if (!moving()) { index = n; renderScene(index); settle(); land(); announce(); return; }
       busy = true;
       el.hint.classList.remove('show');
       showCaption(false);
       popDown();
       later(260, () => el.wall.classList.remove('up'));
-      later(1050, () => { index = n; renderScene(index); raf(() => raf(() => el.wall.classList.add('up'))); });
+      later(1050, () => { index = n; renderScene(index); land(); raf(() => raf(() => el.wall.classList.add('up'))); });
       later(1550, popUp);
       later(2000, () => { showCaption(true); busy = false; announce(); });
     }
@@ -420,6 +426,7 @@
       const b = e.target.closest('button[data-go]');
       if (!b) return;
       menu(false);
+      el.menuBtn.focus();
       goTo(b.dataset.go);
     });
     doc.addEventListener('click', e => { if (!el.menuList.hidden && !el.menu.contains(e.target)) menu(false); });
@@ -434,7 +441,10 @@
         if (!here) { W.location.href = href; return; }
         close();
         const target = doc.getElementById(here[1]);
-        if (target) target.scrollIntoView({ block: 'start' });
+        if (!target) return;
+        target.scrollIntoView({ block: 'start' });
+        if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+        target.focus({ preventScroll: true });
       };
       if (!moving()) { follow(); return; }
       a.classList.add('out');
