@@ -43,7 +43,7 @@
     hint: 'Tap things in the scene', skip: 'Skip the book', prev: 'Previous page', next: 'Next page', announce: 'Page {n} of {total}',
     acts: { drive: 'Drive the car', fire: 'Light the oven', lights: 'Twinkle the lights', petals: 'Throw the petals', splash: 'Splash the pool' }
   };
-  const NO_SOUND = { start() {}, toggle() { return false; }, isOn() { return false; }, pop() {}, whoosh() {}, chime() {}, boom() {} };
+  const NO_SOUND = { start() {}, stop() {}, toggle() { return false; }, isOn() { return false; }, pop() {}, whoosh() {}, chime() {}, boom() {} };
   const FLOOR_LEFT = -30, FLOOR_W = 160;
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
   const isLight = hex => { const n = parseInt(String(hex).slice(1), 16); return ((n >> 16) * 299 + ((n >> 8) & 255) * 587 + (n & 255) * 114) / 1000 > 150; };
@@ -81,6 +81,14 @@
     const el = { book: q('.sb-book'), card: q('.sb-card'), world: q('.sb-world'), wall: q('.sb-wall'), wallFront: q('.sb-front'), floor: q('.sb-floor'), ground: q('.sb-ground'),
       foreL: q('.sb-fore.l'), foreR: q('.sb-fore.r'), caption: q('.sb-caption'), kicker: q('.sb-kicker'), title: q('.sb-title'), heading: q('#sb-heading'), live: q('.sb-live'),
       hint: q('.sb-hinttext'), nav: q('.sb-nav'), prev: q('.sb-prev'), next: q('.sb-next'), label: q('.sb-label'), fx: q('.sb-fx'), spill: q('.sb-spill'), cover: q('.sb-cover'), skip: q('.sb-skip'), dust: q('.sb-dust') };
+    // The sound button ships inside #storybook in index.html; it moves into the book and remembers the choice.
+    const snd = root.querySelector('.sb-snd');
+    if (snd) {
+      el.book.appendChild(snd);
+      const mark = on => { snd.classList.toggle('off', !on); snd.setAttribute('aria-pressed', String(on)); };
+      mark(sfx.isOn());
+      snd.addEventListener('click', e => { e.stopPropagation(); mark(sfx.toggle()); });
+    }
     let index = 0, busy = false, opened = false;
     const timers = [], behind = [], moving = () => motionAllowed(W);
     const later = (ms, fn) => { timers.push(W.setTimeout(fn, ms)); };
@@ -173,6 +181,7 @@
       sfx.start(); sfx.chime();
       const ready = () => {
         el.cover.classList.add('gone'); el.nav.classList.add('show'); el.hint.classList.add('show');
+        if (snd) snd.classList.add('show');
         busy = false;
         el.heading.focus({ preventScroll: true });
         announce();
@@ -299,6 +308,7 @@
       dustFrame = raf(tick);
     }
     function close() {
+      sfx.stop();
       timers.splice(0).forEach(t => W.clearTimeout(t));
       W.cancelAnimationFrame(dustFrame);
       doc.removeEventListener('keydown', onKey);

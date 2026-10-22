@@ -114,6 +114,9 @@ html.sb-open, html.sb-open body { overflow: hidden; }
 .storybook .sb-spill.go { animation: sb-spill 2.4s ease-out; }
 @keyframes sb-spill { 0% { opacity: 0 } 22% { opacity: 1 } 100% { opacity: 0 } }
 
+.storybook .sb-snd { position: absolute; top: max(12px, env(safe-area-inset-top)); right: 12px; z-index: 7; width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid rgba(227,182,96,.85); background: rgba(18,20,42,.45); color: #f6dfa6; font: 17px/1 Georgia, serif; opacity: 0; visibility: hidden; transition: opacity .8s, visibility 0s linear .8s; cursor: pointer; }
+.storybook .sb-snd.show { opacity: 1; visibility: visible; transition: opacity .8s; }
+.storybook .sb-snd.off { text-decoration: line-through; opacity: .6; }
 .storybook .sb-skip { position: absolute; top: max(12px, env(safe-area-inset-top)); left: 12px; z-index: 11; display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 999px; border: 1px solid rgba(227,182,96,.6); background: rgba(18,20,42,.45); color: #f6e2ae; font: italic 500 16px 'Cormorant Garamond', serif; text-decoration: none; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 
 /* Reduced motion: the still book. Nothing pops, folds, tilts, drifts or sparkles; pages simply appear. */

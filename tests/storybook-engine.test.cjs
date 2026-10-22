@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const { nextIndex, copyProblems, WORDS, tiltFrom, motionAllowed } = require('../js/storybook.js');
 const { SCENES } = require('../js/storybook-scenes.js');
 const { ART, WALLS, GROUNDS } = require('../js/storybook-art.js');
+const { createSound } = require('../js/storybook-sound.js');
 
 test('nextIndex refuses to move while turning or past either end', () => {
   assert.equal(nextIndex(0, -1, 7, false), null);
@@ -51,4 +52,47 @@ test('reduced motion turns the animation off', () => {
   assert.equal(motionAllowed(win), false);
   assert.equal(motionAllowed({ matchMedia: () => ({ matches: false }) }), true);
   assert.equal(motionAllowed({}), true);
+});
+
+test('sound remembers the choice and never throws without audio support', () => {
+  const store = {}, win = { localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = v; } } };
+  const s = createSound(win);
+  assert.equal(s.isOn(), true);
+  assert.doesNotThrow(() => { s.start(); s.pop(1); s.whoosh(); s.chime(); s.boom(); });
+  assert.equal(s.toggle(), false); assert.equal(store['sj-book-sound'], 'off');
+  assert.equal(createSound(win).isOn(), false);
+});
+
+test('sound survives storage that throws', () => {
+  const win = { get localStorage() { throw new Error('blocked'); } };
+  const s = createSound(win);
+  assert.equal(s.isOn(), true);
+  assert.doesNotThrow(() => { s.start(); s.toggle(); s.stop(); });
+});
+
+test('the music streams only once the book is opened, and not at all with sound off', () => {
+  const made = [], store = {};
+  class FakeAudio { constructor() { made.push(this); } play() { this.playing = true; return Promise.resolve(); } pause() { this.playing = false; } }
+  const win = { Audio: FakeAudio, localStorage: { getItem: k => store[k] ?? null, setItem: (k, v) => { store[k] = v; } } };
+  const s = createSound(win);
+  assert.equal(made.length, 0);
+  s.start();
+  assert.equal(made.length, 1);
+  assert.equal(made[0].src, 'audio/storybook-music.mp3');
+  assert.equal(made[0].preload, 'none'); assert.equal(made[0].loop, true); assert.equal(made[0].playing, true);
+  s.toggle(); assert.equal(made[0].playing, false);
+  s.toggle(); assert.equal(made[0].playing, true);
+  s.stop(); assert.equal(made[0].playing, false);
+  s.toggle();
+  const quiet = createSound(win); quiet.start();
+  assert.equal(made.length, 1);
+});
+
+test('the book stays inside its weight budget and the music is never preloaded', () => {
+  const fs = require('node:fs'), path = require('node:path'), root = path.join(__dirname, '..');
+  const files = fs.readdirSync(path.join(root, 'js')).filter(f => /^storybook.*\.js$/.test(f)).map(f => 'js/' + f).concat('css/storybook.css');
+  const total = files.reduce((sum, f) => sum + fs.statSync(path.join(root, f)).size, 0);
+  assert.ok(total <= 200 * 1024, 'storybook code is ' + total + ' bytes');
+  assert.doesNotMatch(fs.readFileSync(path.join(root, 'index.html'), 'utf8'), /storybook-music/);
+  assert.ok(fs.statSync(path.join(root, 'audio/storybook-music.mp3')).size < 2 * 1024 * 1024);
 });
