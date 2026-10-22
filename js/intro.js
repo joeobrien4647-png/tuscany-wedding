@@ -22,8 +22,8 @@
 
    The storybook (js/storybook.js) follows the film: while it is up <html> has the class sj-intro-open, and when it
    closes for any reason (its end, Skip, Esc, or giving up) window gets the event sj:intro-done, so the book shows its
-   cover only then. window.sjIntro.play() plays the film again, as ?intro=1 does, for the book's cinema screen; it
-   exists only when the film is switched on or forced. */
+   cover only then. window.sjIntro.play() plays the film again, as ?intro=1 does, for the book's cinema screen, and
+   returns whether it started; it exists only when the film is switched on or forced. */
 (function () {
   var me = document.currentScript, args = new URLSearchParams(location.search), invite = window.sjInvite;
   var token = (invite && invite.token) || "", to = args.get("to") || "";
@@ -60,8 +60,13 @@
     return (h >>> 0).toString(36);
   }
 
-  // The storybook's cinema screen plays the film again on a tap, as ?intro=1 does (one film at a time).
-  window.sjIntro = { play: function () { if (!document.querySelector(".sj-intro")) film(true); } };
+  // The storybook's cinema screen plays the film again on a tap, as ?intro=1 does: one film at a time, though one
+  // still fading out does not count. Says whether a film started.
+  window.sjIntro = { play: function () {
+    if (document.querySelector(".sj-intro:not(.sj-out)")) return false;
+    film(true);
+    return true;
+  } };
 
   if (args.get("preview") === "done") return;
   if (!force && (token ? seenNamed : seenPlain)) return;

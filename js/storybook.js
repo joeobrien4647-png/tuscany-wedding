@@ -346,15 +346,19 @@
       if (a === 'splash') restart(t, 'splash');
       if (a === 'film') playFilm(t);
     }
-    // The film plays over the book with the book's music paused, then the guest is back at the screen.
+    // The film plays over the book with the book's music paused and the book out of reach (inert, no longer modal),
+    // so Tab and a screen reader stay on the film. Then the guest is back at the screen.
     function playFilm(t) {
-      if (!filmReady() || filmUp(doc)) return;
+      if (busy || !filmReady() || filmUp(doc) || !W.sjIntro.play()) return;
       sfx.stop();
-      W.sjIntro.play();
+      root.inert = true;
+      root.removeAttribute('aria-modal');
       afterFilm(W, () => {
+        root.inert = false;
+        root.setAttribute('aria-modal', 'true');
         if (root.hidden) return;
         sfx.start();
-        if (t.isConnected) t.focus({ preventScroll: true });
+        (t.isConnected ? t : el.heading).focus({ preventScroll: true });
       });
     }
 

@@ -168,4 +168,9 @@ test('the cinema screen on the Reply page plays the film again', () => {
   assert.ok(WORDS.acts.film);
   assert.deepEqual(copyProblems(WORDS.acts.film), []);
   assert.match(intro, /window\.sjIntro = \{ play: /);
+  // a film still fading out does not stop a new one, and play says whether one started
+  const play = intro.slice(intro.indexOf('window.sjIntro = {'), intro.indexOf('};', intro.indexOf('window.sjIntro = {')));
+  assert.match(play, /\.sj-intro:not\(\.sj-out\)/);
+  assert.match(play, /return false;/);
+  assert.match(play, /return true;/);
 });
