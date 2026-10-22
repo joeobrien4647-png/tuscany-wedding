@@ -441,6 +441,8 @@
       sfx.whoosh();
       later(380, follow);
     });
+    // Back from that page can bring this one back from the browser's cache with the card still out of the pocket.
+    W.addEventListener('pageshow', e => { if (e.persisted) el.cards.querySelectorAll('.sb-pcard.out').forEach(a => a.classList.remove('out')); });
     el.reply.addEventListener('click', e => {
       const b = e.target.closest('button[data-reply]');
       if (!b || busy) return;
