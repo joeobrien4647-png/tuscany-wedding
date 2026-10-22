@@ -92,6 +92,7 @@
     let index = 0, busy = false, opened = false;
     const timers = [], behind = [], moving = () => motionAllowed(W);
     const later = (ms, fn) => { timers.push(W.setTimeout(fn, ms)); };
+    const clearTimers = () => timers.splice(0).forEach(t => W.clearTimeout(t));
     const raf = fn => W.requestAnimationFrame(fn);
     const pops = () => Array.from(root.querySelectorAll('.sb-pop'));
 
@@ -152,7 +153,9 @@
     }
 
     function turn(n) {
-      if (!moving()) { index = n; renderScene(index); settle(); announce(); return; }
+      // Sounds, hints and the auto drive still queued for the old page must not fire on the new one.
+      clearTimers();
+      if (!moving()){ index = n; renderScene(index); settle(); announce(); return; }
       busy = true;
       el.hint.classList.remove('show');
       showCaption(false);
@@ -309,7 +312,7 @@
     }
     function close() {
       sfx.stop();
-      timers.splice(0).forEach(t => W.clearTimeout(t));
+      clearTimers();
       W.cancelAnimationFrame(dustFrame);
       doc.removeEventListener('keydown', onKey);
       W.removeEventListener('resize', size);

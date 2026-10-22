@@ -17,8 +17,13 @@
         master = ac.createGain();
         master.gain.value = on ? 1 : 0;
         master.connect(ac.destination);
-        if (ac.state === 'suspended' && ac.resume) ac.resume().catch(() => {});
+        wake();
       } catch (e) { ac = null; master = null; }
+    }
+    // Phones suspend or interrupt the audio when the guest switches apps; it has to be resumed by hand.
+    function wake() {
+      if (!ac || ac.state === 'running' || !ac.resume) return;
+      try { const resumed = ac.resume(); if (resumed && resumed.catch) resumed.catch(() => {}); } catch (e) { /* stays quiet */ }
     }
     function playMusic() {
       if (!win.Audio) return;
@@ -59,14 +64,14 @@
         context();
         if (on) playMusic();
         const doc = win.document;
-        if (doc && doc.addEventListener) doc.addEventListener('visibilitychange', () => { if (doc.hidden) pauseMusic(); else if (on && !stopped) playMusic(); });
+        if (doc && doc.addEventListener) doc.addEventListener('visibilitychange', () => { if (doc.hidden) pauseMusic(); else if (on && !stopped) { wake(); playMusic(); } });
       },
       stop() { stopped = true; pauseMusic(); },
       toggle() {
         on = !on;
         write(on ? 'on' : 'off');
         if (master) master.gain.setTargetAtTime(on ? 1 : 0, ac.currentTime, .1);
-        if (on && started && !stopped) playMusic(); else pauseMusic();
+        if (on && started && !stopped) { wake(); playMusic(); } else pauseMusic();
         return on;
       },
       isOn() { return on; },

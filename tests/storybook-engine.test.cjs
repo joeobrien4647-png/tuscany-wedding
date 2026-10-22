@@ -96,3 +96,22 @@ test('the book stays inside its weight budget and the music is never preloaded',
   assert.doesNotMatch(fs.readFileSync(path.join(root, 'index.html'), 'utf8'), /storybook-music/);
   assert.ok(fs.statSync(path.join(root, 'audio/storybook-music.mp3')).size < 2 * 1024 * 1024);
 });
+
+test('coming back from another app wakes the audio that the phone suspended', () => {
+  const contexts = [], handlers = {}, node = () => ({ connect() {}, gain: { value: 1, setValueAtTime() {}, linearRampToValueAtTime() {}, setTargetAtTime() {} } });
+  class FakeContext {
+    constructor() { this.state = 'running'; this.resumed = 0; this.currentTime = 0; this.destination = {}; contexts.push(this); }
+    createGain() { return node(); } createMediaElementSource() { return node(); }
+    resume() { this.resumed++; this.state = 'running'; return Promise.resolve(); }
+  }
+  class FakeAudio { play() { return Promise.resolve(); } pause() {} }
+  const doc = { hidden: false, addEventListener: (type, fn) => { handlers[type] = fn; } };
+  const s = createSound({ AudioContext: FakeContext, Audio: FakeAudio, document: doc, localStorage: { getItem: () => null, setItem() {} } });
+  s.start();
+  const ac = contexts[0];
+  doc.hidden = true; ac.state = 'interrupted'; handlers.visibilitychange();
+  doc.hidden = false; handlers.visibilitychange();
+  assert.equal(ac.state, 'running');
+  ac.state = 'suspended'; s.toggle(); s.toggle();
+  assert.equal(ac.state, 'running');
+});
