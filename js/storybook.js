@@ -193,8 +193,10 @@
       el.next.disabled = i === scenes.length - 1;
       if (active && active.disabled) (active === el.prev ? el.next : el.prev).focus();
     }
-    function announce() {
-      el.live.textContent = WORDS.announce.replace('{n}', index + 1).replace('{total}', scenes.length) + ', ' + el.heading.textContent;
+    // Where focus has just moved to the heading, a screen reader has read it already: say only where in the book this is.
+    function announce(headingRead) {
+      const where = WORDS.announce.replace('{n}', index + 1).replace('{total}', scenes.length);
+      el.live.textContent = headingRead ? where : where + ', ' + el.heading.textContent;
     }
     // The Reply page follows the page's reply card: three answers, or the saved answer with a way to change it.
     function syncReply() {
@@ -248,8 +250,9 @@
       clearTimers();
       const refocus = onPage();
       if (refocus) doc.activeElement.blur();
-      const land = () => { if (refocus && !root.contains(doc.activeElement)) el.heading.focus({ preventScroll: true }); };
-      if (!moving()) { index = n; renderScene(index); settle(); land(); announce(); return; }
+      let landed = false;
+      const land = () => { if (refocus && !root.contains(doc.activeElement)) { el.heading.focus({ preventScroll: true }); landed = true; } };
+      if (!moving()) { index = n; renderScene(index); settle(); land(); announce(landed); return; }
       busy = true;
       el.hint.classList.remove('show');
       showCaption(false);
@@ -257,7 +260,7 @@
       later(260, () => el.wall.classList.remove('up'));
       later(1050, () => { index = n; renderScene(index); land(); raf(() => raf(() => el.wall.classList.add('up'))); });
       later(1550, popUp);
-      later(2000, () => { showCaption(true); busy = false; announce(); });
+      later(2000, () => { showCaption(true); busy = false; announce(landed); });
     }
     function go(dir) {
       const n = nextIndex(index, dir, scenes.length, busy || !opened);
@@ -282,7 +285,7 @@
         if (snd) snd.classList.add('show');
         busy = false;
         el.heading.focus({ preventScroll: true });
-        announce();
+        announce(true);
       };
       if (!moving()) { el.cover.classList.add('open'); settle(); ready(); return; }
       busy = true;
@@ -311,7 +314,7 @@
       if (snd) snd.classList.add('show');
       sfx.start();
       el.heading.focus({ preventScroll: true });
-      announce();
+      announce(true);
       return true;
     }
     function celebrate() {
