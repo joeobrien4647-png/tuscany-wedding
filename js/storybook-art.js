@@ -2,11 +2,13 @@
   'use strict';
   // Hand-cut paper pieces in the welcome film's golden-hour palette. Every piece takes opts, and the book adds
   // side ('l' or 'r', the side the sun is on) and night. The shared gradients live once in DEFS.
-  const svg = (vb, inner, cls = '') => `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" class="${cls}">${inner}</svg>`;
+  // Generated coordinates are trimmed to one decimal: plenty for paper, and a page of art stays small.
+  const svg = (vb, inner, cls = '') => `<svg viewBox="${vb}" xmlns="http://www.w3.org/2000/svg" class="${cls}">${inner.replace(/\d+\.\d\d+/g, (m, at, all) => all[at - 1] === '.' || all[at + m.length] === '.' ? m : m.slice(0, m.indexOf('.') + 2))}</svg>`;
   const R = (n, f) => Array.from({ length: n }, (_, i) => f(i)).join('');
   const rnd = i => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
   const rgb = c => [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16));
   // Darker towards warm umber (k < 0) or lighter towards warm cream (k > 0).
+  const mix = (a, b, t) => '#' + rgb(a).map((v, i) => Math.round(v + (rgb(b)[i] - v) * t).toString(16).padStart(2, '0')).join('');
   const tone = (c, k) => { const t = k < 0 ? [40, 22, 12] : [255, 244, 214], a = Math.abs(k); return '#' + rgb(c).map((v, i) => Math.round(v + (t[i] - v) * a).toString(16).padStart(2, '0')).join(''); };
   const away = side => `url(#sb${side === 'l' ? 'DR' : 'DL'})`;
   const toward = side => `url(#sb${side === 'l' ? 'LL' : 'LR'})`;
@@ -179,11 +181,14 @@
   };
 
   /* rows of chairs for the ceremony */
-  const chairs = ({ side = 'r' } = {}) => {
+  const chairs = ({ side = 'r', guests = false } = {}) => {
+    const hair = ['#3b2a20', '#8a5a34', '#d9b26a', '#b8b2aa', '#1f1a1a', '#6b4226'], coat = ['#2f3d5c', '#e8b4b0', '#8fae8a', '#e3c27a', '#5c6f8a', '#c98a7a', '#f2ead8'];
+    // Guests seen from behind as paper silhouettes, a few in hats; the aisle seats keep their bows.
+    const guest = (i, y) => `<g class="guest"><path class="cut" d="M-1 13 C-1 4 14 4 14 13Z" fill="${coat[(i + y) % coat.length]}"/><circle class="cut" cx="6.5" cy="1" r="4.6" fill="${hair[(i * 3 + y) % hair.length]}"/>${rnd(i * 7 + y) > .82 ? '<ellipse cx="6.5" cy="-2" rx="8" ry="2.2" fill="#efe1c0"/><rect x="3" y="-6" width="7" height="4" rx="1.5" fill="#efe1c0"/>' : ''}</g>`;
     let s = '';
     for (const [y, sc] of [[6, .9], [30, 1]]) for (let i = 0; i < 12; i++) {
       const x = i < 6 ? 8 + i * 22 : 162 + (i - 6) * 22, aisle = i === 5 || i === 6;
-      s += `<g transform="translate(${x} ${y}) scale(${sc})">${cut('rect', 'x="0" y="0" width="13" height="15" rx="2"', '#f6efe0', side)}<rect x="-1" y="14" width="15" height="4" fill="#e6dac0"/><rect x="0" y="18" width="2" height="7" fill="#d8ccb2"/><rect x="11" y="18" width="2" height="7" fill="#d8ccb2"/><path d="M2 4h9M2 8h9" stroke="#e2d6bc" stroke-width=".8"/>${aisle ? '<circle cx="6.5" cy="5" r="3" fill="#e8a9a6"/><path d="M5 7 l-2 6 M8 7 l2 6" stroke="#e8a9a6" stroke-width="1"/>' : ''}</g>`;
+      s += `<g transform="translate(${x} ${y}) scale(${sc})">${cut('rect', 'x="0" y="0" width="13" height="15" rx="2"', '#f6efe0', side, false)}<path d="M-1 14h15v4h-15zM0 18h2v7h-2zM11 18h2v7h-2z" fill="#ddd1b6"/>${aisle ? '<circle cx="6.5" cy="5" r="3" fill="#e8a9a6"/><path d="M5 7 l-2 6 M8 7 l2 6" stroke="#e8a9a6" stroke-width="1"/>' : ''}${guests && !aisle && rnd(i + y) > .3 ? guest(i, y) : ''}</g>`;
     }
     return svg('0 0 300 60', s);
   };
@@ -226,6 +231,45 @@
     return svg('0 0 200 240', s);
   };
 
+  /* supporting pieces */
+  const vines = ({ side = 'r' } = {}) => {
+    let s = '<path d="M4 30 H196" stroke="#6b5440" stroke-width=".8"/>' + R(6, i => `<rect x="${4 + i * 38}" y="18" width="3" height="32" fill="#7a5c42"/>`);
+    s += clump(Array.from({ length: 10 }, (_, i) => blob([12 + i * 19, 22 + (i % 2) * 2, 13, 9])), '#6f8f4c');
+    s += `<rect x="0" y="12" width="200" height="22" fill="${away(side)}"/>` + R(10, i => `<ellipse cx="${10 + i * 19}" cy="${17 + (i % 2) * 2}" rx="7" ry="3" fill="#9cba7a" opacity=".7"/>`);
+    s += R(8, i => { const x = 18 + i * 23; return R(5, k => `<circle cx="${x + (k % 2) * 3 - 1.5}" cy="${28 + k * 2.4}" r="1.9" fill="${k % 2 ? '#5b3a6b' : '#74507f'}"/>`); });
+    return svg('0 0 200 50', s);
+  };
+  const hay = ({ side = 'r' } = {}) => {
+    const bale = (x, y, r, c) => cut('circle', `cx="${x}" cy="${y}" r="${r}"`, c, side) +
+      `<path d="M${x} ${y} m-${r * .2} 0 a${r * .2} ${r * .2} 0 1 1 ${r * .4} 0 a${r * .4} ${r * .4} 0 1 1 -${r * .8} 0 a${r * .6} ${r * .6} 0 1 1 ${r * 1.2} 0 a${r * .8} ${r * .8} 0 1 1 -${r * 1.6} 0" stroke="${tone(c, -.25)}" stroke-width="1" fill="none"/>`;
+    return svg('0 0 64 40', bale(42, 22, 16, '#d9b46a') + bale(22, 24, 15, '#e6c37a') + R(7, i => `<path d="M${6 + i * 8} 39 l${(rnd(i) - .5) * 6} -5" stroke="#c9a456" stroke-width="1"/>`));
+  };
+  const bunting = ({ side = 'r' } = {}) => {
+    const cols = ['#c4693f', '#f6ecd6', '#6f8f4c', '#e8949b', '#e3b660'];
+    let s = cut('rect', 'x="4" y="4" width="4" height="76"', '#7a5236', side, false) + cut('rect', 'x="292" y="4" width="4" height="76"', '#7a5236', side, false);
+    s += '<path d="M6 8 Q150 44 294 8" stroke="#5a4a3e" stroke-width="1" fill="none"/>';
+    s += R(15, i => { const t = (i + .5) / 15, x = 6 + t * 288, y = 8 + 4 * t * (1 - t) * 18; return `<path class="cut" d="M${x - 7} ${y} L${x + 7} ${y + 1} L${x} ${y + 16}Z" fill="${cols[i % cols.length]}"/>`; });
+    return svg('0 0 300 80', s);
+  };
+  const lantern = ({ side = 'r' } = {}) => svg('0 0 30 64', '<ellipse cx="15" cy="40" rx="15" ry="18" fill="url(#sbGlow)"/>' + cut('rect', 'x="6" y="22" width="18" height="30" rx="2"', '#3d3a40', side, false) +
+    '<rect x="9" y="25" width="12" height="24" fill="#ffe6a6"/><rect x="13" y="36" width="4" height="12" fill="#fff8ea"/><ellipse class="flame" cx="15" cy="33" rx="1.8" ry="3.4" fill="#ffb94a"/>' +
+    '<path d="M5 22 L15 13 L25 22Z" fill="#2f2c33"/><circle cx="15" cy="10" r="3" fill="none" stroke="#2f2c33" stroke-width="1.5"/><rect x="4" y="52" width="22" height="5" fill="#2f2c33"/><rect x="13" y="57" width="4" height="7" fill="#2f2c33"/>');
+  const urn = ({ side = 'r' } = {}) => svg('0 0 40 56', clump([[20, 16, 15, 11], [10, 20, 8, 6], [30, 20, 8, 6]].map(blob), '#6e8f52') +
+    R(9, i => `<circle cx="${8 + rnd(i) * 24}" cy="${8 + rnd(i + 4) * 14}" r="${2.4 + rnd(i + 8)}" fill="${i % 3 ? '#fffaf2' : '#f2b8c0'}"/>`) +
+    '<path d="M8 24 q-3 10 -2 18 M32 24 q3 10 2 18" stroke="#6e8f52" stroke-width="1.2" fill="none"/>' +
+    cut('path', 'd="M9 26 H31 C31 36 26 40 23 41 V48 H28 V54 H12 V48 H17 V41 C14 40 9 36 9 26Z"', '#e9dfcc', side));
+  const board = ({ side = 'r' } = {}) => svg('0 0 80 40', cut('rect', 'x="8" y="16" width="14" height="22"', '#d8d0bf', side) + cut('rect', 'x="4" y="10" width="74" height="6" rx="3"', '#f4f0e6', side) +
+    '<rect x="4" y="13" width="74" height="3" fill="#5fb0cf" opacity=".6"/><path d="M26 16 L18 38 M30 16 L22 38" stroke="url(#sbChrome)" stroke-width="1.6"/>');
+  const ball = ({ side = 'r' } = {}) => svg('0 0 24 24', cut('circle', 'cx="12" cy="12" r="11"', '#ffffff', side, false) +
+    ['#e8594f', '#f3c14b', '#3f9dd8'].map((c, i) => { const a = i * 2.094, b = a + 1.047; return `<path d="M12 12 L${(12 + 11 * Math.cos(a)).toFixed(2)} ${(12 + 11 * Math.sin(a)).toFixed(2)} A11 11 0 0 1 ${(12 + 11 * Math.cos(b)).toFixed(2)} ${(12 + 11 * Math.sin(b)).toFixed(2)}Z" fill="${c}"/>`; }).join('') +
+    `<circle cx="12" cy="12" r="11" fill="${away(side)}"/><circle cx="12" cy="12" r="2" fill="#fff"/>`);
+  const bistro = ({ side = 'r' } = {}) => {
+    const chair = (x, d) => `<path class="cut" d="M${x} 18 v28 M${x} 32 h${d * 10} v14" stroke="#4a3a32" stroke-width="2.2" fill="none" stroke-linecap="round"/>`;
+    return svg('0 0 70 50', '<ellipse cx="35" cy="12" rx="16" ry="12" fill="url(#sbGlow)"/>' + chair(6, 1) + chair(64, -1) +
+      cut('ellipse', 'cx="35" cy="24" rx="18" ry="4"', '#f4ecdc', side) + '<rect x="33.5" y="26" width="3" height="20" fill="#4a3a32"/><ellipse cx="35" cy="47" rx="9" ry="2" fill="#4a3a32"/>' +
+      '<rect x="32" y="14" width="6" height="9" rx="1.5" fill="#ffe6a6" opacity=".9"/><ellipse class="flame" cx="35" cy="16" rx="1.4" ry="2.8" fill="#ffb94a"/>');
+  };
+
   /* walls and grounds */
   const lightsSvg = (y = 0) => {
     const P = [[0, 10], [100, 64], [200, 22], [300, 64], [400, 10]];
@@ -241,27 +285,57 @@
   const stars = n => R(n, i => `<i class="star" style="left:${(i * 37.7) % 100}%;top:${(i * 23.3) % 62}%;animation-delay:${(i * .41) % 3}s"></i>`);
   const layer = (style, inner) => `<div class="wallsvg" style="${style}">${inner}</div>`;
 
+  // A far ridge across the wall from a seed: soft hills, a lit crest, tiny cypresses and, at night, village lights.
+  const ridge = (seed, c, { bottom = 20, top = 60, amp = 16, trees = 0, lights = 0 } = {}) => {
+    const ys = Array.from({ length: 11 }, (_, i) => top + (rnd(seed + i) - .5) * amp * 2);
+    const at = x => { const k = Math.min(9, Math.floor(x / 40)), t = (x - k * 40) / 40; return ys[k] + (ys[k + 1] - ys[k]) * (3 * t * t - 2 * t * t * t); };
+    let d = `M0 ${ys[0]}`;
+    for (let i = 1; i < 11; i++) d += ` C${i * 40 - 20} ${ys[i - 1]} ${i * 40 - 20} ${ys[i]} ${i * 40} ${ys[i]}`;
+    let s = `<path d="${d} L400 120 L0 120Z" fill="${c}"/><path d="${d}" stroke="${tone(c, .3)}" stroke-width="1.6" fill="none" opacity=".7"/>`;
+    s += R(trees, i => { const x = 8 + rnd(seed * 3 + i) * 384, y = at(x) + 1; return `<path d="M${x} ${y - 10} q2.2 4.5 1.7 10 h-3.4 q-.5 -5.5 1.7 -10Z" fill="${mix(tone(c, -.2), '#3d5a3b', .3)}"/>`; });
+    s += R(lights, i => { const x = 8 + rnd(seed * 5 + i) * 384; return `<circle cx="${x}" cy="${at(x) + 4 + rnd(i + 2) * 14}" r="1.1" fill="#ffd27a"/>`; });
+    return `<svg class="wallsvg" viewBox="0 0 400 120" style="bottom:${bottom}%">${s}</svg>`;
+  };
+  // Long golden-hour clouds, lit on top.
+  const clouds = (c, top, seed = 1, n = 3) => `<svg class="wallsvg" viewBox="0 0 400 60" style="top:${top}%">${R(n, i => {
+    const x = 40 + rnd(seed + i) * 320, y = 14 + rnd(seed + i + 5) * 30, w = 36 + rnd(seed + i + 9) * 50;
+    return `<ellipse cx="${x}" cy="${y}" rx="${w}" ry="${w * .12}" fill="${c}" opacity=".8"/><ellipse cx="${x - w * .25}" cy="${y - w * .1}" rx="${w * .45}" ry="${w * .16}" fill="${c}" opacity=".85"/><ellipse cx="${x + w * .2}" cy="${y - w * .08}" rx="${w * .35}" ry="${w * .13}" fill="${tone(c, .45)}" opacity=".75"/>`;
+  })}</svg>`;
+  const lake = bottom => `<svg class="wallsvg" viewBox="0 0 400 40" style="bottom:${bottom}%"><path d="M0 22 C80 16 160 20 240 18 C300 17 360 21 400 20 L400 40 L0 40Z" fill="#8fcbe0"/>${R(6, i => `<path d="M${30 + i * 62} ${24 + (i % 2) * 5}h${18 + rnd(i) * 14}" stroke="#d8f2fa" stroke-width="1.2" opacity=".8"/>`)}</svg>`;
+  const flowers = (n, seed, cols, avoid = () => false) => R(n, i => { const x = rnd(seed + i) * 300, y = 6 + rnd(seed + i + 50) * 190; return avoid(x, y) ? '' : `<circle cx="${x}" cy="${y}" r="${1.2 + rnd(i + seed) * 1.2}" fill="${cols[i % cols.length]}"/>`; });
+  const glowSpot = (x, y, r) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * .6}" fill="url(#sbGlow)" opacity=".6"/>`;
+
   const WALLS = {
-    tuscany: () => layer('bottom:12%', hills({ c: '#d8b48e', v: 1 })) + layer('bottom:0;left:-4%;width:46%', town({ c: '#c69a83' })) + layer('bottom:0', hills({ c: '#b8b183', stripes: '#a39f72' })) + swallowSvg(),
-    friday: () => layer('bottom:0', hills({ c: '#4b4566', v: 1 })) + lightsSvg(44),
-    saturday: () => layer('bottom:8%', hills({ c: '#d9c19b' })) + layer('bottom:0;left:56%;width:46%', town({ c: '#cfae96', side: 'l' })) + layer('bottom:0', hills({ c: '#b9b47f', v: 1, stripes: '#a7a370' })) + swallowSvg(),
-    sunday: () => '<svg class="wallsvg" viewBox="0 0 400 60" style="top:30%"><g fill="#fff"><ellipse cx="80" cy="30" rx="44" ry="13"/><ellipse cx="110" cy="22" rx="28" ry="14"/><ellipse cx="300" cy="40" rx="40" ry="10"/><ellipse cx="322" cy="33" rx="22" ry="11"/></g></svg>' + layer('bottom:4%', hills({ c: '#a9c9a5', v: 1 })) + layer('bottom:0', hills({ c: '#93b871', stripes: '#84a964' })) + swallowSvg(),
-    monday: () => layer('bottom:10%', hills({ c: '#c9c1a3' })) + layer('bottom:0', hills({ c: '#a8b47d', v: 1, stripes: '#98a46e' })) + swallowSvg(),
-    reply: () => layer('bottom:0', hills({ c: '#33324f', v: 1 })) + lightsSvg(52),
+    tuscany: () => clouds('#fbdcc0', 30, 3) + ridge(11, '#e4bda6', { bottom: 30, top: 66, amp: 12, trees: 10 }) + ridge(12, '#d6ae92', { bottom: 21, top: 70, amp: 16, trees: 16 }) +
+      layer('bottom:12%', hills({ c: '#d8b48e', v: 1 })) + layer('bottom:0;left:-4%;width:46%', town({ c: '#c69a83' })) + layer('bottom:0', hills({ c: '#b8b183', stripes: '#a39f72' })) + swallowSvg(),
+    friday: () => clouds('#c27a8a', 34, 7, 2) + ridge(21, '#5c4a78', { bottom: 14, top: 70, amp: 14, trees: 8, lights: 14 }) + layer('bottom:0', hills({ c: '#4b4566', v: 1 })) + lightsSvg(44),
+    saturday: () => clouds('#fde3c2', 30, 13) + ridge(31, '#e6c4a4', { bottom: 26, top: 66, amp: 12, trees: 8 }) +
+      layer('bottom:8%', hills({ c: '#d9c19b' })) + layer('bottom:0;left:56%;width:46%', town({ c: '#cfae96', side: 'l' })) + layer('bottom:0', hills({ c: '#b9b47f', v: 1, stripes: '#a7a370' })) + swallowSvg(),
+    sunday: () => clouds('#ffffff', 28, 17) + ridge(41, '#a9c3d6', { bottom: 26, top: 64, amp: 14 }) + lake(17) + layer('bottom:4%', hills({ c: '#a9c9a5', v: 1 })) + layer('bottom:0', hills({ c: '#93b871', stripes: '#84a964' })) + swallowSvg(),
+    monday: () => clouds('#fff3e2', 30, 23) + ridge(51, '#bfc6d3', { bottom: 28, top: 66, amp: 12, trees: 6 }) + ridge(52, '#c6c1a8', { bottom: 18, top: 70, amp: 14, trees: 12 }) +
+      layer('bottom:10%', hills({ c: '#c9c1a3' })) + layer('bottom:0', hills({ c: '#a8b47d', v: 1, stripes: '#98a46e' })) + swallowSvg(),
+    reply: () => ridge(61, '#2c2b4a', { bottom: 12, top: 70, amp: 14, trees: 8, lights: 18 }) + layer('bottom:0', hills({ c: '#33324f', v: 1 })) + lightsSvg(52),
     // The inside of the back cover: a gold frame. The pocket and its cards are HTML above the scene, so they stay real links.
     pocket: () => '<svg class="wallsvg" viewBox="0 0 400 300" style="top:0;height:100%" preserveAspectRatio="none"><rect x="40" y="14" width="320" height="300" rx="10" fill="none" stroke="#e3b660" stroke-width="1.5" opacity=".75"/></svg>'
   };
   const GROUNDS = {
-    tuscany: () => '<rect width="300" height="200" fill="#93ad63"/><path d="M150 200 C150 150 120 120 160 80 C190 50 170 20 190 0" stroke="#ead8a8" stroke-width="20" fill="none"/><path d="M0 30 L300 30 M0 70 L300 70" stroke="#86a058" stroke-width="5" opacity=".6"/>',
-    friday: () => '<rect width="300" height="200" fill="#a98d6c"/>' + tiles(['#b39673', '#a68866', '#ba9d7a']),
-    saturday: () => '<rect width="300" height="200" fill="#9fbb6e"/>' + R(8, i => `<rect x="${i * 40}" y="0" width="20" height="200" fill="#a9c477" opacity=".7"/>`) + '<path d="M138 200 L146 26 L154 26 L162 200Z" fill="#f4ead2"/>',
-    sunday: () => '<rect width="300" height="200" fill="#e2cfa4"/>' + R(30, i => `<path d="M0 ${i * 7} L300 ${i * 7}" stroke="#d6c193" stroke-width="1"/>`),
-    monday: () => '<rect width="300" height="200" fill="#9db56a"/><path d="M40 200 C60 140 200 150 180 90 C165 45 230 30 240 0" stroke="#ead8a8" stroke-width="22" fill="none"/>',
-    reply: () => '<rect width="300" height="200" fill="#7f6a55"/>' + tiles(['#8a735b', '#7c6751', '#917a60']),
+    tuscany: () => '<rect width="300" height="200" fill="#93ad63"/>' + R(6, i => `<rect x="0" y="${i * 34}" width="300" height="16" fill="#9db96c" opacity=".55"/>`) +
+      '<path d="M150 200 C150 150 120 120 160 80 C190 50 170 20 190 0" stroke="#d9c38f" stroke-width="24" fill="none"/><path d="M150 200 C150 150 120 120 160 80 C190 50 170 20 190 0" stroke="#ead8a8" stroke-width="18" fill="none"/>' +
+      flowers(70, 3, ['#d8452f', '#d8452f', '#fff7e0', '#f2c94c'], (x, y) => Math.abs(x - (150 + (200 - y) * .05)) < 26),
+    friday: () => '<rect width="300" height="200" fill="#7d6550"/>' + tiles(['#8a705a', '#7f6752', '#937a62']) + glowSpot(40, 46, 70) + glowSpot(150, 112, 110),
+    saturday: () => '<rect width="300" height="200" fill="#9fbb6e"/>' + R(8, i => `<rect x="${i * 40}" y="0" width="20" height="200" fill="#a9c477" opacity=".7"/>`) +
+      '<path d="M138 200 L146 26 L154 26 L162 200Z" fill="#f4ead2"/>' + flowers(50, 9, ['#fffaf2', '#f3dcae'], (x) => x > 132 && x < 168) +
+      `<g class="aisle-petal">${R(46, i => { const y = 30 + rnd(i + 70) * 168, half = 4 + (y - 26) * .045; return `<ellipse cx="${150 + (rnd(i + 3) - .5) * half * 2}" cy="${y}" rx="2.2" ry="1.4" fill="${['#f7cdc6', '#e8949b', '#fffaf2'][i % 3]}" transform="rotate(${rnd(i) * 180} ${150} ${y})"/>`; })}</g>`,
+    sunday: () => '<rect width="300" height="200" fill="#e8d8b4"/>' + R(10, r => R(8, i => `<rect x="${i * 40 + (r % 2) * 20 - 20}" y="${r * 20}" width="39" height="19" fill="${['#eadcb9', '#e3d2ab', '#efe2c3'][(i + r) % 3]}"/>`)),
+    monday: () => '<rect width="300" height="200" fill="#9db56a"/>' + R(6, i => `<rect x="0" y="${i * 34}" width="300" height="16" fill="#a7c076" opacity=".55"/>`) +
+      '<path d="M40 200 C60 140 200 150 180 90 C165 45 230 30 240 0" stroke="#d9c38f" stroke-width="28" fill="none"/><path d="M40 200 C60 140 200 150 180 90 C165 45 230 30 240 0" stroke="#ead8a8" stroke-width="22" fill="none"/>' +
+      flowers(60, 21, ['#d8452f', '#fff7e0', '#f2c94c', '#d8452f']),
+    reply: () => '<rect width="300" height="200" fill="#7a6552"/>' + R(240, i => `<circle cx="${rnd(i) * 300}" cy="${rnd(i + 300) * 200}" r="${.8 + rnd(i + 600)}" fill="${['#8f7a63', '#6c5847', '#9a856c'][i % 3]}"/>`) +
+      glowSpot(70, 30, 60) + glowSpot(230, 34, 60) + glowSpot(150, 26, 90),
     pocket: () => '<rect width="300" height="200" fill="#e9dbbd"/>' + R(60, i => `<circle cx="${(i % 10) * 30 + 15}" cy="${Math.floor(i / 10) * 34 + 17}" r="1.4" fill="#b9a175" opacity=".55"/>`)
   };
 
-  const ART = { cypress, hills, town, villa, fiat, oven, table, arch, chairs, olive, parasol, lounger, screen, pool, branch };
+  const ART = { cypress, hills, town, villa, fiat, oven, table, arch, chairs, olive, parasol, lounger, screen, pool, branch, vines, hay, bunting, lantern, urn, board, ball, bistro };
   const api = { ART, WALLS, GROUNDS, STARS: stars, DEFS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.StorybookArt = api;

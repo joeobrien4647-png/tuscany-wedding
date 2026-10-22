@@ -42,3 +42,27 @@ test('hero pieces carry their detail', () => {
     assert.ok([ART.fiat(), ART.oven(), ART.table(), ART.pool()].some(svg => svg.includes(cls)), cls);
   }
 });
+
+test('every page is dressed with 10 to 14 pieces in back, middle and front layers', () => {
+  for (const s of SCENES.filter(s => !s.pocket)) {
+    assert.ok(s.pieces.length >= 10 && s.pieces.length <= 14, s.id + ' has ' + s.pieces.length);
+    const depths = s.pieces.map(p => p.depth);
+    assert.ok(Math.min(...depths) <= 8 && Math.max(...depths) >= 26, s.id + ' needs back and front pieces');
+  }
+});
+
+test('the supporting pieces exist and the pages use them', () => {
+  for (const name of ['vines', 'hay', 'bunting', 'lantern', 'urn', 'board', 'ball', 'bistro']) {
+    assert.equal(typeof ART[name], 'function', name);
+    assert.ok(SCENES.some(s => s.pieces.some(p => p.art === name)), name + ' is used');
+  }
+  assert.match(ART.chairs({ guests: true }), /class="guest"/);
+  assert.match(ART.fiat({ wave: true }), /class="wave"/);
+  assert.ok(SCENES.find(s => s.id === 'monday').pieces.some(p => p.art === 'fiat' && p.opts && p.opts.wave));
+  assert.ok(SCENES.find(s => s.id === 'saturday').pieces.some(p => p.art === 'chairs' && p.opts && p.opts.guests));
+  assert.match(GROUNDS.saturday(), /class="aisle-petal"/);
+});
+
+test('trimming numbers never touches the words on the cinema screen', () => {
+  assert.match(ART.screen(), />29\.05\.2027</);
+});
