@@ -426,7 +426,8 @@
     // A pocket card slides up out of the pocket, then opens its page. Need a hand? stays on this page.
     el.cards.addEventListener('click', e => {
       const a = e.target.closest('a.sb-pcard');
-      if (!a) return;
+      // ctrl, cmd or shift-click opens the page in a new tab or window, as any link does
+      if (!a || e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
       const href = a.getAttribute('href'), here = /^index\.html#(.+)$/.exec(href);
       const follow = () => {
