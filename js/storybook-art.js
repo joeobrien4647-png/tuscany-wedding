@@ -108,8 +108,8 @@
     sunday: () => '<svg class="wallsvg" viewBox="0 0 400 60" style="top:30%"><g fill="#fff"><ellipse cx="80" cy="30" rx="44" ry="13"/><ellipse cx="110" cy="22" rx="28" ry="14"/><ellipse cx="300" cy="40" rx="40" ry="10"/><ellipse cx="322" cy="33" rx="22" ry="11"/></g></svg>' + layer('bottom:4%', hills({ c: '#a9c9a5', v: 1 })) + layer('bottom:0', hills({ c: '#93b871', stripes: '#84a964' })) + swallowSvg(),
     monday: () => layer('bottom:10%', hills({ c: '#c9c1a3' })) + layer('bottom:0', hills({ c: '#a8b47d', v: 1, stripes: '#98a46e' })) + swallowSvg(),
     reply: () => layer('bottom:0', hills({ c: '#33324f', v: 1 })) + lightsSvg(52),
-    // The inside of the back cover: a gold frame and a paper pocket. Session 2 fills it with cards.
-    pocket: () => '<svg class="wallsvg" viewBox="0 0 400 300" style="top:0;height:100%" preserveAspectRatio="none"><rect x="14" y="14" width="372" height="290" rx="10" fill="none" stroke="#e3b660" stroke-width="1.5" opacity=".75"/><path d="M40 300 L40 170 L200 210 L360 170 L360 300Z" fill="#efe2c4"/><path d="M40 170 L200 210 L360 170" stroke="#c9a96a" stroke-width="2" fill="none"/></svg>'
+    // The inside of the back cover: a gold frame. The pocket and its cards are HTML above the scene, so they stay real links.
+    pocket: () => '<svg class="wallsvg" viewBox="0 0 400 300" style="top:0;height:100%" preserveAspectRatio="none"><rect x="40" y="14" width="320" height="300" rx="10" fill="none" stroke="#e3b660" stroke-width="1.5" opacity=".75"/></svg>'
   };
   const GROUNDS = {
     tuscany: () => '<rect width="300" height="200" fill="#93ad63"/><path d="M150 200 C150 150 120 120 160 80 C190 50 170 20 190 0" stroke="#ead8a8" stroke-width="20" fill="none"/><path d="M0 30 L300 30 M0 70 L300 70" stroke="#86a058" stroke-width="5" opacity=".6"/>',

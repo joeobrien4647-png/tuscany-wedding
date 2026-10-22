@@ -58,6 +58,10 @@
         { art: 'fiat', opts: { lights: true }, x: 70, w: 26, depth: 16, act: 'drive' }
       ] },
     { id: 'pocket', label: 'Pocket', kicker: 'Everything else', title: 'In the pocket', ink: '#f3dda4', stars: 18, pocket: true,
+      links: [
+        { label: 'Travel & stay', href: 'getting-here.html' }, { label: 'Plan the drive', href: 'getting-there.html' }, { label: 'The villas', href: 'villas.html' },
+        { label: 'Our wedding', href: 'weekend-guide.html' }, { label: 'Arrival essentials', href: 'arrival-essentials.html' }, { label: 'Need a hand?', href: 'index.html#help' }
+      ],
       sky: 'radial-gradient(120% 80% at 50% 35%,#2a3d72 0%,#1b2952 60%,#131d3c 100%)', sun: [50, 20, 0, '#f3dda4'], fore: ['#1b2952', '#e3b660'],
       pieces: [] }
   ];

@@ -43,7 +43,8 @@
     hint: 'Tap things in the scene', skip: 'Skip the book', prev: 'Previous page', next: 'Next page', announce: 'Page {n} of {total}',
     acts: { drive: 'Drive the car', fire: 'Light the oven', lights: 'Twinkle the lights', petals: 'Throw the petals', splash: 'Splash the pool' },
     reply: { yes: 'Yes!', maybe: 'Not sure yet', no: 'Can’t make it', see: 'See my reply', change: 'Change my reply', goReply: 'Go to my reply', yours: 'Your reply', cheer: 'See you in Tuscany' },
-    answers: { yes: 'Yes, coming', maybe: 'Not sure yet', no: 'Can’t make it', none: 'Reply needed' }
+    answers: { yes: 'Yes, coming', maybe: 'Not sure yet', no: 'Can’t make it', none: 'Reply needed' },
+    menu: { open: 'Menu', reply: 'Reply', pocket: 'Pocket' }
   };
 
   // The Reply page hands over to the page's own reply form: pick the same answer there and show the form.
@@ -92,6 +93,8 @@
     <div class="sb-saved" hidden><p class="sb-saved-line">${esc(WORDS.reply.yours)} <strong class="sb-saved-answer"></strong></p><button type="button" class="sb-yes" data-reply="see">${esc(WORDS.reply.see)}</button><button type="button" data-reply="change">${esc(WORDS.reply.change)}</button></div>
   </div>
   <a class="sb-goreply" href="#card" hidden>${esc(WORDS.reply.goReply)}</a>
+  <nav class="sb-pocket" aria-label="${esc(WORDS.menu.pocket)}"><ul class="sb-pocket-cards"></ul><div class="sb-pocket-front" aria-hidden="true"></div></nav>
+  <div class="sb-menu"><button type="button" class="sb-menu-btn" aria-label="${esc(WORDS.menu.open)}" aria-expanded="false" aria-controls="sb-menu-list"><svg viewBox="0 0 20 14" aria-hidden="true"><path d="M1 1h18M1 7h18M1 13h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button><div class="sb-menu-list" id="sb-menu-list" hidden><button type="button" data-go="reply">${esc(WORDS.menu.reply)}</button><button type="button" data-go="pocket">${esc(WORDS.menu.pocket)}</button></div></div>
   <div class="sb-nav"><button type="button" class="sb-prev" aria-label="${esc(WORDS.prev)}">&#8249;</button><span class="sb-label" aria-hidden="true"></span><button type="button" class="sb-next" aria-label="${esc(WORDS.next)}">&#8250;</button></div>
   <div class="sb-fx" aria-hidden="true"></div>
   <div class="sb-spill" aria-hidden="true"></div>
@@ -117,7 +120,8 @@
     const el = { book: q('.sb-book'), card: q('.sb-card'), world: q('.sb-world'), wall: q('.sb-wall'), wallFront: q('.sb-front'), floor: q('.sb-floor'), ground: q('.sb-ground'),
       foreL: q('.sb-fore.l'), foreR: q('.sb-fore.r'), caption: q('.sb-caption'), kicker: q('.sb-kicker'), title: q('.sb-title'), heading: q('#sb-heading'), live: q('.sb-live'),
       hint: q('.sb-hinttext'), nav: q('.sb-nav'), prev: q('.sb-prev'), next: q('.sb-next'), label: q('.sb-label'), fx: q('.sb-fx'), spill: q('.sb-spill'), cover: q('.sb-cover'), skip: q('.sb-skip'), dust: q('.sb-dust'),
-      notes: q('.sb-notes'), reply: q('.sb-reply'), choose: q('.sb-choose'), saved: q('.sb-saved'), savedAnswer: q('.sb-saved-answer'), goReply: q('.sb-goreply') };
+      notes: q('.sb-notes'), reply: q('.sb-reply'), choose: q('.sb-choose'), saved: q('.sb-saved'), savedAnswer: q('.sb-saved-answer'), goReply: q('.sb-goreply'),
+      pocket: q('.sb-pocket'), cards: q('.sb-pocket-cards'), menu: q('.sb-menu'), menuBtn: q('.sb-menu-btn'), menuList: q('.sb-menu-list') };
     // The sound button ships inside #storybook in index.html; it moves into the book and remembers the choice.
     const snd = root.querySelector('.sb-snd');
     if (snd) {
@@ -160,6 +164,12 @@
       el.label.textContent = s.label;
       el.notes.textContent = '';
       (s.notes || []).forEach(note => { const li = doc.createElement('li'); li.textContent = note; el.notes.appendChild(li); });
+      el.cards.textContent = '';
+      (s.links || []).forEach((link, k) => {
+        const li = doc.createElement('li'), a = doc.createElement('a');
+        a.className = 'sb-pcard'; a.href = link.href; a.textContent = link.label; a.style.setProperty('--k', k);
+        li.appendChild(a); el.cards.appendChild(li);
+      });
       syncReply();
       const active = doc.activeElement;
       el.prev.disabled = i === 0;
@@ -197,6 +207,11 @@
     function showCaption(on) {
       el.caption.classList.toggle('hide', !on);
       el.reply.classList.toggle('show', on && !!scenes[index].reply);
+      el.pocket.classList.toggle('show', on && !!scenes[index].pocket);
+    }
+    function menu(open) {
+      el.menuList.hidden = !open;
+      el.menuBtn.setAttribute('aria-expanded', String(open));
     }
     function restart(node, cls) { node.classList.remove(cls); void node.getBoundingClientRect(); node.classList.add(cls); }
     // The still version for reduced motion: everything already standing, nothing pops or folds.
@@ -239,7 +254,7 @@
       el.goReply.hidden = true;
       sfx.start(); sfx.chime();
       const ready = () => {
-        el.cover.classList.add('gone'); el.nav.classList.add('show'); el.hint.classList.add('show');
+        el.cover.classList.add('gone'); el.nav.classList.add('show'); el.menu.classList.add('show'); el.hint.classList.add('show');
         if (snd) snd.classList.add('show');
         busy = false;
         el.heading.focus({ preventScroll: true });
@@ -268,7 +283,7 @@
       el.goReply.hidden = true;
       show();
       settle();
-      el.nav.classList.add('show');
+      el.nav.classList.add('show'); el.menu.classList.add('show');
       if (snd) snd.classList.add('show');
       sfx.start();
       el.heading.focus({ preventScroll: true });
@@ -346,6 +361,7 @@
     /* input */
     function onKey(e) {
       const t = e.target;
+      if (e.key === 'Escape' && !el.menuList.hidden) { menu(false); el.menuBtn.focus(); return; }
       if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
       else if (e.key === 'Enter' || e.key === ' ') {
@@ -367,6 +383,32 @@
     el.prev.addEventListener('click', () => go(-1));
     el.skip.addEventListener('click', e => { e.preventDefault(); close(); });
     el.goReply.addEventListener('click', e => { e.preventDefault(); close(); });
+    // The menu jumps straight to the Reply page or the pocket from any page.
+    el.menuBtn.addEventListener('click', e => { e.stopPropagation(); menu(el.menuList.hidden); });
+    el.menuList.addEventListener('click', e => {
+      const b = e.target.closest('button[data-go]');
+      if (!b) return;
+      menu(false);
+      goTo(b.dataset.go);
+    });
+    doc.addEventListener('click', e => { if (!el.menuList.hidden && !el.menu.contains(e.target)) menu(false); });
+    // A pocket card slides up out of the pocket, then opens its page. Need a hand? stays on this page.
+    el.cards.addEventListener('click', e => {
+      const a = e.target.closest('a.sb-pcard');
+      if (!a) return;
+      e.preventDefault();
+      const href = a.getAttribute('href'), here = /^index\.html#(.+)$/.exec(href);
+      const follow = () => {
+        if (!here) { W.location.href = href; return; }
+        close();
+        const target = doc.getElementById(here[1]);
+        if (target) target.scrollIntoView({ block: 'start' });
+      };
+      if (!moving()) { follow(); return; }
+      a.classList.add('out');
+      sfx.whoosh();
+      later(380, follow);
+    });
     el.reply.addEventListener('click', e => {
       const b = e.target.closest('button[data-reply]');
       if (!b || busy) return;

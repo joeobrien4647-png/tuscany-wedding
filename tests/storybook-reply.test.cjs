@@ -68,3 +68,22 @@ test('the music comes back when the book is shown again after closing', () => {
   s.start();
   assert.equal(made[0].playing, true);
 });
+
+test('the pocket holds the practical pages, and every one exists', () => {
+  const pocket = SCENES.find(s => s.pocket);
+  assert.deepEqual(pocket.links.map(l => l.label + ' -> ' + l.href), [
+    'Travel & stay -> getting-here.html', 'Plan the drive -> getting-there.html', 'The villas -> villas.html',
+    'Our wedding -> weekend-guide.html', 'Arrival essentials -> arrival-essentials.html', 'Need a hand? -> index.html#help'
+  ]);
+  for (const link of pocket.links) {
+    assert.deepEqual(copyProblems(link.label), [], link.label);
+    if (link.href === 'index.html#help') assert.match(html, /id="help"/);
+    else assert.ok(fs.existsSync(path.join(__dirname, '..', link.href)), link.href);
+  }
+});
+
+test('the menu offers Reply and Pocket on every page', () => {
+  const { WORDS } = require('../js/storybook.js');
+  assert.equal(WORDS.menu.reply, 'Reply'); assert.equal(WORDS.menu.pocket, 'Pocket');
+  for (const id of ['reply', 'pocket']) assert.ok(SCENES.some(s => s.id === id), id);
+});
