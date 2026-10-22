@@ -465,7 +465,7 @@ function paymentPageHarness() {
     session: { setUser() {} }, $: element, document: { querySelectorAll: () => [] },
     sameUser: user => !!(auth.currentUser && auth.currentUser.uid === user.uid),
     hideErr: id => { element(id).hidden = true; }, showErr: id => { element(id).hidden = false; },
-    render() {}, fillTravel() {}, syncUpTravel() {}, syncChoiceHint() {}, setSignupStep() {}, busyRegistration() {}, recalled: () => null, entryParams: new URLSearchParams(''),
+    render() {}, fillTravel() {}, pickInto() {}, syncUpTravel() {}, syncChoiceHint() {}, setSignupStep() {}, busyRegistration() {}, recalled: () => null, entryParams: new URLSearchParams(''),
     loadReply(user) { context.current = fixture.inspect().registrations[user.uid]; }, Date };
   vm.createContext(context);
   const paymentStart = html.indexOf('  $("pay-sent").onclick = function () {');

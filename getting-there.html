@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f2e7">
+  <title>Plan the drive, Sophie &amp; Joe</title>
+  <meta name="description" content="Pick your airport, follow the drive to La Conca, and work out when you’ll arrive for pizza at sunset on Friday 28 May 2027.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://sophieandjoe2027.com/getting-there.html">
+  <meta property="og:title" content="Plan the drive, Sophie &amp; Joe">
+  <meta property="og:description" content="Pick your airport, follow the drive to La Conca, and work out when you’ll arrive for pizza at sunset on Friday 28 May 2027.">
+  <meta property="og:image" content="https://sophieandjoe2027.com/images/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;1,400&amp;family=Playfair+Display:ital,wght@0,400;0,500;1,400&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/postcard-features.css">
+  <link rel="stylesheet" href="css/getting-there.css">
+  <script src="js/guest-navigation.js" defer></script>
+</head>
+<body class="guest-page postcard-page feature-page gt-page">
+  <a class="guest-skip" href="#main">Skip to content</a>
+  <header class="guest-header"><a class="guest-brand" href="index.html">Sophie &amp; Joe</a><nav class="guest-nav" aria-label="Guest navigation"><a href="index.html#card">RSVP</a><a href="getting-here.html" aria-current="location">Travel &amp; stay</a><a href="weekend-guide.html">Our wedding</a><a href="index.html#help">Help</a></nav></header>
+
+    <main id="main">
+        <header class="container gt-heading">
+            <div>
+                <p class="guest-kicker">Fly in, drive up</p>
+                <h1>Plan the drive</h1>
+                <p>Pick an airport and follow the little Fiat to La Conca</p>
+            </div>
+            <div class="gt-hero-frame" style="background-image: url('video/drive-hero-poster.jpg');">
+                <video class="gt-hero-video" id="gt-hero-video" muted loop autoplay playsinline preload="metadata"
+                       poster="video/drive-hero-poster.jpg" aria-hidden="true" tabindex="-1" disablepictureinpicture disableremoteplayback
+                       data-src="video/drive-hero-720.mp4" data-src-small="video/drive-hero-540.mp4"></video>
+            </div>
+        </header>
+
+        <section class="section gt-section" id="planner">
+            <div class="container">
+                <div class="s-head">
+                    <div class="eyebrow">The planner</div>
+                    <h2>Choose your <em>airport</em></h2>
+                    <p>Six airports, one little Fiat. Tap one on the map or in the list for the drive, the tolls and who usually flies there from the UK.</p>
+                </div>
+
+                <div class="gt-planner">
+                    <div class="gt-side">
+                        <div class="gt-from">
+                            <label for="gt-from">Flying from</label>
+                            <select id="gt-from">
+                                <option value="">Anywhere in the UK</option>
+                            </select>
+                            <p class="gt-from-note" id="gt-from-note" hidden></p>
+                        </div>
+                        <div class="gt-chips" id="gt-chips" role="group" aria-label="Airports, closest first"></div>
+                    </div>
+
+                    <figure class="gt-map" id="gt-map">
+                        <svg id="gt-svg" role="img" aria-labelledby="gt-svg-title" preserveAspectRatio="xMidYMid meet">
+                            <title id="gt-svg-title">Map of central Italy with La Conca and the six airports</title>
+                        </svg>
+                        <p class="gt-loading" id="gt-loading">Unfolding the map&hellip;</p>
+                        <figcaption>Map: Natural Earth. Routes: &copy; OpenStreetMap contributors</figcaption>
+                    </figure>
+
+                    <div class="gt-card" id="gt-card">
+                        <div id="gt-card-body">
+                            <div class="gt-empty">
+                                <div class="eyebrow">Your route</div>
+                                <h3>Pick an <em>airport</em></h3>
+                                <p>The drive, the tolls, the car hire desks and the UK airports that usually fly there, plus when you&rsquo;d roll up on Friday</p>
+                            </div>
+                        </div>
+
+                        <section class="gt-calc" id="gt-calc" aria-labelledby="gt-calc-h" hidden>
+                            <h4 id="gt-calc-h">When will I get <em>there</em>?</h4>
+                            <div class="gt-calc-row">
+                                <label class="gt-field" for="gt-land"><span>My flight lands at</span>
+                                    <input type="time" id="gt-land" step="300">
+                                </label>
+                                <label class="gt-field" for="gt-day"><span>on</span>
+                                    <select id="gt-day">
+                                        <option value="fri">Fri 28 May</option>
+                                        <option value="thu">Thu 27 May</option>
+                                        <option value="other">Another day</option>
+                                    </select>
+                                </label>
+                            </div>
+                            <label class="gt-field gt-allow" for="gt-allow"><span>Allow</span>
+                                <select id="gt-allow"></select>
+                                <span>for passport, bags and the car hire desk</span>
+                            </label>
+                            <p class="gt-hint" id="gt-calc-hint"></p>
+                            <div class="gt-result" id="gt-result"></div>
+                        </section>
+
+                        <div class="gt-reply" id="gt-reply-box" hidden>
+                            <a class="btn btn-primary" id="gt-reply" href="index.html#card">Add this airport to my reply</a>
+                            <p class="gt-hint" id="gt-reply-hint">Opens the reply form with this airport picked. Nothing is saved until you send it.</p>
+                        </div>
+                    </div>
+                </div>
+                <p class="s-sr" id="gt-status" role="status" aria-live="polite"></p>
+            </div>
+        </section>
+
+        <section class="section section-alt" id="friday">
+            <div class="container">
+                <div class="s-head s-head--center">
+                    <div class="eyebrow" id="gt-fri-date">Friday 28 May</div>
+                    <h2>Pizza at <em>sunset</em></h2>
+                    <p>Friday night is pizza and drinks as the sun goes down. Here&rsquo;s the light you&rsquo;re racing.</p>
+                </div>
+                <ul class="s-stats gt-sun" id="gt-sun"></ul>
+                <p class="gt-small" id="gt-sun-note"></p>
+            </div>
+        </section>
+
+        <section class="section" id="last-stretch">
+            <div class="container">
+                <div class="s-head">
+                    <div class="eyebrow">The last stretch</div>
+                    <h2>Up the hill to <em>La Conca</em></h2>
+                    <p id="gt-stretch-summary"></p>
+                </div>
+                <div class="gt-stretch">
+                    <figure class="gt-mini">
+                        <svg id="gt-mini" role="img" aria-labelledby="gt-mini-title" preserveAspectRatio="xMidYMid meet">
+                            <title id="gt-mini-title">The lane from the turn-off to the estate gate, then the estate road up to Villa Santarsa and Villa Vallorsaia</title>
+                        </svg>
+                        <figcaption>Roads: &copy; OpenStreetMap contributors</figcaption>
+                    </figure>
+                    <div>
+                        <div class="gt-satnav">
+                            <div class="eyebrow">Put this in your satnav</div>
+                            <p class="gt-coords" id="gt-coords"></p>
+                            <button class="btn btn-outline" id="gt-copy" type="button">Copy the coordinates</button>
+                            <p class="gt-hint" id="gt-satnav-note"></p>
+                        </div>
+                        <ul class="s-list gt-tips" id="gt-tips"></ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section section-alt">
+            <div class="container">
+                <div class="s-card">
+                    <div class="s-head s-head--center">
+                        <div class="eyebrow">The small print</div>
+                        <h2>Where this comes <em>from</em></h2>
+                    </div>
+                    <ul class="s-list">
+                        <li><b>Drive times</b> are the middle of three route planners (Google Maps, OSRM and Valhalla), rounded to the nearest 15 minutes. They stop at the estate gate and don&rsquo;t count stops, roadworks or holiday traffic</li>
+                        <li><b>Flights</b> are the routes airlines and airports listed in autumn 2026. Summer 2027 schedules aren&rsquo;t all out yet, so check before you book</li>
+                        <li><b>No transfers are booked</b>, and the road up only takes vehicles of up to 20 seats, so no coaches</li>
+                        <li><b>Airports, trains and finding your villa</b> are on <a href="getting-here.html">Travel &amp; stay</a></li>
+                    </ul>
+                    <p class="gt-small" id="gt-checked">Map from Natural Earth. Routes and places &copy; OpenStreetMap contributors.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+  <footer class="guest-footer"><p>Sophie &amp; Joe<br>28–31 May 2027 at La Conca, Sansepolcro</p><a href="index.html#help">Need a hand? Contact us</a></footer>
+
+    <script src="js/getting-there.js"></script>
+    <script>/* the heading's loop (a real Tuscan road at sunset, video/drive-hero-*): the poster is the frame's background, so
+    the page paints with it; the film is asked for only once the page has loaded, after the planner's data, and only while
+    the hero is near the top of the screen; a phone gets the 540p file; with reduced motion, Save-Data or no H.264 the
+    film is dropped and the poster stays; a film that fails to load is dropped the same way */
+    (function () {
+      var v = document.getElementById("gt-hero-video");
+      if (!v) return;
+      var still = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+        || !!(navigator.connection && navigator.connection.saveData)
+        || !(v.canPlayType && v.canPlayType("video/mp4"));
+      function drop() { if (v.parentNode) v.parentNode.removeChild(v); }
+      if (still) return drop();
+      function play() { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+      function start() {
+        if (!v.parentNode || v.getAttribute("src")) return;
+        v.src = v.getAttribute(window.innerWidth <= 640 ? "data-src-small" : "data-src");
+        play();
+      }
+      v.addEventListener("error", drop);
+      function loaded() {
+        if (!("IntersectionObserver" in window)) return start();
+        new IntersectionObserver(function (entries) {
+          entries.forEach(function (e) {
+            if (!v.parentNode) return;
+            if (e.isIntersecting) { start(); if (v.paused) play(); }
+            else if (!v.paused) v.pause();
+          });
+        }, { rootMargin: "200px 0px" }).observe(v);
+      }
+      if (document.readyState === "complete") loaded();
+      else window.addEventListener("load", loaded);
+    })();</script>
+</body>
+</html>

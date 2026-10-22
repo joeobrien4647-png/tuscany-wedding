@@ -1,0 +1,83 @@
+/* The villa explorer and Plan the drive on the postcard pages. The postcard chrome sits in a lower layer, so the
+   header, nav and footer match every guest page while each feature's own stylesheet wins inside <main>. */
+@layer postcard, feature-base;
+@import url("guest-journey.css") layer(postcard);
+@import url("postcards.css") layer(postcard);
+
+@layer feature-base {
+  .feature-page {
+    --color-charcoal: #25385b;
+    --color-cream: #f7f7ef;
+    --color-gold: #d6c46c;
+    --color-olive: #1f3886;
+    --color-terracotta: #25385b;
+    --color-terracotta-light: #1f3886;
+    --font-heading: 'Playfair Display', Georgia, serif;
+    --font-body: 'Lato', 'Segoe UI', sans-serif;
+    --caps: 'Lato', 'Segoe UI', sans-serif;
+    --gold-ink: #25385b;
+    --terra-ink: #1f3886;
+    --text-soft: #4b5772;
+    --hair: #bec8b8;
+    --hair-soft: #d9dfd2;
+    --paper: #fffef8;
+    --panel: #eef2e6;
+    --glow: #e2c75c;
+    --cream-ink: #fbf0d2;
+    --night: #1b2438;
+    --nav-h: 0px;
+    --shadow-soft: 0 18px 40px -28px rgba(37, 56, 91, .35), 0 2px 8px rgba(37, 56, 91, .05);
+    --shadow-medium: 0 26px 52px -28px rgba(37, 56, 91, .45), 0 4px 14px rgba(37, 56, 91, .08);
+  }
+
+  /* inside <main>, the base the features were built on: no default spacing, UA buttons and fields */
+  .feature-page main :is(*, *::before, *::after) { margin: 0; padding: 0; }
+  .feature-page main { display: block; overflow-wrap: normal; font: 400 16px/1.7 var(--font-body); color: var(--color-charcoal); }
+  .feature-page main :is(button, input, select, textarea, label) {
+    min-height: revert; width: revert; max-width: revert; display: revert; border: revert; border-radius: revert;
+    background: revert; color: revert; font: revert; cursor: revert; opacity: revert; margin: 0; padding: 0;
+  }
+  .feature-page main :focus-visible { outline: revert; outline-offset: revert; }
+  .feature-page main a { color: var(--terra-ink); }
+  .feature-page main :is(h1, h2, h3, h4) { font-family: var(--font-heading); font-weight: 400; line-height: 1.3; color: var(--color-charcoal); text-wrap: balance; }
+  .feature-page main :is(h1, h2, h3, h4) em { font-style: inherit; color: inherit; }
+  .feature-page main h3 { font-size: 1.5rem; }
+  .feature-page main h4 { font-size: 1.25rem; }
+  .feature-page main p { margin-bottom: 1rem; }
+  .feature-page main :is(p, li) { text-wrap: pretty; }
+  .feature-page main img { max-width: 100%; height: auto; }
+
+  .feature-page .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 3rem); }
+  .feature-page .section { padding: 3rem 0; }
+  .feature-page .section-alt { background: var(--panel); border-block: 1px solid var(--hair-soft); }
+  .feature-page :is(.section-header, .s-head) { margin-bottom: 1.6rem; }
+  .feature-page :is(.section-header, .s-head) h2 { font-size: clamp(1.9rem, 4vw, 2.7rem); line-height: 1.18; margin-bottom: .5rem; }
+  .feature-page :is(.section-header, .s-head) p { color: var(--text-soft); max-width: 65ch; margin-bottom: 0; }
+  .feature-page .s-head--center p { margin-inline: auto; }
+  .feature-page .section-divider { display: none; }
+  .feature-page .eyebrow { margin-bottom: .4rem; font: 400 .9rem/1.5 var(--font-body); letter-spacing: .025em; color: var(--color-charcoal); }
+  .feature-page .text-center { text-align: center; }
+  .feature-page .s-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+  .feature-page .btn {
+    display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .7rem 1rem;
+    border: 1px solid var(--color-charcoal); border-radius: 3px; background: var(--color-charcoal); color: #fff;
+    font: 700 1rem/1.4 var(--font-body); text-decoration: none; cursor: pointer;
+  }
+  .feature-page .btn:hover { background: #162a22; color: #fff; }
+  .feature-page .btn-outline { background: transparent; color: var(--color-charcoal); }
+
+  .feature-page .s-card { max-width: 720px; padding: 1.5rem; background: var(--paper); border: 1px solid var(--hair); }
+  .feature-page .s-list { list-style: none; display: grid; gap: .75rem; }
+  .feature-page .s-list li { position: relative; padding-left: 1.2rem; line-height: 1.6; color: var(--text-soft); }
+  .feature-page .s-list li::before { content: ""; position: absolute; left: 0; top: .62em; width: 6px; height: 6px; border-radius: 50%; background: var(--color-charcoal); }
+  .feature-page .s-list b { color: var(--color-charcoal); }
+  .feature-page .s-stats { list-style: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem; }
+  .feature-page .s-stats li { padding: 1.4rem 1rem 1.2rem; text-align: center; background: var(--paper); border: 1px solid var(--hair); }
+  .feature-page .s-stats b { display: block; margin-bottom: .6rem; font: 400 clamp(2.2rem, 4.5vw, 3rem)/1 var(--font-heading); color: var(--color-charcoal); }
+  .feature-page .s-stats span { display: block; font-size: .92rem; line-height: 1.5; color: var(--text-soft); }
+
+  @media (max-width: 860px) {
+    .feature-page .s-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+  }
+}

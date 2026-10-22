@@ -1,0 +1,348 @@
+/* The getting-there planner (getting-there.html): the welcome film's map of central Italy in the site's colours,
+   the airport list and card, the arrival sums, Friday's light and the last stretch. Loads after css/postcard-features.css. */
+
+.gt-section { --gt-sea: #e2edf1; --gt-land: #f3efd9; --gt-neigh: #e9ebe1; --gt-coast: #d6c46c; --gt-route: #25385b;
+    --gt-arc: #c9ad3f; --gt-ring-fill: #fffef8; --gt-label: #25385b; --gt-halo: #f7f7ef; --gt-car-body: #fffef8; }
+body.dark-mode .gt-section { --gt-sea: #17120F; --gt-land: #2A2219; --gt-neigh: #211B16; --gt-coast: #B8994F; --gt-route: #E38C5C;
+    --gt-ring-fill: #221C17; --gt-label: #F1E9DD; --gt-halo: #15110E; }
+
+/* ---- layout: list, map and card stacked on phones; the map sticks beside the list and card on wide screens ---- */
+.gt-planner {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "side" "map" "card";
+    gap: 20px;
+}
+.gt-side { grid-area: side; min-width: 0; }
+.gt-map { grid-area: map; min-width: 0; }
+.gt-card { grid-area: card; min-width: 0; }
+@media (min-width: 960px) {
+    .gt-planner {
+        grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+        grid-template-areas: "map side" "map card";
+        grid-template-rows: auto 1fr;
+        column-gap: clamp(28px, 4vw, 56px);
+        row-gap: 22px;
+        align-items: start;
+    }
+    .gt-map { position: -webkit-sticky; position: sticky; top: calc(var(--nav-h) + 18px); max-width: 560px; justify-self: center; width: 100%; }
+}
+
+/* ---- flying from ---- */
+.gt-from { margin-bottom: 14px; }
+.gt-from label {
+    display: block;
+    font: 600 11px/1.3 var(--caps);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold-ink);
+    margin-bottom: 6px;
+}
+.gt-section select,
+.gt-section input[type="time"] {
+    font: 400 16px/1.3 var(--font-body);
+    color: var(--color-charcoal);
+    background-color: var(--paper);
+    border: 1px solid var(--hair);
+    border-radius: 6px;
+    padding: 10px 12px;
+    min-height: 44px;
+    max-width: 100%;
+    -webkit-appearance: none;
+    appearance: none;
+}
+/* no native grey fill on iPhone: our own gold chevron instead */
+.gt-section select {
+    padding-right: 34px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23A88A4A' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px 8px;
+}
+.gt-section input[type="time"]::-webkit-date-and-time-value { text-align: left; }
+.gt-from select { width: 100%; }
+.gt-section select:focus-visible,
+.gt-section input:focus-visible,
+.gt-chip:focus-visible { outline: 2px solid var(--color-olive); outline-offset: 2px; }
+.gt-from-note { margin: 8px 0 0; font-size: 14.5px; line-height: 1.55; color: var(--text-soft); }
+
+/* ---- the airport list ---- */
+.gt-chips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 560px) { .gt-chips { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.gt-chip {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-height: 64px;
+    padding: 10px 12px 11px;
+    text-align: left;
+    font: inherit;
+    color: inherit;
+    background: var(--paper);
+    border: 1px solid var(--hair-soft);
+    border-radius: 8px;
+    box-shadow: 0 10px 22px -18px rgba(70, 45, 20, 0.5);
+    cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, transform 0.12s ease;
+}
+.gt-chip:hover { border-color: var(--color-gold); }
+.gt-chip:active { transform: scale(0.98); }
+.gt-chip b { font: 400 17px/1.2 var(--font-heading); color: var(--color-charcoal); }
+.gt-chip span { font-size: 13.5px; line-height: 1.3; color: var(--text-soft); }
+.gt-chip i {
+    font: 600 9.5px/1.3 var(--caps);
+    font-style: normal;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-ink);
+    margin-top: 2px;
+}
+.gt-chip[aria-pressed="true"] {
+    border-color: var(--terra-ink);
+    box-shadow: inset 0 0 0 1px var(--terra-ink), 0 14px 26px -18px rgba(150, 70, 25, 0.6);
+}
+.gt-chip[aria-pressed="true"] b { color: var(--terra-ink); }
+.gt-chip.is-dim { opacity: 0.42; }
+.gt-chip.is-served::after {
+    content: "";
+    position: absolute;
+    top: 11px;
+    right: 11px;
+    width: 7px;
+    height: 7px;
+    transform: rotate(45deg);
+    background: var(--color-gold);
+}
+
+/* ---- the map ---- */
+.gt-map { position: relative; margin: 0; scroll-margin-top: calc(var(--nav-h) + 12px); }
+.gt-map svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: var(--gt-sea);
+    border: 1px solid var(--hair);
+    border-radius: 6px;
+    box-shadow: 0 22px 44px -30px rgba(70, 45, 20, 0.5);
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.gt-map figcaption,
+.gt-mini figcaption { margin-top: 6px; font-size: 11.5px; line-height: 1.4; color: var(--text-soft); text-align: right; }
+.gt-loading {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 45%;
+    margin: 0;
+    text-align: center;
+    font: italic 400 17px/1.4 var(--font-heading);
+    color: var(--text-soft);
+}
+.gt-sea { fill: var(--gt-sea); }
+.gt-neigh { fill: var(--gt-neigh); }
+.gt-land { fill: var(--gt-land); }
+.gt-coast { fill: none; stroke: var(--gt-coast); stroke-width: 0.9; stroke-linejoin: round; }
+.gt-region { font: 600 8.5px var(--caps); letter-spacing: 0.32em; text-anchor: middle; opacity: 0.75; }
+.gt-region--t { fill: var(--terra-ink); }
+.gt-region--u { fill: var(--color-olive); }
+body.dark-mode .gt-region--u { fill: #A3B48F; }
+.gt-seaname { font: italic 400 10.5px var(--font-heading); fill: var(--gold-ink); text-anchor: middle; opacity: 0.85; }
+.gt-town { font: 400 9.5px var(--font-body); fill: var(--text-soft); }
+.gt-town-dot { fill: var(--text-soft); }
+.gt-uk path { fill: none; stroke: var(--gold-ink); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+.gt-uk text { font: 600 7.5px var(--caps); letter-spacing: 0.24em; fill: var(--gold-ink); }
+.gt-halo { paint-order: stroke; stroke: var(--gt-halo); stroke-width: 3px; stroke-linejoin: round; }
+.gt-route { fill: none; stroke: var(--gt-route); stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
+.gt-arc { fill: none; stroke: var(--gt-arc); stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 0.1 6; }
+.gt-ring { fill: var(--gt-ring-fill); stroke: var(--color-gold); stroke-width: 2; transition: opacity 0.25s ease; }
+.gt-ring-dot { fill: var(--color-gold); opacity: 0; transition: opacity 0.25s ease; }
+.gt-apt.is-on .gt-ring { stroke: var(--terra-ink); stroke-width: 2.4; }
+.gt-apt.is-on .gt-ring-dot { opacity: 1; fill: var(--terra-ink); }
+.gt-apt.is-dim { opacity: 0.35; }
+.gt-alabel { font: 700 11px var(--font-body); fill: var(--gt-label); }
+.gt-apt.is-on .gt-alabel { fill: var(--terra-ink); }
+.gt-hit { fill: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.gt-pin-dot { fill: var(--color-terracotta-light); }
+.gt-pin-ring { fill: none; stroke: var(--color-gold); stroke-width: 1.8; }
+.gt-pin-pulse { fill: none; stroke: var(--color-gold); stroke-width: 1.8; opacity: 0; animation: gt-pulse 1.8s ease-out infinite; }
+.gt-pin-label { font: italic 400 15px var(--font-heading); fill: var(--gt-label); }
+/* the map is 360 units wide, so on a phone (288 to 400 px) a unit is under a pixel: bigger type there */
+@media (max-width: 520px) {
+    .gt-alabel { font-size: 13.5px; }
+    .gt-pin-label { font-size: 17px; }
+    .gt-town { font-size: 12px; }
+    .gt-seaname { font-size: 12.5px; }
+    .gt-region { font-size: 10px; }
+    .gt-uk text { font-size: 9px; }
+    .gt-halo { stroke-width: 3.5px; }
+}
+@keyframes gt-pulse {
+    0% { transform: scale(1); opacity: 0; }
+    12% { opacity: 0.9; }
+    100% { transform: scale(2.5); opacity: 0; }
+}
+.gt-car-body { fill: var(--gt-car-body); }
+.gt-car-stripe { fill: var(--color-terracotta-light); }
+.gt-car-line { fill: none; stroke: var(--color-gold); stroke-linejoin: round; }
+.gt-car-glass { fill: rgba(224, 201, 136, 0.35); stroke: var(--color-gold); stroke-linejoin: round; }
+.gt-car-hub { fill: var(--color-gold); }
+.gt-car-wheel { fill: var(--gt-car-body); stroke: var(--color-gold); }
+
+/* ---- the airport card ---- */
+.gt-card {
+    padding: 26px 24px 24px;
+    background: var(--paper);
+    border: 1px solid var(--hair);
+    border-radius: 8px;
+    box-shadow: 0 22px 50px -32px rgba(70, 45, 20, 0.38), inset 0 0 0 7px var(--paper), inset 0 0 0 8px var(--hair-soft);
+}
+@media (max-width: 480px) { .gt-card { padding: 22px 16px 20px; } }
+.gt-card h3 { font-size: clamp(1.7rem, 4.5vw, 2.1rem); font-weight: 400; line-height: 1.1; margin: 0 0 4px; }
+.gt-card .eyebrow { margin-bottom: 8px; }
+.gt-empty p { color: var(--text-soft); margin: 8px 0 0; font-size: 15.5px; }
+.gt-official { font-size: 13.5px; line-height: 1.45; color: var(--text-soft); margin: 0 0 16px; }
+.gt-facts { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0 0 18px; padding: 0; }
+.gt-facts li {
+    padding: 12px 8px 11px;
+    text-align: center;
+    background: var(--panel);
+    border: 1px solid var(--hair-soft);
+    border-radius: 6px;
+}
+.gt-facts b { display: block; font: 400 clamp(17px, 4.6vw, 20px)/1.15 var(--font-heading); color: var(--color-charcoal); }
+.gt-facts span { display: block; margin-top: 4px; font-size: 12px; line-height: 1.35; color: var(--text-soft); }
+.gt-block { padding: 14px 0 0; margin: 14px 0 0; border-top: 1px solid var(--hair-soft); }
+.gt-block h4,
+.gt-dark h5 {
+    font: 600 11px/1.3 var(--caps);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold-ink);
+    margin: 0 0 6px;
+}
+.gt-block p,
+.gt-block li { font-size: 15px; line-height: 1.6; color: var(--text-soft); }
+.gt-block p { margin: 0 0 6px; }
+.gt-block p:last-child { margin-bottom: 0; }
+.gt-block b { color: var(--color-charcoal); font-weight: 700; }
+.gt-block ul { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 4px; }
+.gt-block ul li { position: relative; padding-left: 16px; }
+.gt-block ul li::before { content: ""; position: absolute; left: 1px; top: 0.66em; width: 5px; height: 5px; transform: rotate(45deg); background: var(--color-gold); }
+.gt-block .is-from { color: var(--color-charcoal); }
+.gt-block .is-from mark { background: rgba(224, 201, 136, 0.45); color: inherit; padding: 0 2px; border-radius: 2px; }
+.gt-block .gt-warn { display: block; margin-top: 2px; font-size: 14px; line-height: 1.5; color: var(--terra-ink); }
+.gt-check { font-style: italic; }
+.gt-hint { font-size: 13.5px; line-height: 1.55; color: var(--text-soft); margin: 6px 0 0; }
+
+/* ---- arrival sums ---- */
+.gt-calc {
+    margin: 0 0 4px;
+    padding: 18px 16px 18px;
+    background: var(--panel);
+    border: 1px solid var(--hair-soft);
+    border-radius: 8px;
+}
+.gt-calc h4 { font-size: 1.35rem; font-weight: 400; line-height: 1.2; margin: 0 0 12px; }
+.gt-calc-row { display: flex; flex-wrap: wrap; gap: 10px 14px; }
+.gt-field { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 15px; color: var(--color-charcoal); }
+.gt-allow { margin-top: 10px; }
+.gt-section input[type="time"] { min-width: 7.5em; }
+.gt-result:empty { display: none; }
+.gt-result { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--hair-soft); }
+.gt-when { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0 0 4px; }
+.gt-when span { font: 600 10.5px/1.3 var(--caps); letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold-ink); }
+.gt-when b { font: 600 clamp(30px, 8vw, 38px)/1 var(--caps); letter-spacing: 0.02em; color: var(--color-charcoal); }
+.gt-when em { font: italic 400 17px/1.2 var(--font-heading); color: var(--terra-ink); }
+.gt-sum { font-size: 14px; line-height: 1.6; color: var(--text-soft); margin: 4px 0 0; }
+
+.gt-strip { position: relative; margin: 16px 0 6px; padding: 26px 0 22px; }
+.gt-strip-bar { position: relative; height: 10px; border-radius: 5px; overflow: hidden; background: #F4E6C4; }
+.gt-strip-bar i { position: absolute; top: 0; bottom: 0; }
+.gt-strip-gold { background: linear-gradient(90deg, #E9CF93, #E0B067); }
+.gt-strip-dusk { background: linear-gradient(90deg, #D98A55, #5A3B33); }
+.gt-strip-night { background: #2A211C; }
+.gt-strip-tick { position: absolute; top: 40px; transform: translateX(-50%); font-size: 11px; line-height: 1.2; color: var(--text-soft); white-space: nowrap; }
+.gt-strip-tick:first-of-type { transform: none; }
+.gt-strip-tick.is-end { transform: translateX(-100%); }
+.gt-strip-tick.is-sun { text-align: center; }
+/* narrow phones: "sunset" drops under its time, clear of "24:00" */
+@media (max-width: 400px) {
+    .gt-strip { padding-bottom: 34px; }
+    .gt-strip-tick.is-sun span { display: block; }
+}
+.gt-strip-tick b { color: var(--color-charcoal); font-weight: 700; }
+.gt-strip-car { position: absolute; top: 0; transform: translateX(-50%); }
+.gt-strip-car svg { display: block; width: 30px; height: 22px; }
+.gt-strip-car.is-left { transform: none; }
+.gt-strip-car.is-right { transform: translateX(-100%); }
+
+.gt-verdict { margin: 12px 0 0; padding: 12px 14px 12px; background: var(--paper); border: 1px solid var(--hair-soft); border-left: 3px solid var(--color-gold); border-radius: 6px; }
+.gt-verdict h5 { font: 400 1.2rem/1.25 var(--font-heading); color: var(--color-charcoal); margin: 0 0 4px; }
+.gt-verdict p { font-size: 14.5px; line-height: 1.6; color: var(--text-soft); margin: 0; }
+.gt-verdict p + p { margin-top: 6px; }
+.gt-verdict.is-ok { border-left-color: var(--color-olive); }
+.gt-verdict.is-tight { border-left-color: #D9A441; }
+.gt-verdict.is-dark { border-left-color: var(--terra-ink); }
+.gt-dark { margin: 12px 0 0; }
+.gt-dark .s-list { gap: 8px; }
+.gt-dark .s-list li { font-size: 14.5px; }
+.gt-dark a { font-size: 14.5px; }
+
+.gt-reply { margin: 18px 0 0; text-align: center; }
+.gt-reply .btn { max-width: 100%; white-space: normal; }
+
+/* ---- Friday's light ---- */
+.gt-sun { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 760px; margin: 0 auto; }
+@media (max-width: 860px) { .gt-sun { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; } }
+@media (max-width: 420px) { .gt-sun li { padding: 20px 6px 16px; } .gt-sun b { font-size: 30px; } .gt-sun span { font-size: 13px; } }
+.gt-small { font-size: 13.5px; line-height: 1.6; color: var(--text-soft); text-align: center; max-width: 60ch; margin: 18px auto 0; }
+
+/* ---- the last stretch ---- */
+.gt-stretch { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (min-width: 860px) { .gt-stretch { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(28px, 4vw, 56px); } }
+.gt-mini { margin: 0; }
+.gt-mini svg { display: block; width: 100%; height: auto; background: var(--panel); border: 1px solid var(--hair); border-radius: 6px; }
+.gt-mini .gt-lane { fill: none; stroke: var(--color-terracotta-light); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.gt-mini .gt-estate { fill: none; stroke: var(--color-terracotta-light); stroke-width: 2.2; stroke-dasharray: 1 5; stroke-linecap: round; stroke-linejoin: round; }
+.gt-mini .gt-mark { fill: var(--paper); stroke: var(--color-gold); stroke-width: 2; }
+.gt-mini .gt-villa { fill: var(--color-gold); }
+.gt-mini .gt-mlabel { font: 700 11.5px var(--font-body); fill: var(--color-charcoal); }
+.gt-mini .gt-msub { font: 400 10.5px var(--font-body); fill: var(--text-soft); }
+.gt-mini .gt-scale { stroke: var(--text-soft); stroke-width: 1.2; }
+.gt-mini .gt-north { font: 600 10px var(--caps); fill: var(--gold-ink); text-anchor: middle; }
+.gt-mini .gt-halo { stroke: var(--panel); }
+.gt-satnav {
+    padding: 20px 20px 18px;
+    margin-bottom: 22px;
+    background: var(--paper);
+    border: 1px solid var(--hair);
+    border-radius: 8px;
+    box-shadow: var(--shadow-soft);
+}
+.gt-coords { font: 700 clamp(20px, 5.4vw, 24px)/1.3 var(--font-body); letter-spacing: 0.02em; color: var(--color-charcoal); margin: 0 0 12px; font-variant-numeric: tabular-nums; }
+.gt-coords small { display: block; font: 400 14px/1.4 var(--font-body); color: var(--text-soft); letter-spacing: 0; }
+.gt-tips li { font-size: 15.5px; }
+.gt-tips .is-unknown { font-style: italic; }
+
+/* ---- the heading: the postcard pages' title with a photo frame beside it, here a real Tuscan road at sunset looping
+   (video/drive-hero-*). The poster is the frame's background, so the first paint, a blocked film, reduced motion and
+   Save-Data all show the same still ---- */
+.gt-heading { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 350px); gap: 2rem; align-items: center; padding-top: 1.25rem; padding-bottom: .5rem; }
+.gt-heading .guest-kicker { margin-bottom: .4rem; }
+.gt-heading h1 { font-size: clamp(2.5rem, 5vw, 3.8rem); line-height: 1.18; letter-spacing: -.03em; margin-bottom: .45em; }
+.gt-heading p:last-child { max-width: 65ch; margin: 0; }
+.gt-hero-frame { position: relative; height: 170px; overflow: hidden; background: #2c2c2c center 55% / cover no-repeat; }
+.gt-hero-video { position: absolute; top: 0; right: 0; bottom: 0; left: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 55%; pointer-events: none; }
+@media (max-width: 640px) {
+    .gt-heading { grid-template-columns: minmax(0, 1fr); gap: .75rem; }
+    .gt-hero-frame { height: 140px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gt-pin-pulse { animation: none; opacity: 0; }
+    .gt-chip, .gt-ring, .gt-ring-dot { transition: none; }
+}
