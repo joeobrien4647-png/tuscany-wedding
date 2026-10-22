@@ -64,7 +64,7 @@
       sky: 'linear-gradient(180deg,#141838 0%,#2a2a58 55%,#4b3a66 100%)', sun: [84, 16, 22, '#fff4dc'], fore: ['#10161a', '#2a2a3a'],
       pieces: [
         { art: 'cypress', opts: { c: '#22311f' }, x: 4, w: 6, depth: 4 }, { art: 'cypress', opts: { c: '#22311f' }, x: 90, w: 6, depth: 4 }, { art: 'cypress', opts: { c: '#22311f' }, x: 12, w: 4, depth: 5 },
-        { art: 'screen', x: 20, w: 60, depth: 8, cls: 'glowpop' },
+        { art: 'screen', x: 20, w: 60, depth: 8, cls: 'glowpop', act: 'film' },
         { art: 'olive', opts: { c: '#5d6f4c' }, x: -8, w: 18, depth: 14 },
         { art: 'fiat', opts: { lights: true }, x: 70, w: 26, depth: 16, act: 'drive' },
         { art: 'lantern', x: 2, w: 5, depth: 22 }, { art: 'lantern', x: 92, w: 5, depth: 26 },

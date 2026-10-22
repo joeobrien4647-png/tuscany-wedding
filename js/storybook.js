@@ -36,12 +36,24 @@
   function motionAllowed(win) {
     return !(win && typeof win.matchMedia === 'function' && win.matchMedia('(prefers-reduced-motion: reduce)').matches);
   }
+  // The welcome film (js/intro.js) plays over the page on a first visit. Run fn once it has closed: on its
+  // sj:intro-done, or at a check every 2 s that finds it gone, so a lost event never leaves the book waiting.
+  const FILM_CHECK_MS = 2000;
+  const filmUp = doc => doc.documentElement.classList.contains('sj-intro-open');
+  function afterFilm(win, fn) {
+    if (!filmUp(win.document)) { fn(); return; }
+    let timer = null;
+    const done = () => { win.removeEventListener('sj:intro-done', done); win.clearTimeout(timer); fn(); };
+    const check = () => { if (filmUp(win.document)) timer = win.setTimeout(check, FILM_CHECK_MS); else done(); };
+    win.addEventListener('sj:intro-done', done);
+    timer = win.setTimeout(check, FILM_CHECK_MS);
+  }
 
   // Placeholder words the book shows outside the scenes. Joe writes the final lines.
   const WORDS = {
     names: 'Sophie & Joe', year: 'Tuscany 2027', seal: 'S J', tapToOpen: 'Tap to open', openLabel: 'Open the invitation',
     hint: 'Tap things in the scene', skip: 'Skip the book', prev: 'Previous page', next: 'Next page', announce: 'Page {n} of {total}',
-    acts: { drive: 'Drive the car', fire: 'Light the oven', lights: 'Twinkle the lights', petals: 'Throw the petals', splash: 'Splash the pool' },
+    acts: { drive: 'Drive the car', fire: 'Light the oven', lights: 'Twinkle the lights', petals: 'Throw the petals', splash: 'Splash the pool', film: 'Play the welcome film' },
     reply: { wait: 'One moment', yes: 'Yes!', maybe: 'Not sure yet', no: 'Can’t make it', see: 'See my reply', change: 'Change my reply', goReply: 'Go to my reply', yours: 'Your reply', cheer: 'See you in Tuscany' },
     answers: { yes: 'Yes, coming', maybe: 'Not sure yet', no: 'Can’t make it', none: 'Reply needed' },
     menu: { open: 'Menu', reply: 'Reply', pocket: 'Pocket' }
@@ -138,6 +150,8 @@
     const clearTimers = () => timers.splice(0).forEach(t => W.clearTimeout(t));
     const raf = fn => W.requestAnimationFrame(fn);
     const pops = () => Array.from(root.querySelectorAll('.sb-pop'));
+    // The cinema screen plays the film only where js/intro.js offers it (switched on, or ?intro=1).
+    const filmReady = () => !!W.sjIntro && typeof W.sjIntro.play === 'function';
 
     function renderScene(i) {
       const s = scenes[i], [sx, sy, sr, sc] = s.sun, light = { side: sx < 50 ? 'l' : 'r', night: !!s.stars };
@@ -146,6 +160,7 @@
       el.ground.innerHTML = `<svg viewBox="0 0 300 200" preserveAspectRatio="none">${grounds[s.id]()}</svg>`;
       el.floor.querySelectorAll('.sb-hinge').forEach(h => h.remove());
       s.pieces.forEach((p, k) => {
+        p = p.act === 'film' && !filmReady() ? Object.assign({}, p, { act: null }) : p;
         const h = doc.createElement('div');
         h.className = 'sb-hinge';
         h.style.left = ((p.x - FLOOR_LEFT) / FLOOR_W * 100) + '%';
@@ -320,6 +335,18 @@
       if (a === 'lights') restart(t, 'chase');
       if (a === 'petals' && moving()) petals(46,['#fffaf2', '#f7cdc6', '#e8949b', '#f3dcae']);
       if (a === 'splash') restart(t, 'splash');
+      if (a === 'film') playFilm(t);
+    }
+    // The film plays over the book with the book's music paused, then the guest is back at the screen.
+    function playFilm(t) {
+      if (!filmReady() || filmUp(doc)) return;
+      sfx.stop();
+      W.sjIntro.play();
+      afterFilm(W, () => {
+        if (root.hidden) return;
+        sfx.start();
+        if (t.isConnected) t.focus({ preventScroll: true });
+      });
     }
 
     /* gold dust and fireworks */
@@ -363,6 +390,7 @@
 
     /* input */
     function onKey(e) {
+      if (filmUp(doc)) return;
       const t = e.target;
       if (e.key === 'Escape' && !el.menuList.hidden) { menu(false); el.menuBtn.focus(); return; }
       if (e.key === 'ArrowRight') { e.preventDefault(); go(1); }
@@ -493,7 +521,7 @@
     }
     renderScene(0);
     syncCover();
-    show();
+    afterFilm(W, show);
     return { open, go, goTo, close, reopen, fireworks, current: () => scenes[index].id };
   }
 
@@ -508,7 +536,7 @@
     return createBook(doc, { scenes, art: A.ART, walls: A.WALLS, grounds: A.GROUNDS, stars: A.STARS, defs: A.DEFS, sound, win });
   }
 
-  const api = { shouldShowBook, copyProblems, nextIndex, tiltFrom, motionAllowed, chooseReply, replyState, coverLine, createBook, WORDS };
+  const api = { shouldShowBook, copyProblems, nextIndex, tiltFrom, motionAllowed, afterFilm, chooseReply, replyState, coverLine, createBook, WORDS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else { root.Storybook = api; api.book = boot(root); }
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -94,3 +94,78 @@ test('the menu offers Reply and Pocket on every page', () => {
   assert.equal(WORDS.menu.reply, 'Reply'); assert.equal(WORDS.menu.pocket, 'Pocket');
   for (const id of ['reply', 'pocket']) assert.ok(SCENES.some(s => s.id === id), id);
 });
+
+// A window with the welcome film up or not, its listeners and timers driven by hand.
+function filmWindow(up) {
+  const listeners = {}, timers = new Map(), classes = new Set(up ? ['sj-intro-open'] : []);
+  let id = 0;
+  const win = {
+    document: { documentElement: { classList: { contains: c => classes.has(c) } } },
+    addEventListener(type, fn) { (listeners[type] ||= []).push(fn); },
+    removeEventListener(type, fn) { listeners[type] = (listeners[type] || []).filter(f => f !== fn); },
+    setTimeout(fn) { timers.set(++id, fn); return id; },
+    clearTimeout(t) { timers.delete(t); }
+  };
+  return {
+    win, timers,
+    // as js/intro.js closes: the class goes first, then the event
+    close(withEvent = true) { classes.delete('sj-intro-open'); if (withEvent) (listeners['sj:intro-done'] || []).slice().forEach(fn => fn({ type: 'sj:intro-done' })); },
+    tick() { const due = [...timers.values()]; timers.clear(); due.forEach(fn => fn()); },
+    listening: () => (listeners['sj:intro-done'] || []).length
+  };
+}
+
+test('the welcome film says when it closes, for any reason', () => {
+  const intro = fs.readFileSync(path.join(__dirname, '..', 'js', 'intro.js'), 'utf8');
+  assert.match(intro, /new CustomEvent\(["']sj:intro-done["']/);
+  const close = intro.slice(intro.indexOf('function close('), intro.indexOf('function giveUp('));
+  assert.match(close, /dispatchEvent\(new CustomEvent\(["']sj:intro-done["']/);
+});
+
+test('with no film playing the book shows its cover straight away', () => {
+  const { afterFilm } = require('../js/storybook.js');
+  const f = filmWindow(false);
+  let shown = 0;
+  afterFilm(f.win, () => shown++);
+  assert.equal(shown, 1);
+  assert.equal(f.listening(), 0);
+  assert.equal(f.timers.size, 0);
+});
+
+test('on a first visit the book waits for the film to close, then shows once', () => {
+  const { afterFilm } = require('../js/storybook.js');
+  const f = filmWindow(true);
+  let shown = 0;
+  afterFilm(f.win, () => shown++);
+  for (let i = 0; i < 60; i++) f.tick();
+  assert.equal(shown, 0);
+  f.close();
+  assert.equal(shown, 1);
+  assert.equal(f.listening(), 0);
+  assert.equal(f.timers.size, 0);
+  f.tick();
+  assert.equal(shown, 1);
+});
+
+test('the book never hangs if the film closes without saying so', () => {
+  const { afterFilm } = require('../js/storybook.js');
+  const f = filmWindow(true);
+  let shown = 0;
+  afterFilm(f.win, () => shown++);
+  f.close(false);
+  f.tick();
+  assert.equal(shown, 1);
+  assert.equal(f.listening(), 0);
+  f.tick();
+  assert.equal(shown, 1);
+});
+
+test('the cinema screen on the Reply page plays the film again', () => {
+  const { WORDS } = require('../js/storybook.js');
+  const intro = fs.readFileSync(path.join(__dirname, '..', 'js', 'intro.js'), 'utf8');
+  const screen = SCENES.find(s => s.reply).pieces.find(p => p.art === 'screen');
+  assert.equal(screen.act, 'film');
+  assert.ok(WORDS.acts.film);
+  assert.deepEqual(copyProblems(WORDS.acts.film), []);
+  assert.match(intro, /window\.sjIntro = \{ play: /);
+});
