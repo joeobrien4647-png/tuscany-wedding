@@ -382,6 +382,10 @@
   function sameUser(u) { return !!(u && auth.currentUser && auth.currentUser.uid === u.uid); }
   var $ = function (id) { return document.getElementById(id); };
   var INTENT = { yes: "Yes, coming", maybe: "Not sure yet", no: "Can’t make it" };
+  // The storybook listens for this so it only celebrates a reply that really saved.
+  function announceSaved(record) {
+    if (typeof window !== "undefined" && window.dispatchEvent && typeof CustomEvent === "function") window.dispatchEvent(new CustomEvent('sj:reply-saved', { detail: { intent: record && record.intent } }));
+  }
 
   // ---- tabs ----
   function showTab(up) {
@@ -771,7 +775,7 @@
     session.setUser(u); formOwner = u.uid; fields.email = u.email || fields.email;
     return session.save(fields).then(function (result) {
       if (result.status !== "saved" || !sameUser(u)) return result;
-      remember(u.email, isGoogle(u)); render(result.record); $("registration-saved").hidden = false;
+      remember(u.email, isGoogle(u)); render(result.record); $("registration-saved").hidden = false; announceSaved(result.record);
       $("up-pw").value = "";
       return result;
     });
@@ -892,7 +896,7 @@
     session.save(upd).then(function (result) {
       if (!sameUser(u) || operation !== editOperation || result.status !== "saved") return;
       render(result.record);
-      $("registration-saved").textContent = "Your changes are saved."; $("registration-saved").hidden = false;
+      $("registration-saved").textContent = "Your changes are saved."; $("registration-saved").hidden = false; announceSaved(result.record);
       $("reply-action").disabled = false;
       if ($("form-edit").hidden) $("reply-action").focus();
     }).catch(function (e) { if (sameUser(u) && operation === editOperation) showErr("ed-err", { message: "We could not confirm your changes were saved. Your answers are still here. Try Save changes again." }); })

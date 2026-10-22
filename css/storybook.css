@@ -79,6 +79,18 @@ html.sb-open, html.sb-open body { overflow: hidden; }
 .storybook .sb-nav button:disabled { opacity: .25; cursor: default; }
 .storybook .sb-label { font: 700 12px 'Cormorant Garamond', serif; letter-spacing: .3em; text-transform: uppercase; color: #fff6df; text-shadow: 0 1px 8px rgba(0,0,0,.75); }
 
+.storybook .sb-notes { list-style: none; margin-top: 12px; font: italic 500 16px/1.45 'Cormorant Garamond', serif; }
+.storybook .sb-reply { position: absolute; left: 0; right: 0; bottom: 92px; z-index: 7; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .6s, visibility 0s linear .6s; }
+.storybook .sb-reply.show { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity .6s; }
+.storybook .sb-choose, .storybook .sb-saved { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.storybook .sb-choose[hidden], .storybook .sb-saved[hidden] { display: none; }
+.storybook .sb-reply button { min-width: 220px; min-height: 48px; padding: 12px 22px; border-radius: 999px; border: 1.5px solid rgba(227,182,96,.9); background: rgba(255,248,232,.95); color: #232041; font: 600 19px 'Cormorant Garamond', serif; cursor: pointer; box-shadow: 0 8px 22px rgba(0,0,0,.35); }
+.storybook .sb-reply .sb-yes { background: linear-gradient(180deg, #f3d48a, #d9a54c); }
+.storybook .sb-saved-line { font: italic 500 18px 'Cormorant Garamond', serif; color: #fff6df; text-shadow: 0 1px 8px rgba(0,0,0,.75); margin-bottom: 4px; }
+.storybook .sb-saved-answer { font-style: normal; font-weight: 700; }
+.storybook .sb-goreply { position: absolute; left: 50%; bottom: 13%; transform: translateX(-50%); z-index: 11; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; white-space: nowrap; color: #f6e2ae; font: italic 500 18px 'Cormorant Garamond', serif; text-decoration: underline; text-underline-offset: 4px; }
+.storybook .sb-goreply[hidden] { display: none; }
+
 .storybook .sb-fx { position: absolute; inset: 0; z-index: 8; pointer-events: none; overflow: hidden; }
 .storybook .sb-petal { position: absolute; width: 10px; height: 8px; border-radius: 60% 10% 60% 10%; }
 

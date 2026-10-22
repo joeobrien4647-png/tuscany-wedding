@@ -50,6 +50,7 @@
         { art: 'fiat', opts: { bag: true }, x: 20, w: 34, depth: 42, act: 'drive' }
       ] },
     { id: 'reply', label: 'Reply', kicker: 'Reply by 28 February', title: 'Are you coming?', ink: '#fff4dc', stars: 40, reply: true,
+      notes: ['We kindly ask £150 each for your room', 'Once you’re here, nothing else to pay', 'No presents, please'],
       sky: 'linear-gradient(180deg,#141838 0%,#2a2a58 55%,#4b3a66 100%)', sun: [84, 16, 22, '#fff4dc'], fore: ['#10161a', '#2a2a3a'],
       pieces: [
         { art: 'cypress', opts: { c: '#22311f' }, x: 4, w: 6, depth: 4 }, { art: 'cypress', opts: { c: '#22311f' }, x: 90, w: 6, depth: 4 },

@@ -57,7 +57,7 @@
     return {
       // Called from the cover tap, the moment browsers allow sound.
       start() {
-        if (started) return;
+        if (started) { if (stopped) { stopped = false; if (on) { wake(); playMusic(); } } return; }
         started = true;
         // Ambient audio respects the iPhone silent switch and mixes with anything already playing.
         try { if (win.navigator && win.navigator.audioSession) win.navigator.audioSession.type = 'ambient'; } catch (e) { /* older Safari */ }
