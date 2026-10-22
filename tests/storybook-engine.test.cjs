@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { nextIndex, copyProblems, WORDS } = require('../js/storybook.js');
+const { nextIndex, copyProblems, WORDS, tiltFrom, motionAllowed } = require('../js/storybook.js');
 const { SCENES } = require('../js/storybook-scenes.js');
 const { ART, WALLS, GROUNDS } = require('../js/storybook-art.js');
 
@@ -33,4 +33,22 @@ test('every line the book itself shows passes the copy rules', () => {
   assert.ok(lines.length >= 10);
   for (const line of lines) assert.deepEqual(copyProblems(line), [], line);
   for (const act of ['drive', 'fire', 'lights', 'petals', 'splash']) assert.ok(WORDS.acts[act], act);
+});
+
+test('tilt is flat without sensor data and clamped with it', () => {
+  assert.deepEqual(tiltFrom(null), { x: 0, y: 0 });
+  assert.deepEqual(tiltFrom({ gamma: null, beta: null }), { x: 0, y: 0 });
+  assert.deepEqual(tiltFrom({ gamma: 90, beta: 200 }), { x: 1, y: 1 });
+  assert.deepEqual(tiltFrom({ gamma: 0, beta: 45 }), { x: 0, y: 0 });
+});
+
+test('tilt follows the mouse as a position from -1 to 1', () => {
+  assert.deepEqual(tiltFrom({ x: -3, y: .5 }), { x: -1, y: .5 });
+});
+
+test('reduced motion turns the animation off', () => {
+  const win = { matchMedia: q => ({ matches: q.includes('reduce') }) };
+  assert.equal(motionAllowed(win), false);
+  assert.equal(motionAllowed({ matchMedia: () => ({ matches: false }) }), true);
+  assert.equal(motionAllowed({}), true);
 });

@@ -23,6 +23,19 @@
     const n = current + dir;
     return n < 0 || n >= count ? null : n;
   }
+  // Tilt target from the phone (gamma, beta in degrees) or the mouse (x, y from -1 to 1). No data means flat.
+  const clamp = v => Math.max(-1, Math.min(1, v)) || 0;
+  function tiltFrom(input) {
+    if (!input) return { x: 0, y: 0 };
+    if ('gamma' in input || 'beta' in input) {
+      if (input.gamma == null) return { x: 0, y: 0 };
+      return { x: clamp(input.gamma / 25), y: input.beta == null ? 0 : clamp((input.beta - 45) / 25) };
+    }
+    return { x: clamp(input.x == null ? 0 : input.x), y: clamp(input.y == null ? 0 : input.y) };
+  }
+  function motionAllowed(win) {
+    return !(win && typeof win.matchMedia === 'function' && win.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
 
   // Placeholder words the book shows outside the scenes. Joe writes the final lines.
   const WORDS = {
@@ -69,7 +82,7 @@
       foreL: q('.sb-fore.l'), foreR: q('.sb-fore.r'), caption: q('.sb-caption'), kicker: q('.sb-kicker'), title: q('.sb-title'), heading: q('#sb-heading'), live: q('.sb-live'),
       hint: q('.sb-hinttext'), nav: q('.sb-nav'), prev: q('.sb-prev'), next: q('.sb-next'), label: q('.sb-label'), fx: q('.sb-fx'), spill: q('.sb-spill'), cover: q('.sb-cover'), skip: q('.sb-skip'), dust: q('.sb-dust') };
     let index = 0, busy = false, opened = false;
-    const timers = [], behind = [];
+    const timers = [], behind = [], moving = () => motionAllowed(W);
     const later = (ms, fn) => { timers.push(W.setTimeout(fn, ms)); };
     const raf = fn => W.requestAnimationFrame(fn);
     const pops = () => Array.from(root.querySelectorAll('.sb-pop'));
@@ -122,8 +135,16 @@
     }
     function showCaption(on) { el.caption.classList.toggle('hide', !on); }
     function restart(node, cls) { node.classList.remove(cls); void node.getBoundingClientRect(); node.classList.add(cls); }
+    // The still version for reduced motion: everything already standing, nothing pops or folds.
+    function settle() {
+      el.wall.classList.add('up');
+      pops().forEach(p => { p.classList.add('up'); p.parentNode.classList.add('on'); });
+      el.foreL.classList.remove('hide'); el.foreR.classList.remove('hide');
+      showCaption(true);
+    }
 
     function turn(n) {
+      if (!moving()) { index = n; renderScene(index); settle(); announce(); return; }
       busy = true;
       el.hint.classList.remove('show');
       showCaption(false);
@@ -147,22 +168,26 @@
     }
     function open() {
       if (opened) return;
-      opened = true; busy = true;
+      opened = true;
       el.card.inert = false;
-      const r = el.book.getBoundingClientRect();
-      burst(r.left + r.width / 2, r.top + r.height / 2, 90);
-      el.cover.classList.add('open');
-      el.spill.classList.add('go');
       sfx.start(); sfx.chime();
-      later(650, () => el.wall.classList.add('up'));
-      later(1250, popUp);
-      later(1500, () => showCaption(true));
-      later(2200, () => {
+      const ready = () => {
         el.cover.classList.add('gone'); el.nav.classList.add('show'); el.hint.classList.add('show');
         busy = false;
         el.heading.focus({ preventScroll: true });
         announce();
-      });
+      };
+      if (!moving()) { el.cover.classList.add('open'); settle(); ready(); return; }
+      busy = true;
+      askForTilt();
+      const r = el.book.getBoundingClientRect();
+      burst(r.left + r.width / 2, r.top + r.height / 2, 90);
+      el.cover.classList.add('open');
+      el.spill.classList.add('go');
+      later(650, () => el.wall.classList.add('up'));
+      later(1250, popUp);
+      later(1500, () => showCaption(true));
+      later(2200, ready);
     }
 
     /* tap delights */
@@ -185,7 +210,7 @@
       if (a === 'drive') { const c = t.querySelector('.car'); if (c) restart(c, 'driving'); }
       if (a === 'fire') t.classList.toggle('lit');
       if (a === 'lights') restart(t, 'chase');
-      if (a === 'petals') petals(46, ['#fffaf2', '#f7cdc6', '#e8949b', '#f3dcae']);
+      if (a === 'petals' && moving()) petals(46,['#fffaf2', '#f7cdc6', '#e8949b', '#f3dcae']);
       if (a === 'splash') restart(t, 'splash');
     }
 
@@ -196,10 +221,26 @@
     for (let i = 0; i < 46; i++) motes.push({ x: Math.random() * W.innerWidth, y: Math.random() * W.innerHeight, r: .6 + Math.random() * 1.6, v: .12 + Math.random() * .3, p: Math.random() * 6.28 });
     function burst(x, y, n, c = '#ffe7a8', sp0 = 5) { for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, sp = 1 + Math.random() * sp0; sparks.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 1.2, life: 1, r: 1 + Math.random() * 2.2, c }); } }
     function fireworks() {
-      const r = el.book.getBoundingClientRect(), cols = ['#ffd77e', '#ff9fb0', '#9fe3ff', '#fff4dc', '#c6f29a'];
+      if (!moving()) return;
+      const r =el.book.getBoundingClientRect(), cols = ['#ffd77e', '#ff9fb0', '#9fe3ff', '#fff4dc', '#c6f29a'];
       for (let i = 0; i < 9; i++) later(300 + i * 420, () => { burst(r.left + r.width * (.15 + Math.random() * .7), r.top + r.height * (.08 + Math.random() * .25), 70, cols[i % cols.length], 3.2); sfx.boom(); });
     }
+    /* tilt with the phone or the mouse; the layers show their depth */
+    let tgt = { x: 0, y: 0 }, cur = { x: 0, y: 0 };
+    const onPointerMove = e => { if (e.pointerType === 'mouse') tgt = tiltFrom({ x: (e.clientX / W.innerWidth - .5) * 2, y: (e.clientY / W.innerHeight - .5) * 2 }); };
+    const onOrientation = e => { tgt = tiltFrom({ gamma: e.gamma, beta: e.beta }); };
+    function askForTilt() {
+      const D = W.DeviceOrientationEvent;
+      if (!D || typeof D.requestPermission !== 'function') return;
+      try { D.requestPermission().catch(() => {}); } catch (e) { /* refused or not in a tap: the book stays flat */ }
+    }
+    function tilt() {
+      cur.x += (tgt.x - cur.x) * .06; cur.y += (tgt.y - cur.y) * .06;
+      el.world.style.transform = `rotateY(${cur.x * 7}deg) rotateX(${-cur.y * 4}deg)`;
+      el.foreL.style.translate = el.foreR.style.translate = `${-cur.x * 16}px ${-cur.y * 6}px`;
+    }
     function tick() {
+      tilt();
       const w = W.innerWidth, h = W.innerHeight;
       cx.clearRect(0, 0, w, h);
       for (const m of motes) {
@@ -250,7 +291,10 @@
       doc.documentElement.classList.add('sb-open');
       el.card.inert = !opened;
       doc.addEventListener('keydown', onKey);
+      if (!moving()) return;
       W.addEventListener('resize', size);
+      W.addEventListener('pointermove', onPointerMove);
+      W.addEventListener('deviceorientation', onOrientation);
       size();
       dustFrame = raf(tick);
     }
@@ -259,6 +303,8 @@
       W.cancelAnimationFrame(dustFrame);
       doc.removeEventListener('keydown', onKey);
       W.removeEventListener('resize', size);
+      W.removeEventListener('pointermove', onPointerMove);
+      W.removeEventListener('deviceorientation', onOrientation);
       for (const [n, hidden, inert] of behind.splice(0)) {
         if (hidden === null) n.removeAttribute('aria-hidden'); else n.setAttribute('aria-hidden', hidden);
         n.inert = inert;
@@ -285,7 +331,7 @@
     return createBook(doc, { scenes, art: A.ART, walls: A.WALLS, grounds: A.GROUNDS, stars: A.STARS, sound, win });
   }
 
-  const api = { shouldShowBook, copyProblems, nextIndex, createBook, WORDS };
+  const api = { shouldShowBook, copyProblems, nextIndex, tiltFrom, motionAllowed, createBook, WORDS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else { root.Storybook = api; api.book = boot(root); }
 })(typeof window !== 'undefined' ? window : globalThis);
