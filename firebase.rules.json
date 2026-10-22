@@ -26,6 +26,37 @@
       "$uid": {
         ".read": "auth != null && (auth.uid === $uid || root.child('admins').child(auth.uid).exists())"
       }
+    },
+    "welcome": {
+      ".write": "auth != null && root.child('admins').child(auth.uid).exists()",
+      "$token": {
+        ".read": true,
+        ".validate": "newData.hasChildren(['display', 'lines'])",
+        "people": {
+          "$i": {
+            ".validate": "newData.isString() && newData.val().length <= 80"
+          }
+        }
+      }
+    },
+    "welcomeSeen": {
+      "$token": {
+        "last": {
+          ".write": "newData.hasChildren(['at', 'key']) && newData.child('at').val() == now && (!data.exists() || now - data.child('at').val() >= 60000) && root.child('welcome').child($token).exists()",
+          "at": {
+            ".validate": "newData.isNumber()"
+          },
+          "key": {
+            ".validate": "newData.isString() && newData.val().length == 20"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "$seen": {
+          ".write": "!data.exists() && newData.val() == now && $seen.length == 20 && newData.parent().child('last').child('key').val() == $seen && root.child('welcome').child($token).exists()"
+        }
+      }
     }
   }
 }

@@ -6,3 +6,6 @@ pokemon-cards-plan.md
 _ul
 .cursor/
 *.code-workspace
+
+# local stand-in for welcome/<token> when testing personal links with ?wtest=1 (fictional names only)
+.local-test/

@@ -61,6 +61,11 @@
     if (card) { if (card.scrollIntoView) card.scrollIntoView({ block: 'start' }); card.focus(); }
     return true;
   }
+  // "For Alex and Sam" on the cover of a personal link; nothing at all without one.
+  function coverLine(invite) {
+    const display = invite && typeof invite.display === 'string' ? invite.display.replace(/\s+/g, ' ').trim() : '';
+    return display ? ('For ' + display).slice(0, 60).trim() : '';
+  }
   // What the page's reply card already shows: saved when #done is visible, the answer from its "Coming?" line.
   function replyState(doc) {
     const done = doc.getElementById('done');
@@ -429,6 +434,17 @@
       if (card) card.focus();
     }
 
+    // A personal link names the guests on the cover once the invitation answers, within 15 s, or never.
+    const invite = W.sjInvite;
+    if (invite && typeof invite.then === 'function') {
+      const late = new Promise(resolve => W.setTimeout(() => resolve(null), 15000));
+      Promise.race([invite, late]).then(found => {
+        const line = coverLine(found);
+        if (!line) return;
+        q('.sb-cover-for').textContent = line;
+        el.cover.setAttribute('aria-label', WORDS.openLabel + ', ' + line);
+      }, () => {});
+    }
     renderScene(0);
     syncCover();
     show();
@@ -446,7 +462,7 @@
     return createBook(doc, { scenes, art: A.ART, walls: A.WALLS, grounds: A.GROUNDS, stars: A.STARS, sound, win });
   }
 
-  const api = { shouldShowBook, copyProblems, nextIndex, tiltFrom, motionAllowed, chooseReply, replyState, createBook, WORDS };
+  const api = { shouldShowBook, copyProblems, nextIndex, tiltFrom, motionAllowed, chooseReply, replyState, coverLine, createBook, WORDS };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else { root.Storybook = api; api.book = boot(root); }
 })(typeof window !== 'undefined' ? window : globalThis);
