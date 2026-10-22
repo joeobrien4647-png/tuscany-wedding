@@ -745,7 +745,6 @@ main a:focus-visible, main button:focus-visible { outline: 2px solid var(--color
 }
 
 .vx-roomcol h3 { margin: 0 0 1rem; font-size: 1.8rem; line-height: 1.1; }
-.vx-roomcol h3 em { font-style: italic; color: var(--terra-ink); }
 .vx-counts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0 0 1.2rem; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
 .vx-counts > div { padding: 0.8rem 0.3rem; }
 .vx-counts > div + div { border-left: 1px solid var(--hair-soft); }
