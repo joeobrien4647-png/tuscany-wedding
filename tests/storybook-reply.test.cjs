@@ -39,14 +39,21 @@ test('choosing in the book uses the book\'s own close when it has one', () => {
 
 test('a saved reply is read back for returning guests', () => {
   const { doc, el } = stubDoc();
+  el('loading').hidden = true;
   el('done').hidden = false; el('d-intent').textContent = 'Not sure yet';
-  assert.deepEqual(replyState(doc), { saved: true, intent: 'maybe' });
+  assert.deepEqual(replyState(doc), { saved: true, intent: 'maybe', pending: false });
   el('d-intent').textContent = 'Can’t make it';
-  assert.deepEqual(replyState(doc), { saved: true, intent: 'no' });
+  assert.deepEqual(replyState(doc), { saved: true, intent: 'no', pending: false });
   el('d-intent').textContent = 'Yes, coming';
-  assert.deepEqual(replyState(doc), { saved: true, intent: 'yes' });
+  assert.deepEqual(replyState(doc), { saved: true, intent: 'yes', pending: false });
   el('done').hidden = true;
-  assert.deepEqual(replyState(doc), { saved: false, intent: null });
+  assert.deepEqual(replyState(doc), { saved: false, intent: null, pending: false });
+});
+
+test('a returning guest never sees the three answers while the page is still checking their reply', () => {
+  const { doc, el } = stubDoc();
+  el('loading').hidden = false; el('done').hidden = true;
+  assert.deepEqual(replyState(doc), { saved: false, intent: null, pending: true });
 });
 
 test('the inline reply script announces a saved reply', () => {

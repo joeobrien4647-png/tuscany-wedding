@@ -97,6 +97,8 @@ html.sb-open, html.sb-open body { overflow: hidden; }
 .storybook .sb-choose[hidden], .storybook .sb-saved[hidden] { display: none; }
 .storybook .sb-reply button { min-width: 220px; min-height: 48px; padding: 12px 22px; border-radius: 999px; border: 1.5px solid rgba(227,182,96,.9); background: rgba(255,248,232,.95); color: #232041; font: 600 19px 'Cormorant Garamond', serif; cursor: pointer; box-shadow: 0 8px 22px rgba(0,0,0,.35); }
 .storybook .sb-reply .sb-yes { background: linear-gradient(180deg, #f3d48a, #d9a54c); }
+.storybook .sb-wait { text-align: center; font: italic 500 18px 'Cormorant Garamond', serif; color: #fff6df; text-shadow: 0 1px 8px rgba(0,0,0,.75); }
+.storybook .sb-wait[hidden] { display: none; }
 .storybook .sb-saved-line { font: italic 500 18px 'Cormorant Garamond', serif; color: #fff6df; text-shadow: 0 1px 8px rgba(0,0,0,.75); margin-bottom: 4px; }
 .storybook .sb-saved-answer { font-style: normal; font-weight: 700; }
 .storybook .sb-goreply { position: absolute; left: 50%; bottom: 13%; transform: translateX(-50%); z-index: 11; display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; white-space: nowrap; color: #f6e2ae; font: italic 500 18px 'Cormorant Garamond', serif; text-decoration: underline; text-underline-offset: 4px; }

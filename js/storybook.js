@@ -42,7 +42,7 @@
     names: 'Sophie & Joe', year: 'Tuscany 2027', seal: 'S J', tapToOpen: 'Tap to open', openLabel: 'Open the invitation',
     hint: 'Tap things in the scene', skip: 'Skip the book', prev: 'Previous page', next: 'Next page', announce: 'Page {n} of {total}',
     acts: { drive: 'Drive the car', fire: 'Light the oven', lights: 'Twinkle the lights', petals: 'Throw the petals', splash: 'Splash the pool' },
-    reply: { yes: 'Yes!', maybe: 'Not sure yet', no: 'Can’t make it', see: 'See my reply', change: 'Change my reply', goReply: 'Go to my reply', yours: 'Your reply', cheer: 'See you in Tuscany' },
+    reply: { wait: 'One moment', yes: 'Yes!', maybe: 'Not sure yet', no: 'Can’t make it', see: 'See my reply', change: 'Change my reply', goReply: 'Go to my reply', yours: 'Your reply', cheer: 'See you in Tuscany' },
     answers: { yes: 'Yes, coming', maybe: 'Not sure yet', no: 'Can’t make it', none: 'Reply needed' },
     menu: { open: 'Menu', reply: 'Reply', pocket: 'Pocket' }
   };
@@ -68,12 +68,13 @@
     return display ? ('For ' + display).slice(0, 60).trim() : '';
   }
   // What the page's reply card already shows: saved when #done is visible, the answer from its "Coming?" line.
+  // pending while the page still shows "One moment" and has not said whether there is a saved reply.
   function replyState(doc) {
-    const done = doc.getElementById('done');
-    if (!done || done.hidden) return { saved: false, intent: null };
+    const done = doc.getElementById('done'), loading = doc.getElementById('loading');
+    if (!done || done.hidden) return { saved: false, intent: null, pending: !!loading && !loading.hidden };
     const line = (doc.getElementById('d-intent') || {}).textContent || '';
     const intent = /^yes/i.test(line) ? 'yes' : /not sure/i.test(line) ? 'maybe' : /^can/i.test(line) ? 'no' : null;
-    return { saved: true, intent };
+    return { saved: true, intent, pending: false };
   }
   const NO_SOUND = { start() {}, stop() {}, toggle() { return false; }, isOn() { return false; }, pop() {}, whoosh() {}, chime() {}, boom() {} };
   const FLOOR_LEFT = -30, FLOOR_W = 160;
@@ -89,6 +90,7 @@
   <div class="sb-caption hide"><div class="sb-kicker" aria-hidden="true"></div><div class="sb-title" aria-hidden="true"></div><ul class="sb-notes"></ul></div>
   <div class="sb-hinttext" aria-hidden="true">${esc(WORDS.hint)}</div>
   <div class="sb-reply">
+    <p class="sb-wait" hidden>${esc(WORDS.reply.wait)}</p>
     <div class="sb-choose"><button type="button" class="sb-yes" data-reply="yes">${esc(WORDS.reply.yes)}</button><button type="button" data-reply="maybe">${esc(WORDS.reply.maybe)}</button><button type="button" data-reply="no">${esc(WORDS.reply.no)}</button></div>
     <div class="sb-saved" hidden><p class="sb-saved-line">${esc(WORDS.reply.yours)} <strong class="sb-saved-answer"></strong></p><button type="button" class="sb-yes" data-reply="see">${esc(WORDS.reply.see)}</button><button type="button" data-reply="change">${esc(WORDS.reply.change)}</button></div>
   </div>
@@ -120,7 +122,7 @@
     const el = { book: q('.sb-book'), card: q('.sb-card'), world: q('.sb-world'), wall: q('.sb-wall'), wallFront: q('.sb-front'), floor: q('.sb-floor'), ground: q('.sb-ground'),
       foreL: q('.sb-fore.l'), foreR: q('.sb-fore.r'), caption: q('.sb-caption'), kicker: q('.sb-kicker'), title: q('.sb-title'), heading: q('#sb-heading'), live: q('.sb-live'),
       hint: q('.sb-hinttext'), nav: q('.sb-nav'), prev: q('.sb-prev'), next: q('.sb-next'), label: q('.sb-label'), fx: q('.sb-fx'), spill: q('.sb-spill'), cover: q('.sb-cover'), skip: q('.sb-skip'), dust: q('.sb-dust'),
-      notes: q('.sb-notes'), reply: q('.sb-reply'), choose: q('.sb-choose'), saved: q('.sb-saved'), savedAnswer: q('.sb-saved-answer'), goReply: q('.sb-goreply'),
+      notes: q('.sb-notes'), reply: q('.sb-reply'), wait: q('.sb-wait'), choose: q('.sb-choose'), saved: q('.sb-saved'), savedAnswer: q('.sb-saved-answer'), goReply: q('.sb-goreply'),
       pocket: q('.sb-pocket'), cards: q('.sb-pocket-cards'), menu: q('.sb-menu'), menuBtn: q('.sb-menu-btn'), menuList: q('.sb-menu-list') };
     // The sound button ships inside #storybook in index.html; it moves into the book and remembers the choice.
     const snd = root.querySelector('.sb-snd');
@@ -130,7 +132,7 @@
       mark(sfx.isOn());
       snd.addEventListener('click', e => { e.stopPropagation(); mark(sfx.toggle()); });
     }
-    let index = 0, busy = false, opened = false, fromBook = false;
+    let index = 0, busy = false, opened = false, fromBook = null;
     const timers = [], behind = [], moving = () => motionAllowed(W);
     const later = (ms, fn) => { timers.push(W.setTimeout(fn, ms)); };
     const clearTimers = () => timers.splice(0).forEach(t => W.clearTimeout(t));
@@ -184,7 +186,8 @@
       const s = scenes[index];
       if (!s.reply) return;
       const state = replyState(doc);
-      el.choose.hidden = state.saved;
+      el.wait.hidden = !state.pending;
+      el.choose.hidden = state.saved || state.pending;
       el.saved.hidden = !state.saved;
       el.savedAnswer.textContent = state.saved ? WORDS.answers[state.intent || 'none'] : '';
       const title = state.saved && state.intent === 'yes' ? WORDS.reply.cheer : s.title;
@@ -366,7 +369,7 @@
       else if (e.key === 'ArrowLeft') { e.preventDefault(); go(-1); }
       else if (e.key === 'Enter' || e.key === ' ') {
         const tapped = t && t.closest && t.closest('.sb-card [data-act]');
-        if (!opened && t !== el.skip && !(t && t.closest && t.closest('button'))) { e.preventDefault(); open(); }
+        if (!opened && !(t && t.closest && t.closest('a[href], button'))) { e.preventDefault(); open(); }
         else if (opened && tapped) { e.preventDefault(); act(tapped); }
       }
     }
@@ -413,8 +416,8 @@
       const b = e.target.closest('button[data-reply]');
       if (!b || busy) return;
       const what = b.dataset.reply;
-      fromBook = true;
       if (what === 'see') { close(); return; }
+      fromBook = { before: replyState(doc).intent };
       if (what === 'change') { close(); const edit = doc.getElementById('reply-action'); if (edit) edit.click(); return; }
       const choose = () => chooseReply(doc, what, close);
       if (!moving()) { choose(); return; }
@@ -425,15 +428,16 @@
     });
     // Fireworks only once the real reply has saved, and only for guests who answered from the book.
     W.addEventListener('sj:reply-saved', e => {
-      if (!fromBook || !e.detail || e.detail.intent !== 'yes') return;
-      fromBook = false;
-      celebrate();
+      const armed = fromBook;
+      fromBook = null;
+      if (armed && e.detail && e.detail.intent === 'yes' && armed.before !== 'yes') celebrate();
     });
     // Auth settles after the book appears, so follow the page's reply card as it changes.
     if (W.MutationObserver) {
       const watch = new W.MutationObserver(() => { syncReply(); syncCover(); });
-      const done = doc.getElementById('done'), line = doc.getElementById('d-intent');
+      const done = doc.getElementById('done'), line = doc.getElementById('d-intent'), loading = doc.getElementById('loading');
       if (done) watch.observe(done, { attributes: true, attributeFilter: ['hidden'] });
+      if (loading) watch.observe(loading, { attributes: true, attributeFilter: ['hidden'] });
       if (line) watch.observe(line, { childList: true, characterData: true, subtree: true });
     }
 
