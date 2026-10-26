@@ -29,11 +29,11 @@ test('a bad or unknown personal link logs nothing', () => {
   assert.doesNotMatch(read('js/invite.js'), /console\./);
 });
 
-test('the invitation is read before the film and the book start', () => {
+test('the invitation is read before the optional experience gates', () => {
   const html = read('index.html');
-  const at = src => html.indexOf('<script src="' + src + '"');
-  assert.ok(at('js/invite.js') > 0);
-  assert.ok(at('js/invite.js') < at('js/intro.js'));
-  assert.ok(at('js/invite.js') < at('js/storybook.js'));
+  const invite = html.indexOf('<script src="js/invite.js"');
+  assert.ok(invite > 0);
+  assert.ok(invite < html.indexOf('<script id="optional-head"'));
+  assert.ok(invite < html.indexOf('<script id="optional-body"'));
   assert.doesNotMatch(html.match(/<script src="js\/invite\.js"[^>]*>/)[0], /defer|async/);
 });

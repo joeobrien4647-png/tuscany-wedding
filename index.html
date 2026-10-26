@@ -118,17 +118,40 @@
 <link rel="stylesheet" href="css/postcards.css">
 <link rel="stylesheet" href="css/postcard-home.css">
 <script src="js/guest-navigation.js" defer></script>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Pinyon+Script&display=swap" rel="stylesheet">
 <script src="js/invite.js"></script>
-<link rel="stylesheet" href="css/storybook.css">
-<script src="js/storybook-scenes.js" defer></script>
-<script src="js/storybook-art.js" defer></script>
-<script src="js/storybook-sound.js" defer></script>
-<script src="js/storybook.js" data-enabled="false" defer></script>
+<script id="optional-head" data-book-enabled="false" data-intro-enabled="false">
+(function () {
+  var settings = document.currentScript, args = new URLSearchParams(location.search);
+  var bookOn = settings.getAttribute("data-book-enabled") === "true";
+  var introOn = settings.getAttribute("data-intro-enabled") === "true";
+  var book = args.get("book") === "1" || (bookOn && args.get("book") !== "0");
+  var intro = args.get("intro") === "1" || introOn;
+  window.sjOptionalIntro = { requested: intro, enabled: introOn };
+  if (!intro && args.has("to")) {
+    args.delete("to");
+    var rest = args.toString();
+    try { history.replaceState(history.state, "", location.pathname + (rest ? "?" + rest : "") + location.hash); } catch (e) {}
+  }
+  if (!book) return;
+  document.write('<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Pinyon+Script&display=swap" rel="stylesheet">');
+  document.write('<link rel="stylesheet" href="css/storybook.css">');
+  document.write('<script src="js/storybook-scenes.js" defer><' + '/script>');
+  document.write('<script src="js/storybook-art.js" defer><' + '/script>');
+  document.write('<script src="js/storybook-sound.js" defer><' + '/script>');
+  document.write(bookOn ? '<script src="js/storybook.js" data-enabled="true" defer><' + '/script>' : '<script src="js/storybook.js" data-enabled="false" defer><' + '/script>');
+})();
+</script>
 <noscript><style>#loading { display: none; }</style></noscript>
 </head>
 <body class="postcard-home">
-<script src="js/intro.js" data-enabled="false"></script>
+<script id="optional-body">
+(function () {
+  var intro = window.sjOptionalIntro || {};
+  delete window.sjOptionalIntro;
+  if (!intro.requested) return;
+  document.write(intro.enabled ? '<script src="js/intro.js" data-enabled="true"><' + '/script>' : '<script src="js/intro.js" data-enabled="false"><' + '/script>');
+})();
+</script>
 <div id="storybook" class="storybook" hidden aria-label="Sophie and Joe's storybook"><button type="button" class="sb-snd" aria-label="Music and sounds" aria-pressed="true">&#9835;</button></div>
 
 <a class="guest-skip" href="#card">Skip to RSVP</a>

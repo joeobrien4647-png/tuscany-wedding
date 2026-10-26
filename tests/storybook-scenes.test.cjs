@@ -14,7 +14,7 @@ test('switch: off by default, ?book=1 forces on, ?book=0 forces off', () => {
 });
 
 test('index.html ships the book switched off and hidden', () => {
-  assert.match(html, /<script src="js\/storybook\.js" data-enabled="false" defer><\/script>/);
+  assert.match(html, /<script id="optional-head" data-book-enabled="false" data-intro-enabled="false">/);
   assert.match(html, /<div id="storybook" class="storybook" hidden/);
 });
 
