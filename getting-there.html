@@ -36,7 +36,7 @@
             <div class="gt-hero-frame" style="background-image: url('video/drive-hero-poster.jpg');">
                 <video class="gt-hero-video" id="gt-hero-video" muted loop autoplay playsinline preload="metadata"
                        poster="video/drive-hero-poster.jpg" aria-hidden="true" tabindex="-1" disablepictureinpicture disableremoteplayback
-                       data-src="video/drive-hero-720.mp4" data-src-small="video/drive-hero-540.mp4"></video>
+                       data-src="video/drive-hero-720.mp4"></video>
             </div>
         </header>
 
@@ -172,12 +172,16 @@
     <script src="js/getting-there.js"></script>
     <script>/* the heading's loop (a real Tuscan road at sunset, video/drive-hero-*): the poster is the frame's background, so
     the page paints with it; the film is asked for only once the page has loaded, after the planner's data, and only while
-    the hero is near the top of the screen; a phone gets the 540p file; with reduced motion, Save-Data or no H.264 the
+    the hero is near the top of the screen; on phones, with reduced motion, Save-Data or no H.264 the
     film is dropped and the poster stays; a film that fails to load is dropped the same way */
     (function () {
       var v = document.getElementById("gt-hero-video");
       if (!v) return;
-      var still = (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
+      function smallTouchScreen() {
+        return window.innerWidth <= 640 || (window.innerWidth <= 1024 && window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+      }
+      var still = smallTouchScreen()
+        || (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
         || !!(navigator.connection && navigator.connection.saveData)
         || !(v.canPlayType && v.canPlayType("video/mp4"));
       function drop() { if (v.parentNode) v.parentNode.removeChild(v); }
@@ -185,7 +189,8 @@
       function play() { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
       function start() {
         if (!v.parentNode || v.getAttribute("src")) return;
-        v.src = v.getAttribute(window.innerWidth <= 640 ? "data-src-small" : "data-src");
+        if (smallTouchScreen()) return drop();
+        v.src = v.getAttribute("data-src");
         play();
       }
       v.addEventListener("error", drop);
@@ -194,7 +199,7 @@
         new IntersectionObserver(function (entries) {
           entries.forEach(function (e) {
             if (!v.parentNode) return;
-            if (e.isIntersecting) { start(); if (v.paused) play(); }
+            if (e.isIntersecting) { start(); if (v.parentNode && v.paused) play(); }
             else if (!v.paused) v.pause();
           });
         }, { rootMargin: "200px 0px" }).observe(v);
