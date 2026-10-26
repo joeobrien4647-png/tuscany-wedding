@@ -52,6 +52,8 @@
 .postcard-home .p-link { font-size: 15px; }
 .postcard-home :is(.p-google, .p-sent) { min-height: 48px; border-radius: 3px; font-size: 16px; letter-spacing: 0; }
 .postcard-home .p-msg { font-size: 15px; }
+.postcard-home .p-msg:not(.p-err) { background: var(--post-art-blue); border-left-color: var(--post-lake); }
+.postcard-home #registration-saved { font-weight: 700; }
 .postcard-home .reply-summary { padding-block: 12px; border-bottom: 1px solid #c2c8b6; }
 .postcard-home .reply-summary dl { margin: 0; font-size: 16px; }
 .postcard-home .reply-summary .p-with { margin-top: 14px; }
