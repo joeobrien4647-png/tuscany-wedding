@@ -6,9 +6,9 @@
 .practical-heading-photo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 350px); gap: 2rem; align-items: center; }
 .practical-heading-photo img { display: block; width: 100%; height: 170px; object-fit: cover; }
 .practical-page .guest-section { margin-block: 2rem; }
-.practical-page h2 { font-size: clamp(1.65rem, 3vw, 2.2rem); }
-.practical-page h3 { font-size: 1.35rem; }
-.stay-summary { border-block: 1px solid #bec8b8; padding-block: 1.25rem; }
+.practical-page h2 { color: var(--post-ink); font-size: clamp(1.65rem, 3vw, 2.2rem); }
+.practical-page h3 { color: var(--post-ink); font-size: 1.35rem; }
+.stay-summary { border-block: 2px solid var(--post-art-gold); background: var(--post-art-blue); padding: 1.25rem 1rem; }
 .stay-summary p:last-child { margin-bottom: 0; }
 .airport-list { margin: 1rem 0 0; }
 .airport-list > div { display: grid; grid-template-columns: 10rem minmax(0, 1fr); align-items: center; gap: 1rem; border-top: 1px solid #bec8b8; padding-block: .4rem; }
@@ -24,7 +24,7 @@
 .access-note { margin-top: 1.25rem; }
 .weekend-days { list-style: none; margin: 1rem 0; padding: 0; }
 .weekend-days li { display: grid; grid-template-columns: 12rem minmax(0, 1fr); gap: 1.5rem; border-top: 1px solid #bec8b8; padding-block: 1.25rem; }
-.weekend-days time { font-weight: 700; }
+.weekend-days time { color: var(--post-ink); font-weight: 700; }
 .practical-page .weekend-days h2 { font-size: 1.65rem; margin-bottom: .25rem; }
 .weekend-days p { margin-bottom: 0; }
 .wedding-setting { border-top: 1px solid #bec8b8; padding-top: 1.5rem; }
@@ -44,6 +44,8 @@
 }
 @media print {
   .practical-page .practical-heading { padding: 0; }
+  .stay-summary { background: transparent; border-color: #777; padding-inline: 0; }
+  .practical-page h2, .practical-page h3, .weekend-days time { color: #000; }
   .practical-heading-photo { display: block; }
   .practical-heading-photo img { display: none; }
   .wedding-setting { display: none; }
