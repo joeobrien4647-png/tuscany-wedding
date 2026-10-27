@@ -211,14 +211,15 @@
       </ol>
       <div id="up-reply">
       <h2 class="p-step-heading" id="up-reply-heading" tabindex="-1">Your reply</h2>
-      <fieldset class="p-fs">
+      <fieldset class="p-fs" aria-describedby="up-intent-error">
         <legend>Are you coming?</legend>
         <div class="p-intent">
-          <label style="margin:0"><input type="radio" name="intent" value="yes"><span>Yes!</span></label>
-          <label style="margin:0"><input type="radio" name="intent" value="maybe"><span>Not sure yet</span></label>
-          <label style="margin:0"><input type="radio" name="intent" value="no"><span>Can&rsquo;t make it</span></label>
+          <label style="margin:0"><input type="radio" name="intent" aria-describedby="up-intent-error" value="yes"><span>Yes!</span></label>
+          <label style="margin:0"><input type="radio" name="intent" aria-describedby="up-intent-error" value="maybe"><span>Not sure yet</span></label>
+          <label style="margin:0"><input type="radio" name="intent" aria-describedby="up-intent-error" value="no"><span>Can&rsquo;t make it</span></label>
         </div>
         <p class="p-hint p-by">Please let us know by 28 February 2027</p>
+        <p class="p-msg p-err" id="up-intent-error" hidden></p>
       </fieldset>
       <p class="p-hint" id="up-choice-hint" aria-live="polite">Choose the reply that fits. You can update it later.</p>
       <button class="p-primary" id="up-continue" type="submit">Continue</button>
@@ -232,11 +233,11 @@
       </button>
       <div class="p-or">or use email</div>
       <label for="up-name">Your name</label>
-      <input id="up-name" type="text" autocomplete="name" required placeholder="First and last name">
+      <input id="up-name" type="text" autocomplete="name" required placeholder="First and last name" aria-describedby="up-name-error"><p class="p-msg p-err" id="up-name-error" hidden></p>
       <label for="up-email">Email</label>
-      <input id="up-email" type="email" autocomplete="email" required>
+      <input id="up-email" type="email" autocomplete="email" required aria-describedby="up-email-error"><p class="p-msg p-err" id="up-email-error" hidden></p>
       <div id="password-row"><label for="up-pw">Choose a password</label>
-      <input id="up-pw" type="password" autocomplete="new-password" required minlength="6" aria-describedby="password-hint"><p class="p-hint" id="password-hint">At least 6 characters. You can sign in to update your reply later.</p></div>
+      <input id="up-pw" type="password" autocomplete="new-password" required minlength="6" aria-describedby="password-hint up-pw-error"><p class="p-msg p-err" id="up-pw-error" hidden></p><p class="p-hint" id="password-hint">At least 6 characters. You can sign in to update your reply later.</p></div>
       <details id="up-optional"><summary>Optional details: food, access and contact</summary>
       <label for="up-phone">Mobile</label>
       <input id="up-phone" type="tel" autocomplete="tel" placeholder="Optional contact number">
@@ -443,17 +444,24 @@
       var item = $("up-progress-" + name);
       if (step === index + 1) item.setAttribute("aria-current", "step"); else item.removeAttribute("aria-current");
     });
-    hideErr("up-err");
+    hideErr("up-err"); hideErr("up-intent-error");
+    document.querySelectorAll('input[name="intent"]').forEach(function (radio) { radio.removeAttribute("aria-invalid"); });
+    ["up-name", "up-email", "up-pw"].forEach(clearSignupError);
     if (focus) $(step === 1 ? "up-reply-heading" : "up-details-heading").focus();
   }
   function replyChosen() {
     if (picked("intent")) return true;
     setSignupStep(1, false);
-    showErr("up-err", { message: "Let us know if you’re coming. ‘Not sure yet’ is fine." });
+    showErr("up-intent-error", { message: "Let us know if you’re coming. ‘Not sure yet’ is fine." });
+    document.querySelectorAll('input[name="intent"]').forEach(function (radio) { radio.setAttribute("aria-invalid", "true"); });
     document.querySelector('input[name="intent"]').focus();
     return false;
   }
-  function signupError(id, error) { showErr("up-err", error); $(id).focus(); }
+  function clearSignupError(id) { hideErr(id + "-error"); $(id).removeAttribute("aria-invalid"); }
+  function signupError(id, error) { showErr(id + "-error", error); $(id).setAttribute("aria-invalid", "true"); $(id).focus(); }
+  ["up-name", "up-email", "up-pw"].forEach(function (id) {
+    $(id).addEventListener("input", function () { clearSignupError(id); });
+  });
   function syncChoiceHint() {
     var hints = { yes: "We can’t wait to see you. Add your details next to save your reply.",
       maybe: "That’s fine. Save your reply now and let us know by 28 February 2027.",
@@ -489,7 +497,6 @@
   var ARRIVE = [["2027-05-27", "Thu 27 May"], ["2027-05-28", "Fri 28 May"], ["2027-05-29", "Sat 29 May"]];
   var LEAVE = [["2027-05-30", "Sun 30 May"], ["2027-05-31", "Mon 31 May"], ["2027-06-01", "Tue 1 June"]];
   var WHEN = [["morning", "Morning"], ["afternoon", "Afternoon"], ["evening", "Evening"]];
-  var LEAVE_DEFAULT = "2027-05-31";
 
   function opts(list) {
     return '<option value="">Not sure yet</option>' + list.map(function (o) { return '<option value="' + o[0] + '">' + o[1] + "</option>"; }).join("");
@@ -506,7 +513,6 @@
       + '<div class="p-pair">' + field(p, "aday", "Arriving", sel(p, "aday", ARRIVE)) + field(p, "atime", "Roughly when", sel(p, "atime", WHEN)) + "</div>"
       + '<div class="p-pair">' + field(p, "dday", "Leaving", sel(p, "dday", LEAVE)) + field(p, "dtime", "Roughly when", sel(p, "dtime", WHEN)) + "</div>"
       + '<div class="p-pair">' + field(p, "fin", "Flight out", txt(p, "fin", 12, "e.g. FR1234")) + field(p, "fout", "Flight home", txt(p, "fout", 12, "Optional")) + "</div>";
-    $(p + "-dday").value = LEAVE_DEFAULT;
     $(p + "-home").onchange = function () { $(p + "-home-other-row").hidden = this.value !== "OTHER"; };
   }
   function readTravel(p) {
@@ -517,12 +523,23 @@
              arriveDay: v("aday"), arriveTime: v("atime"), flightIn: flight("fin"),
              departDay: v("dday"), departTime: v("dtime"), flightOut: flight("fout") };
   }
+  function setSavedSelect(id, value) {
+    var el = $(id), saved = String(value || "");
+    if (el.options) {
+      Array.prototype.slice.call(el.options).forEach(function (option) { if (option.hasAttribute("data-saved-value")) option.remove(); });
+      if (saved && !Array.prototype.some.call(el.options, function (option) { return option.value === saved; })) {
+        var option = document.createElement("option");
+        option.value = saved; option.textContent = saved + " (saved)"; option.setAttribute("data-saved-value", ""); el.appendChild(option);
+      }
+    }
+    el.value = saved;
+  }
   function fillTravel(p, t) {
     t = t || {};
-    $(p + "-home").value = t.home || ""; $(p + "-home-other").value = t.homeOther || "";
+    setSavedSelect(p + "-home", t.home); $(p + "-home-other").value = t.homeOther || "";
     $(p + "-home-other-row").hidden = t.home !== "OTHER";
-    $(p + "-into").value = t.into || ""; $(p + "-aday").value = t.arriveDay || ""; $(p + "-atime").value = t.arriveTime || "";
-    $(p + "-dday").value = t.departDay || LEAVE_DEFAULT; $(p + "-dtime").value = t.departTime || "";
+    setSavedSelect(p + "-into", t.into); setSavedSelect(p + "-aday", t.arriveDay); setSavedSelect(p + "-atime", t.arriveTime);
+    setSavedSelect(p + "-dday", t.departDay); setSavedSelect(p + "-dtime", t.departTime);
     $(p + "-fin").value = t.flightIn || ""; $(p + "-fout").value = t.flightOut || "";
   }
   function named(list, v) { var o = list.filter(function (x) { return x[0] === v; })[0]; return o ? o[1] : v; }
@@ -554,7 +571,7 @@
     if (!intoPick) return;
     $("up-into").value = intoPick; upTravelOpen = true; $("up-travel-open").setAttribute("aria-expanded", "true"); syncUpTravel();
   }
-  document.querySelectorAll('input[name="intent"]').forEach(function (r) { r.addEventListener("change", function () { syncUpTravel(); syncChoiceHint(); }); });
+  document.querySelectorAll('input[name="intent"]').forEach(function (r) { r.addEventListener("change", function () { hideErr("up-intent-error"); document.querySelectorAll('input[name="intent"]').forEach(function (radio) { radio.removeAttribute("aria-invalid"); }); syncUpTravel(); syncChoiceHint(); }); });
   document.querySelectorAll('input[name="ed-intent"]').forEach(function (r) { r.addEventListener("change", syncEdTravel); });
 
   // Existing replies may include a second guest. Preserve their details and shared travel.
@@ -565,7 +582,14 @@
   function nobodyComing(intent, pt) { return intent === "no" && (!pt || pt.intent === "no"); }
 
   // ---- state ----
-  var current = null;
+  var current = null, editBaseline = null;
+  var travelControls = { home: "home", homeOther: "home-other", into: "into", arriveDay: "aday", arriveTime: "atime", departDay: "dday", departTime: "dtime", flightIn: "fin", flightOut: "fout" };
+  function editValues() {
+    var result = { intent: picked("ed-intent") };
+    ["phone", "address", "diet", "access"].forEach(function (key) { result[key] = $("ed-" + key).value; });
+    Object.keys(travelControls).forEach(function (key) { result["travel/" + key] = $("ed-" + travelControls[key]).value; });
+    return result;
+  }
   function savedDetail(id, value) {
     var text = String(value || "").trim();
     $(id).textContent = text; $(id + "-row").hidden = !text;
@@ -574,9 +598,10 @@
   function fillEditor(reg) {
     ["phone", "address", "diet", "access"].forEach(function (field) { $("ed-" + field).value = reg[field] || ""; });
     fillTravel("ed", reg.travel);
-    if (intoPick && !(reg.travel && reg.travel.into)) $("ed-into").value = intoPick;
     document.querySelectorAll('input[name="ed-intent"]').forEach(function (radio) { radio.checked = radio.value === reg.intent; });
+    editBaseline = editValues();
     $("ed-travel").hidden = nobodyComing(reg.intent, partnerOf(reg));
+    if (intoPick && !(reg.travel && reg.travel.into) && !$("ed-travel").hidden) $("ed-into").value = intoPick;
   }
   function render(reg) {
     $("loading").hidden = true;
@@ -806,7 +831,7 @@
   }
   // Account creation and the registration write are separate. A retry uses the same signed-in UID.
   $("form-up").onsubmit = function (ev) {
-    ev.preventDefault(); if (registrationBusy || PREVIEW) return; hideErr("up-err");
+    ev.preventDefault(); if (registrationBusy || PREVIEW) return; hideErr("up-err"); ["up-name", "up-email", "up-pw"].forEach(clearSignupError);
     if (!replyChosen()) return;
     if (signupStep === 1) { setSignupStep(2, true); return; }
     var fields = registrationFields(), pw = $("up-pw").value, u = auth.currentUser;
@@ -911,10 +936,14 @@
     ev.preventDefault(); if (editBusy || PREVIEW) return; hideErr("ed-err"); $("registration-saved").hidden = true;
     var u = auth.currentUser; if (!u || session.state().status !== "saved") return;
     var operation = ++editOperation;
-    var upd = { phone: $("ed-phone").value.trim(), address: $("ed-address").value.trim().slice(0, 300),
-                diet: $("ed-diet").value.trim().slice(0, 300), access: $("ed-access").value.trim().slice(0, 300), intent: picked("ed-intent") || undefined, updatedAt: firebase.database.ServerValue.TIMESTAMP,
-                travel: nobodyComing(picked("ed-intent"), partnerOf(current)) ? null : readTravel("ed") };
-    if (!upd.intent) delete upd.intent;
+    var now = editValues(), upd = {};
+    Object.keys(now).forEach(function (key) {
+      if (!editBaseline || now[key] === editBaseline[key] || (key.indexOf("travel/") === 0 && $("ed-travel").hidden)) return;
+      var value = now[key].trim();
+      if (key === "intent" && !value) return;
+      if (key === "travel/flightIn" || key === "travel/flightOut") value = value.replace(/\s+/g, "").toUpperCase();
+      upd[key] = value.slice(0, key.indexOf("travel/") === 0 ? 60 : 300);
+    });
     editBusy = true; $("ed-btn").disabled = true; $("ed-cancel").disabled = true; $("reply-action").disabled = true; $("ed-btn").textContent = "Saving...";
     $("form-edit").setAttribute("aria-busy", "true");
     session.save(upd).then(function (result) {

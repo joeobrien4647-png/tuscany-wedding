@@ -42,7 +42,15 @@
         return acknowledged(db.ref('registrations/' + id).update(update), true).then(function () {
           if (!valid(id, version)) return { status: 'stale' };
           read++;
-          state = { status: 'saved', record: Object.assign({}, existing, update) }; return state;
+          var record = Object.assign({}, existing);
+          Object.keys(update).forEach(function (key) {
+            if (key.indexOf('travel/') === 0) {
+              var travel = Object.assign({}, record.travel || {});
+              travel[key.slice(7)] = update[key];
+              record.travel = travel;
+            } else record[key] = update[key];
+          });
+          state = { status: 'saved', record: record }; return state;
         });
       });
       pending = operation;

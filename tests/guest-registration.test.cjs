@@ -11,7 +11,7 @@ function setup() {
   return { fixture, auth, session };
 }
 
-async function signupPageHarness(userAgent = 'Fictional test browser') {
+async function signupPageHarness(userAgent = 'Fictional test browser', search = '') {
   const fs = require('node:fs'), vm = require('node:vm'), path = require('node:path');
   const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
   const fixture = createFixture(), auth = fixture.firebase.auth(), elements = {}, writes = [];
@@ -56,7 +56,7 @@ async function signupPageHarness(userAgent = 'Fictional test browser') {
   } });
   fixture.firebase.database.ServerValue = factory.ServerValue;
   const context = { document, window: {}, firebase: fixture.firebase, GuestRegistration: { createSession },
-    location: { search: '', protocol: 'http:', origin: 'http://fictional.test', assign() {} },
+    location: { search, protocol: 'http:', origin: 'http://fictional.test', assign() {} },
     navigator: { userAgent }, URLSearchParams, Date,
     localStorage: { setItem(key, value) { store[key] = value; }, getItem(key) { return store[key]; } },
     setTimeout() {}, setInterval() {}, clearTimeout() {} };
@@ -506,3 +506,81 @@ for (const outcome of ['acknowledged', 'failed']) {
 }
 
 }
+
+test('new travel details leave departure undecided', async () => {
+  const h = await signupPageHarness(); h.choose('intent', 'yes'); h.submit(); h.element('up-travel-open').onclick();
+  assert.equal(h.element('up-dday').value, '');
+});
+
+test('an unrelated reply edit preserves unrecognised and legacy travel details', async () => {
+  const h = await signupPageHarness();
+  const travel = { departDay: '2027-06-04', into: 'ZZZ', legacy: 'keep', home: 'LHR' };
+  h.fixture.seed({ registrations: { guest: { name: 'Guest', intent: 'yes', travel } } });
+  h.fixture.signIn({ uid: 'guest' }); await h.settle();
+  h.element('reply-action').onclick(); h.choose('ed-intent', 'no'); h.submit('form-edit'); await h.settle();
+  assert.deepEqual(h.fixture.inspect().registrations.guest.travel, travel);
+  assert.ok(h.writes.every(w => !Object.hasOwn(w.patch, 'travel')));
+});
+
+test('a travel edit updates only the changed field and keeps concurrent and legacy values', async () => {
+  const h = await signupPageHarness();
+  h.fixture.seed({ registrations: { guest: { name: 'Guest', intent: 'yes', travel: { departDay: '2027-06-04', into: 'PSA', legacy: 'keep' } } } });
+  h.fixture.signIn({ uid: 'guest' }); await h.settle(); h.element('reply-action').onclick();
+  await h.fixture.firebase.database().ref('registrations/guest').update({ 'travel/legacy': 'updated elsewhere' });
+  h.element('ed-fin').value = 'ab 123'; h.submit('form-edit'); await h.settle();
+  const travel = h.fixture.inspect().registrations.guest.travel;
+  assert.equal(travel.departDay, '2027-06-04'); assert.equal(travel.legacy, 'updated elsewhere'); assert.equal(travel.flightIn, 'AB123');
+  assert.ok(h.writes.some(w => w.patch['travel/flightIn'] === 'AB123'));
+});
+
+test('signup validation displays and associates a field error', async () => {
+  const h = await signupPageHarness(); h.choose('intent', 'yes'); h.submit(); h.submit();
+  assert.equal(h.element('up-name-error').hidden, false); assert.match(h.element('up-name-error').textContent, /name/i);
+  assert.equal(h.element('up-name').getAttribute('aria-invalid'), 'true');
+});
+
+test('saving an unrelated change keeps empty departure, Monday and unmodified optional fields exactly', async () => {
+  for (const departure of [undefined, '', '2027-05-31']) {
+    const h = await signupPageHarness(); const travel = { flightIn: 'ab 123', homeOther: 'Old saved place', extra: 'keep' };
+    if (departure !== undefined) travel.departDay = departure;
+    h.fixture.seed({ registrations: { guest: { name: 'Guest', intent: 'yes', phone: ' 123 ', travel } } });
+    h.fixture.signIn({ uid: 'guest' }); await h.settle(); h.element('reply-action').onclick();
+    h.element('ed-diet').value = 'Vegetarian'; h.submit('form-edit'); await h.settle();
+    assert.deepEqual(h.fixture.inspect().registrations.guest.travel, travel);
+    assert.equal(h.fixture.inspect().registrations.guest.phone, ' 123 ');
+    assert.equal(h.fixture.inspect().registrations.guest.diet, 'Vegetarian');
+    assert.ok(h.writes.every(w => !Object.keys(w.patch).some(k => k === 'travel' || k.startsWith('travel/'))));
+  }
+});
+
+test('a delayed field write does not replace another device’s travel change', async () => {
+  const h = await signupPageHarness();
+  h.fixture.seed({ registrations: { guest: { name: 'Guest', intent: 'yes', travel: { departDay: '2027-05-31', legacy: 'before' } } } });
+  h.fixture.signIn({ uid: 'guest' }); await h.settle(); h.element('reply-action').onclick();
+  const release = h.fixture.delayNext('update', 'registrations/guest');
+  h.element('ed-fin').value = 'AB123'; h.submit('form-edit'); await h.settle();
+  await h.fixture.firebase.database().ref('registrations/guest').update({ 'travel/legacy': 'after' });
+  release(); await h.settle();
+  const travel = h.fixture.inspect().registrations.guest.travel;
+  assert.equal(travel.legacy, 'after'); assert.equal(travel.flightIn, 'AB123'); assert.equal(travel.departDay, '2027-05-31');
+});
+
+test('inline signup errors clear on correction while preserving password help', async () => {
+  const h = await signupPageHarness(); h.choose('intent', 'yes'); h.submit(); h.details();
+  h.element('up-pw').value = 'short'; h.submit();
+  assert.equal(h.element('up-pw-error').hidden, false);
+  assert.equal(h.element('up-pw').getAttribute('aria-invalid'), 'true');
+  h.element('up-pw').value = 'long enough'; h.element('up-pw').listeners.input();
+  assert.equal(h.element('up-pw-error').hidden, true); assert.equal(h.element('up-pw').getAttribute('aria-invalid'), null);
+});
+
+
+test('airport prefill cannot alter hidden travel for a guest who is not attending', async () => {
+  const h = await signupPageHarness('Fictional test browser', '?into=PSA');
+  const travel = { legacy: 'keep' };
+  h.fixture.seed({ registrations: { guest: { name: 'Guest', intent: 'no', travel } } });
+  h.fixture.signIn({ uid: 'guest' }); await h.settle(); h.element('reply-action').onclick();
+  h.element('ed-diet').value = 'Vegetarian'; h.submit('form-edit'); await h.settle();
+  assert.deepEqual(h.fixture.inspect().registrations.guest.travel, travel);
+  assert.ok(h.writes.every(w => !Object.keys(w.patch).some(k => k.startsWith('travel/'))));
+});
