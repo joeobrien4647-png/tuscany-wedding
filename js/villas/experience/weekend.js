@@ -3,7 +3,7 @@
 import { esc } from './dom.js';
 
 const DAYS = [
-  ['fri', 'Friday', 'pizza at sunset', 'fri-pizza'],
+  ['fri', 'Friday', 'arrival', 'fri-arrive'],
   ['sat', 'Saturday', 'the wedding', 'sat-ceremony'],
   ['sun', 'Sunday', 'pool day', 'sun-pools'],
   ['mon', 'Monday', 'home time', 'mon-leave'],

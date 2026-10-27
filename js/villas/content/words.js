@@ -76,7 +76,7 @@ export const INTERIORS = {
 export const PLACE_WORDS = [
   {
     id: 'sunset', short: 'Sunset view', villa: 'santarsa', status: 'fact', kicker: 'The view west', title: 'Where the sun <em>goes</em>',
-    text: 'Both villas look west over the Tiber valley, and at the end of May the sun slides behind the Catenaia ridge at about 20:40, with golden hour from around 20:00. Friday night is pizza and drinks at sunset, so grab a glass and watch it go.',
+    text: 'Both villas look west over the Tiber valley. At the end of May the sun is estimated to drop behind the Catenaia ridge at about 20:40, with golden hour from around 20:00.',
     facts: ['Behind the ridge at about 20:39 on 29 May', 'Lake Montedoglio is about 6 km west, down in the valley'],
     where: 'Sun times worked out from terrain data, ignoring trees', moment: 'sunset',
     words: ['sunset', 'sun', 'view', 'lake', 'montedoglio', 'golden', 'hour', 'west', 'valley', 'evening'],
@@ -280,9 +280,9 @@ const moment = (id, when, title, caption, plan, words, extra = {}) => {
     plan: { what: PLAN_CODE[plan[0]], when: PLAN_CODE[plan[1]], where: PLAN_CODE[plan[2]] } };
 };
 export const MOMENT_WORDS = [
-  moment('fri-arrive', 'Whenever you land', 'Roll in to La <em>Conca</em>', 'Up through the oak woods to two villas, both ours for the weekend', 'ddd', 'arrive arrival land drive road'),
-  moment('fri-settle', 'Whenever you land', 'Settle <em>in</em>', 'Find your room, find the pool, find everyone else', 'ddd', 'settle welcome'),
-  moment('fri-pizza', 'As the sun goes down', 'Drinks and <em>pizza</em>', 'Wood-fired, nothing formal, sun going down behind the ridge', 'ddt', 'pizza drinks oven sunset'),
+  moment('fri-arrive', 'Friday 28 May', 'Arrival at La <em>Conca</em>', 'Your villa and arrival details will follow', 'dtt', 'arrive arrival land drive road'),
+  moment('fri-settle', 'Friday arrival', 'Settle <em>in</em>', 'Your villa and arrival details will follow', 'dtt', 'settle welcome'),
+  moment('fri-pizza', 'Illustrative view', 'Ovens and <em>views</em>', 'Illustrative views; Friday arrival details will follow', 'ttt', 'view valley evening'),
   moment('sat-ceremony', 'Afternoon', 'The <em>ceremony</em>', 'Outside, in the grounds', 'dtt', 'ceremony wedding vows married'),
   moment('sat-table', 'After the ceremony', 'A long Italian <em>lunch</em>', 'The kind that rolls on into dinner', 'dlt', 'lunch dinner table meal reception'),
   moment('sat-dancing', 'Into the night', '<em>Dancing</em>', 'Until the villa says stop', 'ddt', 'dancing dance party'),

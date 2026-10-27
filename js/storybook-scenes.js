@@ -16,7 +16,7 @@
         { art: 'cypress', opts: { c: '#36502f' }, x: 4, w: 9, depth: 30 },
         { art: 'fiat', x: 38, w: 28, depth: 40, act: 'drive' }
       ] },
-    { id: 'friday', label: 'Friday', kicker: 'Friday 28 May', title: 'Pizza night', ink: '#fff4dc', stars: 26,
+    { id: 'friday', label: 'Friday', kicker: 'Friday 28 May', title: 'Friday arrival', ink: '#fff4dc', stars: 26,
       sky: 'linear-gradient(180deg,#25244f 0%,#5b3b6b 45%,#c4687a 78%,#f2a26f 100%)', sun: [80, 18, 26, '#fff4dc'], fore: ['#161f1a', '#2a2a3a'],
       pieces: [
         { art: 'villa', opts: { glow: true, stone: '#cdb48c', shade: '#bfa47c', roof: '#a5573a' }, x: 46, w: 50, depth: 3 },

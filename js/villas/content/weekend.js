@@ -16,17 +16,17 @@ const WORDS = Object.freeze({
   name: 'The weekend',
   honest: 'The rough plan. Times and spots follow nearer the day',
   days: {
-    fri: { it: 'Venerdì', title: 'Pizza <em>night</em>', name: 'Friday 28 May', tab: 'Fri', date: '28', line: 'Arrive and settle in, then drinks and pizza as the sun goes down' },
+    fri: { it: 'Venerdì', title: 'Friday <em>arrival</em>', name: 'Friday 28 May', tab: 'Fri', date: '28', line: 'Arrival details will follow' },
     sat: { it: 'Sabato', title: 'The <em>wedding</em>', name: 'Saturday 29 May', tab: 'Sat', date: '29', night: true, line: 'The ceremony, a long Italian lunch, then dancing' },
     sun: { it: 'Domenica', title: '<em>Pool</em>', name: 'Sunday 30 May', tab: 'Sun', date: '30', line: 'Nothing before noon, then the pools' },
     mon: { it: 'Lunedì', title: '<em>Home</em>', name: 'Monday 31 May', tab: 'Mon', date: '31', line: 'One last breakfast, then home, or stay on and see a bit more of Italy' },
   },
-  intro: { when: 'Fri 28 to Mon 31 May', title: 'The <em>weekend</em>', caption: 'Pizza on Friday, the wedding on Saturday, the pool on Sunday, home on Monday' },
+  intro: { when: 'Fri 28 to Mon 31 May', title: 'The <em>weekend</em>', caption: 'Friday arrival, the wedding on Saturday, the pool on Sunday, home on Monday' },
   end: { title: 'Arrivederci, or <em>stay on</em>', names: 'Sophie & Joe', dates: 'Fri 28 to Mon 31 May 2027', again: 'Play it again', back: 'Back to the explorer' },
   reel: 'The weekend in 60 seconds',
 });
 // the gold line's labels, one word a moment
-const SHORT = { 'fri-arrive': 'Arrive', 'fri-settle': 'Settle in', 'fri-pizza': 'Pizza', 'sat-ceremony': 'Ceremony', 'sat-table': 'Lunch', 'sat-dancing': 'Dancing', 'sun-morning': 'Morning', 'sun-pools': 'Pools', 'mon-breakfast': 'Breakfast', 'mon-leave': 'Home' };
+const SHORT = { 'fri-arrive': 'Arrive', 'fri-settle': 'Settle in', 'fri-pizza': 'View', 'sat-ceremony': 'Ceremony', 'sat-table': 'Lunch', 'sat-dancing': 'Dancing', 'sun-morning': 'Morning', 'sun-pools': 'Pools', 'mon-breakfast': 'Breakfast', 'mon-leave': 'Home' };
 const STARS = 'No moon till the small hours, so on a clear night it’s all stars';
 const LA_VERNA = 'The sun sets just left of La Verna, give or take';
 
@@ -39,8 +39,8 @@ const HERE = {
   'deck-dance': 'Santarsa’s pool', 'sun-open': 'Santarsa and Vallorsaia', 's-front': 'Santarsa', 'mon-open': 'Santarsa and Vallorsaia',
   'both-villas': 'Santarsa and Vallorsaia', 'fork-down': 'The estate road', 'out-west': 'The valley',
 };
-// the props that are ideas from weddings here (the idea notice); which oven is lit is an open choice, not an idea
-const IDEA_PROPS = new Set(['table:deck', 'table:tettoia', 'lights']);
+// the props that are ideas from weddings here (the idea notice)
+const IDEA_PROPS = new Set(['table:deck', 'table:tettoia', 'lights', 'fire:santarsa', 'fire:vallorsaia']);
 // too small in the frame to tag "How it could look"
 const QUIET = new Set(['cars:parked']);
 const CAR_COLOURS = ['#f1f0ec', '#b9bdc0', '#2b3a55', '#6b6a3c'];   // white, silver, dark blue, olive
@@ -114,7 +114,7 @@ export function createStage(api, state) {
   };
 
   // ---------- the moments' lazy halves ----------
-  const ovens = { group: 'oven', header: 'Both villas have a wood oven', note: 'Which one is still to be decided', exclusive: true,
+  const ovens = { group: 'oven', header: 'Illustrative oven views', note: 'For exploring only, not a plan for Friday', exclusive: true,
     items: [
       { id: 'santarsa', label: 'Santarsa’s oven', place: 'santarsa-terrace', props: ['fire:santarsa'] },
       { id: 'vallorsaia', label: 'Vallorsaia’s oven', place: 'vallorsaia-oven', props: ['fire:vallorsaia'] },
@@ -130,7 +130,7 @@ export function createStage(api, state) {
   const DETAIL = {
     'fri-arrive': {
       light: { at: [870, 975], quiet: true }, where: 'road', sound: ['gravel'],
-      text: 'Roll in to La Conca whenever you land, up the estate road through the oak woods to two stone villas on a hill above Sansepolcro, both ours for the weekend. Which villa you’re in comes nearer the time.',
+      text: 'We’ll share your villa and arrival details nearer the time.',
       shots: () => [key('fork', 4, 5, 930, 940, ['cars:arrive'])],
       still: () => key('fork', 0, 0, 930, 930, ['cars:fork']),
     },
@@ -141,8 +141,8 @@ export function createStage(api, state) {
       still: () => key('both-villas', 0, 0, 1020),
     },
     'fri-pizza': {
-      light: { at: [1215, 1320], marks: ['sunset'] }, where: null, options: ovens, sound: ['crackle', 'clink'],
-      text: 'Both villas have a wood oven, so which one gets lit is still to be decided.',
+      light: { at: [1215, 1320], quiet: true }, where: null, options: ovens, sound: ['crackle', 'clink'],
+      text: 'These oven views are illustrative, not a plan for Friday. Arrival details will follow.',
       shots: (o) => {
         // the sun behind the ridge and down (20:38, 20:42), then blue hour and the first stars
         const sunset = (fire) => [key('sunset-eye', 5, 13, 1232, [1244, 1320], fire, { line: STARS, lineFrom: 1305 })];
