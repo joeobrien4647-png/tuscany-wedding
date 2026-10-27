@@ -74,7 +74,7 @@
       if (!win.firebase.apps || !win.firebase.apps.length) win.firebase.initializeApp({ apiKey: 'AIzaSyAbEpCIPFFqiuElH0DK1dkkl7JBbNyZTc8', databaseURL: 'https://tuscany-wedding-default-rtdb.europe-west1.firebasedatabase.app', projectId: 'tuscany-wedding' });
       var controller = createController({ db: win.firebase.database(), timestamp: win.firebase.database.ServerValue.TIMESTAMP, onChange: render });
       function render(state) {
-        var messages = { loading: 'Checking your account…', 'signed-out': 'Sign in to save a song request or memory.', 'registration-required': 'Finish your registration before adding a song request or memory.', 'read-error': 'We could not load your contributions. Please try again.', ready: 'Your contributions are private and visible only to Sophie and Joe.' };
+        var messages = { loading: 'Checking your account…', 'signed-out': 'Sign in to save a song request or memory.', 'registration-required': 'Finish your registration before adding a song request or memory.', 'read-error': 'We could not load your contributions. Please try again.', ready: 'Your song request and memory are visible to you and the website administrators.' };
         status.textContent = messages[state.status];
         forms.hidden = state.status !== 'ready';
         signin.hidden = state.status !== 'signed-out' && state.status !== 'registration-required';
@@ -86,7 +86,7 @@
           field.disabled = state.status !== 'ready' || state.saving[kind];
           button.disabled = state.status !== 'ready' || state.saving[kind];
           button.textContent = state.saving[kind] ? 'Saving…' : (state.saved[kind] ? 'Save changes' : 'Save ' + (kind === 'song' ? 'song request' : 'memory'));
-          var feedback = { saving: 'Saving…', saved: 'Saved privately. You can edit this whenever you like.', invalid: 'Please add some text within the character limit before saving.', error: 'We could not confirm your save. Your draft is still here. Press Save to retry safely.', uncertain: 'The connection is taking too long to confirm your save. It may still arrive. Your draft is here; press Save to retry safely without creating another entry.' };
+          var feedback = { saving: 'Saving…', saved: 'Saved. You can edit this whenever you like.', invalid: 'Please add some text within the character limit before saving.', error: 'We could not confirm your save. Your draft is still here. Press Save to retry safely.', uncertain: 'The connection is taking too long to confirm your save. It may still arrive. Your draft is here; press Save to retry safely without creating another entry.' };
           doc.getElementById(kind + '-status').textContent = feedback[state.feedback[kind]] || '';
         });
       }

@@ -219,6 +219,9 @@ test('both page mounts initialise against the shared fictional Firebase fixture'
     pageApi.mount({ document: doc, firebase: fixture.firebase });
     await new Promise(resolve => setImmediate(resolve));
     assert.doesNotMatch(elements[statusId].textContent, /could not connect/);
+    if (pageApi === participation) {
+      assert.equal(elements[statusId].textContent, 'Your song request and memory are visible to you and the website administrators.');
+    }
     assert.equal(fixture.history.some(entry => entry.method === 'once'), true);
   }
 });
@@ -234,7 +237,11 @@ test('pages use safe text rendering, private messaging, shared navigation and no
     assert.match(html, /href="index.html/);
   }
   const join = fs.readFileSync(path.join(root, 'join-in.html'), 'utf8');
-  assert.match(join, /only.*Sophie and Joe/i);
+  assert.match(join, /Your song request and memory are visible to you and the website administrators\./);
+  assert.match(join, /will not be added to a public playlist/);
+  assert.match(join, /ask you separately before sharing a memory/);
+  assert.doesNotMatch(join, /visible only to Sophie and Joe/i);
+  assert.doesNotMatch(join, /private song request or memory/i);
   assert.doesNotMatch(join, /photos.*later/i);
   assert.doesNotMatch(join, /type="file"/);
 });
