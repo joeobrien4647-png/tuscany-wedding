@@ -143,7 +143,7 @@
 
   // ---- state ----
   var DATA = null, BY = {}, ORIGIN = "", CURRENT = null, ANIM = 0, PENDING = null, SAY = 0;
-  var map = {};           // svg layers and per-airport pieces
+  var map = {}, mapReady = false; // svg layers and per-airport pieces
   var CAR_LEN = 28;       // map units (the map is 360 wide); 34 on phones
   var PIN_R = 7.5;        // the pin's gold ring
   var RING_R = 6.5;
@@ -349,7 +349,9 @@
     $("gt-reply").textContent = "Add " + a.shortName + " to my reply";
     $("gt-reply-hint").textContent = "Opens the reply form with " + a.shortName + " picked as your airport. Nothing is saved until you send it.";
     calc();
-    if (fromUser) { showMap(); animate(code); } else driveWhenSeen(code);
+    if (mapReady) {
+      if (fromUser) { showMap(); animate(code); } else driveWhenSeen(code);
+    }
     $("gt-status").textContent = a.shortName + ": " + a.drive.label + " to La Conca";
     if (fromUser && window.history && history.replaceState) history.replaceState(null, "", "#" + code);
   }
@@ -557,44 +559,43 @@
     if (day === "fri") {
       h += strip(at, sun);
       if (at >= 1440) {
-        v = { cls: "is-dark", title: "In the small hours of Saturday", dark: true,
-              text: ["That’s a long drive in the dark on roads you don’t know, the night before the wedding. An earlier flight, or flying out on Thursday, would make life much easier. If this is the one, here’s what to know for the last stretch."] };
+        v = { cls: "is-dark", title: "Estimated arrival on Saturday", dark: true,
+              text: ["Your estimated arrival is after midnight. The last stretch may be dark, so check the route before setting off."] };
       } else if (at < SUNRISE) {
-        v = { cls: "is-dark", title: "Before sunrise", dark: true,
-              text: ["You’d reach the gate before the sun’s up at " + sun.sunrise + ", so the last stretch is in the dark. Here’s what to know."] };
+        v = { cls: "is-dark", title: "Estimated arrival before sunrise", dark: true,
+              text: ["Your estimated arrival is before sunrise, calculated at about " + sun.sunrise + ". The last stretch may be dark."] };
       } else if (at <= GOLD) {
-        var spare = SET - round5(at);
-        v = { cls: "is-ok", title: "In time for pizza at sunset",
-              text: [(spare > 360 ? "Hours to spare" : "About " + dur(spare) + " to spare") + " before the sun goes down at " + sun.sunset + ". No need to rush the drive."] };
-        if (slow > SET) v.text.push("On the slowest estimate it’s nearer " + clock(round5(slow)) + ", after sunset, so don’t dawdle at the car hire desk.");
+        v = { cls: "is-ok", title: "Estimated arrival in daylight",
+              text: ["Your estimated arrival is before sunset, calculated at about " + sun.sunset + " for a flat horizon. Hills may hide the sun earlier."] };
+        if (slow > SET) v.text.push("The slower drive estimate is around " + clock(round5(slow)) + ", which could be after sunset.");
       } else if (at <= SET) {
-        v = { cls: "is-tight", title: "Just in time for sunset",
-              text: ["You’d pull in during golden hour, with the sun going down at " + sun.sunset + ". Keep the car hire chat short."] };
-        if (slow > SET) v.text.push("On the slowest estimate it’s about " + clock(round5(slow)) + ", just after sunset.");
+        v = { cls: "is-tight", title: "Estimated arrival around sunset",
+              text: ["Sunset is calculated at about " + sun.sunset + " for a flat horizon. Hills may hide the sun earlier."] };
+        if (slow > SET) v.text.push("The slower drive estimate is around " + clock(round5(slow)) + ", which could be after sunset.");
       } else if (at <= DARK) {
-        v = { cls: "is-dark", title: "In the last of the light", dark: true,
-              text: ["The sun sets at " + sun.sunset + " and the light’s gone by about " + sun.lastLight + ". You’d reach the gate at dusk, and it may well be dark by the time you’re up the estate road. Here’s what to know."] };
+        v = { cls: "is-dark", title: "Estimated arrival around dusk", dark: true,
+              text: ["Sunset is estimated at about " + sun.sunset + " and last light at " + sun.lastLight + ". It may be dark on the estate road; local conditions and hills can affect the light."] };
       } else {
-        v = { cls: "is-dark", title: "You’ll arrive after dark", dark: true,
-              text: ["The sun sets at " + sun.sunset + " and the light’s gone by about " + sun.lastLight + ", so the road up will be dark too. Here’s what to know."] };
+        v = { cls: "is-dark", title: "Estimated arrival after last light", dark: true,
+              text: ["You may reach the estate road after dark. Sunset is estimated at about " + sun.sunset + " and last light at " + sun.lastLight + "."] };
       }
     } else if (day === "thu") {
       var thu = weekDay("2027-05-27") || { sunset: sun.sunset, lastLight: sun.lastLight };
       var tSet = toMin(thu.sunset), tDark = toMin(thu.lastLight);
-      var light = at >= 1440 || at < SUNRISE ? "after dark" : at <= tSet ? "before sunset at " + thu.sunset : at <= tDark ? "just after sunset (" + thu.sunset + ")" : "after dark (sunset’s at " + thu.sunset + ")";
+      var light = at >= 1440 || at < SUNRISE ? "after dark" : at <= tSet ? "before the estimated sunset at " + thu.sunset : at <= tDark ? "around dusk, after the estimated sunset at " + thu.sunset : "after dark, with sunset estimated at " + thu.sunset;
       var thuLit = at < 1440 && at >= SUNRISE && at <= tSet;
       v = { cls: thuLit ? "is-ok" : "is-dark", title: "A day ahead", dark: !thuLit, darkTitle: "If you’re driving in the dark",
-            text: ["We have the villas from Friday 28 May, so Thursday night is yours to sort out, near the airport or down in the valley. Then Friday’s plan is simple: be at La Conca before sunset at " + sun.sunset + " for pizza and drinks.",
-                   "Driving straight to the Sansepolcro area on Thursday? You’d get there " + light + "."] };
+            text: ["We have the villas from Friday 28 May, so Thursday night is yours to arrange.",
+                   "If you drive to the Sansepolcro area on Thursday, your estimated arrival is " + light + ". Hills may hide the sun earlier."] };
     } else {
       var days = DATA.friday.weekSun.days || [];
       var firstSet = days.length ? days[0].sunset : sun.sunset, lastSet = days.length ? days[days.length - 1].sunset : sun.sunset;
       var oSet = toMin(firstSet), oDark = days.length ? toMin(days[days.length - 1].lastLight) : DARK;
       var lit = at < 1440 && at >= SUNRISE && at <= oSet;
       var dusk = at < 1440 && at > oSet && at <= oDark;
-      v = { cls: lit ? "is-ok" : "is-dark", title: "Pizza night is Friday", dark: !lit,
-            text: ["Pizza and drinks at sunset is on Friday 28 May. Whichever day you land, the last stretch is easiest in daylight: sunset is between " + firstSet + " and " + lastSet + " that week.",
-                   lit ? "You’d be at the gate in daylight." : "You’d be at the gate " + (dusk ? "after sunset" : "in the dark") + ", so here’s what to know."] };
+      v = { cls: lit ? "is-ok" : "is-dark", title: "Planning your arrival", dark: !lit,
+            text: ["Sunset is estimated between " + firstSet + " and " + lastSet + " that week. Hills may hide the sun earlier.",
+                   lit ? "Your estimated arrival is in daylight." : "Your estimated arrival is " + (dusk ? "around dusk" : "after dark") + "; check the route before setting off."] };
     }
     h += '<div class="gt-verdict ' + v.cls + '"><h5>' + esc(v.title) + "</h5>" + v.text.map(function (p) { return "<p>" + esc(p) + "</p>"; }).join("") + "</div>";
     if (v.dark) h += darkTips(v.darkTitle);
@@ -624,7 +625,7 @@
       + '<i class="gt-strip-dusk" style="left:' + pos(S) + "%;width:" + (pos(D) - pos(S)) + '%"></i>'
       + '<i class="gt-strip-night" style="left:' + pos(D) + "%;width:" + (100 - pos(D)) + '%"></i></div>'
       + '<span class="gt-strip-tick" style="left:0">12:00</span>'
-      + '<span class="gt-strip-tick is-sun" style="left:' + pos(S) + '%"><b>' + sun.sunset + "</b> <span>sunset</span></span>"
+      + '<span class="gt-strip-tick is-sun" style="left:' + pos(S) + '%"><b>' + sun.sunset + "</b> <span>estimated sunset</span></span>"
       + '<span class="gt-strip-tick is-end" style="left:100%">24:00</span>'
       + '<span class="gt-strip-car' + edge + '" style="left:' + x + '%"></span></div>';
     return h;
@@ -633,7 +634,7 @@
   // ---- Friday's light, the last stretch, the small print ----
   function buildStatic() {
     var sun = DATA.friday.sun;
-    $("gt-sun").innerHTML = [[sun.goldenHourStarts, "Golden hour starts"], [sun.sunset, "Sunset"], [sun.lastLight, "Last light"]]
+    $("gt-sun").innerHTML = [[sun.goldenHourStarts, "Golden hour, estimated"], [sun.sunset, "Sunset, estimated"], [sun.lastLight, "Last light, estimated"]]
       .map(function (t) { return "<li><b>" + esc(t[0]) + "</b><span>" + esc(t[1]) + "</span></li>"; }).join("");
     $("gt-sun-note").textContent = sun.note + " All times are Italian time, " + sun.timezone + ".";
 
@@ -718,6 +719,43 @@
   }
 
   // ---- go ----
+  function validBaseMap(shapes) {
+    if (!shapes || shapes.type !== "FeatureCollection" || !Array.isArray(shapes.features) || !shapes.features.length) return false;
+    var italy = false;
+    var valid = shapes.features.every(function (feature) {
+      if (!feature || !feature.properties || !feature.geometry) return false;
+      var geometry = feature.geometry;
+      if (geometry.type !== "Polygon" && geometry.type !== "MultiPolygon") return false;
+      var polygons = geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
+      if (!Array.isArray(polygons) || !polygons.length) return false;
+      if (feature.properties.role === "italy") italy = true;
+      return polygons.every(function (polygon) {
+        return Array.isArray(polygon) && polygon.length && polygon.every(function (ring) {
+          return Array.isArray(ring) && ring.length >= 3 && ring.every(function (point) {
+            return Array.isArray(point) && point.length >= 2 && Number.isFinite(point[0]) && Number.isFinite(point[1]);
+          });
+        });
+      });
+    });
+    return valid && italy;
+  }
+  function mapUnavailable() {
+    mapReady = false;
+    map = {};
+    DATA.airports.forEach(function (a) { delete a.track; delete a.at; delete a.ring; delete a.label; });
+    var svg = $("gt-svg"), fig = $("gt-map"), notice = $("gt-loading");
+    svg.hidden = true;
+    svg.setAttribute("hidden", "");
+    svg.setAttribute("aria-hidden", "true");
+    fig.setAttribute("aria-label", "Map unavailable");
+    var caption = fig.querySelector("figcaption");
+    if (caption) caption.hidden = true;
+    notice.hidden = false;
+    notice.style.position = "static";
+    notice.setAttribute("role", "status");
+    notice.setAttribute("aria-live", "polite");
+    notice.textContent = "The map is unavailable. Choose an airport from the list to continue.";
+  }
   function start(values) {
     if (!$("gt-svg")) return;
     DATA = values[0];
@@ -726,20 +764,53 @@
     buildFrom();
     buildCalc();
     buildStatic();
-    buildMap(values[1]);
+    try {
+      if (!validBaseMap(values[1])) throw new Error("Invalid map data");
+      buildMap(values[1]);
+      mapReady = true;
+    } catch (e) {
+      mapUnavailable();
+    }
     var pick = (/^#([A-Za-z]{3})$/.exec(location.hash) || [])[1];
     if (pick && BY[pick.toUpperCase()]) choose(pick.toUpperCase(), false);
   }
-  function getJSON(url) {
-    return fetch(url, { credentials: "same-origin" }).then(function (r) {
+  function getJSON(url, signal) {
+    var options = { credentials: "same-origin" };
+    if (signal) options.signal = signal;
+    return fetch(url, options).then(function (r) {
       if (!r.ok) throw new Error(url + " " + r.status);
       return r.json();
     });
   }
-  Promise.all([getJSON("data/getting-there.json"), getJSON("data/getting-there-map.json")])
+  function optionalMap() {
+    var controller = typeof AbortController === "function" ? new AbortController() : null;
+    var done = false, timer, finish;
+    function cancel() {
+      if (done) return;
+      if (controller) controller.abort();
+      finish(null);
+    }
+    var promise = new Promise(function (resolve) {
+      finish = function (value) {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        resolve(value);
+      };
+      timer = setTimeout(cancel, 5000);
+      getJSON("data/getting-there-map.json", controller && controller.signal).then(finish, function () { finish(null); });
+    });
+    return { promise: promise, cancel: cancel };
+  }
+  var mapRequest = optionalMap();
+  Promise.all([getJSON("data/getting-there.json"), mapRequest.promise])
     .then(start)
     .catch(function (e) {
-      if ($("gt-loading")) $("gt-loading").textContent = "The map didn’t load. Try refreshing the page.";
+      mapRequest.cancel();
+      if ($("gt-loading")) {
+        $("gt-loading").setAttribute("role", "status");
+        $("gt-loading").textContent = "The travel planner didn’t load. Try refreshing the page.";
+      }
       if (window.console) console.warn("getting-there:", e);
     });
 

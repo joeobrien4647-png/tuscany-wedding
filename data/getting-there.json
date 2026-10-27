@@ -69,7 +69,7 @@
  },
  "friday": {
   "date": "2027-05-28",
-  "plan": "Pizza and drinks at sunset",
+  "plan": "Friday arrival at La Conca",
   "sun": {
    "sunrise": "05:35",
    "goldenHourStarts": "20:00",
@@ -82,7 +82,7 @@
    },
    "place": "Villa Santarsa, 43.6054 N 12.1429 E",
    "timezone": "CEST (UTC+2)",
-   "note": "Calculated for a flat horizon. Hills on the skyline can hide the sun a few minutes early.",
+   "note": "These are estimates calculated for a flat horizon. Hills on the skyline can hide the sun earlier.",
    "sources": [
     "noaa-calc",
     "tad"
@@ -174,7 +174,7 @@
     ]
    },
    {
-    "text": "Arrive in daylight if you can: an unfamiliar, narrow, steep road is much easier before sunset (20:42 on Friday)",
+    "text": "An unfamiliar, narrow, steep road is easier in daylight. Friday sunset is estimated at about 20:42, though hills can hide the sun earlier",
     "sources": [
      "noaa-calc"
     ]
