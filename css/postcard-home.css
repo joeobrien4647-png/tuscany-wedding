@@ -90,7 +90,7 @@
   .postcard-home .p-top { padding: 13px 20px; }
   .postcard-home .p-hero { padding: 0 14px; margin: 0 auto 20px; }
   .postcard-face { display: block; }
-  .postcard-photo img { height: 144px; object-position: center 65%; }
+  .postcard-photo img { height: 144px; object-fit: contain; object-position: center; background: var(--post-art-blue); }
   .postcard-note { padding: 22px 18px; }
   .postcard-note h1 { font-size: clamp(38px, 10vw, 50px); }
   .postcard-kicker { font-size: 13px; margin-bottom: 10px; }
