@@ -14,6 +14,7 @@
 .postcard-page { --guest-cream: #f7f7ef; --guest-charcoal: #25385b; --guest-terracotta: #25385b; --guest-olive: #25385b; }
 .postcard-page .guest-header { max-width: 1280px; padding-block: 1.2rem; background: var(--post-art-blue); border-bottom: 2px solid var(--post-art-gold); }
 .postcard-page .guest-brand { color: var(--post-ink); }
+.postcard-page .guest-brand img { display: block; width: 210px; max-width: 100%; height: auto; }
 .postcard-page .guest-main { max-width: 1200px; }
 .postcard-page .guest-kicker, .postcard-page .guest-eyebrow { text-transform: none; letter-spacing: .025em; font-size: .9rem; color: var(--post-ink); }
 .postcard-page .guest-hero { background: var(--post-sage); border-radius: 0; }

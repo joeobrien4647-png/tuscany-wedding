@@ -59,7 +59,9 @@ test('the stay price and inclusions appear before flight planning and agree with
 test('practical pages use bounded responsive photos and no additional runtime', () => {
   for (const page of pages) {
     const html = read(page);
-    const images = Array.from(html.matchAll(/<img\b[^>]*>/g));
+    const main = html.match(/<main\b[^>]*>([\s\S]*?)<\/main>/);
+    assert.ok(main, page);
+    const images = Array.from(main[1].matchAll(/<img\b[^>]*>/g));
     assert.equal(images.length, { 'getting-here.html': 1, 'weekend-guide.html': 2, 'arrival-essentials.html': 0 }[page]);
     for (const [tag] of images) {
       assert.match(tag, /width="\d+" height="\d+"/);
