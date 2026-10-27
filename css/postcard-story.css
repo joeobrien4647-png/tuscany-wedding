@@ -3,15 +3,17 @@
 .story-intro h1 { font-size: clamp(2.5rem, 7vw, 4rem); }
 .story-album { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
 .story-photo { margin: 0; min-width: 0; }
+.story-print { box-sizing: border-box; padding: 6px; border: 1px solid var(--post-art-gold); background: var(--post-white); }
 .story-photo img { display: block; width: 100%; height: auto; }
 .story-proposal { grid-column: 1 / -1; }
 .story-carry { grid-column: 1 / -1; max-width: 600px; margin-inline: auto; }
 .story-cards { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #bec8b8; }
 .story-card-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
-.story-card-pair figure { margin: 0; min-width: 0; }
-.story-card-image { display: block; width: fit-content; }
+.story-card-pair article { min-width: 0; }
+.story-card-image { display: block; width: fit-content; max-width: 100%; text-decoration: none; }
 .story-card-image img { display: block; width: 100%; max-width: 240px; height: auto; }
 .story-card-pair h3 { margin: 1rem 0 .4rem; }
+.story-card-image span { display: inline-flex; align-items: center; min-height: 44px; padding-block: .4rem; text-decoration: underline; text-underline-offset: .2em; }
 .story-actions { margin-top: 2.5rem; }
 @media (max-width: 699px) {
   .postcard-page .story-main { padding-inline: 16px; }
