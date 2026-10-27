@@ -584,3 +584,73 @@ test('airport prefill cannot alter hidden travel for a guest who is not attendin
   assert.deepEqual(h.fixture.inspect().registrations.guest.travel, travel);
   assert.ok(h.writes.every(w => !Object.keys(w.patch).some(k => k.startsWith('travel/'))));
 });
+
+
+test('sign in points to missing or malformed email and missing password without contacting Firebase', async () => {
+  const h = await signupPageHarness(); h.element('tab-in').onclick();
+  h.submit('form-in');
+  assert.equal(h.document.activeElement?.id, 'in-email');
+  assert.equal(h.element('in-email-error').hidden, false);
+  assert.equal(h.element('in-email').getAttribute('aria-invalid'), 'true');
+  assert.match(h.element('in-email-error').textContent, /email/i);
+  h.element('in-email').value = 'bad email'; h.element('in-email').listeners.input();
+  assert.equal(h.element('in-email-error').hidden, true);
+  h.submit('form-in'); assert.equal(h.document.activeElement?.id, 'in-email');
+  h.element('in-email').value = 'fictional@example.test'; h.element('in-email').listeners.input();
+  h.submit('form-in');
+  assert.equal(h.document.activeElement?.id, 'in-pw');
+  assert.equal(h.element('in-pw-error').hidden, false);
+  assert.equal(h.fixture.history.filter(x => x.method === 'signIn').length, 0);
+  assert.equal(h.writes.length, 0);
+});
+
+test('sign-in retains an ambiguous credentials error and succeeds on retry without writing registrations', async () => {
+  const h = await signupPageHarness(); h.element('tab-in').onclick();
+  h.element('in-email').value = 'fictional@example.test'; h.element('in-pw').value = 'fictional';
+  let tries=0; h.auth.signInWithEmailAndPassword = () => { tries++; return tries === 1 ? Promise.reject({code:'auth/invalid-credential'}) : Promise.resolve({user:h.fixture.signIn({uid:'guest',email:'fictional@example.test'})}); };
+  h.fixture.seed({registrations:{guest:{name:'Saved Guest',email:'fictional@example.test',intent:'yes'}}});
+  h.submit('form-in'); await h.settle();
+  assert.equal(h.element('in-err').hidden, false); assert.match(h.element('in-err').textContent, /email and password/i);
+  assert.equal(h.element('in-pw').getAttribute('aria-invalid'), null);
+  h.submit('form-in'); await h.settle(); await h.settle();
+  assert.equal(tries,2); assert.equal(h.writes.length,0);
+  assert.equal(h.fixture.inspect().registrations.guest.name,'Saved Guest');
+});
+
+test('reset validates and focuses email, hides stale success and preserves the retry fallback', async () => {
+  const h = await signupPageHarness(); h.element('tab-in').onclick();
+  const calls=[]; h.auth.sendPasswordResetEmail=(email, options) => { calls.push({email, options}); return options ? Promise.reject({code:'auth/unauthorized-domain'}) : Promise.resolve(); };
+  h.element('in-email').value='fictional@example.test'; h.submit('form-in');
+  assert.equal(h.element('in-pw-error').hidden,false);
+  h.element('in-email').value=''; h.element('in-ok').hidden=false; h.element('forgot').onclick();
+  assert.equal(h.element('in-pw-error').hidden,true);
+  assert.equal(h.element('in-ok').hidden,true); assert.equal(h.document.activeElement?.id,'in-email');
+  assert.equal(h.element('in-email-error').hidden,false); assert.equal(calls.length,0);
+  h.element('in-email').value='wrong email'; h.element('in-email').listeners.input(); h.element('forgot').onclick();
+  assert.equal(h.document.activeElement?.id,'in-email'); assert.equal(calls.length,0);
+  h.element('in-email').value='fictional@example.test'; h.element('in-email').listeners.input(); h.element('forgot').onclick();
+  await h.settle(); await h.settle(); assert.equal(calls.length,2);
+  assert.equal(h.element('in-ok').hidden,false); assert.equal(h.writes.length,0);
+  h.element('in-email').value='wrong email'; h.element('in-email').listeners.input();
+  assert.equal(h.element('in-ok').hidden,true);
+});
+
+test('stay payment copy distinguishes travel in static, single and shared saved replies', async () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname,'../index.html'),'utf8');
+  assert.doesNotMatch(html, /Everything else is on us/);
+  assert.match(html.match(/<p id="pay-intro">[^<]+<\/p>/)[0], /arrange your flights and travel to the villas separately/i);
+  for (const partner of [undefined,{name:'Fictional Partner',intent:'yes'}]) {
+    const h = await signupPageHarness(); h.fixture.seed({registrations:{guest:{name:'Fictional Guest',email:'fictional@example.test',intent:'yes',partner}}});
+    h.fixture.signIn({uid:'guest',email:'fictional@example.test'}); await h.settle(); await h.settle();
+    assert.match(h.element('pay-intro').textContent,/arrange your flights and travel to the villas separately/i);
+  }
+});
+
+
+test('pending reset cannot be submitted twice or display stale success after switching tabs', async () => {
+  const h=await signupPageHarness(); h.element('tab-in').onclick(); h.element('in-email').value='fictional@example.test';
+  let done, calls=0; h.auth.sendPasswordResetEmail=() => { calls++; return new Promise(resolve => {done=resolve;}); };
+  h.element('forgot').onclick(); h.element('forgot').onclick(); assert.equal(calls,1); assert.equal(h.element('forgot').disabled,true);
+  h.element('tab-up').onclick(); done(); await h.settle(); await h.settle();
+  assert.equal(h.element('in-ok').hidden,true); assert.equal(h.element('forgot').disabled,false);
+});

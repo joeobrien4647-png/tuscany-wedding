@@ -264,13 +264,13 @@
       </button>
       <div class="p-or">or use email</div>
       <label for="in-email">Email</label>
-      <input id="in-email" type="email" autocomplete="email" required>
+      <input id="in-email" type="email" autocomplete="email" required aria-describedby="in-email-error"><p class="p-msg p-err" id="in-email-error" hidden></p>
       <label for="in-pw">Password</label>
-      <input id="in-pw" type="password" autocomplete="current-password" required>
+      <input id="in-pw" type="password" autocomplete="current-password" required aria-describedby="in-pw-error"><p class="p-msg p-err" id="in-pw-error" hidden></p>
       <div role="alert" class="p-msg p-err" id="in-err" hidden></div>
       <button class="p-primary" id="in-btn" type="submit">Sign in</button>
       <button class="p-link" type="button" id="forgot">Forgotten your password?</button>
-      <div class="p-msg p-ok" id="in-ok" hidden></div>
+      <div role="status" class="p-msg p-ok" id="in-ok" hidden></div>
     </form>
   </section>
 
@@ -330,7 +330,7 @@
 
     <div class="p-pay" id="pay" hidden>
       <h3 id="pay-h">Your &pound;150 for your stay</h3>
-      <p id="pay-intro">This covers your bed at the villa for the three nights. Everything else is on us. Whenever suits, by bank transfer:</p>
+      <p id="pay-intro">This covers your bed at the villa for the three nights. Meals and drinks are on us. Please arrange your flights and travel to the villas separately. Whenever suits, by bank transfer:</p>
       <dl id="pay-bank">
         <dt>Name</dt><dd id="pay-name"></dd>
         <dt>Sort code</dt><dd><span id="pay-sort"></span><button class="p-copy" type="button" data-copy="pay-sort" data-digits="1" aria-label="Copy sort code">Copy</button></dd>
@@ -416,6 +416,7 @@
   function showTab(up) {
     $("tab-up").setAttribute("aria-pressed", up); $("tab-in").setAttribute("aria-pressed", !up);
     $("form-up").hidden = !up; $("form-in").hidden = up;
+    ["in-email", "in-pw"].forEach(clearSignInError); hideErr("in-err"); $("in-ok").hidden = true;
   }
   $("tab-up").onclick = function () { if (!registrationBusy) showTab(true); };
   $("tab-in").onclick = function () { if (!registrationBusy) showTab(false); };
@@ -459,6 +460,11 @@
   }
   function clearSignupError(id) { hideErr(id + "-error"); $(id).removeAttribute("aria-invalid"); }
   function signupError(id, error) { showErr(id + "-error", error); $(id).setAttribute("aria-invalid", "true"); $(id).focus(); }
+  function clearSignInError(id) { hideErr(id + "-error"); $(id).removeAttribute("aria-invalid"); }
+  function signInError(id, error) { showErr(id + "-error", error); $(id).setAttribute("aria-invalid", "true"); $(id).focus(); }
+  ["in-email", "in-pw"].forEach(function (id) {
+    $(id).addEventListener("input", function () { clearSignInError(id); hideErr("in-err"); if (id === "in-email") $("in-ok").hidden = true; });
+  });
   ["up-name", "up-email", "up-pw"].forEach(function (id) {
     $(id).addEventListener("input", function () { clearSignupError(id); });
   });
@@ -654,8 +660,8 @@
     var onlyThem = !both && pt && pt.intent === "yes" && reg.intent !== "yes";
     var bedOf = onlyThem ? firstName(pt.name) + "’s bed" : "your bed";
     $("pay-intro").textContent = both
-      ? "This covers a bed at the villa for you both for the three nights. Everything else is on us. Whenever suits, by bank transfer:"
-      : "This covers " + bedOf + " at the villa for the three nights. Everything else is on us. Whenever suits, by bank transfer:";
+      ? "This covers a bed at the villa for you both for the three nights. Meals and drinks are on us. Please arrange your flights and travel to the villas separately. Whenever suits, by bank transfer:"
+      : "This covers " + bedOf + " at the villa for the three nights. Meals and drinks are on us. Please arrange your flights and travel to the villas separately. Whenever suits, by bank transfer:";
     $("pay-two").textContent = (both ? "One transfer for you both is perfect. " : "")
       + "We tick it off at our end and it will show here once we have.";
     $("pay-done").textContent = both ? "Received, thank you. That’s both your beds sorted." : "Received, thank you. That’s " + bedOf + " sorted.";
@@ -858,8 +864,13 @@
   // ---- sign in ----
   $("form-in").onsubmit = function (ev) {
     ev.preventDefault(); if ($("in-btn").disabled || registrationBusy || PREVIEW) return; hideErr("in-err"); $("in-ok").hidden = true;
+    ["in-email", "in-pw"].forEach(clearSignInError);
+    var email = $("in-email").value.trim();
+    if (!email) return signInError("in-email", { message: "Enter your email address." });
+    if (!$("in-email").checkValidity()) return signInError("in-email", { code: "auth/invalid-email" });
+    if (!$("in-pw").value) return signInError("in-pw", { message: "Enter your password." });
     $("in-btn").disabled = true;
-    auth.signInWithEmailAndPassword($("in-email").value.trim(), $("in-pw").value)
+    auth.signInWithEmailAndPassword(email, $("in-pw").value)
       .then(function (cred) { if (sameUser(cred.user)) remember(cred.user.email, false); })
       .catch(function (e) { showErr("in-err", e); })
       .then(function () { $("in-btn").disabled = false; });
@@ -873,11 +884,17 @@
     });
   }
   $("forgot").onclick = function () {
-    hideErr("in-err"); var email = $("in-email").value.trim();
-    if (!email) return showErr("in-err", { message: "Put your email in above first, then click this." });
+    if ($("forgot").disabled || registrationBusy || PREVIEW) return;
+    hideErr("in-err"); $("in-ok").hidden = true; ["in-email", "in-pw"].forEach(clearSignInError);
+    var email = $("in-email").value.trim();
+    if (!email) return signInError("in-email", { message: "Enter your email address to reset your password." });
+    if (!$("in-email").checkValidity()) return signInError("in-email", { code: "auth/invalid-email" });
+    $("forgot").disabled = true;
     sendReset(email).then(function () {
+      if ($("form-in").hidden || $("in-email").value.trim() !== email) return;
       $("in-ok").textContent = "Reset email sent to " + email + ". Check spam if it doesn’t appear."; $("in-ok").hidden = false;
-    }).catch(function (e) { showErr("in-err", e); });
+    }).catch(function (e) { if (!$("form-in").hidden && $("in-email").value.trim() === email) showErr("in-err", e); })
+      .then(function () { $("forgot").disabled = false; });
   };
   $("signout").onclick = function () { auth.signOut(); };
 
