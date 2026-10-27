@@ -33,6 +33,8 @@ test('all four airports and both onward options are available without a form or 
   ].entries()) {
     assert.ok(rows[index][1].includes(name));
     assert.ok(rows[index][1].includes(code));
+    assert.match(rows[index][1], new RegExp(`href="getting-there\\.html#${code}"`));
+    assert.match(rows[index][1], new RegExp(`aria-label="Plan the drive from ${name}"`));
     assert.equal(new URL(rows[index][2].match(/href="([^"]+)"/)[1]).hostname, domain);
     assert.match(rows[index][2], /rel="noopener noreferrer"/);
   }

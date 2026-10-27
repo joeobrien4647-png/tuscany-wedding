@@ -15,7 +15,7 @@
 .airport-list dt { font-weight: 700; }
 .airport-list dt span { margin-left: .35rem; font-weight: 400; color: #43768a; }
 .airport-list dd { margin: 0; }
-.airport-list a { display: inline-flex; align-items: center; min-height: 44px; padding-block: .4rem; }
+.airport-list a { display: inline-flex; align-items: center; min-width: 44px; min-height: 44px; padding-block: .4rem; }
 .practical-options { gap: 1rem 2.5rem; }
 .practical-options article { border-top: 1px solid #bec8b8; padding-top: 1rem; min-width: 0; }
 .practical-options .guest-link-list { margin-top: 0; }
