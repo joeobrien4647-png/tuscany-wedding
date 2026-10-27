@@ -173,7 +173,7 @@
       <h1 class="postcard-names"><img src="images/save-the-date/names.svg" width="840" height="224" alt="Joe O’Brien &amp; Sophie Geen"><span class="postcard-names-text">Joe O’Brien &amp; Sophie Geen</span></h1>
       <p class="postcard-invitation">We’re planning a wedding that feels like us, and we hope you have the best time celebrating with us.</p>
       <div class="postcard-actions">
-        <a class="postcard-rsvp" href="#card">Reply to your invitation</a>
+        <a class="postcard-rsvp" id="hero-reply-link" href="#card">Reply to your invitation</a>
         <a class="postcard-explore" href="getting-here.html">Travel &amp; stay</a>
       </div>
       <dl class="postcard-essentials" aria-label="Wedding essentials">
@@ -382,7 +382,7 @@
   <a class="postcard-text-link" href="our-story.html">Our photographs &amp; wedding cards</a>
 </section>
 
-<footer class="p-mini">Sophie &amp; Joe, 28–31 May 2027<br><a href="#card">Reply to your invitation</a></footer>
+<footer class="p-mini">Sophie &amp; Joe, 28–31 May 2027<br><a id="footer-reply-link" href="#card">Reply to your invitation</a></footer>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -609,7 +609,12 @@
     $("ed-travel").hidden = nobodyComing(reg.intent, partnerOf(reg));
     if (intoPick && !(reg.travel && reg.travel.into) && !$("ed-travel").hidden) $("ed-into").value = intoPick;
   }
+  function setReplyLabels(saved) {
+    var text = saved ? "View your reply" : "Reply to your invitation";
+    $("hero-reply-link").textContent = text; $("footer-reply-link").textContent = text;
+  }
   function render(reg) {
+    setReplyLabels(!!(!PREVIEW && auth.currentUser && session.state().status === "saved" && reg && ["yes", "maybe", "no"].indexOf(reg.intent) >= 0));
     $("loading").hidden = true;
     var has = !!reg;
     screenVersion++;
@@ -776,6 +781,7 @@
     else if (result.status === "saved") { remember(u.email, isGoogle(u)); render(result.record); }
   }
   function loadReply(u) {
+    setReplyLabels(false);
     $("registration-recovery").hidden = true; $("auth").hidden = true; $("done").hidden = true;
     $("loading").hidden = false; $("signout").hidden = false;
     return session.load().then(function (result) { showLoaded(result, u); });
@@ -786,6 +792,7 @@
     authUid = u && u.uid;
     session.setUser(u); screenVersion++;
     if (changedAccount) {
+      setReplyLabels(false);
       if (window.GuestWelcome) window.GuestWelcome.clear();
       $("d-name").textContent = "";
       paymentOperation++;

@@ -465,7 +465,7 @@ function paymentPageHarness() {
     session: { setUser() {} }, $: element, document: { querySelectorAll: () => [] },
     sameUser: user => !!(auth.currentUser && auth.currentUser.uid === user.uid),
     hideErr: id => { element(id).hidden = true; }, showErr: id => { element(id).hidden = false; },
-    render() {}, fillTravel() {}, pickInto() {}, syncUpTravel() {}, syncChoiceHint() {}, setSignupStep() {}, busyRegistration() {}, recalled: () => null, entryParams: new URLSearchParams(''),
+    render() {}, setReplyLabels() {}, fillTravel() {}, pickInto() {}, syncUpTravel() {}, syncChoiceHint() {}, setSignupStep() {}, busyRegistration() {}, recalled: () => null, entryParams: new URLSearchParams(''),
     loadReply(user) { context.current = fixture.inspect().registrations[user.uid]; }, Date };
   vm.createContext(context);
   const paymentStart = html.indexOf('  $("pay-sent").onclick = function () {');
@@ -653,4 +653,65 @@ test('pending reset cannot be submitted twice or display stale success after swi
   h.element('forgot').onclick(); h.element('forgot').onclick(); assert.equal(calls,1); assert.equal(h.element('forgot').disabled,true);
   h.element('tab-up').onclick(); done(); await h.settle(); await h.settle();
   assert.equal(h.element('in-ok').hidden,true); assert.equal(h.element('forgot').disabled,false);
+});
+
+
+test('reply links reflect only an authenticated saved reply and reset during loading, errors and sign-out', async () => {
+  const h = await signupPageHarness();
+  const labels = () => [h.element('hero-reply-link').textContent, h.element('footer-reply-link').textContent];
+  const assertLabels = expected => assert.deepEqual(labels(), [expected, expected]);
+  assertLabels('Reply to your invitation');
+  h.fixture.seed({registrations: {one: {name: 'First Guest', intent: 'yes'}, incomplete: {name: 'Incomplete Guest'}}});
+  const release = h.fixture.delayNext('once', 'registrations/one');
+  h.fixture.signIn({uid: 'one'}); await h.settle();
+  assertLabels('Reply to your invitation');
+  release(); await h.settle(); await h.settle();
+  assertLabels('View your reply');
+  h.fixture.signIn({uid: 'incomplete'}); await h.settle(); await h.settle();
+  assertLabels('Reply to your invitation');
+  h.fixture.signIn({uid: 'missing'}); await h.settle(); await h.settle();
+  assertLabels('Reply to your invitation');
+  h.fixture.failNext('once', 'registrations/broken');
+  h.fixture.signIn({uid: 'broken'}); await h.settle(); await h.settle();
+  assertLabels('Reply to your invitation');
+  h.fixture.signOut(); await h.settle();
+  assertLabels('Reply to your invitation');
+  assert.equal(h.writes.length, 0);
+});
+
+test('fictional reply creation updates the links, but preview never implies a saved reply', async () => {
+  const h = await signupPageHarness(); h.choose('intent', 'yes'); h.submit(); h.details(); h.submit();
+  await h.settle(); await h.settle(); await h.settle();
+  assert.equal(h.element('hero-reply-link').textContent, 'View your reply');
+  assert.equal(h.element('footer-reply-link').textContent, 'View your reply');
+  h.fixture.signOut(); await h.settle();
+  assert.equal(h.element('hero-reply-link').textContent, 'Reply to your invitation');
+  const preview = await signupPageHarness('Fictional test browser', '?preview=done');
+  assert.equal(preview.element('hero-reply-link').textContent, 'Reply to your invitation');
+  assert.equal(preview.element('footer-reply-link').textContent, 'Reply to your invitation');
+});
+
+
+test('a pending account switch or retry cannot show the previous guest reply label', async () => {
+  const h = await signupPageHarness();
+  h.fixture.seed({registrations: {one: {name:'One', intent:'yes'}, two: {name:'Two', intent:'no'}}});
+  h.fixture.signIn({uid:'one'}); await h.settle(); await h.settle();
+  assert.equal(h.element('hero-reply-link').textContent, 'View your reply');
+  const release = h.fixture.delayNext('once', 'registrations/two');
+  h.fixture.signIn({uid:'two'}); await h.settle();
+  assert.equal(h.element('hero-reply-link').textContent, 'Reply to your invitation');
+  assert.equal(h.element('footer-reply-link').textContent, 'Reply to your invitation');
+  release(); await h.settle(); await h.settle();
+  assert.equal(h.element('hero-reply-link').textContent, 'View your reply');
+  h.fixture.failNext('once', 'registrations/broken'); h.fixture.signIn({uid:'broken'}); await h.settle(); await h.settle();
+  h.element('registration-retry').onclick(); await h.settle(); await h.settle();
+  assert.equal(h.element('hero-reply-link').textContent, 'Reply to your invitation');
+  assert.equal(h.writes.length, 0);
+});
+
+test('personalised reply links keep their existing target and RSVP navigation', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '../index.html'), 'utf8');
+  assert.match(html, /id="hero-reply-link" href="#card"/);
+  assert.match(html, /id="footer-reply-link" href="#card"/);
+  assert.match(html, /<nav class="guest-nav"[\s\S]*?<a href="#card"[^>]*>RSVP<\/a>/);
 });
