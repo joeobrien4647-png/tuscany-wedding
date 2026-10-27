@@ -24,7 +24,7 @@
 </head>
 <body class="guest-page postcard-page feature-page gt-page">
   <a class="guest-skip" href="#main">Skip to content</a>
-  <header class="guest-header"><a class="guest-brand" href="index.html">Sophie &amp; Joe</a><nav class="guest-nav" aria-label="Guest navigation"><a href="index.html#card">RSVP</a><a href="getting-here.html" aria-current="location">Travel &amp; stay</a><a href="weekend-guide.html">Our wedding</a><a href="index.html#help">Help</a></nav></header>
+  <header class="guest-header"><a class="guest-brand" href="index.html" aria-label="Sophie and Joe, home"><img src="images/save-the-date/names.svg" alt="Sophie &amp; Joe" width="210" height="56"></a><nav class="guest-nav" aria-label="Guest navigation"><a href="index.html#card">RSVP</a><a href="getting-here.html" aria-current="location">Travel &amp; stay</a><a href="weekend-guide.html">Our wedding</a><a href="index.html#help">Help</a></nav></header>
 
     <main id="main">
         <header class="container gt-heading">
@@ -60,15 +60,7 @@
                         <div class="gt-chips" id="gt-chips" role="group" aria-label="Airports, closest first"></div>
                     </div>
 
-                    <figure class="gt-map" id="gt-map">
-                        <svg id="gt-svg" role="img" aria-labelledby="gt-svg-title" preserveAspectRatio="xMidYMid meet">
-                            <title id="gt-svg-title">Map of central Italy with La Conca and the six airports</title>
-                        </svg>
-                        <p class="gt-loading" id="gt-loading">Unfolding the map&hellip;</p>
-                        <figcaption>Map: Natural Earth. Routes: &copy; OpenStreetMap contributors</figcaption>
-                    </figure>
-
-                    <div class="gt-card" id="gt-card">
+                    <div class="gt-card" id="gt-card" tabindex="-1">
                         <div id="gt-card-body">
                             <div class="gt-empty">
                                 <div class="eyebrow">Your route</div>
@@ -104,6 +96,16 @@
                             <p class="gt-hint" id="gt-reply-hint">Opens the reply form with this airport picked. Nothing is saved until you send it.</p>
                         </div>
                     </div>
+
+                    <figure class="gt-map" id="gt-map">
+                        <svg id="gt-svg" role="img" aria-labelledby="gt-svg-title" preserveAspectRatio="xMidYMid meet">
+                            <title id="gt-svg-title">Map of central Italy with La Conca and the six airports</title>
+                        </svg>
+                        <p class="gt-loading" id="gt-loading">Unfolding the map&hellip;</p>
+                        <button class="btn btn-outline gt-map-details" id="gt-map-details" type="button" aria-controls="gt-card" hidden>View route details</button>
+                        <figcaption>Map: Natural Earth. Routes: &copy; OpenStreetMap contributors</figcaption>
+                    </figure>
+
                 </div>
                 <p class="s-sr" id="gt-status" role="status" aria-live="polite"></p>
             </div>

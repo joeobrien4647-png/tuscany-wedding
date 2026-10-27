@@ -6,11 +6,11 @@
 body.dark-mode .gt-section { --gt-sea: #17120F; --gt-land: #2A2219; --gt-neigh: #211B16; --gt-coast: #B8994F; --gt-route: #E38C5C;
     --gt-ring-fill: #221C17; --gt-label: #F1E9DD; --gt-halo: #15110E; }
 
-/* ---- layout: list, map and card stacked on phones; the map sticks beside the list and card on wide screens ---- */
+/* ---- layout: list, card and map stacked on phones; the map sticks beside the list and card on wide screens ---- */
 .gt-planner {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "side" "map" "card";
+    grid-template-areas: "side" "card" "map";
     gap: 20px;
 }
 .gt-side { grid-area: side; min-width: 0; }
@@ -130,6 +130,8 @@ body.dark-mode .gt-section { --gt-sea: #17120F; --gt-land: #2A2219; --gt-neigh: 
     user-select: none;
     -webkit-tap-highlight-color: transparent;
 }
+.gt-map-details { margin-top: 12px; }
+.gt-map-details[hidden] { display: none; }
 .gt-map figcaption,
 .gt-mini figcaption { margin-top: 6px; font-size: 11.5px; line-height: 1.4; color: var(--text-soft); text-align: right; }
 .gt-loading {
@@ -194,6 +196,7 @@ body.dark-mode .gt-region--u { fill: #A3B48F; }
 
 /* ---- the airport card ---- */
 .gt-card {
+    scroll-margin-top: calc(var(--nav-h) + 12px);
     padding: 26px 24px 24px;
     background: var(--paper);
     border: 1px solid var(--hair);

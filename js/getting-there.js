@@ -216,7 +216,7 @@
       el("text", { x: p[0] + lo[0], y: p[1] + lo[1], "text-anchor": lo[2], "class": "gt-alabel gt-halo" }, lg).textContent = a.shortName;
       var hr = hitArea(a);
       var hit = el("circle", { cx: hr.x.toFixed(1), cy: hr.y.toFixed(1), r: hr.r.toFixed(1), "class": "gt-hit", "data-code": a.code }, map.hits);
-      hit.addEventListener("click", function () { choose(a.code, true); });
+      hit.addEventListener("click", function () { choose(a.code, true, true); });
       var tr = track(a.drive.polyline, project);
       tr.faceLeft = tr.pts[tr.pts.length - 1][0] < tr.pts[0][0];
       BY[a.code].track = tr;
@@ -331,17 +331,16 @@
   }
 
   // ---- choosing an airport ----
-  function choose(code, fromUser) {
+  function choose(code, fromUser, fromMap) {
     var a = BY[code];
     if (!a) return;
     CURRENT = code;
+    var details = $("gt-map-details");
+    details.hidden = !fromMap;
+    if (fromMap) details.textContent = "View " + a.shortName + " route details";
     if (PENDING) { PENDING.disconnect(); PENDING = null; }
     Array.prototype.forEach.call(document.querySelectorAll(".gt-chip"), function (c) { c.setAttribute("aria-pressed", String(c.getAttribute("data-code") === code)); });
-    CODES.forEach(function (c) {
-      if (!BY[c].ring) return;
-      BY[c].ring.classList.toggle("is-on", c === code);
-      BY[c].label.classList.toggle("is-on", c === code);
-    });
+    syncMapState();
     renderCard(a);
     $("gt-calc").hidden = false;
     $("gt-reply-box").hidden = false;
@@ -349,21 +348,11 @@
     $("gt-reply").textContent = "Add " + a.shortName + " to my reply";
     $("gt-reply-hint").textContent = "Opens the reply form with " + a.shortName + " picked as your airport. Nothing is saved until you send it.";
     calc();
-    if (mapReady) {
-      if (fromUser) { showMap(); animate(code); } else driveWhenSeen(code);
-    }
+    if (mapReady) driveWhenSeen(code);
     $("gt-status").textContent = a.shortName + ": " + a.drive.label + " to La Conca";
     if (fromUser && window.history && history.replaceState) history.replaceState(null, "", "#" + code);
   }
-  // one column (phones, small tablets): the map is below the list, so scroll it up unless it's already in view
-  function showMap() {
-    if (!window.matchMedia || !window.matchMedia("(max-width: 959px)").matches) return;
-    var fig = $("gt-map"), r = fig.getBoundingClientRect(), vh = window.innerHeight || document.documentElement.clientHeight;
-    var seen = Math.max(0, Math.min(r.bottom, vh) - Math.max(r.top, 64)) / (r.height || 1);
-    if (seen > 0.85) return;
-    try { fig.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" }); } catch (e) { fig.scrollIntoView(true); }
-  }
-  // a deep link (#PEG) picks the airport at once, but the drive starts when the map is on screen
+  // Draw the route when its map is visible, without moving the guest away from the details.
   function driveWhenSeen(code) {
     if (reduced || !("IntersectionObserver" in window)) return animate(code);
     cancelAnimationFrame(ANIM);
@@ -473,6 +462,16 @@
     out.push(fresh.length ? "Check before you book, and check the new route runs in May 2027." : "Check before you book.");
     return out.join(" ");
   }
+  function syncMapState() {
+    DATA.airports.forEach(function (a) {
+      if (!a.ring) return;
+      var dim = !!ORIGIN && !servedFrom(a, ORIGIN);
+      a.ring.classList.toggle("is-on", a.code === CURRENT);
+      a.label.classList.toggle("is-on", a.code === CURRENT);
+      a.ring.classList.toggle("is-dim", dim);
+      a.label.classList.toggle("is-dim", dim);
+    });
+  }
   function setOrigin(code) {
     ORIGIN = code;
     var note = $("gt-from-note");
@@ -481,8 +480,8 @@
       var on = !ORIGIN || servedFrom(a, ORIGIN);
       var chip = document.querySelector('.gt-chip[data-code="' + a.code + '"]');
       if (chip) { chip.classList.toggle("is-dim", !on); chip.classList.toggle("is-served", !!ORIGIN && on); }
-      if (BY[a.code].ring) { BY[a.code].ring.classList.toggle("is-dim", !on); BY[a.code].label.classList.toggle("is-dim", !on); }
     });
+    syncMapState();
     if (!ORIGIN) { note.hidden = true; note.textContent = ""; }
     else {
       note.hidden = false;
@@ -756,23 +755,33 @@
     notice.setAttribute("aria-live", "polite");
     notice.textContent = "The map is unavailable. Choose an airport from the list to continue.";
   }
-  function start(values) {
+  function attachMap(shapes) {
+    try {
+      if (!validBaseMap(shapes)) throw new Error("Invalid map data");
+      buildMap(shapes);
+      mapReady = true;
+      syncMapState();
+      if (CURRENT) driveWhenSeen(CURRENT);
+    } catch (e) {
+      mapUnavailable();
+    }
+  }
+  function start(data) {
     if (!$("gt-svg")) return;
-    DATA = values[0];
+    DATA = data;
     DATA.airports.forEach(function (a) { BY[a.code] = a; });
     buildChips();
     buildFrom();
     buildCalc();
     buildStatic();
-    try {
-      if (!validBaseMap(values[1])) throw new Error("Invalid map data");
-      buildMap(values[1]);
-      mapReady = true;
-    } catch (e) {
-      mapUnavailable();
-    }
+    $("gt-map-details").addEventListener("click", function () {
+      var card = $("gt-card");
+      try { card.focus({ preventScroll: true }); } catch (e) { card.focus(); }
+      card.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+    });
     var pick = (/^#([A-Za-z]{3})$/.exec(location.hash) || [])[1];
     if (pick && BY[pick.toUpperCase()]) choose(pick.toUpperCase(), false);
+    mapRequest.promise.then(attachMap);
   }
   function getJSON(url, signal) {
     var options = { credentials: "same-origin" };
@@ -803,7 +812,7 @@
     return { promise: promise, cancel: cancel };
   }
   var mapRequest = optionalMap();
-  Promise.all([getJSON("data/getting-there.json"), mapRequest.promise])
+  getJSON("data/getting-there.json")
     .then(start)
     .catch(function (e) {
       mapRequest.cancel();
