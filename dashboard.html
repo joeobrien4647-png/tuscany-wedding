@@ -482,7 +482,7 @@
 
     // Registrations, payments, nudges and bank details are never kept in this browser's localStorage.
     // The guest list (wedding-guests-v4) still is, so the dashboard works offline.
-    const NO_CACHE_KEYS = ["registrations", "members/payment", "payments", "nudges"];
+    const NO_CACHE_KEYS = ["registrations", "members/payment", "payments", "approved", "nudges"];
     NO_CACHE_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch {} });
 
     function useStorage(key, def, normalize = (v) => v, { noCache = false } = {}) {
@@ -2470,7 +2470,7 @@
       ["fun", "Fun stuff", ["fun", "bingo", "quiz", "songs", "messages", "memories", "time-capsule"], ""],
     ];
 
-    function BankDetails({ bank, saveBank }) {
+    function BankDetails({ bank, saveBank, toApprove, approveListed }) {
       const b = safeObj(bank, {});
       const blank = { accountName: "", sortCode: "", accountNumber: "" };
       const [f, setF] = useState({ ...blank, ...b });
@@ -2487,7 +2487,7 @@
         <div style={{ background: P.card, borderRadius: 12, padding: 14, marginBottom: 18, boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>Bank details for the £150</div>
           <div style={{ fontSize: 11, color: live ? P.green : P.gold, margin: "2px 0 10px" }}>
-            {live ? "Showing to guests who said yes, once they sign in." : "Not showing yet. Guests see nothing until you save these."}
+            {live ? "Showing only to guests you approve below. Everyone else sees that the details are coming soon." : "Not showing yet. Guests see nothing until you save these."}
           </div>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             {field("accountName", "Name on account", "")}
@@ -2499,6 +2499,7 @@
                     style={{ ...bS, background: P.terra, color: "#fff" }}>Save</button>
             {live && <button onClick={() => saveBank(blank)} style={{ ...bS, background: P.stoneP, color: P.txtM }}>Hide from guests</button>}
             {saved && <span style={{ fontSize: 11, color: P.green }}>Saved</span>}
+            {toApprove > 0 && <button onClick={approveListed} style={{ ...bS, background: P.olive, color: "#fff", marginLeft: "auto" }}>{"Approve " + toApprove + " on the guest list"}</button>}
           </div>
         </div>
       );
@@ -2652,7 +2653,7 @@
       );
     }
 
-    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, chase, saveChase, nudges }) {
+    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, approved, chase, saveChase, nudges }) {
       const [resetNote, setResetNote] = useState({});
       const regs = Object.entries(safeObj(registrations, {})).map(([k, v]) => ({ ...safeObj(v, {}), _uid: k })).filter(r => r && r.name)
         .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -2693,6 +2694,20 @@
         const ref = db.ref("payments/" + r._uid);
         (isPaid(r) ? ref.remove() : ref.set({ paid: true, paidAt: Date.now(), name: r.name, heads: regHeads(r) }))
           .catch(e => window.alert("Could not save that payment: " + ((e && e.message) || "unknown error")));
+      };
+      // only approved guests can read the bank details (firebase.rules.json), so a stranger who signs up never sees them
+      const okd = safeObj(approved, {});
+      const isApproved = r => okd[r._uid] === true;
+      const toggleApproved = r => {
+        const ref = db.ref("approved/" + r._uid);
+        (isApproved(r) ? ref.remove() : ref.set(true))
+          .catch(e => window.alert("Could not save that: " + ((e && e.message) || "unknown error")));
+      };
+      const toApprove = regs.filter(r => matched(r) && !isApproved(r));
+      const approveListed = () => {
+        if (!window.confirm("Show the bank details to " + toApprove.length + " registration" + (toApprove.length === 1 ? "" : "s") + " whose name is on the guest list?")) return;
+        db.ref("approved").update(Object.fromEntries(toApprove.map(r => [r._uid, true])))
+          .catch(e => window.alert("Could not save that: " + ((e && e.message) || "unknown error")));
       };
       const setReset = (uid, ok, text) => setResetNote(n => ({ ...n, [uid]: { ok, text } }));
       const sendReset = r => {
@@ -2806,7 +2821,7 @@
                                   fromOf(t), t.into, t.arriveDay, t.arriveTime, t.flightIn, t.departDay, t.departTime, t.flightOut]; })])}
                     style={{ ...bS, background: P.stoneP, color: P.txtM }}>Download CSV (addresses, travel)</button>
           </div>
-          <BankDetails bank={bank} saveBank={saveBank} />
+          <BankDetails bank={bank} saveBank={saveBank} toApprove={toApprove.length} approveListed={approveListed} />
           <ChaseList regs={regs} guests={guests} owed={owed} saysSent={saysSent} chase={chase} saveChase={saveChase} nudges={nudges} />
 
           {regs.length === 0 && (
@@ -2847,6 +2862,10 @@
                         style={{ padding: "2px 7px", borderRadius: 10, background: P.goldP, color: P.gold, fontSize: 10, fontWeight: 600, whiteSpace: "nowrap" }}>Says sent</span>}
                   {due > 0 && <span title={part ? "£" + (due - toGo) + " of £" + due + " paid" : due > FEE ? "For both of them" : ""}
                         style={{ fontSize: 11, fontWeight: 600, color: part ? P.gold : P.txtM, whiteSpace: "nowrap" }}>{part ? "£" + toGo + " to go" : "£" + due}</span>}
+                  {(due > 0 || isApproved(r)) && <button onClick={() => toggleApproved(r)} title="Whether this guest can see the bank details"
+                          style={{ ...bS, background: isApproved(r) ? P.olive : P.stoneP, color: isApproved(r) ? "#fff" : P.txtM }}>
+                    {isApproved(r) ? "Sees bank details" : "Approve"}
+                  </button>}
                   <button onClick={() => togglePaid(r)}
                           style={{ ...bS, background: isPaid(r) ? P.green : P.stoneP, color: isPaid(r) ? "#fff" : P.txtM }}>
                     {isPaid(r) ? "Paid" : "Mark paid"}
@@ -3610,6 +3629,7 @@
       const [payments, , b24] = useStorage("payments", {}, (v) => safeObj(v, {}), { noCache: true });
       const [chase, saveChase, b25] = useStorage("site-chase", {}, (v) => safeObj(v, {}));
       const [nudges, , b26] = useStorage("nudges", {}, (v) => safeObj(v, {}), { noCache: true });
+      const [approved, , b27] = useStorage("approved", {}, (v) => safeObj(v, {}), { noCache: true });
       const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music, normalizeMusic);
       const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing, safeArr);
       const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating, (v) => ({ tables: safeArr(v?.tables).map(t => ({ ...t, guests: safeArr(t?.guests) })) }));
@@ -3629,7 +3649,7 @@
       const [honeymoon, saveHoneymoon, b18] = useStorage("wedding-honeymoon-v1", { destination: "", dates: "", flights: "", hotel: "", budget: "", notes: "", documents: "", itinerary: [] }, normalizeHoneymoon);
       EUR_RATE = eurRate;
 
-      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19&&b20&&b21&&b22&&b23&&b24&&b25&&b26)) return (
+      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19&&b20&&b21&&b22&&b23&&b24&&b25&&b26&&b27)) return (
         <div style={{ minHeight: "100vh", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\uD83D\uDC8D"}</div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15 }}>Loading...</div></div>
         </div>
@@ -3690,7 +3710,7 @@
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} dayKit={dayKit} saveDayKit={saveDayKit} />}
             {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
             {tab === "total" && <TotalCostTab legalSpend={legalSpend} budget={budget} eurRate={eurRate} guests={guests} />}
-            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} chase={chase} saveChase={saveChase} nudges={nudges} />}
+            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} approved={approved} chase={chase} saveChase={saveChase} nudges={nudges} />}
           </div>
         </div>
       );

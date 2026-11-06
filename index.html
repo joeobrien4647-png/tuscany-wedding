@@ -657,7 +657,7 @@
     continueToNext(reg);
   }
 
-  // ---- the 150: bank details live in /members/payment (signed-in only), paid flags in /payments/{uid} (admin-set) ----
+  // ---- the 150: bank details live in /members/payment (approved guests only, approved/{uid} is admin-set), paid flags in /payments/{uid} (admin-set) ----
   var payAmount = 150;
   function showPay(reg) {
     var box = $("pay");
@@ -691,7 +691,9 @@
     if (PREVIEW) return paint({ accountName: "Sample Name", sortCode: "00-00-00", accountNumber: "00000000" }, false, false);
     var u = auth.currentUser; if (!u) { box.hidden = true; return; }
     var paymentVersion = screenVersion;
-    Promise.all([db.ref("members/payment").once("value"), db.ref("payments/" + u.uid).once("value")]).then(function (s) {
+    // a guest not yet approved is refused the bank details, so they see the "here soon" line instead
+    var bank = db.ref("members/payment").once("value").catch(function () { return null; });
+    Promise.all([bank, db.ref("payments/" + u.uid).once("value")]).then(function (s) {
       if (!sameUser(u) || paymentVersion !== screenVersion) return;
       // payments/{uid}.heads says how many people a payment covered (older ticks without it covered everyone)
       var p = s[1].val() || {}, paidN = p.paid === true ? (typeof p.heads === "number" ? p.heads : n) : 0, owe = Math.max(0, n - paidN);
@@ -703,7 +705,7 @@
         $("pay-two").textContent = "We tick it off at our end and it will show here once we have.";
       }
       var sent = !!reg.paymentSent && (!paidN || (typeof reg.paymentSent === "number" && reg.paymentSent > (p.paidAt || 0)));
-      paint(s[0].val() || {}, paidN > 0 && owe === 0, sent);
+      paint((s[0] && s[0].val()) || {}, paidN > 0 && owe === 0, sent);
     }).catch(function () { if (sameUser(u) && paymentVersion === screenVersion) box.hidden = true; });
   }
   function copyText(t, ok) {

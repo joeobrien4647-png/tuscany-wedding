@@ -715,3 +715,24 @@ test('personalised reply links keep their existing target and RSVP navigation', 
   assert.match(html, /id="footer-reply-link" href="#card"/);
   assert.match(html, /<nav class="guest-nav"[\s\S]*?<a href="#card"[^>]*>RSVP<\/a>/);
 });
+
+test('a guest not yet approved for the bank details sees the holding line instead of losing the pay box', async () => {
+  const h = await signupPageHarness();
+  h.fixture.seed({ registrations: { waiting: { name: 'Waiting Guest', intent: 'yes' } }, members: { payment: { accountName: 'Fictional Account', sortCode: '00-00-00', accountNumber: '00000000' } } });
+  h.fixture.failNext('once', 'members/payment', 'PERMISSION_DENIED: Permission denied');
+  h.fixture.signIn({ uid: 'waiting' }); await h.settle(); await h.settle();
+  assert.equal(h.element('pay').hidden, false);
+  assert.equal(h.element('pay-soon').hidden, false);
+  assert.equal(h.element('pay-bank').hidden, true);
+  assert.equal(h.element('pay-sort').textContent, '');
+});
+
+test('an approved guest who is coming sees the bank details', async () => {
+  const h = await signupPageHarness();
+  h.fixture.seed({ registrations: { approved: { name: 'Approved Guest', intent: 'yes' } }, members: { payment: { accountName: 'Fictional Account', sortCode: '00-00-00', accountNumber: '00000000' } } });
+  h.fixture.signIn({ uid: 'approved' }); await h.settle(); await h.settle();
+  assert.equal(h.element('pay').hidden, false);
+  assert.equal(h.element('pay-soon').hidden, true);
+  assert.equal(h.element('pay-bank').hidden, false);
+  assert.equal(h.element('pay-sort').textContent, '00-00-00');
+});

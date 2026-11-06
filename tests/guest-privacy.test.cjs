@@ -27,5 +27,7 @@ test('privacy cleanup preserves the live registration, contribution, payment and
     '.validate': "newData.hasChildren(['name', 'email', 'intent'])"
   }});
   assert.deepEqual(rules.payments, { '$uid': { '.read': ownerOrAdmin }});
-  assert.deepEqual(rules.members, { '.read': 'auth != null' });
+  assert.equal(rules.members['.read'], undefined, 'a members-wide grant would show the bank details to anyone who signs up');
+  assert.deepEqual(rules.members.payment, { '.read': "auth != null && root.child('approved').child(auth.uid).val() === true" });
+  assert.deepEqual(rules.approved, { '$uid': { '.validate': 'newData.isBoolean()' } }, 'only admins, through the root grant, can approve');
 });

@@ -20,7 +20,14 @@
       }
     },
     "members": {
-      ".read": "auth != null"
+      "payment": {
+        ".read": "auth != null && root.child('approved').child(auth.uid).val() === true"
+      }
+    },
+    "approved": {
+      "$uid": {
+        ".validate": "newData.isBoolean()"
+      }
     },
     "payments": {
       "$uid": {
