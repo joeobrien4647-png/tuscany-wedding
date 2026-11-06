@@ -394,6 +394,7 @@
 (function () {
   firebase.initializeApp({
     apiKey: "AIzaSyAbEpCIPFFqiuElH0DK1dkkl7JBbNyZTc8",
+    authDomain: "tuscany-wedding.firebaseapp.com",
     databaseURL: "https://tuscany-wedding-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "tuscany-wedding"
   });
@@ -430,6 +431,10 @@
     if (c === "auth/weak-password") return "Password needs to be at least 6 characters.";
     if (c === "auth/invalid-credential" || c === "auth/wrong-password" || c === "auth/user-not-found") return "That email and password don’t match.";
     if (c === "auth/too-many-requests") return "Too many attempts. Give it a minute and try again.";
+    if (c === "auth/popup-blocked") return "Your browser blocked the Google window. Allow pop-ups for this site, or use your email below.";
+    if (c === "auth/network-request-failed") return "Couldn’t reach Google. Check your connection and try again.";
+    if (c === "auth/account-exists-with-different-credential") return "That email already has an account. Sign in with your email and password instead.";
+    if (c === "auth/unauthorized-domain" || c === "auth/auth-domain-config-required") return "Google sign-in isn’t working right now. Use your email below instead.";
     if (c === "auth/operation-not-allowed" || c === "auth/configuration-not-found") return "Registration isn’t switched on yet. Joe needs to enable it. Try again shortly.";
     if (c === "PERMISSION_DENIED" || /permission/i.test(e && e.message || "")) return "Couldn’t save that. Try again, or message Joe.";
     return (e && e.message) || "Something went wrong.";

@@ -17,3 +17,8 @@ test('robots.txt exists and never blocks the pages, so crawlers can read their n
   assert.ok(!lines.includes('Disallow: /'));
   assert.ok(lines.filter(line => line.startsWith('Disallow:')).every(line => /^Disallow: \/[a-z]+\/$/.test(line)));
 });
+
+test('the homepage Firebase config names the auth domain Google sign-in needs', () => {
+  const config = read('index.html').match(/firebase\.initializeApp\(\{([\s\S]*?)\}\);/)[1];
+  assert.match(config, /authDomain: "tuscany-wedding\.firebaseapp\.com"/);
+});
