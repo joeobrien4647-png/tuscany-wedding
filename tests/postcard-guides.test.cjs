@@ -55,7 +55,7 @@ test('the stay price and inclusions appear before flight planning and agree with
   }
   const travel = read('getting-here.html');
   assert.ok(travel.indexOf('id="stay-title"') < travel.indexOf('id="flights-title"'));
-  assert.match(travel, /Payment details appear in <a href="index\.html#card">your saved reply<\/a> once you’ve said you’re coming/);
+  assert.match(travel, /Once you’ve said you’re coming, we’ll add the payment details to <a href="index\.html#card">your saved reply<\/a>/);
 });
 
 test('practical pages use bounded responsive photos and no additional runtime', () => {
