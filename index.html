@@ -52,6 +52,8 @@
   .p-step-heading:focus { outline: 2px solid var(--color-gold); outline-offset: 4px; }
   .p-done h2:focus { outline: none; }
   .p-done h2:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 4px; }
+  .p-returning { margin: -10px 0 18px; }
+  .p-returning .p-link { margin-top: 0; }
   .p-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
   #form-up .p-intent span { display: flex; align-items: center; justify-content: center; }
   #up-choice-hint { min-height: 40px; margin-top: 14px; }
@@ -210,6 +212,7 @@
       <button type="button" id="tab-up" aria-pressed="true">Reply</button>
       <button type="button" id="tab-in" aria-pressed="false">Sign in</button>
     </div>
+    <p class="p-hint p-returning" id="returning-hint">Replied already? <button class="p-link" type="button" id="returning-signin">Sign in to see your reply</button></p>
 
     <p class="p-msg" id="completion-note" role="status" hidden></p>
     <form id="form-up" novalidate>
@@ -436,13 +439,16 @@ window.sjSlowReply = setTimeout(function () {
   }
 
   // ---- tabs ----
+  var onReplyTab = true;
   function showTab(up) {
+    onReplyTab = up; $("returning-hint").hidden = !up;
     $("tab-up").setAttribute("aria-pressed", up); $("tab-in").setAttribute("aria-pressed", !up);
     $("form-up").hidden = !up; $("form-in").hidden = up;
     ["in-email", "in-pw"].forEach(clearSignInError); hideErr("in-err"); $("in-ok").hidden = true;
   }
   $("tab-up").onclick = function () { if (!registrationBusy) showTab(true); };
   $("tab-in").onclick = function () { if (!registrationBusy) showTab(false); };
+  $("returning-signin").onclick = function () { if (!registrationBusy) { showTab(false); $("in-email").focus(); } };
 
   // ---- errors ----
   function friendly(e) {
@@ -505,6 +511,8 @@ window.sjSlowReply = setTimeout(function () {
 
   // ---- this browser has registered before: remember the email so returning guests land on Sign in ----
   var SEEN = "sj-registered";
+  // After the reply date most visitors have replied already, so Sign in comes first when nothing is remembered.
+  var REPLY_BY_PASSED = Date.UTC(2027, 2, 1);
   var INAPP = /FBAN|FBAV|FB_IAB|FBIOS|Instagram|Messenger|MicroMessenger/i.test(navigator.userAgent || "");
   function remember(email, google) {
     try { localStorage.setItem(SEEN, JSON.stringify({ email: email || "", google: !!google })); } catch (e) {}
@@ -791,7 +799,7 @@ window.sjSlowReply = setTimeout(function () {
     $("completion-note").textContent = "Signed in as " + (u.email || "your account") + ". Finish your reply below, then save.";
     $("completion-note").hidden = false; $("password-row").hidden = true; $("up-account-help").hidden = true;
     $("up-email").readOnly = true; $("up-email").value = u.email || "";
-    $("tab-up").textContent = "Complete your reply"; $("tab-in").hidden = true;
+    $("tab-up").textContent = "Complete your reply"; $("tab-in").hidden = true; $("returning-hint").hidden = true;
     document.querySelectorAll("[data-google], .p-or").forEach(function (el) { el.hidden = true; });
     if (!retain && formOwner !== u.uid) {
       $("form-up").reset(); $("up-name").value = u.displayName || ""; $("up-email").value = u.email || "";
@@ -839,7 +847,7 @@ window.sjSlowReply = setTimeout(function () {
     $("registration-saved").hidden = true; $("reply-live").textContent = "";
     if (!u) {
       render(null); $("completion-note").hidden = true; $("password-row").hidden = false; $("up-account-help").hidden = false;
-      $("up-email").readOnly = false; $("tab-up").textContent = "Reply"; $("tab-in").hidden = false;
+      $("up-email").readOnly = false; $("tab-up").textContent = "Reply"; $("tab-in").hidden = false; $("returning-hint").hidden = !onReplyTab;
       document.querySelectorAll("[data-google], .p-or").forEach(function (el) { el.hidden = INAPP; });
       $("form-up").reset(); $("form-edit").reset(); formOwner = null;
       $("form-edit").hidden = true;
@@ -849,6 +857,7 @@ window.sjSlowReply = setTimeout(function () {
       busyRegistration(false);
       var seen = recalled();
       if (entryParams.get("signin") === "1") openSignIn(seen && seen.email, entryParams.get("reset") === "1" ? "Password changed? Sign in with your new password." : "Sign in to continue.");
+      else if (!seen && Date.now() >= REPLY_BY_PASSED) openSignIn("", "");
       else if (seen) openSignIn(seen.email, seen.google && !INAPP ? "Welcome back. You registered with Google, so use the Google button below." : "Sign in to see your saved reply. Or choose Reply if you have not replied yet.");
       return;
     }

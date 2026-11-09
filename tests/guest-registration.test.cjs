@@ -11,7 +11,7 @@ function setup() {
   return { fixture, auth, session };
 }
 
-async function signupPageHarness(userAgent = 'Fictional test browser', search = '') {
+async function signupPageHarness(userAgent = 'Fictional test browser', search = '', { now } = {}) {
   const fs = require('node:fs'), vm = require('node:vm'), path = require('node:path');
   const html = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
   const fixture = createFixture(), auth = fixture.firebase.auth(), elements = {}, writes = [];
@@ -57,7 +57,7 @@ async function signupPageHarness(userAgent = 'Fictional test browser', search = 
   fixture.firebase.database.ServerValue = factory.ServerValue;
   const context = { document, window: {}, firebase: fixture.firebase, GuestRegistration: { createSession },
     location: { search, protocol: 'http:', origin: 'http://fictional.test', assign() {} },
-    navigator: { userAgent }, URLSearchParams, Date,
+    navigator: { userAgent }, URLSearchParams, Date: now ? class extends Date { static now() { return now; } } : Date,
     localStorage: { setItem(key, value) { store[key] = value; }, getItem(key) { return store[key]; } },
     setTimeout() {}, setInterval() {}, clearTimeout() {} };
   const script = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].at(-1)[1];
@@ -465,7 +465,7 @@ function paymentPageHarness() {
     session: { setUser() {} }, $: element, document: { querySelectorAll: () => [] },
     sameUser: user => !!(auth.currentUser && auth.currentUser.uid === user.uid),
     hideErr: id => { element(id).hidden = true; }, showErr: id => { element(id).hidden = false; },
-    render() {}, setReplyLabels() {}, fillTravel() {}, pickInto() {}, syncUpTravel() {}, syncChoiceHint() {}, setSignupStep() {}, busyRegistration() {}, recalled: () => null, entryParams: new URLSearchParams(''),
+    render() {}, setReplyLabels() {}, fillTravel() {}, pickInto() {}, syncUpTravel() {}, syncChoiceHint() {}, setSignupStep() {}, busyRegistration() {}, recalled: () => null, entryParams: new URLSearchParams(''), onReplyTab: true, REPLY_BY_PASSED: Infinity,
     loadReply(user) { context.current = fixture.inspect().registrations[user.uid]; }, Date };
   vm.createContext(context);
   const paymentStart = html.indexOf('  $("pay-sent").onclick = function () {');
@@ -767,4 +767,23 @@ test('the reset email continues to Sign in on the reply card, with a one-line no
   assert.match(back.element('in-note').textContent, /new password/);
   const dashboard = require('node:fs').readFileSync(require('node:path').join(__dirname, '../dashboard.html'), 'utf8');
   assert.match(dashboard, /sendPasswordResetEmail\(r\.email, \{ url: "https:\/\/sophieandjoe2027\.com\/\?signin=1&reset=1#card" \}\)/);
+});
+
+test('a guest on a new phone is shown how to sign in, and after the reply date Sign in comes first', async () => {
+  const h = await signupPageHarness();
+  assert.equal(h.element('returning-hint').hidden, false);
+  h.element('returning-signin').onclick();
+  assert.equal(h.element('form-in').hidden, false);
+  assert.equal(h.element('returning-hint').hidden, true);
+  assert.equal(h.document.activeElement?.id, 'in-email');
+  h.element('tab-up').onclick();
+  assert.equal(h.element('returning-hint').hidden, false);
+  const before = await signupPageHarness(undefined, '', { now: Date.UTC(2027, 1, 28, 18) });
+  assert.equal(before.element('form-up').hidden, false);
+  const after = await signupPageHarness(undefined, '', { now: Date.UTC(2027, 2, 1, 9) });
+  assert.equal(after.element('form-in').hidden, false);
+  assert.equal(after.element('in-note').hidden, true);
+  const completing = await signupPageHarness();
+  completing.fixture.signIn({ uid: 'fictional-new', email: 'new@example.test' }); await completing.settle(); await completing.settle();
+  assert.equal(completing.element('returning-hint').hidden, true, 'no sign-in hint while finishing a reply signed in');
 });
