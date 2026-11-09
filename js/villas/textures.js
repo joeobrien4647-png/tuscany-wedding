@@ -176,11 +176,13 @@ export function normalFromHeight(hc, strength = 2, size = hc.width) {
   const d = img.data;
   const H = new Float32Array(size * size);
   for (let i = 0; i < H.length; i++) H[i] = d[i * 4] / 255;
-  const at = (px, py) => H[((py + size) % size) * size + ((px + size) % size)];
+  // the wrapped rows and columns either side, worked out once per row and column rather than per sample
   for (let py = 0; py < size; py++) {
+    const up = ((py - 1 + size) % size) * size, row = py * size, down = ((py + 1) % size) * size;
     for (let px = 0; px < size; px++) {
-      const dx = at(px + 1, py - 1) + 2 * at(px + 1, py) + at(px + 1, py + 1) - at(px - 1, py - 1) - 2 * at(px - 1, py) - at(px - 1, py + 1);
-      const dy = at(px - 1, py + 1) + 2 * at(px, py + 1) + at(px + 1, py + 1) - at(px - 1, py - 1) - 2 * at(px, py - 1) - at(px + 1, py - 1);
+      const left = (px - 1 + size) % size, right = (px + 1) % size;
+      const dx = H[up + right] + 2 * H[row + right] + H[down + right] - H[up + left] - 2 * H[row + left] - H[down + left];
+      const dy = H[down + left] + 2 * H[down + px] + H[down + right] - H[up + left] - 2 * H[up + px] - H[up + right];
       const nx = -dx * strength, ny = dy * strength;
       const l = 1 / Math.hypot(nx, ny, 1);
       const i = (py * size + px) * 4;

@@ -37,10 +37,26 @@ function weekendShell(api, state) {
     update: now('update'), ideas: now('ideas', []), meshes: now('meshes', []), get words() { return impl?.words ?? null; } };
 }
 
+// The estate's painted surfaces. build() paints them before the houses go up, a few to a frame: painting is about a
+// third of the build, and in one block with the houses it held up a phone's first touch. A surface not listed here
+// is painted when first asked for, as before.
+const SURFACES = ['stone.santarsa', 'stone.vallorsaia', 'stone.dressed', 'stone.dry', 'stone.sandstone', 'flag.crazy', 'slab.grey',
+  'coppi', 'cotto', 'brick', 'firebrick', 'coping.pale', 'plaster', 'soot', 'iron.rust', 'timber.dark', 'timber.walnut', 'timber.honey',
+  'timber.rough', 'timber.oak', 'boards.dark', 'linen', 'canvas.ecru', 'fabric.taupe', 'sling.teal', 'rush'];
+
 export async function build(api, { onProgress } = {}) {
   onProgress?.('Building the villas');
+  const mats = api.use('materials');
+  let since = performance.now();
+  for (const name of SURFACES.filter((n) => mats.names.includes(n))) {
+    mats.get(name);
+    if (performance.now() - since > 30) { await frame(); since = performance.now(); }
+  }
+  await frame();
   buildNow(api);
 }
+
+function frame() { return new Promise((r) => requestAnimationFrame(() => r())); }
 
 // The same build, synchronous (build() runs it; a test can run it on a second api).
 export function buildNow(api) {

@@ -307,7 +307,8 @@ function lakeMesh(model, sky) {
 
 // site: api.site (content's pads, surfaces, specimen trees, shrubs and clear areas), read once here; without it the
 // pads come from v1's model. isLayerOn: whether a layer is on, for emitters that belong to one.
-export function buildGround(model, sky, { tier = 'fast', site = null, isLayerOn = () => true } = {}) {
+// It hands back a frame between its steps, so on a slow phone the page still answers a tap and the loading line moves.
+export async function buildGround(model, sky, { tier = 'fast', site = null, isLayerOn = () => true } = {}) {
   const best = tier === 'best';
   const heightAt = createHeight(model);
   const entries = (kind) => site?.all?.((e) => e.kind === kind) ?? [];
@@ -329,12 +330,14 @@ export function buildGround(model, sky, { tier = 'fast', site = null, isLayerOn 
   const groundAt = (x, z) => (inPatch(x, z) ? applyPads(pads, x, z, heightAt(x, z)) : heightAt(x, z));
 
   const mask = forestMask(model, villaZones);
+  await frame();
   const trees = placeTrees({
     groundAt, mask, model, zones: villaZones, density: best ? 1 : 0.55, noise: noise2(29),
     clear: entries('clear').map((e) => e.polygon).filter(Boolean),
     specimens: entries('tree').map((e) => ({ species: e.species, x: e.x, z: e.z, height: e.height, spread: e.spread })),
     shrubs: entries('shrub'),
   });
+  await frame();
   const land = toLandTexture(paintLand(model, best ? 2048 : 1024, { zones: villaZones, trees, heightAt, surfaces: entries('surface') }));
   const detail = groundDetail();
   const n = noise2(11);
@@ -348,10 +351,12 @@ export function buildGround(model, sky, { tier = 'fast', site = null, isLayerOn 
     return out;
   };
 
+  await frame();
   const group = new THREE.Group();
   group.name = 'ground';
   // the terrain in pieces the frustum can drop (the group is what the rest reads as 'terrain')
   const polarMat = groundMaterial({ land, detail, half: HALF, canopySize: tier === 'fast' ? 512 : 1024 });
+  await frame();
   const polar = new THREE.Group();
   polar.name = 'terrain';
   polar.material = polarMat;
@@ -362,6 +367,7 @@ export function buildGround(model, sky, { tier = 'fast', site = null, isLayerOn 
     polar.add(m);
   });
   group.add(polar);
+  await frame();
   const patchMat = groundMaterial({ land, detail, half: HALF, offset: true, canopySize: tier === 'fast' ? 512 : 1024 });
   // each villa's fine ground, with a coarser copy for when the camera is far from it (the other villa, the estate)
   const patchMeshes = patches.map((q) => {
@@ -378,6 +384,7 @@ export function buildGround(model, sky, { tier = 'fast', site = null, isLayerOn 
     group.add(lod);
     return m;
   });
+  await frame();
 
   // the blanket: one material over tiles the frustum can drop (the group stands in for the old single mesh: its
   // material, castShadow and visible are what the rest of the explorer and the tests read)
@@ -403,6 +410,7 @@ export function buildGround(model, sky, { tier = 'fast', site = null, isLayerOn 
   // its shadow (canopyDepth) lets the sun through the gaps between small crowns: flecks of light on the woods' floor
   canopy.name = 'canopy';
   group.add(canopy);
+  await frame();
 
   const woods = createTrees({ trees, tier, groundAt, sky });
   group.add(woods.group);
@@ -412,6 +420,7 @@ export function buildGround(model, sky, { tier = 'fast', site = null, isLayerOn 
   fillWoods.group.name = 'trees-eye';
   group.add(fillWoods.group);
   sky.beforeRender?.((camera) => fillWoods.cull(camera));
+  await frame();
   // at eye level among the trees the blanket sinks round the camera (canopy.js), past the nearest trees
   const canopyEye = canopy.material.userData.eye;
   sky.beforeRender?.((camera) => {
@@ -445,6 +454,7 @@ export function buildGround(model, sky, { tier = 'fast', site = null, isLayerOn 
   ensureTufts(tier);
   sky.beforeRender?.((camera) => { if (groundTier !== 'fast') tufts?.beforeRender(camera); else if (tufts) tufts.mesh.visible = false; });
   sky.onTierChange?.((t) => { groundTier = t; ensureTufts(t); });
+  await frame();
 
   // the night look of everything content says gives light (api.emitters after Phase 0): cores, halos, light on the
   // surfaces below, bulbs doubled in the pools
@@ -485,6 +495,8 @@ export function buildGround(model, sky, { tier = 'fast', site = null, isLayerOn 
     update(t) { lake.material.uniforms.uTime.value = t; woods.update(t); fillWoods.update(t); night.update(t); emitters.update(t); tuftTime.value = t; },
   };
 }
+
+function frame() { return new Promise((r) => requestAnimationFrame(() => r())); }
 
 function toLandTexture(c) {
   const t = new THREE.CanvasTexture(c);

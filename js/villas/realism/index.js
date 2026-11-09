@@ -47,7 +47,7 @@ export async function build(api, { onProgress = () => {} } = {}) {
   await frame();
 
   onProgress('Raising the hills');
-  const ground = buildGround(model, sky, { tier: startTier, site: api.site, isLayerOn: (id) => api.layers.isOn(id) });
+  const ground = await buildGround(model, sky, { tier: startTier, site: api.site, isLayerOn: (id) => api.layers.isOn(id) });
   scene.add(ground.group);
   // what content says gives light, now and as it changes (the wedding layer adds its own when first switched on)
   api.emitters.all().forEach((e) => ground.emitters.add(e));
@@ -79,6 +79,7 @@ export async function build(api, { onProgress = () => {} } = {}) {
     setSize: (w, h) => { renderer.setSize(w, h); pipeline.setSize(w, h); },
     pending: () => pipeline.pending(),
     ready: () => pipeline.ready(),          // Balanced's and Best's passes loaded (the kernel waits before frame one)
+    compile: () => pipeline.compile(),      // the scene's programs, compiled in parallel where the browser can
     info: () => pipeline.info(),
     photo: (opts) => pipeline.photo(opts),
     setNight: (n) => pipeline.setNight(n),

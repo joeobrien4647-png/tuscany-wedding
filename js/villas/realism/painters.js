@@ -23,13 +23,44 @@ export function shade(hex, amt) {
   return `#${c.getHexString()}`;
 }
 function mixHex(a, b, t) { return `#${new THREE.Color(a).lerp(new THREE.Color(b), t).getHexString()}`; }
+// Grit: count tiny white or black squares at random strengths. They are laid down as one layer: each square's share
+// of the pixels it covers is added up here and the layer is drawn over the canvas once, as thousands of fillRect
+// calls (each with its own colour string) held up a phone's first touch. Same squares, same random stream.
+const LAYERS = new Map();
 function specks(x, size, rnd, count, alpha, light = 0.5) {
-  for (let i = 0; i < count; i++) {
-    const v = rnd() < light ? 255 : 0;
-    x.fillStyle = `rgba(${v},${v},${v},${alpha * rnd()})`;
-    const s = 0.6 + rnd() * 1.6 * (size / 256);
-    x.fillRect(rnd() * size, rnd() * size, s, s);
+  if (!LAYERS.has(size)) {
+    const [c, lx] = canvas(size);
+    LAYERS.set(size, { c, lx, img: lx.createImageData(size, size), white: new Float32Array(size * size), cover: new Float32Array(size * size) });
   }
+  const { c, lx, img, white, cover } = LAYERS.get(size);
+  white.fill(0);
+  cover.fill(0);
+  for (let i = 0; i < count; i++) {
+    const on = rnd() < light ? 1 : 0;
+    const a = alpha * rnd();
+    const s = 0.6 + rnd() * 1.6 * (size / 256);
+    const x0 = rnd() * size, y0 = rnd() * size, x1 = x0 + s, y1 = y0 + s;
+    const right = Math.min(size, Math.ceil(x1)), bottom = Math.min(size, Math.ceil(y1));
+    for (let py = Math.floor(y0); py < bottom; py++) {
+      const fy = a * (Math.min(y1, py + 1) - Math.max(y0, py));
+      for (let px = Math.floor(x0); px < right; px++) {
+        const k = fy * (Math.min(x1, px + 1) - Math.max(x0, px));
+        const j = py * size + px;
+        white[j] = on * k + white[j] * (1 - k);
+        cover[j] = k + cover[j] * (1 - k);
+      }
+    }
+  }
+  const d = img.data;
+  d.fill(0);
+  for (let j = 0; j < cover.length; j++) {
+    if (!cover[j]) continue;
+    const v = Math.round((white[j] / cover[j]) * 255);
+    d[j * 4] = d[j * 4 + 1] = d[j * 4 + 2] = v;
+    d[j * 4 + 3] = Math.round(cover[j] * 255);
+  }
+  lx.putImageData(img, 0, 0);
+  x.drawImage(c, 0, 0);
 }
 // draw at every wrap offset that reaches the canvas, so the pattern tiles
 function wrapped(size, cx, cy, r, fn) {
