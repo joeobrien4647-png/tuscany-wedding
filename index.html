@@ -50,6 +50,9 @@
   .p-progress [aria-current="step"] { color: var(--color-terracotta); font-weight: 700; }
   .p-step-heading { font-family: var(--font-heading); font-size: 25px; font-weight: 400; margin: 0 0 10px; }
   .p-step-heading:focus { outline: 2px solid var(--color-gold); outline-offset: 4px; }
+  .p-done h2:focus { outline: none; }
+  .p-done h2:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 4px; }
+  .p-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
   #form-up .p-intent span { display: flex; align-items: center; justify-content: center; }
   #up-choice-hint { min-height: 40px; margin-top: 14px; }
   #up-back { margin-top: 14px; }
@@ -192,6 +195,7 @@
 <main class="p-card" id="card" tabindex="-1">
   <noscript><p>To reply online, enable JavaScript. You can also message Sophie or Joe directly, the way you normally would.</p></noscript>
   <div role="status" id="loading" style="text-align:center;color:var(--color-warm-gray);font-size:13px;padding:20px 0">One moment&hellip;</div>
+  <p class="p-sr" id="reply-live" role="status"></p>
 
   <section id="registration-recovery" hidden aria-labelledby="recovery-heading">
     <h2 id="recovery-heading">Your reply could not load</h2>
@@ -278,9 +282,9 @@
 
   <!-- ===== registered ===== -->
   <section id="done" class="p-done" hidden>
-    <h2>Your reply</h2>
+    <h2 id="done-heading" tabindex="-1">Your reply</h2>
     <p id="weekend-summary"></p>
-    <div class="p-msg p-ok" id="registration-saved" role="status" hidden>Your reply is saved</div>
+    <div class="p-msg p-ok" id="registration-saved" hidden>Your reply is saved</div>
     <p class="guest-welcome" id="guest-welcome" hidden></p>
     <div class="reply-summary">
       <dl>
@@ -830,7 +834,7 @@ window.sjSlowReply = setTimeout(function () {
       $("ed-btn").textContent = "Save changes"; $("form-edit").setAttribute("aria-busy", "false"); hideErr("ed-err");
     }
     if (PREVIEW) return;
-    $("registration-saved").hidden = true;
+    $("registration-saved").hidden = true; $("reply-live").textContent = "";
     if (!u) {
       render(null); $("completion-note").hidden = true; $("password-row").hidden = false; $("up-account-help").hidden = false;
       $("up-email").readOnly = false; $("tab-up").textContent = "Reply"; $("tab-in").hidden = false;
@@ -861,14 +865,16 @@ window.sjSlowReply = setTimeout(function () {
     session.setUser(u); formOwner = u.uid; fields.email = u.email || fields.email;
     return session.save(fields).then(function (result) {
       if (result.status !== "saved" || !sameUser(u)) return result;
-      remember(u.email, isGoogle(u)); render(result.record); $("registration-saved").hidden = false; announceSaved(result.record);
+      remember(u.email, isGoogle(u)); render(result.record); $("registration-saved").hidden = false;
+      $("reply-live").textContent = "Your reply is saved"; $("done-heading").focus();
+      announceSaved(result.record);
       $("up-pw").value = "";
       return result;
     });
   }
   // Account creation and the registration write are separate. A retry uses the same signed-in UID.
   $("form-up").onsubmit = function (ev) {
-    ev.preventDefault(); if (registrationBusy || PREVIEW) return; hideErr("up-err"); ["up-name", "up-email", "up-pw"].forEach(clearSignupError);
+    ev.preventDefault(); if (registrationBusy || PREVIEW) return; hideErr("up-err"); $("reply-live").textContent = ""; ["up-name", "up-email", "up-pw"].forEach(clearSignupError);
     if (!replyChosen()) return;
     if (signupStep === 1) { setSignupStep(2, true); return; }
     var fields = registrationFields(), pw = $("up-pw").value, u = auth.currentUser;
@@ -981,7 +987,7 @@ window.sjSlowReply = setTimeout(function () {
     $("reply-action").setAttribute("aria-expanded", "false"); $("reply-action").focus();
   };
   $("form-edit").onsubmit = function (ev) {
-    ev.preventDefault(); if (editBusy || PREVIEW) return; hideErr("ed-err"); $("registration-saved").hidden = true;
+    ev.preventDefault(); if (editBusy || PREVIEW) return; hideErr("ed-err"); $("registration-saved").hidden = true; $("reply-live").textContent = "";
     var u = auth.currentUser; if (!u || session.state().status !== "saved") return;
     var operation = ++editOperation;
     var now = editValues(), upd = {};
@@ -997,7 +1003,8 @@ window.sjSlowReply = setTimeout(function () {
     session.save(upd).then(function (result) {
       if (!sameUser(u) || operation !== editOperation || result.status !== "saved") return;
       render(result.record);
-      $("registration-saved").textContent = "Your changes are saved."; $("registration-saved").hidden = false; announceSaved(result.record);
+      $("registration-saved").textContent = "Your changes are saved."; $("registration-saved").hidden = false;
+      $("reply-live").textContent = "Your changes are saved."; announceSaved(result.record);
       $("reply-action").disabled = false;
       if ($("form-edit").hidden) $("reply-action").focus();
     }).catch(function (e) { if (sameUser(u) && operation === editOperation) showErr("ed-err", { message: "We could not confirm your changes were saved. Your answers are still here. Try Save changes again." }); })

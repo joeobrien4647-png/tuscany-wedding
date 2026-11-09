@@ -736,3 +736,23 @@ test('an approved guest who is coming sees the bank details', async () => {
   assert.equal(h.element('pay-bank').hidden, false);
   assert.equal(h.element('pay-sort').textContent, '00-00-00');
 });
+
+test('after Save my reply, focus moves to the saved reply and the save is announced once', async () => {
+  const h = await signupPageHarness();
+  h.choose('intent', 'yes'); h.submit(); h.google[0].onclick(); await h.settle();
+  assert.equal(h.element('done').hidden, false);
+  assert.equal(h.document.activeElement?.id, 'done-heading', 'focus follows the save so phones scroll to it');
+  assert.equal(h.element('reply-live').textContent, 'Your reply is saved');
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '../index.html'), 'utf8');
+  assert.doesNotMatch(html, /id="registration-saved"[^>]*role=/, 'one live region, not two');
+  assert.match(html, /<p class="p-sr" id="reply-live" role="status"><\/p>/);
+});
+
+test('a returning guest whose reply loads is not pulled down the page', async () => {
+  const h = await signupPageHarness();
+  h.fixture.seed({ registrations: { 'fictional-guest': { name: 'Fictional Guest', intent: 'yes' } } });
+  h.fixture.signIn({ uid: 'fictional-guest', email: 'guest@example.test' }); await h.settle(); await h.settle();
+  assert.equal(h.element('done').hidden, false);
+  assert.notEqual(h.document.activeElement?.id, 'done-heading');
+  assert.equal(h.element('reply-live').textContent, '');
+});
