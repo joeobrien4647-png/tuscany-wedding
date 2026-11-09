@@ -131,7 +131,7 @@ export function createMaterials({ tier = 'fast', sky = null, size } = {}) {
   };
   const emissives = [];
 
-  function texturesFor(r) {
+  function texturesFor(r, normal) {
     const out = r.paint();
     const repeat = 1 / out.tile;
     const map = new THREE.CanvasTexture(out.c);
@@ -140,7 +140,7 @@ export function createMaterials({ tier = 'fast', sky = null, size } = {}) {
     map.anisotropy = standard ? 8 : 4;
     map.repeat.set(repeat, repeat);
     let normalMap = null;
-    if (out.h && out.relief) {
+    if (normal && out.h && out.relief) {
       normalMap = new THREE.CanvasTexture(normalFromHeight(out.h, out.relief * 2.4, Math.min(out.h.width, 256)));
       normalMap.wrapS = normalMap.wrapT = THREE.RepeatWrapping;
       normalMap.repeat.set(repeat, repeat);
@@ -150,9 +150,11 @@ export function createMaterials({ tier = 'fast', sky = null, size } = {}) {
   }
 
   function surface(name, r) {
-    const tex = r.paint ? texturesFor(r) : null;
+    // Fast draws relief only on blended stone, the roof tiles and the floors, so only those build a normal map
+    const normal = standard || !!r.blend || name === 'coppi' || /flag|slab|cotto/.test(name);
+    const tex = r.paint ? texturesFor(r, normal) : null;
     const params = { color: r.colour || '#ffffff', side: r.side ?? THREE.FrontSide };
-    if (tex) { params.map = tex.map; if (tex.normalMap && (standard || r.blend || name === 'coppi' || /flag|slab|cotto/.test(name))) params.normalMap = tex.normalMap; }
+    if (tex) { params.map = tex.map; if (tex.normalMap) params.normalMap = tex.normalMap; }
     const m = standard
       ? new THREE.MeshStandardMaterial({ ...params, roughness: r.rough ?? 0.85, metalness: r.metal ?? 0 })
       : new THREE.MeshLambertMaterial(params);

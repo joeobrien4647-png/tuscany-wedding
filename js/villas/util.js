@@ -78,15 +78,16 @@ export function pointInPolygon(x, z, poly) {
   return inside;
 }
 
+export function distanceToSegment(x, z, x1, z1, x2, z2) {
+  const dx = x2 - x1, dz = z2 - z1;
+  const l2 = dx * dx + dz * dz || 1e-9;
+  const t = clamp(((x - x1) * dx + (z - z1) * dz) / l2, 0, 1);
+  return Math.hypot(x - (x1 + t * dx), z - (z1 + t * dz));
+}
+
 export function distanceToPolyline(x, z, pts) {
   let best = Infinity;
-  for (let i = 1; i < pts.length; i++) {
-    const [x1, z1] = pts[i - 1], [x2, z2] = pts[i];
-    const dx = x2 - x1, dz = z2 - z1;
-    const l2 = dx * dx + dz * dz || 1e-9;
-    const t = clamp(((x - x1) * dx + (z - z1) * dz) / l2, 0, 1);
-    best = Math.min(best, Math.hypot(x - (x1 + t * dx), z - (z1 + t * dz)));
-  }
+  for (let i = 1; i < pts.length; i++) best = Math.min(best, distanceToSegment(x, z, pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]));
   return best;
 }
 

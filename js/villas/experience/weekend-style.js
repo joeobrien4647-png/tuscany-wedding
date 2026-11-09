@@ -19,6 +19,7 @@ html.vx-wk-lock,html.vx-wk-lock body{overflow:hidden}
 .vx.is-weekend.is-photo .vx-wk{display:none}
 .vx.is-weekend>:not(.vx-stage):not(.vx-wk):not(.vx-note):not(.vx-toast):not(.vx-photo-mode),.vx.is-weekend .vx-labels>:not(.vx-tag),.vx.is-weekend .vx-tag-sub{display:none!important}
 .vx.is-weekend .vx-tag{pointer-events:none;min-height:0}
+.vx.is-weekend .vx-labels{clip-path:inset(var(--wk-bar,58px) 0 0 0)}
 .vx.is-weekend .vx-note{left:auto;right:10px;bottom:auto;top:calc(var(--wk-bar,58px) + 6px);transform:none;max-width:calc(50% - 20px);font-size:9.5px;text-align:right;transition:opacity .3s}
 .vx.is-weekend .vx-note>span{display:block}
 .vx.is-weekend .vx-note-credit::before{content:none}

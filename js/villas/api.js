@@ -187,14 +187,18 @@ export function createApi({ THREE, model, root, stage, labelsLayer, params, coar
     return Object.freeze({
       get: sig.get,
       on: sig.on,
-      // jump there, or move there over `duration` seconds; resolves on arrival or when a later set() takes over
-      set(minutes, { animate = false, duration = 2.4 } = {}) {
+      // jump there, or move there over `duration` seconds; resolves on arrival or when a later set() takes over.
+      // forward (a new day): an earlier time is reached through the night, midnight to DAY.start being one dark cut,
+      // so the sun never runs backwards
+      set(minutes, { animate = false, duration = 2.4, forward = false } = {}) {
         const to = clamp(minutes, DAY.start, DAY.end);
         moving?.cancel();
         moving = null;
         if (!animate) { sig.set(to); return Promise.resolve(); }
         const from = sig.get();
-        moving = tween({ duration, easing: ease.inOut, onUpdate: (k) => sig.set(from + (to - from) * k) });
+        const span = forward && to < from ? DAY.end - from + to - DAY.start : to - from;
+        const at = (k) => { if (k >= 1) return to; const m = from + span * k; return m > DAY.end ? m - DAY.end + DAY.start : m; };
+        moving = tween({ duration, easing: ease.inOut, onUpdate: (k) => sig.set(at(k)) });
         return moving;
       },
     });

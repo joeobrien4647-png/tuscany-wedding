@@ -1,5 +1,5 @@
 // Loads the villa explorer after the page shell: fills in each villa's bedroom, bathroom and sleeping counts from
-// the model data (no 3D needed), then fetches three.js and the scene only if WebGL is there.
+// the model data (no 3D needed), and fetches three.js and the scene alongside the model, only if WebGL is there.
 const MESSAGES = ['Loading the estate', 'Raising the hills', 'Planting the woods', 'Filling the pools'];
 
 const $ = (id) => document.getElementById(id);
@@ -37,12 +37,34 @@ function fail(message) {
   $('vx-loading').classList.add('is-failed');
 }
 
+// The explorer's first screen sits between the site header and, on phones, the nav pinned to the bottom. Their real
+// heights (the header is 88 px on most phones, and either can wrap) set it, so the stage's foot and its map credit
+// stay clear of the nav.
+function fitHero() {
+  const hero = document.querySelector('.vx-hero'), head = document.querySelector('.guest-header'), nav = document.querySelector('.guest-nav');
+  if (!hero || !head || !nav || !window.ResizeObserver) return;
+  const fit = () => {
+    hero.style.setProperty('--vx-top', `${Math.ceil(head.getBoundingClientRect().height)}px`);
+    hero.style.setProperty('--vx-bottom', getComputedStyle(nav).position === 'fixed' ? `${Math.ceil(nav.getBoundingClientRect().height)}px` : '0px');
+  };
+  const watch = new ResizeObserver(fit);
+  watch.observe(head);
+  watch.observe(nav);
+}
+
 async function main() {
   if (!$('vx-stage')) return;
+  fitHero();
+  // the scene's code loads alongside the model, not after it (villas.html preloads both). The fetch's mode and
+  // credentials match the head's preload, so Chrome and Safari both take the preloaded copy (a same-origin no-cors
+  // answer can still be read)
+  const modelLoad = fetch('data/villas-model.json', { mode: 'no-cors', credentials: 'include' }).then((res) => res.json());
+  const has3d = webgl();
+  const appLoad = has3d ? import('./app.js') : null;
+  appLoad?.catch(() => {});   // a failed load is reported below, once the counts are in
   let model;
   try {
-    const res = await fetch('data/villas-model.json');
-    model = await res.json();
+    model = await modelLoad;
   } catch {
     fail('The model could not load. Try again in a moment');
     return;
@@ -53,16 +75,15 @@ async function main() {
     $('explorer').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     app.openVilla(id, { floor: 0 });
   });
-  if (!webgl()) {
+  if (!has3d) {
     fail('This browser cannot show the 3D model, but each villa’s rooms are counted below');
     return;
   }
   let i = 0;
   const text = $('vx-loading-text');
   const timer = setInterval(() => { i = (i + 1) % MESSAGES.length; text.textContent = MESSAGES[i]; }, 1400);
-  await new Promise((r) => (window.requestIdleCallback ? requestIdleCallback(r, { timeout: 600 }) : setTimeout(r, 120)));
   try {
-    const { start } = await import('./app.js');
+    const { start } = await appLoad;
     app = await start({
       root: $('explorer'), stage: $('vx-stage'), labelsLayer: $('vx-labels'), model,
       onProgress: (m) => { text.textContent = m; },

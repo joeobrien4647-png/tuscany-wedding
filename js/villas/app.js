@@ -45,10 +45,12 @@ export async function start({ root, stage, labelsLayer, model, onProgress = () =
 
   // ---------- the tracks ----------
   TRACKS.forEach((track) => track.declare(api));
-  let xp = null;
+  let xp = null, compiled = null;
   for (const track of TRACKS) {
     const out = await track.build(api, { onProgress, snapshot });
     if (track === experience) xp = out;
+    // once the estate stands, its programs compile (in parallel where the browser can) while experience builds
+    if (track === content) compiled = api.use('pipeline').compile();
     await frame();
   }
   const renderer = api.renderer;
@@ -153,8 +155,10 @@ export async function start({ root, stage, labelsLayer, model, onProgress = () =
     renderer.setAnimationLoop(on ? loop : null);
     if (on) { clock.getDelta(); lastNow = 0; wake(); }
   };
-  // the first frame goes through Balanced's or Best's passes, never straight to the canvas (see render.js's ready)
+  // the first frame goes through Balanced's or Best's passes, never straight to the canvas (see render.js's ready),
+  // and waits for the programs, so it does not stall on them
   await pipeline.ready?.();
+  await compiled;
   new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; run(); }).observe(root);
   document.addEventListener('visibilitychange', run);
   run();

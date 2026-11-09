@@ -8,7 +8,7 @@
 // cast shadows; level 2 (beyond a few hundred metres) does not.
 import * as THREE from '../vendor/three-core.js';
 import { mergeGeometries } from '../vendor/three-core.js';
-import { seeded, clamp, distanceToPolyline, pointInPolygon } from '../util.js';
+import { seeded, clamp, distanceToPolyline, distanceToSegment, pointInPolygon } from '../util.js';
 
 const HALF = 600;
 const CELL = 60;
@@ -322,18 +322,55 @@ float dNoise(vec3 p) {
 }
 const TREE_DEPTH = treeDepthMaterial();
 
+// Whether a crown of radius r at (x, z) comes too close to a road. The road segments are sorted once into a grid of
+// ROAD_CELL m cells, each listing every segment whose box, grown by the clearance a crown up to ROAD_REACH asks for,
+// touches it, so a tree tests a few segments rather than all of them and gets the same answer. A wider crown tests
+// every road.
+const ROAD_CELL = 24, ROAD_REACH = 12;
+function nearRoad(roads) {
+  const cells = new Map();
+  const key = (i, j) => (i + 4096) * 8192 + (j + 4096);
+  const grow = Math.max(0, ...roads.map((rd) => rd.width)) / 2 + 1.5 + ROAD_REACH * 0.45 + 1;
+  roads.forEach((rd) => {
+    for (let k = 1; k < rd.points.length; k++) {
+      const [x1, z1] = rd.points[k - 1], [x2, z2] = rd.points[k];
+      const seg = { x1, z1, x2, z2, w: rd.width };
+      const i0 = Math.floor((Math.min(x1, x2) - grow) / ROAD_CELL), i1 = Math.floor((Math.max(x1, x2) + grow) / ROAD_CELL);
+      const j0 = Math.floor((Math.min(z1, z2) - grow) / ROAD_CELL), j1 = Math.floor((Math.max(z1, z2) + grow) / ROAD_CELL);
+      for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) {
+        const list = cells.get(key(i, j));
+        if (list) list.push(seg); else cells.set(key(i, j), [seg]);
+      }
+    }
+  });
+  return (x, z, r) => {
+    if (r > ROAD_REACH) return roads.some((rd) => distanceToPolyline(x, z, rd.points) < rd.width / 2 + 1.5 + r * 0.45);
+    const list = cells.get(key(Math.floor(x / ROAD_CELL), Math.floor(z / ROAD_CELL)));
+    if (list) for (const s of list) if (distanceToSegment(x, z, s.x1, s.z1, s.x2, s.z2) < s.w / 2 + 1.5 + r * 0.45) return true;
+    return false;
+  };
+}
+
+// pointInPolygon is false outside the polygon's box, so the box is tested first
+function boxed(poly) {
+  const xs = poly.map((p) => p[0]), zs = poly.map((p) => p[1]);
+  const x0 = Math.min(...xs) - 1e-6, x1 = Math.max(...xs) + 1e-6, z0 = Math.min(...zs) - 1e-6, z1 = Math.max(...zs) + 1e-6;
+  return (x, z) => x >= x0 && x <= x1 && z >= z0 && z <= z1 && pointInPolygon(x, z, poly);
+}
+
 // Where the trees stand. mask(x, z) is 1 deep in the woods and 0 in the open; zones are the villa gardens.
 export function placeTrees({ groundAt, mask, model, zones, density = 1, clear = [], specimens = [], shrubs = [], noise }) {
   const rnd = seeded(77);
   const out = [];
   const blocks = [...model.villas.flatMap((v) => v.blocks), ...model.outbuildings];
+  const onRoad = nearRoad(model.roads);
+  const inside = [...clear, ...model.water.filter((w) => w.polygon).map((w) => w.polygon)].map(boxed);
   const blocked = (x, z, r) => {
     // crowns stop short of the houses and pools rather than hanging over their roofs
     for (const b of blocks) if (Math.hypot(x - b.c[0], z - b.c[1]) < Math.max(b.length, b.width) / 2 + 4 + r * 0.9) return true;
     for (const p of model.pools) if (Math.hypot(x - p.c[0], z - p.c[1]) < p.length / 2 + 8 + r * 0.7) return true;
-    for (const rd of model.roads) if (distanceToPolyline(x, z, rd.points) < rd.width / 2 + 1.5 + r * 0.45) return true;
-    for (const poly of clear) if (pointInPolygon(x, z, poly)) return true;
-    for (const w of model.water) if (w.polygon && pointInPolygon(x, z, w.polygon)) return true;
+    if (onRoad(x, z, r)) return true;
+    for (const test of inside) if (test(x, z)) return true;
     return false;
   };
   const near = (x, z) => Math.min(...zones.map((zn) => Math.hypot(x - zn.c[0], z - zn.c[1]) - zn.r));

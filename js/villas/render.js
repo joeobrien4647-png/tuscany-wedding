@@ -479,15 +479,21 @@ export function createPipeline({ renderer, scene, camera, sky, mode: startMode =
   }
 
   onTier?.(tier);
-  // compile what is in view now, in parallel where the browser can, so the first flight does not stall. Balanced and
-  // Best draw the scene into their passes' linear target, not the canvas: compiled against the canvas, every material
-  // would get a second, never-used program (sRGB and tone-mapped) that three.js keeps alive
-  const warm = tier === 'fast' ? null : new THREE.WebGLRenderTarget(1, 1);
-  const was = renderer.getRenderTarget();
-  renderer.setRenderTarget(warm);
-  try { renderer.compileAsync?.(scene, camera)?.catch?.(() => {}); } catch { /* older three */ }
-  renderer.setRenderTarget(was);
-  warm?.dispose();
+  // compile the scene's programs, in parallel where the browser can, so the first frame and flight do not stall
+  // (the kernel calls this once the estate stands; resolves when they are ready, or after 3 s, as a lost context
+  // never reports them ready). Balanced and Best draw the scene into their passes' linear target, not the canvas:
+  // compiled against the canvas, every material would get a second, never-used program (sRGB and tone-mapped) that
+  // three.js keeps alive
+  function compile() {
+    const warm = tier === 'fast' ? null : new THREE.WebGLRenderTarget(1, 1);
+    const was = renderer.getRenderTarget();
+    renderer.setRenderTarget(warm);
+    let done = null;
+    try { done = renderer.compileAsync?.(scene, camera); } catch { /* older three */ }
+    renderer.setRenderTarget(was);
+    warm?.dispose();
+    return Promise.race([Promise.resolve(done).catch(() => {}), new Promise((r) => setTimeout(r, 3000))]);
+  }
 
   return {
     get mode() { return mode; },
@@ -509,6 +515,7 @@ export function createPipeline({ renderer, scene, camera, sky, mode: startMode =
     photo,
     get lost() { return lost; },
     ready: () => (tier === 'fast' ? Promise.resolve() : load()),
+    compile,
     info: () => ({ mode, tier, dropped, probe: { ...probe }, ema: Math.round(ema * 10) / 10, passes: fx ? fx.composer.passes.filter((p) => p.enabled).map((p) => p.name) : [], gpuMs: perf?.gpuMs ?? null }),
   };
 }
