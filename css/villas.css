@@ -1497,8 +1497,9 @@ main a:focus-visible, main button:focus-visible { outline: 2px solid var(--color
     .vx-note a { display: inline-block; padding: 28px 6px 2px; margin: -28px -6px -2px; }
 }
 
-/* short phones upright (an iPhone SE, 375 x 667): the side buttons go in a row under the search */
-@media (max-width: 639px) and (max-height: 740px) {
+/* phones upright, of any height: the side buttons go in a row under the search. A column down the right side ran
+   into the dock on screens taller than 740 px, where a tap on More switched the scene to Night (9 Nov review) */
+@media (max-width: 639px) {
     .vx-side { top: calc(var(--vx-gap) + 56px); left: var(--vx-gap); right: var(--vx-gap); flex-direction: row; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
     .vx-gfx-menu { top: calc(100% + 8px); right: 0; }
     .vx-notice { top: calc(var(--vx-gap) + 108px); right: var(--vx-gap); }
