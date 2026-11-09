@@ -55,8 +55,10 @@ function fitHero() {
 async function main() {
   if (!$('vx-stage')) return;
   fitHero();
-  // the scene's code loads alongside the model, not after it (villas.html preloads both)
-  const modelLoad = fetch('data/villas-model.json').then((res) => res.json());
+  // the scene's code loads alongside the model, not after it (villas.html preloads both). The fetch's mode and
+  // credentials match the head's preload, so Chrome and Safari both take the preloaded copy (a same-origin no-cors
+  // answer can still be read)
+  const modelLoad = fetch('data/villas-model.json', { mode: 'no-cors', credentials: 'include' }).then((res) => res.json());
   const has3d = webgl();
   const appLoad = has3d ? import('./app.js') : null;
   appLoad?.catch(() => {});   // a failed load is reported below, once the counts are in
