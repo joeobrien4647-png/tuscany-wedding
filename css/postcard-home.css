@@ -43,7 +43,8 @@
 .postcard-home .p-tabs button { font-size: 16px; letter-spacing: 0; text-transform: none; }
 .postcard-home .p-tabs button[aria-pressed="true"] { color: var(--post-ink); border-bottom-color: var(--post-ink); font-weight: 700; }
 .postcard-home :is(label, .p-fs legend, .p-done dt, .p-pay dt) { font-family: var(--font-body); font-size: 14px; letter-spacing: 0; text-transform: none; font-weight: 700; }
-.postcard-home .p-card :is(input, select, textarea) { background: #fff; border-color: #8d9984; border-radius: 3px; color: var(--post-ink); }
+.postcard-home .p-card :is(input, select, textarea) { background: #fff; border-color: #86927d; border-radius: 3px; color: var(--post-ink); }
+.postcard-home .p-intent span { background: #fff; border-color: #86927d; }
 .postcard-home .p-card :is(input, select, textarea)::placeholder { color: #687362; opacity: 1; }
 .postcard-home .p-primary, .postcard-home .p-sent, .postcard-home .p-google { font-size: 16px; letter-spacing: 0; border-radius: 3px; }
 .postcard-home .p-primary:hover:not(:disabled) { background: #1f3886; }
