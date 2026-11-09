@@ -184,6 +184,8 @@ export function createUI(app, root, api) {
     const m = cardSpec?.moment;
     b.hidden = !m || app.state.moment === m;
     if (m) b.textContent = m === 'sunset' ? 'See it at sunset' : m === 'night' ? 'See it at night' : 'See it by day';
+    // the footer keeps the card's actions in reach while its words scroll; with nothing in it, it goes
+    $('vx-card-foot').hidden = b.hidden && !$('vx-card-actions').children.length;
   }
 
   function setSnapshot(url, tag) {
