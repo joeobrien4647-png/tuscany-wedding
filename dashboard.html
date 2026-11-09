@@ -2714,7 +2714,7 @@
       const sendReset = r => {
         if (!window.confirm("Send a password reset email to " + r.email + "?")) return;
         setReset(r._uid, true, "Sending");
-        firebase.auth().sendPasswordResetEmail(r.email, { url: "https://sophieandjoe2027.com/" })
+        firebase.auth().sendPasswordResetEmail(r.email, { url: "https://sophieandjoe2027.com/?signin=1&reset=1#card" })
           .then(() => setReset(r._uid, true, "Reset email sent"))
           .catch(e => setReset(r._uid, false, "Could not send: " + ((e && e.code) || "unknown error").replace("auth/", "")));
       };

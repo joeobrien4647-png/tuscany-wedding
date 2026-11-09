@@ -49,3 +49,7 @@ test('private preview names are removed when film is off and never inserted into
   assert.equal(film.historyCalls.length, 0);
   assert.doesNotMatch(film.text, /Example/);
 });
+test('the password reset link (signin=1) skips the film and the book even when both are switched on', () => {
+  const r = run('?signin=1&reset=1', true, true).text;
+  assert.doesNotMatch(r, /storybook|intro\.js/);
+});

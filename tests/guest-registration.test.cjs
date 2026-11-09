@@ -756,3 +756,15 @@ test('a returning guest whose reply loads is not pulled down the page', async ()
   assert.notEqual(h.document.activeElement?.id, 'done-heading');
   assert.equal(h.element('reply-live').textContent, '');
 });
+
+test('the reset email continues to Sign in on the reply card, with a one-line note', async () => {
+  const h = await signupPageHarness(); h.element('tab-in').onclick();
+  const calls = []; h.auth.sendPasswordResetEmail = (email, options) => { calls.push(options); return Promise.resolve(); };
+  h.element('in-email').value = 'fictional@example.test'; h.element('in-email').listeners.input?.(); h.element('forgot').onclick(); await h.settle();
+  assert.equal(calls[0].url, 'http://fictional.test/?signin=1&reset=1#card');
+  const back = await signupPageHarness('Fictional test browser', '?signin=1&reset=1');
+  assert.equal(back.element('tab-in').getAttribute('aria-pressed'), 'true');
+  assert.match(back.element('in-note').textContent, /new password/);
+  const dashboard = require('node:fs').readFileSync(require('node:path').join(__dirname, '../dashboard.html'), 'utf8');
+  assert.match(dashboard, /sendPasswordResetEmail\(r\.email, \{ url: "https:\/\/sophieandjoe2027\.com\/\?signin=1&reset=1#card" \}\)/);
+});

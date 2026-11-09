@@ -129,8 +129,10 @@
   var settings = document.currentScript, args = new URLSearchParams(location.search);
   var bookOn = settings.getAttribute("data-book-enabled") === "true";
   var introOn = settings.getAttribute("data-intro-enabled") === "true";
-  var book = args.get("book") === "1" || (bookOn && args.get("book") !== "0");
-  var intro = args.get("intro") === "1" || introOn;
+  // signin=1 (the password reset link) goes straight to Sign in: no film, no book.
+  var signingIn = args.get("signin") === "1";
+  var book = args.get("book") === "1" || (bookOn && !signingIn && args.get("book") !== "0");
+  var intro = args.get("intro") === "1" || (introOn && !signingIn);
   window.sjOptionalIntro = { requested: intro, enabled: introOn };
   if (!intro && args.has("to")) {
     args.delete("to");
@@ -846,7 +848,7 @@ window.sjSlowReply = setTimeout(function () {
       hideErr("up-err"); hideErr("ed-err");
       busyRegistration(false);
       var seen = recalled();
-      if (entryParams.get("signin") === "1") openSignIn(seen && seen.email, "Sign in to continue.");
+      if (entryParams.get("signin") === "1") openSignIn(seen && seen.email, entryParams.get("reset") === "1" ? "Password changed? Sign in with your new password." : "Sign in to continue.");
       else if (seen) openSignIn(seen.email, seen.google && !INAPP ? "Welcome back. You registered with Google, so use the Google button below." : "Sign in to see your saved reply. Or choose Reply if you have not replied yet.");
       return;
     }
@@ -913,7 +915,7 @@ window.sjSlowReply = setTimeout(function () {
       .then(function () { $("in-btn").disabled = false; });
   };
   function sendReset(email) {
-    var home = /^https?:$/.test(location.protocol) ? { url: location.origin + "/" } : null;
+    var home = /^https?:$/.test(location.protocol) ? { url: location.origin + "/?signin=1&reset=1#card" } : null;
     if (!home) return auth.sendPasswordResetEmail(email);
     return auth.sendPasswordResetEmail(email, home).catch(function (e) {
       if (/continue-uri|unauthorized-domain/.test((e && e.code) || "")) return auth.sendPasswordResetEmail(email);
