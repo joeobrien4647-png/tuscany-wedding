@@ -305,7 +305,8 @@ export function createWeekendMode(ctx) {
     stop();
     const m = api.moments.get(id);
     if (!m) return;
-    if (m.day !== S.day) setDay(m.day);
+    const newDay = m.day !== S.day;
+    if (newDay) setDay(m.day);
     S.moment = id;
     S.line = '';
     const k = detail(id).still(S.opts);
@@ -313,7 +314,8 @@ export function createWeekendMode(ctx) {
     renderCard();
     setHere(k);
     cues(detail(id).sound);
-    if (!keepTime) api.time.set(k.at[0], { animate: fly && !reducedMotion, duration: 1.6 });
+    // on a new day the clock runs on through the night, never back past noon
+    if (!keepTime) api.time.set(k.at[0], { animate: fly && !reducedMotion, duration: 1.6, forward: newDay });
     const shot = resolveShot(k.shot, { paused: true });
     if (!shot) return;
     if (fly && !reducedMotion) rig.flyTo(shot); else rig.jumpTo(shot);
