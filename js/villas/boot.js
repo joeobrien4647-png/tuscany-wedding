@@ -1,5 +1,5 @@
 // Loads the villa explorer after the page shell: fills in each villa's bedroom, bathroom and sleeping counts from
-// the model data (no 3D needed), then fetches three.js and the scene only if WebGL is there.
+// the model data (no 3D needed), and fetches three.js and the scene alongside the model, only if WebGL is there.
 const MESSAGES = ['Loading the estate', 'Raising the hills', 'Planting the woods', 'Filling the pools'];
 
 const $ = (id) => document.getElementById(id);
@@ -39,10 +39,14 @@ function fail(message) {
 
 async function main() {
   if (!$('vx-stage')) return;
+  // the scene's code loads alongside the model, not after it (villas.html preloads both)
+  const modelLoad = fetch('data/villas-model.json').then((res) => res.json());
+  const has3d = webgl();
+  const appLoad = has3d ? import('./app.js') : null;
+  appLoad?.catch(() => {});   // a failed load is reported below, once the counts are in
   let model;
   try {
-    const res = await fetch('data/villas-model.json');
-    model = await res.json();
+    model = await modelLoad;
   } catch {
     fail('The model could not load. Try again in a moment');
     return;
@@ -53,16 +57,15 @@ async function main() {
     $('explorer').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     app.openVilla(id, { floor: 0 });
   });
-  if (!webgl()) {
+  if (!has3d) {
     fail('This browser cannot show the 3D model, but each villa’s rooms are counted below');
     return;
   }
   let i = 0;
   const text = $('vx-loading-text');
   const timer = setInterval(() => { i = (i + 1) % MESSAGES.length; text.textContent = MESSAGES[i]; }, 1400);
-  await new Promise((r) => (window.requestIdleCallback ? requestIdleCallback(r, { timeout: 600 }) : setTimeout(r, 120)));
   try {
-    const { start } = await import('./app.js');
+    const { start } = await appLoad;
     app = await start({
       root: $('explorer'), stage: $('vx-stage'), labelsLayer: $('vx-labels'), model,
       onProgress: (m) => { text.textContent = m; },
