@@ -78,7 +78,7 @@ export function createUI(app, root, api) {
     const f = b.dataset.floor === 'outside' ? 'outside' : Number(b.dataset.floor);
     app.setFloor(f);
   }));
-  root.querySelectorAll('[data-moment]').forEach((b) => b.addEventListener('click', () => app.setMoment(b.dataset.moment)));
+  root.querySelectorAll('.vx-light [data-moment]').forEach((b) => b.addEventListener('click', () => app.setMoment(b.dataset.moment)));
   const gfxBtn = $('vx-gfx-btn'), gfxMenu = $('vx-gfx-menu');
   gfxBtn.addEventListener('click', () => {
     gfxMenu.hidden = !gfxMenu.hidden;
@@ -217,7 +217,7 @@ export function createUI(app, root, api) {
     const floors = $('vx-floors');
     floors.hidden = state.view === 'estate';
     root.querySelectorAll('[data-floor]').forEach((b) => b.setAttribute('aria-pressed', String(String(state.floor) === b.dataset.floor)));
-    root.querySelectorAll('[data-moment]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.moment === state.moment)));
+    root.querySelectorAll('.vx-light [data-moment]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.moment === state.moment)));
     root.dataset.view = state.view;
     root.dataset.floor = String(state.floor);
     // a cut-open floor is furnished as an idea: say so for as long as it is open

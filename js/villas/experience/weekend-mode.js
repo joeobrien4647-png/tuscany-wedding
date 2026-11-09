@@ -51,7 +51,7 @@ export function createWeekendMode(ctx) {
       <div class="vx-wk-pop" role="dialog" aria-label="More" hidden></div>
       <article class="vx-wk-card" aria-live="polite" tabindex="-1">
         <p class="vx-wk-when"><i class="vx-wk-mark"></i><span></span><button type="button" class="vx-wk-more" data-pop>More</button></p>
-        <h3 class="vx-wk-title"></h3><p class="vx-wk-cap"></p><p class="vx-wk-tags"></p>
+        <h2 class="vx-wk-title"></h2><p class="vx-wk-cap"></p><p class="vx-wk-tags"></p>
         <div class="vx-wk-opts" role="group"></div>
       </article>
       <div class="vx-wk-dock">
@@ -139,7 +139,7 @@ export function createWeekendMode(ctx) {
     const parts = [`<span class="vx-wk-rail" style="background:${skyGradient(sky, d.from, d.to)}"></span>`];
     momentsOf(S.day).forEach((m) => {
       const [a, b] = detail(m.id).light.at;
-      parts.push(`<span class="vx-wk-band" data-moment="${m.id}" style="left:${pctOf(a).toFixed(2)}%;width:${(pctOf(b) - pctOf(a)).toFixed(2)}%"></span>`);
+      parts.push(`<span class="vx-wk-band" data-wk-moment="${m.id}" style="left:${pctOf(a).toFixed(2)}%;width:${(pctOf(b) - pctOf(a)).toFixed(2)}%"></span>`);
     });
     if (sunset > d.from && sunset < d.to) parts.push(`<span class="vx-wk-sun" style="left:${pctOf(sunset).toFixed(2)}%"></span><span class="vx-wk-sunlab" data-label="sun" style="left:${pctOf(sunset).toFixed(2)}%" title="Sunset">${ICON.sun}</span>`);
     momentsOf(S.day).forEach((m) => {
@@ -184,7 +184,7 @@ export function createWeekendMode(ctx) {
     el.c2.hidden = !w.line2;
     el.range.setAttribute('aria-valuetext', w.aria);
     if (!dragging) el.range.value = String(clamp(Math.round(minutes), Number(el.range.min), Number(el.range.max)));
-    el.line.querySelectorAll('.vx-wk-band').forEach((b) => b.classList.toggle('is-here', !!w.m && b.dataset.moment === w.m.id));
+    el.line.querySelectorAll('.vx-wk-band').forEach((b) => b.classList.toggle('is-here', !!w.m && b.dataset.wkMoment === w.m.id));
     syncNight();
   }
 
@@ -249,7 +249,7 @@ export function createWeekendMode(ctx) {
     el.opts.hidden = !o;
     el.opts.innerHTML = o ? `<p class="vx-wk-opts-h">${esc(o.header)}</p>${segHTML(o)}<p class="vx-wk-opts-n">${esc(o.note)}</p>` : '';
     if (o) el.opts.setAttribute('aria-label', o.header);
-    el.card.dataset.moment = S.moment || '';
+    el.card.dataset.wkMoment = S.moment || '';
     el.card.setAttribute('aria-label', m ? `${S.W.days[S.day].name}: ${strip(m.title)}` : strip(W.days[S.day].title));
     closePop();
     renderTags();
@@ -267,7 +267,7 @@ export function createWeekendMode(ctx) {
   function openPop() {
     const m = api.moments.get(S.moment), d = detail(S.moment);
     if (!m) return;
-    el.pop.innerHTML = `<button type="button" class="vx-wk-ic vx-wk-x2" aria-label="Close">${ICON.close}</button><h3 class="vx-wk-title">${m.title}</h3><p><strong>${esc(m.caption)}</strong></p><p>${esc(d.text)}</p>${folded(d) ? segHTML(d.options) : ''}`;
+    el.pop.innerHTML = `<button type="button" class="vx-wk-ic vx-wk-x2" aria-label="Close">${ICON.close}</button><h2 class="vx-wk-title">${m.title}</h2><p><strong>${esc(m.caption)}</strong></p><p>${esc(d.text)}</p>${folded(d) ? segHTML(d.options) : ''}`;
     el.pop.hidden = false;
     el.pop.querySelector('button')?.focus({ preventScroll: true });
   }
