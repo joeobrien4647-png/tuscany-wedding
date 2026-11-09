@@ -787,3 +787,9 @@ test('a guest on a new phone is shown how to sign in, and after the reply date S
   completing.fixture.signIn({ uid: 'fictional-new', email: 'new@example.test' }); await completing.settle(); await completing.settle();
   assert.equal(completing.element('returning-hint').hidden, true, 'no sign-in hint while finishing a reply signed in');
 });
+
+test('on the saved reply, the edit form opens under its button and the payment comes before the stay notes', () => {
+  const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '../index.html'), 'utf8');
+  const at = id => html.indexOf(`id="${id}"`);
+  assert.ok(at('reply-action') < at('form-edit') && at('form-edit') < at('pay') && at('pay') < at('stay-summary') && at('stay-summary') < at('d-travel-block') && at('d-travel-block') < at('saved-details'));
+});
