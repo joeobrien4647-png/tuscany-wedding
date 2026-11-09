@@ -4,8 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.join(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
-// villas.html gets the same tag on the explorer branch, claude/explorer-first-touch
-const pending = new Set(['villas.html']);
+const pending = new Set();
 
 test('every page opts out of Android forced dark, so the gold, the names and the map labels keep their colours', () => {
   const pages = fs.readdirSync(root).filter(file => file.endsWith('.html') && !pending.has(file));
