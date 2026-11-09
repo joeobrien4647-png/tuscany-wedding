@@ -27,9 +27,9 @@ test('all four airports and both onward options are available without a form or 
   assert.equal(rows.length, 4);
   for (const [index, [name, code, domain]] of [
     ['Perugia', 'PEG', 'www.airport.umbria.it'],
-    ['Florence', 'FLR', 'www.aeroporto.firenze.it'],
+    ['Florence', 'FLR', 'firenze-airport.it'],
     ['Bologna', 'BLQ', 'www.bologna-airport.it'],
-    ['Pisa', 'PSA', 'www.pisa-airport.com']
+    ['Pisa', 'PSA', 'pisa-airport.it']
   ].entries()) {
     assert.ok(rows[index][1].includes(name));
     assert.ok(rows[index][1].includes(code));
