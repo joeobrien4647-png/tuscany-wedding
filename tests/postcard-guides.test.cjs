@@ -108,3 +108,9 @@ test('venue photographs preserve essential actions, reserve space and stay withi
   assert.ok(bytes[960] < 200000, 'combined large photos must remain below 200 KB');
   assert.doesNotMatch(section, /<script|<iframe|<video|onclick=/);
 });
+
+test('guests can reach the villa explorer from Help on the homepage and from Our wedding, not only Travel & stay', () => {
+  const help = read('index.html').match(/<div class="postcard-help-links">([\s\S]*?)<\/div>/)[1];
+  assert.match(help, /<a href="villas\.html">The villas in 3D<\/a>/);
+  assert.match(read('weekend-guide.html'), /<a class="guest-link" href="villas\.html">Look round both villas in 3D<\/a>/);
+});
