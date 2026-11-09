@@ -37,8 +37,24 @@ function fail(message) {
   $('vx-loading').classList.add('is-failed');
 }
 
+// The explorer's first screen sits between the site header and, on phones, the nav pinned to the bottom. Their real
+// heights (the header is 88 px on most phones, and either can wrap) set it, so the stage's foot and its map credit
+// stay clear of the nav.
+function fitHero() {
+  const hero = document.querySelector('.vx-hero'), head = document.querySelector('.guest-header'), nav = document.querySelector('.guest-nav');
+  if (!hero || !head || !nav || !window.ResizeObserver) return;
+  const fit = () => {
+    hero.style.setProperty('--vx-top', `${Math.ceil(head.getBoundingClientRect().height)}px`);
+    hero.style.setProperty('--vx-bottom', getComputedStyle(nav).position === 'fixed' ? `${Math.ceil(nav.getBoundingClientRect().height)}px` : '0px');
+  };
+  const watch = new ResizeObserver(fit);
+  watch.observe(head);
+  watch.observe(nav);
+}
+
 async function main() {
   if (!$('vx-stage')) return;
+  fitHero();
   // the scene's code loads alongside the model, not after it (villas.html preloads both)
   const modelLoad = fetch('data/villas-model.json').then((res) => res.json());
   const has3d = webgl();

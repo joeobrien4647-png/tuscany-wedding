@@ -9,7 +9,8 @@
 main a:focus-visible, main button:focus-visible { outline: 2px solid var(--color-olive); outline-offset: 3px; }
 
 /* the header and the explorer share the first screen, so the model's small print and map credit are in view:
-   below the postcard header, and above the postcard nav where a phone pins it to the bottom */
+   below the postcard header, and above the postcard nav where a phone pins it to the bottom (boot.js sets both
+   heights from the page as it is; these are the usual ones, until it runs) */
 .vx-hero {
     --vx-top: 88px;
     --vx-bottom: 0px;
@@ -20,7 +21,7 @@ main a:focus-visible, main button:focus-visible { outline: 2px solid var(--color
     max-height: 1180px;
 }
 @media (max-width: 640px) {
-    .vx-hero { --vx-top: 68px; --vx-bottom: calc(62px + env(safe-area-inset-bottom, 0px)); }
+    .vx-hero { --vx-bottom: calc(62px + env(safe-area-inset-bottom, 0px)); }
 }
 
 /* left-aligned on the postcard pages' 1200 px column */
