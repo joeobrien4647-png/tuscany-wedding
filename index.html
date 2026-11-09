@@ -386,6 +386,13 @@
 
 <footer class="p-mini">Sophie &amp; Joe, 28–31 May 2027<br><a id="footer-reply-link" href="#card">Reply to your invitation</a></footer>
 
+<script>
+// On a slow signal the Firebase scripts can take a while; after 20 s, say so instead of "One moment".
+window.sjSlowReply = setTimeout(function () {
+  var note = document.getElementById("loading");
+  if (note && !note.hidden) note.textContent = "Still loading. If nothing changes, check your signal and reload the page.";
+}, 20000);
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
@@ -393,6 +400,13 @@
 <script src="js/guest-welcome.js"></script>
 <script>
 (function () {
+  // If the Firebase scripts failed to load, offer a reload rather than "One moment" forever.
+  if (typeof firebase === "undefined" || !firebase.auth || !firebase.database) {
+    document.getElementById("loading").hidden = true;
+    document.getElementById("registration-recovery").hidden = false;
+    document.getElementById("registration-retry").onclick = function () { location.reload(); };
+    return;
+  }
   firebase.initializeApp({
     apiKey: "AIzaSyAbEpCIPFFqiuElH0DK1dkkl7JBbNyZTc8",
     authDomain: "tuscany-wedding.firebaseapp.com",
@@ -623,6 +637,7 @@
   function render(reg) {
     setReplyLabels(!!(!PREVIEW && auth.currentUser && session.state().status === "saved" && reg && ["yes", "maybe", "no"].indexOf(reg.intent) >= 0));
     $("loading").hidden = true;
+    if (window.sjSlowReply) { clearTimeout(window.sjSlowReply); window.sjSlowReply = null; }
     var has = !!reg;
     screenVersion++;
     $("registration-recovery").hidden = true;
