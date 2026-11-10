@@ -20,14 +20,22 @@
   const base = () => (isLocalTest() ? '.local-test/' : DB + '/');
   const isObject = v => !!v && typeof v === 'object' && !Array.isArray(v);
 
+  // Positions matter (each place is a person), so gaps and null holes become false and nothing shifts.
   function cleanComing(raw) {
-    let list = raw;
+    let list;
     if (isObject(raw)) {
+      const keys = Object.keys(raw).filter(k => /^\d+$/.test(k));
+      if (keys.length !== Object.keys(raw).length) return null;
+      const highest = keys.reduce((m, k) => Math.max(m, Number(k)), -1);
+      if (highest >= MAX_COMING) return null;
       list = [];
-      Object.keys(raw).filter(k => /^\d+$/.test(k)).sort((a, b) => a - b).forEach(k => list.push(raw[k]));
-    }
-    if (!Array.isArray(list) || list.length > MAX_COMING || !list.every(v => typeof v === 'boolean')) return null;
-    return list.slice();
+      for (let i = 0; i <= highest; i++) list.push(raw[i]);
+    } else if (Array.isArray(raw)) {
+      list = Array.from(raw);
+    } else return null;
+    if (list.length > MAX_COMING) return null;
+    list = list.map(v => (v === undefined || v === null ? false : v));
+    return list.every(v => typeof v === 'boolean') ? list : null;
   }
   function cleanReply(r) {
     if (!isObject(r) || (r.answer !== 'yes' && r.answer !== 'no') || typeof r.at !== 'number') return null;

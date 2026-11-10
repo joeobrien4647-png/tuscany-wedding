@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const core = require('../js/first/core.js');
 const { WEDDING_MS, REPLIES_CLOSE_MS, SHARE_GBP, LOCKS, repliesOpen, countdown, lockState, nextLock,
-  comingCount, shareLine, canChangeStay, dockStates, stayLabel, landing } = core;
+  comingCount, fill, ukDate, shareLine, canChangeStay, dockStates, stayLabel, landing } = core;
 
 test('dates', () => {
   assert.equal(REPLIES_CLOSE_MS, 1803859200000);
@@ -95,4 +95,16 @@ test('the amount lives only in SHARE_GBP', () => {
     const hits = src.match(/\b150\b/g) || [];
     assert.equal(hits.length, f === 'core.js' ? 1 : 0, f);
   }
+});
+
+test('fill replaces known placeholders and leaves the rest', () => {
+  assert.equal(fill('Opens {date} for {n}', { date: 'Mon 1 Feb', n: 3 }), 'Opens Mon 1 Feb for 3');
+  assert.equal(fill('Hi {names} {n}', { n: 0 }), 'Hi {names} 0');
+  assert.equal(fill('{n} and {n}', { n: 2 }), '2 and 2');
+  assert.equal(fill(undefined, { n: 1 }), ''); assert.equal(fill(null), ''); assert.equal(fill('{n}'), '{n}');
+});
+test('ukDate gives the UK calendar day', () => {
+  assert.equal(ukDate(Date.UTC(2027, 1, 1, 8)), 'Mon 1 Feb');
+  assert.equal(ukDate(REPLIES_CLOSE_MS - 1), 'Sun 28 Feb');
+  assert.equal(ukDate(Date.UTC(2027, 4, 28, 23)), 'Sat 29 May');
 });

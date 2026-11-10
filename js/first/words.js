@@ -66,14 +66,15 @@
       questions: 'Questions',
       watch: 'Watch the invitation again',
       notYou: 'Not you?',
-      envelopes: [
-        { name: 'The estate', stamp: '1 Feb' },
-        { name: 'Your room', stamp: '1 Apr' },
-        { name: 'The menu', stamp: '1 May' },
-        { name: 'Your table', stamp: '24 May' },
-        { name: 'The film', stamp: '27 May' },
-        { name: 'The photos', stamp: 'June' }
-      ]
+      envelopes: {
+        estate: { name: 'The estate' },
+        room: { name: 'Your room' },
+        menu: { name: 'The menu' },
+        table: { name: 'Your table' },
+        film: { name: 'The film' },
+        photos: { name: 'The photos' }
+      },
+      photosStamp: 'June'
     },
     dock: {
       labels: ['Reply', 'Stay', 'Travel', 'Wear', 'Weekend'],

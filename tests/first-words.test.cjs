@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { copyProblems } = require('../js/first/core.js');
+const { copyProblems, LOCKS } = require('../js/first/core.js');
 const { words } = require('../js/first/words.js');
 
 function leaves(node, path = 'words') {
@@ -45,4 +45,10 @@ test('keys later screens read', () => {
   assert.ok(words.home.opens.includes('{date}'));
   for (const p of ['stay.spring', 'stay.word', 'stay.fixed', 'errors.save', 'questions.bring.a'])
     assert.ok(p.split('.').reduce((o, k) => o && o[k], words), p);
+});
+
+test('envelopes are keyed by lock key and hold only a name', () => {
+  assert.deepEqual(Object.keys(words.home.envelopes), LOCKS.map(l => l.key));
+  for (const e of Object.values(words.home.envelopes)) assert.deepEqual(Object.keys(e), ['name']);
+  assert.equal(words.home.photosStamp, 'June');
 });

@@ -1,4 +1,4 @@
-const test = require('node:test');
+const { test, mock } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -36,8 +36,16 @@ test('clean drops unknown keys and bad parts', () => {
   assert.equal(store.clean({ reply: { answer: 'yes', coming: 'nope', at: 1 } }), null);
   assert.deepEqual(store.clean({ reply: { answer: 'yes', coming: ['a'], at: 1 }, stay: good.stay }), { stay: good.stay });
 });
-test('clean turns a gappy coming object into an array and caps it at 8', () => {
-  assert.deepEqual(store.clean({ reply: { answer: 'yes', coming: { 0: true, 2: false }, at: 1 } }).reply.coming, [true, false]);
+test('clean keeps positions in coming: gaps become false, never closed up', () => {
+  const coming = c => store.clean({ reply: { answer: 'yes', coming: c, at: 1 } }).reply.coming;
+  assert.deepEqual(coming({ 0: true, 2: true }), [true, false, true]);
+  assert.deepEqual(coming({ 1: true }), [false, true]);
+  assert.deepEqual(coming([true, null, true]), [true, false, true]);
+  const holes = [true]; holes[2] = true;
+  assert.deepEqual(coming(holes), [true, false, true]);
+  assert.equal(store.clean({ reply: { answer: 'yes', coming: { 8: true }, at: 1 } }), null);
+});
+test('clean caps coming at 8', () => {
   assert.equal(store.clean({ reply: { answer: 'yes', coming: new Array(9).fill(true), at: 1 } }), null);
 });
 
@@ -145,4 +153,18 @@ test('invite.js remembers only when asked, and store.js and invite.js never log'
   assert.match(rem, /localStorage\.setItem/);
   assert.doesNotMatch(inv, /console\./);
   assert.doesNotMatch(read('js/first/store.js'), /console\./);
+});
+
+test('a request that never settles gives up after the wait', async () => {
+  mock.timers.enable({ apis: ['setTimeout'] });
+  try {
+    await withGlobals({ fetch: () => new Promise(() => {}) }, async () => {
+      const loading = store.load(TOKEN);
+      mock.timers.tick(15000);
+      assert.equal(await loading, undefined);
+      const saving = store.saveReply(TOKEN, { answer: 'no', coming: [false] });
+      mock.timers.tick(15000);
+      assert.equal(await saving, false);
+    });
+  } finally { mock.timers.reset(); }
 });

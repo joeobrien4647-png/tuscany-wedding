@@ -9,8 +9,10 @@
    welcome/<token> over REST, once (display and lines, plus people), and hands the result on:
      window.sjInvite         a promise of { token, display, lines, people } or null (no link, a token that is not an
                              invitation, or no answer in time); it never rejects
-     window.sjInvite.token   the token straight away ("" if none), before the lookup has answered
-     window.sjInvite.remember() / .forget()   keep the token on this phone / clear it (neither ever throws)
+     window.sjInvite.token   the token straight away ("" if none), before the lookup has answered; set to "" if the database clearly
+                             says there is no such invitation (a timeout leaves it)
+     window.sjInvite.remember() / .forget()   keep the token on this phone (only once the lookup has found an
+                             invitation) / clear it; neither ever throws
      window.sjInvite.name    a promise of { token, display, lines } or null as soon as display and lines have answered,
                              for js/intro.js: a slow people never costs the film its name
      "sj:invite"             an event on window when the lookup finds an invitation, with the same object as detail
@@ -34,6 +36,7 @@
     if (!TOKEN.test(token)) { try { token = localStorage.getItem(KEPT) || ""; } catch (e) {} }
   }
   if (!TOKEN.test(token)) token = "";
+  function forgetKept(t) { try { if (localStorage.getItem(KEPT) === t) localStorage.removeItem(KEPT); } catch (e) {} }
   function keep(t) { try { if (t) sessionStorage.setItem(KEY, t); else sessionStorage.removeItem(KEY); } catch (e) {} }
   keep(token);
 
@@ -65,7 +68,8 @@
     if (typeof v[0] !== "string" || !v[0].trim()) {
       if (v[0] === null) {   // the database says there is no such invitation; a timeout keeps it for a reload
         keep("");
-        try { localStorage.removeItem(KEPT); } catch (e) {}
+        forgetKept(token);   // only if the kept token is the very one the database rejected
+        found.token = token = "";
       }
       return null;
     }
@@ -79,8 +83,16 @@
   }, function () { return null; });
   found.token = token;
   found.name = name;
-  found.remember = function () { try { if (token) localStorage.setItem(KEPT, token); } catch (e) {} };
+  // remember() stores the token only once the lookup has found an invitation (now, or as soon as it does).
+  var asked = false, verified = false;
+  found.remember = function () {
+    asked = true;
+    if (!verified) return;
+    try { if (token) localStorage.setItem(KEPT, token); } catch (e) {}
+  };
+  found.then(function (invite) { verified = !!invite; if (verified && asked) found.remember(); });
   found.forget = function () {
+    asked = false;
     try { localStorage.removeItem(KEPT); } catch (e) {}
     try { sessionStorage.removeItem(KEY); } catch (e) {}
   };

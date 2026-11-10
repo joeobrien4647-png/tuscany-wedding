@@ -57,9 +57,23 @@
     return Array.isArray(coming) && coming.length ? coming.filter(c => c === true).length : 1;
   }
 
+  // Replaces each {key} that vars has; unknown placeholders stay as they are.
+  function fill(template, vars) {
+    const v = vars || {};
+    return String(template == null ? '' : template)
+      .replace(/\{(\w+)\}/g, (m, k) => (Object.prototype.hasOwnProperty.call(v, k) ? String(v[k]) : m));
+  }
+
+  // The UK calendar date as weekday, day, month: ukDate(Date.UTC(2027, 1, 1, 8)) is 'Mon 1 Feb'.
+  const UK_DATE = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', weekday: 'short', day: 'numeric', month: 'short' });
+  function ukDate(ms) {
+    const parts = UK_DATE.formatToParts(new Date(ms));
+    const part = type => (parts.find(p => p.type === type) || {}).value;
+    return part('weekday') + ' ' + part('day') + ' ' + part('month');
+  }
+
   function shareLine(template, count) {
-    const amount = '\u00a3' + SHARE_GBP + (count >= 2 ? ' each' : '');
-    return String(template).split('{share}').join(amount);
+    return fill(template, { share: '\u00a3' + SHARE_GBP + (count >= 2 ? ' each' : '') });
   }
 
   const canChangeStay = (household, nowMs) =>
@@ -91,7 +105,7 @@
   }
 
   const api = { shouldShowFirst, copyProblems, WEDDING_MS, REPLIES_CLOSE_MS, SHARE_GBP, LOCKS, repliesOpen, countdown,
-    lockState, nextLock, comingCount, shareLine, canChangeStay, dockStates, stayLabel, landing };
+    lockState, nextLock, comingCount, fill, ukDate, shareLine, canChangeStay, dockStates, stayLabel, landing };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
