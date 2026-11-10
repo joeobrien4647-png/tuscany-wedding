@@ -66,10 +66,21 @@ test('saveReply puts the reply with a server timestamp', async () => {
   assert.deepEqual(JSON.parse(opts.body), { answer: 'yes', coming: [true], at: { '.sv': 'timestamp' } });
 });
 test('saveReply and saveStay resolve false on failure', async () => {
-  assert.equal(await withGlobals({ fetch: () => Promise.reject(new Error('x')) }, () => store.saveReply(TOKEN, { answer: 'no', coming: [] })), false);
-  assert.equal(await withGlobals({ fetch: reply(null, false) }, () => store.saveReply(TOKEN, { answer: 'no', coming: [] })), false);
+  assert.equal(await withGlobals({ fetch: () => Promise.reject(new Error('x')) }, () => store.saveReply(TOKEN, { answer: 'no', coming: [false] })), false);
+  assert.equal(await withGlobals({ fetch: reply(null, false) }, () => store.saveReply(TOKEN, { answer: 'no', coming: [false] })), false);
+  let sent = 0;
+  assert.equal(await withGlobals({ fetch: () => { sent++; return reply({})(); } }, () => store.saveReply(TOKEN, { answer: 'maybe', coming: [true] })), false);
+  assert.equal(sent, 0);
   assert.equal(await withGlobals({ fetch: reply(null, false) }, () => store.saveStay(TOKEN, 'villa')), false);
   assert.equal(await store.saveStay(TOKEN, 'castle'), false);
+});
+test('saveReply never sends an empty coming: a no becomes [false], a yes [true]', async () => {
+  for (const [answer, coming, want] of [['no', [], [false]], ['yes', [], [true]], ['no', undefined, [false]], ['yes', undefined, [true]]]) {
+    let opts;
+    const ok = await withGlobals({ fetch: (u, o) => { opts = o; return reply({})(); } }, () => store.saveReply(TOKEN, { answer, coming }));
+    assert.equal(ok, true);
+    assert.deepEqual(JSON.parse(opts.body).coming, want);
+  }
 });
 test('saveStay puts the choice with a server timestamp', async () => {
   let url, opts;
@@ -90,6 +101,13 @@ test('local-test mode keeps saves in memory for the page', async () => {
     assert.equal(urls.length, 1, 'no network writes in local-test mode');
     const h = await store.load(TOKEN);
     assert.equal(h.reply.answer, 'yes'); assert.deepEqual(h.reply.coming, [true, true]); assert.equal(h.stay.choice, 'own');
+  });
+  await withGlobals({ location: loc, fetch: reply(null, false) }, async () => {
+    const h = await store.load(TOKEN);
+    assert.equal(h.reply.answer, 'yes'); assert.equal(h.stay.choice, 'own');
+  });
+  await withGlobals({ location: loc, fetch: () => Promise.resolve({ ok: true, json: () => Promise.reject(new Error('bad json')) }) }, async () => {
+    assert.equal((await store.load(TOKEN)).stay.choice, 'own');
   });
 });
 
@@ -116,6 +134,7 @@ test('rules: a link reads only its own household and writes are bounded', () => 
   assert.match(rules.household.$token.reply['.write'], /1803859200000/);
   assert.match(rules.household.$token.stay['.write'], /=== 'later'/);
   assert.match(rules.household.$token['.validate'], /welcome/);
+  assert.equal(rules.household.$token.reply.coming['.validate'], 'newData.hasChildren()');
   assert.equal(rules.household.$token.$other['.validate'], false);
 });
 test('invite.js remembers only when asked, and store.js and invite.js never log', () => {

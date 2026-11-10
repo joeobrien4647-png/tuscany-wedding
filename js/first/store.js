@@ -60,16 +60,20 @@
     });
   }
 
+  function withMemory(token, fromDb) {
+    const kept = memory[token];
+    return kept ? clean(Object.assign({}, fromDb || {}, kept)) : fromDb;
+  }
+  // In local-test mode a missing or unreadable file means "no record yet", so saves kept in memory still show.
   function load(token) {
     if (!TOKEN.test(token || '')) return Promise.resolve(undefined);
+    const local = isLocalTest(), noAnswer = local ? withMemory(token, null) : undefined;
     return request(base() + 'household/' + token + '.json').then(function (r) {
-      if (!r || !r.ok) return undefined;
+      if (!r) return undefined;
+      if (!r.ok) return noAnswer;
       return r.json().then(function (body) {
-        const fromDb = body === null ? null : clean(body);
-        const kept = memory[token];
-        if (!kept) return fromDb;
-        return clean(Object.assign({}, fromDb || {}, kept));
-      }, () => undefined);
+        return withMemory(token, body === null ? null : clean(body));
+      }, () => noAnswer);
     });
   }
 
@@ -85,8 +89,12 @@
       .then(r => !!(r && r.ok));
   }
   function saveReply(token, reply) {
-    const r = reply || {}, coming = cleanComing(r.coming);
-    if ((r.answer !== 'yes' && r.answer !== 'no') || !coming) return Promise.resolve(false);
+    const r = reply || {};
+    if (r.answer !== 'yes' && r.answer !== 'no') return Promise.resolve(false);
+    // The database drops an empty array and the rules require coming, so it is never sent empty.
+    let coming = r.coming == null ? [] : cleanComing(r.coming);
+    if (!coming) return Promise.resolve(false);
+    if (!coming.length) coming = [r.answer === 'yes'];
     return put(token, 'reply', { answer: r.answer, coming });
   }
   function saveStay(token, choice) {

@@ -54,7 +54,7 @@
           ".write": "now < 1803859200000",
           ".validate": "newData.hasChildren(['answer', 'coming', 'at'])",
           "answer": { ".validate": "newData.val() === 'yes' || newData.val() === 'no'" },
-          "coming": { "$i": { ".validate": "newData.isBoolean() && $i.matches(/^[0-7]$/)" } },
+          "coming": { ".validate": "newData.hasChildren()", "$i": { ".validate": "newData.isBoolean() && $i.matches(/^[0-7]$/)" } },
           "at": { ".validate": "newData.val() == now" },
           "$other": { ".validate": false }
         },
