@@ -156,8 +156,62 @@
     };
   }
 
+  // ---- admin hand-edits: pure builders for the one-leaf writes the dashboard makes ----
+  const SERVER_TIME = { '.sv': 'timestamp' };
+  const clampPeople = (n) => Math.min(8, Math.max(1, Math.floor(Number(n)) || 1));
+
+  // coming: one boolean per person (1 to 8); a yes is never all false, a no always is
+  function adminReply(answer, peopleCount, coming) {
+    if (answer !== 'yes' && answer !== 'no') return null;
+    const n = clampPeople(peopleCount);
+    if (answer === 'no') return { answer, coming: Array.from({ length: n }, () => false), at: SERVER_TIME };
+    const picked = Array.isArray(coming) ? Array.from({ length: n }, (_, i) => coming[i] === true) : [];
+    return { answer, coming: picked.some(Boolean) ? picked : Array.from({ length: n }, () => true), at: SERVER_TIME };
+  }
+
+  // the same array when the toggle would leave nobody coming (or the input is malformed)
+  function adminToggleComing(coming, i) {
+    if (!Array.isArray(coming) || !Number.isInteger(i) || i < 0 || i >= coming.length) return coming;
+    const next = coming.map((c, j) => (j === i ? c !== true : c === true));
+    return next.some(Boolean) ? next : coming;
+  }
+
+  function adminStay(choice) {
+    return choice === 'villa' || choice === 'own' || choice === 'later' ? { choice, at: SERVER_TIME } : null;
+  }
+
+  // ordered single-leaf steps: path is 'stay' or 'reply', value null means remove.
+  // Stay is always removed before reply is touched, so a stay never outlives its yes.
+  function adminSteps(action, opts) {
+    const o = isObj(opts) ? opts : {};
+    if (action === 'yes') return [{ path: 'reply', value: adminReply('yes', o.peopleCount) }];
+    if (action === 'no') return [{ path: 'stay', value: null }, { path: 'reply', value: adminReply('no', o.peopleCount) }];
+    if (action === 'clear') return [{ path: 'stay', value: null }, { path: 'reply', value: null }];
+    if (action === 'stay') { const v = adminStay(o.choice); return v ? [{ path: 'stay', value: v }] : []; }
+    if (action === 'toggle') {
+      if (!Array.isArray(o.coming)) return [];
+      const next = adminToggleComing(o.coming, o.index);
+      return next === o.coming ? [] : [{ path: 'reply', value: adminReply('yes', o.coming.length, next) }];
+    }
+    return [];
+  }
+
+  const describeStep = (st) => (st.path === 'stay' ? (st.value === null ? 'removed the stay choice' : 'saved the stay choice')
+    : (st.value === null ? 'cleared the reply' : 'saved the reply'));
+
+  // what to tell the admin when step number `done` (0-based) failed
+  function adminFailureMessage(steps, done, detail) {
+    const list = Array.isArray(steps) ? steps : [];
+    const why = detail ? ' (' + detail + ')' : '';
+    if (list.length <= 1) return 'Could not save that' + why;
+    const d = Math.max(0, Math.min(done, list.length));
+    const did = list.slice(0, d).map(describeStep), left = list.slice(d).map(describeStep);
+    return 'Could not finish that.' + (did.length ? ' Done: ' + did.join(', ') + '.' : ' Nothing was changed.')
+      + ' Not done: ' + left.join(', ') + '. Check this row.' + why;
+  }
+
   const api = { shouldShowFirst, isLocalTest, copyProblems, WEDDING_MS, REPLIES_CLOSE_MS, SHARE_GBP, LOCKS, repliesOpen, weddingDay, countdown,
-    lockState, nextLock, comingCount, fill, ukDate, shareLine, canChangeStay, dockStates, stayLabel, landing, householdRows, householdTotals };
+    lockState, nextLock, comingCount, fill, ukDate, shareLine, canChangeStay, dockStates, stayLabel, landing, householdRows, householdTotals, adminReply, adminToggleComing, adminStay, adminSteps, adminFailureMessage };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

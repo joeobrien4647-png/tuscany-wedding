@@ -503,18 +503,20 @@
         }
       });
       const [ok, setOk] = useState(true);
+      const [failed, setFailed] = useState(false);
       const fbOk = React.useRef(false);
       useEffect(() => {
         const ref = db.ref(key);
         const handler = ref.on("value", (snap) => {
           fbOk.current = true;
+          setFailed(false);
           const incoming = snap.exists() ? snap.val() : def;
           const val = applyNorm(incoming);
           // no seed for no-cache keys: set({}) deletes the node and could wipe another admin's first write
           if (!snap.exists() && !noCache) ref.set(val);
           setD(val);
           if (!noCache) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
-        }, () => { fbOk.current = false; });
+        }, () => { fbOk.current = false; setFailed(true); });
         return () => ref.off("value", handler);
       }, [key, applyNorm, def, noCache]);
       const save = useCallback((n) => {
@@ -523,7 +525,7 @@
         if (!noCache) { try { localStorage.setItem(key, JSON.stringify(next)); } catch {} }
         if (fbOk.current) db.ref(key).set(next);
       }, [key, applyNorm, noCache]);
-      return [d, save, ok];
+      return [d, save, ok, failed];
     }
 
     function useFirebaseConnected() {
@@ -2660,28 +2662,32 @@
     /* ========== INVITATIONS (admin view of household/<token>) ========== */
     // Every write here is one leaf (household/<token>/reply or /stay) so a guest answering at the same moment is never overwritten.
     // Tokens are database keys only: they are never shown, and never stored in this browser.
-    function InvitationsPanel({ welcome, seen, household }) {
+    function InvitationsPanel({ welcome, seen, household, failed }) {
       const [busy, setBusy] = useState(null);
       const rows = sjFirst.householdRows(welcome, seen, household);
       const t = sjFirst.householdTotals(rows);
       const when = at => new Date(at).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-      const stamp = () => ({ ".sv": "timestamp" });
-      const count = r => Math.min(8, Math.max(1, r.people.length));
-      const fill = (r, v) => Array.from({ length: count(r) }, () => v);
-      const run = (token, job) => {
-        setBusy(token);
-        job().catch(e => window.alert("Could not save that: " + ((e && e.message) || "unknown error"))).then(() => setBusy(null));
+      const people = r => r.people.length;
+      // one leaf per step, in order; a later failure says what did and did not happen
+      const run = (r, action, opts) => {
+        const steps = sjFirst.adminSteps(action, { peopleCount: people(r), ...opts });
+        if (!steps.length) return;
+        let done = 0;
+        setBusy(r.token);
+        steps.reduce((chain, st) => chain.then(() => {
+          const ref = db.ref("household/" + r.token + "/" + st.path);
+          return (st.value === null ? ref.remove() : ref.set(st.value)).then(() => { done += 1; });
+        }), Promise.resolve())
+          .catch(e => window.alert(sjFirst.adminFailureMessage(steps, done, e && e.message)))
+          .then(() => setBusy(null));
       };
-      const putReply = (r, answer, coming) => run(r.token, () => db.ref("household/" + r.token + "/reply").set({ answer, coming, at: stamp() }));
-      const setYes = r => putReply(r, "yes", fill(r, true));
-      // a stay only makes sense after a yes, so a hand-set "can't come" removes any stay first
-      const setNo = r => run(r.token, () => (r.stay === null ? Promise.resolve() : db.ref("household/" + r.token + "/stay").remove())
-        .then(() => db.ref("household/" + r.token + "/reply").set({ answer: "no", coming: fill(r, false), at: stamp() })));
-      const toggleComing = (r, i) => putReply(r, "yes", r.coming.map((c, j) => (j === i ? !c : c)));
-      const putStay = (r, choice) => run(r.token, () => db.ref("household/" + r.token + "/stay").set({ choice, at: stamp() }));
+      const setYes = r => run(r, "yes");
+      const setNo = r => run(r, "no");
+      const toggleComing = (r, i) => run(r, "toggle", { coming: r.coming, index: i });
+      const putStay = (r, choice) => run(r, "stay", { choice });
       const clearReply = r => {
         if (!window.confirm("Clear the reply and the stay choice for " + r.display + "? They can answer again.")) return;
-        run(r.token, () => db.ref("household/" + r.token + "/stay").remove().then(() => db.ref("household/" + r.token + "/reply").remove()));
+        run(r, "clear");
       };
       const pill = (on, color) => ({ ...bS, background: on ? color : P.stoneP, color: on ? "#fff" : P.txtM });
       const small = { fontSize: 10, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 };
@@ -2699,7 +2705,8 @@
               </div>
             ))}
           </div>
-          {rows.length === 0 && <div style={{ fontSize: 12, color: P.txtL }}>No invitations yet</div>}
+          {failed && <div data-invitations-failed style={{ fontSize: 12, color: P.red, marginBottom: 6 }}>Could not load the invitations. Check you are signed in as an admin and refresh. Do not trust the totals above.</div>}
+          {!failed && rows.length === 0 && <div style={{ fontSize: 12, color: P.txtL }}>No invitations yet</div>}
           {rows.map(r => {
             const yes = r.answer === "yes", off = busy === r.token;
             const heads = yes && r.coming ? r.coming.filter(Boolean).length : 0;
@@ -2742,7 +2749,7 @@
       );
     }
 
-    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, approved, chase, saveChase, nudges, welcome, welcomeSeen, household }) {
+    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, approved, chase, saveChase, nudges, welcome, welcomeSeen, household, invitesFailed }) {
       const [resetNote, setResetNote] = useState({});
       const regs = Object.entries(safeObj(registrations, {})).map(([k, v]) => ({ ...safeObj(v, {}), _uid: k })).filter(r => r && r.name)
         .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -2873,7 +2880,7 @@
             ))}
           </div>
 
-          <InvitationsPanel welcome={welcome} seen={welcomeSeen} household={household} />
+          <InvitationsPanel welcome={welcome} seen={welcomeSeen} household={household} failed={invitesFailed} />
 
           {(() => {
             const ps = Object.values(safeObj(profiles, {})).filter(p => p && p.name);
@@ -3721,9 +3728,10 @@
       const [chase, saveChase, b25] = useStorage("site-chase", {}, (v) => safeObj(v, {}));
       const [nudges, , b26] = useStorage("nudges", {}, (v) => safeObj(v, {}), { noCache: true });
       const [approved, , b27] = useStorage("approved", {}, (v) => safeObj(v, {}), { noCache: true });
-      const [welcome, , b28] = useStorage("welcome", EMPTY_MAP, asMap, { noCache: true });
+      const [welcome, , b28, welcomeFailed] = useStorage("welcome", EMPTY_MAP, asMap, { noCache: true });
       const [welcomeSeen, , b29] = useStorage("welcomeSeen", EMPTY_MAP, asMap, { noCache: true });
-      const [household, , b30] = useStorage("household", EMPTY_MAP, asMap, { noCache: true });
+      const [household, , b30, householdFailed] = useStorage("household", EMPTY_MAP, asMap, { noCache: true });
+      const invitesFailed = welcomeFailed || householdFailed;
       const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music, normalizeMusic);
       const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing, safeArr);
       const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating, (v) => ({ tables: safeArr(v?.tables).map(t => ({ ...t, guests: safeArr(t?.guests) })) }));
@@ -3804,7 +3812,7 @@
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} dayKit={dayKit} saveDayKit={saveDayKit} />}
             {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
             {tab === "total" && <TotalCostTab legalSpend={legalSpend} budget={budget} eurRate={eurRate} guests={guests} />}
-            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} approved={approved} chase={chase} saveChase={saveChase} nudges={nudges} welcome={welcome} welcomeSeen={welcomeSeen} household={household} />}
+            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} approved={approved} chase={chase} saveChase={saveChase} nudges={nudges} welcome={welcome} welcomeSeen={welcomeSeen} household={household} invitesFailed={invitesFailed} />}
           </div>
         </div>
       );
