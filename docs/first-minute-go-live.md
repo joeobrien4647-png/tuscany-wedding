@@ -79,7 +79,7 @@ Push sections 5 to 7 together. Open one real link without `&first=1` to confirm 
 
 ## If something goes wrong
 
-- The invitation misbehaves after the switch is on: set `data-first-enabled="false"` and push. The old front page is back for everyone. Replies already saved stay in the database. Pages retired in section 7 stay retired until that change is undone too.
+- The invitation misbehaves after the switch is on: set `data-first-enabled="false"`, change the three tests from section 6 back to match, and push. The old front page is back for everyone. Replies already saved stay in the database. Pages retired in section 7 stay retired until that change is undone too.
 - The rules misbehave: paste back the copy you kept in section 1 and publish.
 - One household's answer is wrong: fix or clear it from the Invitations section of the dashboard.
 
