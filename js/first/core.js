@@ -112,8 +112,52 @@
     return reply.answer === 'no' ? 'cantcome' : 'home';
   }
 
+  const isObj = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
+
+  // one row per invited household for the admin dashboard; households not in welcome are dropped
+  function householdRows(welcome, seen, household) {
+    if (!isObj(welcome)) return [];
+    const seenMap = isObj(seen) ? seen : {};
+    const houseMap = isObj(household) ? household : {};
+    const rows = Object.keys(welcome).filter((token) => isObj(welcome[token])).map((token) => {
+      const w = welcome[token];
+      const last = isObj(seenMap[token]) && isObj(seenMap[token].last) ? seenMap[token].last : null;
+      const record = isObj(houseMap[token]) ? houseMap[token] : {};
+      const reply = isObj(record.reply) ? record.reply : null;
+      const stay = isObj(record.stay) ? record.stay : null;
+      const answer = reply && (reply.answer === 'yes' || reply.answer === 'no') ? reply.answer : null;
+      return {
+        token,
+        display: typeof w.display === 'string' ? w.display : '',
+        people: Array.isArray(w.people) ? w.people.filter((p) => typeof p === 'string') : [],
+        openedAt: last && typeof last.at === 'number' ? last.at : null,
+        answer,
+        coming: answer && Array.isArray(reply.coming) ? reply.coming.map((c) => c === true) : null,
+        stay: stay && ['villa', 'own', 'later'].indexOf(stay.choice) >= 0 ? stay.choice : null,
+      };
+    });
+    const byName = (a, b) => a.display.toLowerCase().localeCompare(b.display.toLowerCase()) || (a.token < b.token ? -1 : 1);
+    return rows.sort((a, b) => (a.answer === null) !== (b.answer === null) ? (a.answer === null ? -1 : 1) : byName(a, b));
+  }
+
+  // notChosen: households that said yes and have not picked the villa or their own place
+  function householdTotals(rows) {
+    const list = Array.isArray(rows) ? rows : [];
+    const yes = list.filter((r) => r.answer === 'yes');
+    return {
+      households: list.length,
+      opened: list.filter((r) => r.openedAt !== null).length,
+      yes: yes.length,
+      cantCome: list.filter((r) => r.answer === 'no').length,
+      noReply: list.filter((r) => r.answer === null).length,
+      villa: yes.filter((r) => r.stay === 'villa').length,
+      own: yes.filter((r) => r.stay === 'own').length,
+      notChosen: yes.filter((r) => r.stay !== 'villa' && r.stay !== 'own').length,
+    };
+  }
+
   const api = { shouldShowFirst, isLocalTest, copyProblems, WEDDING_MS, REPLIES_CLOSE_MS, SHARE_GBP, LOCKS, repliesOpen, weddingDay, countdown,
-    lockState, nextLock, comingCount, fill, ukDate, shareLine, canChangeStay, dockStates, stayLabel, landing };
+    lockState, nextLock, comingCount, fill, ukDate, shareLine, canChangeStay, dockStates, stayLabel, landing, householdRows, householdTotals };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

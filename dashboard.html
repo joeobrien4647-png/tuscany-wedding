@@ -16,6 +16,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="js/first/core.js"></script>
   <script>
     firebase.initializeApp({
       apiKey: "AIzaSyAbEpCIPFFqiuElH0DK1dkkl7JBbNyZTc8",
@@ -483,8 +484,10 @@
 
     // Registrations, payments, nudges and bank details are never kept in this browser's localStorage.
     // The guest list (wedding-guests-v4) still is, so the dashboard works offline.
-    const NO_CACHE_KEYS = ["registrations", "members/payment", "payments", "approved", "nudges"];
+    const NO_CACHE_KEYS = ["registrations", "members/payment", "payments", "approved", "nudges", "welcome", "welcomeSeen", "household"];
     NO_CACHE_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch {} });
+    const EMPTY_MAP = {};
+    const asMap = (v) => safeObj(v, {});
 
     function useStorage(key, def, normalize = (v) => v, { noCache = false } = {}) {
       const applyNorm = useCallback((v) => {
@@ -2654,7 +2657,92 @@
       );
     }
 
-    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, approved, chase, saveChase, nudges }) {
+    /* ========== INVITATIONS (admin view of household/<token>) ========== */
+    // Every write here is one leaf (household/<token>/reply or /stay) so a guest answering at the same moment is never overwritten.
+    // Tokens are database keys only: they are never shown, and never stored in this browser.
+    function InvitationsPanel({ welcome, seen, household }) {
+      const [busy, setBusy] = useState(null);
+      const rows = sjFirst.householdRows(welcome, seen, household);
+      const t = sjFirst.householdTotals(rows);
+      const when = at => new Date(at).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+      const stamp = () => ({ ".sv": "timestamp" });
+      const count = r => Math.min(8, Math.max(1, r.people.length));
+      const fill = (r, v) => Array.from({ length: count(r) }, () => v);
+      const run = (token, job) => {
+        setBusy(token);
+        job().catch(e => window.alert("Could not save that: " + ((e && e.message) || "unknown error"))).then(() => setBusy(null));
+      };
+      const putReply = (r, answer, coming) => run(r.token, () => db.ref("household/" + r.token + "/reply").set({ answer, coming, at: stamp() }));
+      const setYes = r => putReply(r, "yes", fill(r, true));
+      // a stay only makes sense after a yes, so a hand-set "can't come" removes any stay first
+      const setNo = r => run(r.token, () => (r.stay === null ? Promise.resolve() : db.ref("household/" + r.token + "/stay").remove())
+        .then(() => db.ref("household/" + r.token + "/reply").set({ answer: "no", coming: fill(r, false), at: stamp() })));
+      const toggleComing = (r, i) => putReply(r, "yes", r.coming.map((c, j) => (j === i ? !c : c)));
+      const putStay = (r, choice) => run(r.token, () => db.ref("household/" + r.token + "/stay").set({ choice, at: stamp() }));
+      const clearReply = r => {
+        if (!window.confirm("Clear the reply and the stay choice for " + r.display + "? They can answer again.")) return;
+        run(r.token, () => db.ref("household/" + r.token + "/stay").remove().then(() => db.ref("household/" + r.token + "/reply").remove()));
+      };
+      const pill = (on, color) => ({ ...bS, background: on ? color : P.stoneP, color: on ? "#fff" : P.txtM });
+      const small = { fontSize: 10, color: P.txtL, textTransform: "uppercase", letterSpacing: 1 };
+      const STAYS = [["villa", "Villa"], ["own", "Own place"], ["later", "Later"]];
+      return (
+        <div style={{ background: P.card, borderRadius: 12, padding: 14, marginBottom: 18, boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>Invitations</div>
+          <div style={{ fontSize: 11, color: P.txtM, margin: "2px 0 10px" }}>Replies and stay choices from the invitation page. Use the buttons for guests who answer by message. Each button changes only that household.</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+            {[["Households", t.households, P.olive], ["Opened", t.opened, P.blue], ["Yes", t.yes, P.green], ["Can't come", t.cantCome, P.red],
+              ["No reply", t.noReply, P.gold], ["Villa", t.villa, P.terra], ["Own place", t.own, P.terra], ["Not chosen", t.notChosen, P.stone]].map(([l, v, c]) => (
+              <div key={l} style={{ flex: "1 1 80px", background: P.bg, borderRadius: 10, padding: "8px 10px", borderTop: "3px solid " + c }}>
+                <div style={{ fontSize: 18, fontWeight: 700, color: P.txt }}>{v}</div>
+                <div style={small}>{l}</div>
+              </div>
+            ))}
+          </div>
+          {rows.length === 0 && <div style={{ fontSize: 12, color: P.txtL }}>No invitations yet</div>}
+          {rows.map(r => {
+            const yes = r.answer === "yes", off = busy === r.token;
+            const heads = yes && r.coming ? r.coming.filter(Boolean).length : 0;
+            return (
+              <div key={r.token} data-invitation-row style={{ padding: "10px 0", borderTop: "1px solid " + P.stoneL, opacity: off ? 0.6 : 1 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "baseline" }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>{r.display || "Unnamed"}</div>
+                  <div style={{ fontSize: 11, color: r.openedAt === null ? P.txtL : P.txtM }}>{r.openedAt === null ? "Not opened" : "Opened " + when(r.openedAt)}</div>
+                </div>
+                <div style={{ fontSize: 11, color: P.txtM, margin: "2px 0 6px" }}>
+                  {r.answer === null ? "No reply" : yes ? "Yes, " + heads + " of " + (r.coming ? r.coming.length : 0) + " coming" : "Can't come"}
+                  {r.people.length > 0 && " (" + r.people.join(", ") + ")"}
+                </div>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+                  <span style={small}>Reply</span>
+                  <button disabled={off} onClick={() => !yes && setYes(r)} style={pill(yes, P.green)}>Yes</button>
+                  <button disabled={off} onClick={() => r.answer !== "no" && setNo(r)} style={pill(r.answer === "no", P.red)}>Can't come</button>
+                  {r.answer !== null && <button disabled={off} onClick={() => clearReply(r)} style={{ ...bS, background: "none", color: P.blue, textDecoration: "underline" }}>Clear</button>}
+                </div>
+                {yes && r.coming && r.people.length > 0 && (
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginTop: 6 }}>
+                    <span style={small}>Coming</span>
+                    {r.people.slice(0, r.coming.length).map((name, i) => (
+                      <button key={i} disabled={off || (r.coming[i] && heads === 1)} title={r.coming[i] && heads === 1 ? "Use Can't come if nobody is coming" : ""}
+                              onClick={() => toggleComing(r, i)} style={pill(r.coming[i], P.olive)}>{name}</button>
+                    ))}
+                  </div>
+                )}
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginTop: 6 }}>
+                  <span style={small}>Stay</span>
+                  {STAYS.map(([k, label]) => (
+                    <button key={k} disabled={off || !yes} title={yes ? "" : "Needs a yes first"} onClick={() => r.stay !== k && putStay(r, k)}
+                            style={{ ...pill(r.stay === k, P.terra), opacity: yes ? 1 : 0.5, cursor: yes ? "pointer" : "default" }}>{label}</button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, approved, chase, saveChase, nudges, welcome, welcomeSeen, household }) {
       const [resetNote, setResetNote] = useState({});
       const regs = Object.entries(safeObj(registrations, {})).map(([k, v]) => ({ ...safeObj(v, {}), _uid: k })).filter(r => r && r.name)
         .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -2784,6 +2872,8 @@
               </div>
             ))}
           </div>
+
+          <InvitationsPanel welcome={welcome} seen={welcomeSeen} household={household} />
 
           {(() => {
             const ps = Object.values(safeObj(profiles, {})).filter(p => p && p.name);
@@ -3631,6 +3721,9 @@
       const [chase, saveChase, b25] = useStorage("site-chase", {}, (v) => safeObj(v, {}));
       const [nudges, , b26] = useStorage("nudges", {}, (v) => safeObj(v, {}), { noCache: true });
       const [approved, , b27] = useStorage("approved", {}, (v) => safeObj(v, {}), { noCache: true });
+      const [welcome, , b28] = useStorage("welcome", EMPTY_MAP, asMap, { noCache: true });
+      const [welcomeSeen, , b29] = useStorage("welcomeSeen", EMPTY_MAP, asMap, { noCache: true });
+      const [household, , b30] = useStorage("household", EMPTY_MAP, asMap, { noCache: true });
       const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music, normalizeMusic);
       const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing, safeArr);
       const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating, (v) => ({ tables: safeArr(v?.tables).map(t => ({ ...t, guests: safeArr(t?.guests) })) }));
@@ -3650,7 +3743,7 @@
       const [honeymoon, saveHoneymoon, b18] = useStorage("wedding-honeymoon-v1", { destination: "", dates: "", flights: "", hotel: "", budget: "", notes: "", documents: "", itinerary: [] }, normalizeHoneymoon);
       EUR_RATE = eurRate;
 
-      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19&&b20&&b21&&b22&&b23&&b24&&b25&&b26&&b27)) return (
+      if (!(b1&&b2&&b3&&b4&&b5&&b6&&b7&&b8&&b9&&b10&&b11&&b12&&b13&&b14&&b15&&b16&&b17&&b18&&b19&&b20&&b21&&b22&&b23&&b24&&b25&&b26&&b27&&b28&&b29&&b30)) return (
         <div style={{ minHeight: "100vh", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center" }}>
           <div style={{ textAlign: "center", color: P.txtL }}><div style={{ fontSize: 30, marginBottom: 8 }}>{"\uD83D\uDC8D"}</div><div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 15 }}>Loading...</div></div>
         </div>
@@ -3711,7 +3804,7 @@
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} dayKit={dayKit} saveDayKit={saveDayKit} />}
             {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
             {tab === "total" && <TotalCostTab legalSpend={legalSpend} budget={budget} eurRate={eurRate} guests={guests} />}
-            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} approved={approved} chase={chase} saveChase={saveChase} nudges={nudges} />}
+            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} approved={approved} chase={chase} saveChase={saveChase} nudges={nudges} welcome={welcome} welcomeSeen={welcomeSeen} household={household} />}
           </div>
         </div>
       );
