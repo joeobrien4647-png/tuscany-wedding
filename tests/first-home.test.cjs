@@ -106,6 +106,48 @@ test('refresh: an object re-renders, a no leaves for can\'t come, null and undef
   assert.equal(h.afterRefresh(undefined), 'keep');
 });
 
+function deferredLoads() {
+  const pending = [];
+  const load = () => new Promise(resolve => pending.push(resolve));
+  return { load, pending };
+}
+
+test('refresh read: two loads resolved in reverse order, only the newest applies', async () => {
+  const { readFresh } = home();
+  const { load, pending } = deferredLoads();
+  const r = { seq: 0, ctx: { invite: { token: 'tok_FAKEHOUSEHOLD01' }, household: YES } };
+  const applied = [];
+  const older = readFresh(r, load, h => applied.push(h));
+  const newer = readFresh(r, load, h => applied.push(h));
+  const fresh = stay('own'), stale = stay('villa');
+  pending[1](fresh);
+  await newer;
+  pending[0](stale);
+  await older;
+  assert.deepEqual(applied, [fresh]);
+});
+
+test('refresh read: a household replaced while the read is in flight is never overwritten', async () => {
+  const { readFresh } = home();
+  const { load, pending } = deferredLoads();
+  const r = { seq: 0, ctx: { invite: { token: 'tok_FAKEHOUSEHOLD01' }, household: YES } };
+  const applied = [];
+  const reading = readFresh(r, load, h => applied.push(h));
+  const savedByCard = stay('villa');
+  r.ctx.household = savedByCard;
+  pending[0](stay('later'));
+  await reading;
+  assert.deepEqual(applied, []);
+  assert.equal(r.ctx.household, savedByCard);
+});
+
+test('refresh goes through the guarded read', () => {
+  const js = read('js/first/home.js');
+  const refresh = js.match(/function refresh\(\) \{([\s\S]*?)\n {2}\}/);
+  assert.ok(refresh && /readFresh\(/.test(refresh[1]), 'refresh uses readFresh');
+  assert.doesNotMatch(refresh[1], /store\.load\(token\)\.then/);
+});
+
 test('refresh runs when the page is visible again, listening once', () => {
   const js = read('js/first/home.js');
   assert.equal((js.match(/addEventListener\('visibilitychange'/g) || []).length, 1);

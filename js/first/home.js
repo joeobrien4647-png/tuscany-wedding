@@ -124,7 +124,7 @@
     host.appendChild(box);
     host.hidden = false;
     minuteSound(host, true);
-    const r = { box, host, ctx, clock: 0, toastTimer: 0, anims: [], counting: false };
+    const r = { box, host, ctx, clock: 0, toastTimer: 0, anims: [], counting: false, seq: 0 };
     current = r;
     const live = () => current === r;
     const REDUCE = reduced();
@@ -306,11 +306,19 @@
     first.store.load(token).then(done);
   }
 
+  function readFresh(r, load, apply) {
+    const seq = ++r.seq, householdAtStart = r.ctx.household;
+    return load(r.ctx.invite.token).then(function (household) {
+      if (seq !== r.seq || r.ctx.household !== householdAtStart) return;
+      apply(household);
+    });
+  }
+
   function refresh() {
     const r = current, first = root.sjFirst || {};
     const token = r && r.ctx.invite && r.ctx.invite.token;
     if (!token || !first.store) return Promise.resolve();
-    return first.store.load(token).then(function (household) {
+    return readFresh(r, first.store.load, function (household) {
       if (current !== r) return;
       const next = afterRefresh(household);
       if (next === 'keep') return;
@@ -327,7 +335,7 @@
     document.addEventListener('visibilitychange', () => { if (current && document.visibilityState === 'visible') refresh(); });
   }
 
-  const api = { envelopes, dockItems, bigCount, nextLine, afterRefresh, home: { show, refresh, clear } };
+  const api = { envelopes, dockItems, bigCount, nextLine, afterRefresh, readFresh, home: { show, refresh, clear } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
