@@ -1,12 +1,16 @@
 /* Personal invitation links (https://sophieandjoe2027.com/?w=<token>), ported from the launch branch.
    Load on index.html in <head>, without defer, so js/intro.js and js/storybook.js both find window.sjInvite.
    This script owns w. It reads it, takes it out of the address bar and history at once (so a copied or shared URL
-   carries no token), and keeps it in sessionStorage for this tab only (never localStorage, never logged), so a reload
-   or a trip back to this page still knows the invitation. It reads the invitation's small fields from
+   carries no token), and keeps it in sessionStorage for this tab only (never logged), so a reload or a trip back to this
+   page still knows the invitation. Only when the guest asks (window.sjInvite.remember()) is it also kept on this phone,
+   in localStorage sj-invite-kept, so a later visit without the link still knows the invitation; forget() clears both.
+   The token is looked for in the address, then in the tab, then in the kept key; a token taken from the kept key is
+   not a fresh opening and is never recorded as a visit. It reads the invitation's small fields from
    welcome/<token> over REST, once (display and lines, plus people), and hands the result on:
      window.sjInvite         a promise of { token, display, lines, people } or null (no link, a token that is not an
                              invitation, or no answer in time); it never rejects
      window.sjInvite.token   the token straight away ("" if none), before the lookup has answered
+     window.sjInvite.remember() / .forget()   keep the token on this phone / clear it (neither ever throws)
      window.sjInvite.name    a promise of { token, display, lines } or null as soon as display and lines have answered,
                              for js/intro.js: a slow people never costs the film its name
      "sj:invite"             an event on window when the lookup finds an invitation, with the same object as detail
@@ -19,7 +23,7 @@
    the record to .local-test/welcomeSeen/<token>.json instead. .local-test is git-ignored. */
 (function () {
   var DB = "https://tuscany-wedding-default-rtdb.europe-west1.firebasedatabase.app";
-  var KEY = "sj-invite", TOKEN = /^[A-Za-z0-9_-]{16,64}$/, WAIT_MS = 15000;
+  var KEY = "sj-invite", KEPT = "sj-invite-kept", TOKEN = /^[A-Za-z0-9_-]{16,64}$/, WAIT_MS = 15000;
   var args = new URLSearchParams(location.search), fromLink = args.has("w"), token = args.get("w") || "";
   if (fromLink) {
     args.delete("w");
@@ -27,6 +31,7 @@
     try { history.replaceState(history.state, "", location.pathname + (rest ? "?" + rest : "") + location.hash); } catch (e) {}
   } else {
     try { token = sessionStorage.getItem(KEY) || ""; } catch (e) {}
+    if (!TOKEN.test(token)) { try { token = localStorage.getItem(KEPT) || ""; } catch (e) {} }
   }
   if (!TOKEN.test(token)) token = "";
   function keep(t) { try { if (t) sessionStorage.setItem(KEY, t); else sessionStorage.removeItem(KEY); } catch (e) {} }
@@ -58,7 +63,10 @@
   var fields = token ? ["display", "lines", "people"].map(get) : [];
   var name = !token ? Promise.resolve(null) : Promise.all(fields.slice(0, 2)).then(function (v) {
     if (typeof v[0] !== "string" || !v[0].trim()) {
-      if (v[0] === null) keep("");   // the database says there is no such invitation; a timeout keeps it for a reload
+      if (v[0] === null) {   // the database says there is no such invitation; a timeout keeps it for a reload
+        keep("");
+        try { localStorage.removeItem(KEPT); } catch (e) {}
+      }
       return null;
     }
     return { token: token, display: v[0].trim().slice(0, 80), lines: Array.isArray(v[1]) ? v[1] : null };
@@ -71,6 +79,11 @@
   }, function () { return null; });
   found.token = token;
   found.name = name;
+  found.remember = function () { try { if (token) localStorage.setItem(KEPT, token); } catch (e) {} };
+  found.forget = function () {
+    try { localStorage.removeItem(KEPT); } catch (e) {}
+    try { sessionStorage.removeItem(KEY); } catch (e) {}
+  };
   window.sjInvite = found;
 
   // A key shaped like the database's own push keys: 8 characters of time, so they sort by time, then 12 random ones.

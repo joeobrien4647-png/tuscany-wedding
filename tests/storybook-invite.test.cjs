@@ -20,9 +20,11 @@ test('rules let a link read only its own invitation', () => {
   assert.ok(rules.welcomeSeen.$token.last['.write']);
 });
 
-test('invite.js takes the token out of the address bar and never uses localStorage for it', () => {
+test('invite.js takes the token out of the address bar and remembers it only when asked', () => {
   const js = read('js/invite.js');
-  assert.match(js, /history\.replaceState/); assert.doesNotMatch(js, /localStorage\.setItem\([^)]*KEY/);
+  assert.match(js, /history\.replaceState/);
+  assert.equal((js.match(/localStorage\.setItem/g) || []).length, 1);
+  assert.match(js.slice(js.indexOf('found.remember'), js.indexOf('found.forget')), /localStorage\.setItem/);
 });
 
 test('a bad or unknown personal link logs nothing', () => {

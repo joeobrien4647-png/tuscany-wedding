@@ -46,6 +46,28 @@
         }
       }
     },
+    "household": {
+      "$token": {
+        ".read": true,
+        ".validate": "root.child('welcome').child($token).exists()",
+        "reply": {
+          ".write": "now < 1803859200000",
+          ".validate": "newData.hasChildren(['answer', 'coming', 'at'])",
+          "answer": { ".validate": "newData.val() === 'yes' || newData.val() === 'no'" },
+          "coming": { "$i": { ".validate": "newData.isBoolean() && $i.matches(/^[0-7]$/)" } },
+          "at": { ".validate": "newData.val() == now" },
+          "$other": { ".validate": false }
+        },
+        "stay": {
+          ".write": "root.child('household').child($token).child('reply').child('answer').val() === 'yes' && (now < 1803859200000 || !data.exists() || data.child('choice').val() === 'later')",
+          ".validate": "newData.hasChildren(['choice', 'at'])",
+          "choice": { ".validate": "newData.val() === 'villa' || newData.val() === 'own' || newData.val() === 'later'" },
+          "at": { ".validate": "newData.val() == now" },
+          "$other": { ".validate": false }
+        },
+        "$other": { ".validate": false }
+      }
+    },
     "welcomeSeen": {
       "$token": {
         "last": {
