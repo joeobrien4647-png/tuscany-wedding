@@ -10,7 +10,7 @@ and console errors. Exits 0 only when every stop is clean.
     PYTHONIOENCODING=utf-8 python scripts/check-first-fit.py [--shots DIR] [--device TEXT] [--flow TEXT]
 
 The real database is never contacted: only local-test mode is used and any request to it fails the run.
-A run restricted with --device, --flow or --inject-css prints PARTIAL, not PASS, because it did not check everything.
+A run restricted with --device, --flow, --inject-css or --block-fonts prints PARTIAL, not PASS, because it did not check everything.
 Needs Python Playwright with Chromium and WebKit installed (imported only when a run starts).
 Fixtures it creates are removed when it ends; their tokens carry a random run id so two runs never share them.
 """
@@ -124,6 +124,7 @@ MEASURE_JS = r"""async ({ required, strictVertical, overlayOk, bleedOk, driftOk 
     else { before = null; still = 0; }
     await frame();
   }
+  try { await document.fonts.ready; } catch (e) { /* no font loading api: the check below then fails */ }
   out.missing = notReady();
   if (!out.missing.length && still < 3) out.missing.push('screen never stopped moving (' + busy() + ' animations still running)');
 
@@ -145,17 +146,20 @@ MEASURE_JS = r"""async ({ required, strictVertical, overlayOk, bleedOk, driftOk 
     const extra = el.scrollHeight - el.clientHeight;
     if (el.clientWidth <= 0 || extra <= 1) return false;
     // Chromium reports the font's own ascent and descent as overflow when the line box is tighter than the font
-    // (big numerals, display headings), so there only a tenth of the text size more than that counts.
+    // (big numerals, display headings). Only non-clipping boxes in Chromium get this slack, and only up to half the
+    // font size: clipping boxes stay strict in both engines, WebKit is strict for open boxes too, and a whole extra
+    // line of wrapped text is always taller than half the font size, so a real overflow is never hidden by it.
     return strictVertical || extra > 0.5 * parseFloat(getComputedStyle(el).fontSize);
   };
 
-  const texts = new Map();
+  const texts = new Map(), used = new Map();
   const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
   let n;
   while ((n = walker.nextNode())) {
     const text = n.textContent.trim(), el = n.parentElement;
     if (!text || !el || !el.getClientRects().length || gone(el)) continue;
     const short = '"' + text.slice(0, 32) + '"';
+    { const cs = getComputedStyle(el); used.set(cs.fontFamily.split(',')[0].replace(/["']/g, '').trim() + '|' + (cs.fontStyle === 'normal' ? 'normal' : 'italic'), 1); }
     if (sideways(el)) say(el, 'text spills sideways from ' + label(el) + ' ' + short);
     else if (!clips(el) && tallerThanBox(el)) say(el, 'text taller than its box ' + label(el) + ' ' + short);
     for (let a = el; a && a !== first.parentElement; a = a.parentElement)
@@ -181,6 +185,16 @@ MEASURE_JS = r"""async ({ required, strictVertical, overlayOk, bleedOk, driftOk 
     const w = Math.min(x.b.right, y.b.right) - Math.max(x.b.left, y.b.left), h = Math.min(x.b.bottom, y.b.bottom) - Math.max(x.b.top, y.b.top);
     if (w > 1 && h > 1) say(a, 'texts overlap ' + x.short + ' and ' + y.short + ' by ' + Math.round(w) + 'x' + Math.round(h));
   }
+
+  // The layer is designed in Bodoni Moda, Jost and Italianno: measuring fallback fonts proves nothing about what guests see.
+  const loaded = Array.from(document.fonts || []).filter(f => f.status === 'loaded');
+  const absent = [];
+  for (const key of used.keys()) {
+    const [family, style] = key.split('|');
+    if (!['Bodoni Moda', 'Jost', 'Italianno'].includes(family)) continue;
+    if (!loaded.some(f => f.family.replace(/["']/g, '') === family && (family !== 'Bodoni Moda' || f.style === style))) absent.push(family + (family === 'Bodoni Moda' ? ' ' + style : ''));
+  }
+  if (absent.length) out.missing.push('fonts not loaded: run with a network connection (' + absent.join(', ') + ')');
 
   // Buttons, links, pictures and svg: inside the screen and inside the box that clips them.
   for (const el of scope.querySelectorAll('button, a, img, video, svg')) {
@@ -276,8 +290,9 @@ def replied(guest, stay=None):
 
 # ---------- one flow in one fresh browser context ----------
 class Flow:
-    def __init__(self, browser, device, label, base, shots, results, css=''):
+    def __init__(self, browser, device, label, base, shots, results, css='', block_fonts=False):
         self.browser, self.device, self.label, self.base, self.shots, self.results, self.css = browser, device, label, base, shots, results, css
+        self.block_fonts = block_fonts
         self.errors, self.seen_errors, self.fails, self.context = [], 0, [], None
 
     async def open(self, options):
@@ -285,6 +300,8 @@ class Flow:
         await self.context.route(REAL_DATABASE, self.refuse_database)
         if hasattr(self.context, 'route_web_socket'):
             await self.context.route_web_socket(REAL_DATABASE, self.refuse_socket)
+        if self.block_fonts:
+            await self.context.route(FONT_HOSTS, lambda route: route.abort())
         self.page = await self.context.new_page()
         if self.css:
             await self.page.add_init_script("document.addEventListener('DOMContentLoaded', () => { const s = document.createElement('style'); s.textContent = %s; document.head.appendChild(s); });" % json.dumps(self.css))
@@ -673,7 +690,7 @@ async def run_device(pw, index, base, fixtures, args, run_id):
         options = dict(pw.devices[device['preset']]) if 'preset' in device else {'viewport': device['viewport']}
         options.pop('default_browser_type', None)
         for label, fn, guest in plan(invites, spare, args.flow or ''):
-            f = Flow(browser, device, label, base, args.shots, results, args.inject_css or '')
+            f = Flow(browser, device, label, base, args.shots, results, args.inject_css or '', args.block_fonts)
             f.fixtures = fixtures
             try:
                 await f.open(options)
@@ -723,6 +740,7 @@ async def main():
     parser.add_argument('--device', help='run only the devices whose name contains this text (the run is then PARTIAL)')
     parser.add_argument('--flow', help='run only the flows whose label contains this text (the run is then PARTIAL)')
     parser.add_argument('--inject-css', help='add this stylesheet to every page, to prove a check catches a fault (the run is then PARTIAL)')
+    parser.add_argument('--block-fonts', action='store_true', help='refuse the font host, to prove the font check fails (the run is then PARTIAL)')
     args = parser.parse_args()
     wanted = [i for i, d in enumerate(DEVICES) if not args.device or args.device.lower() in d['name'].lower()]
     if not wanted:
@@ -748,7 +766,7 @@ async def main():
         server.shutdown()
         server.server_close()
         fixtures.remove()
-    return report(results, failures, partial=bool(args.device or args.flow or args.inject_css))
+    return report(results, failures, partial=bool(args.device or args.flow or args.inject_css or args.block_fonts))
 
 
 if __name__ == '__main__':

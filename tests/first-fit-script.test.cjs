@@ -48,7 +48,7 @@ const python = ['python', 'python3'].find(name => {
 });
 const skipReason = python ? false : 'python is not on PATH, so the exit-code tests cannot run here';
 
-const judge = (results, failures = [], extra = '') => spawnSync(python, ['-I', '-c', [
+const judge = (results, failures = [], extra = '') => spawnSync(python, ['-B', '-I', '-c', [
   'import importlib.util, json, sys',
   'spec = importlib.util.spec_from_file_location("fit", sys.argv[1])',
   'fit = importlib.util.module_from_spec(spec); spec.loader.exec_module(fit)',
@@ -71,6 +71,7 @@ test('every kind of fault exits 1 and says FAIL', { skip: skipReason }, () => {
     'a cut-off text': [clean({ cut: ['cut by its box button.fh-env "The estate"'] })],
     'a console error': [clean({ errors: ['console: boom'] })],
     'a missing required element': [clean({ missing: ['.fm-hint still hidden'] })],
+    'fonts not loaded': [clean({ missing: ['fonts not loaded: run with a network connection (Jost)'] })],
     'no results at all': []
   };
   for (const [name, results] of Object.entries(faults)) {
@@ -97,7 +98,7 @@ const listFixtures = () => {
 
 test('--device with no match exits 1 at once, without a browser or fixtures', { skip: skipReason }, () => {
   const before = listFixtures(), started = Date.now();
-  const run = spawnSync(python, ['-I', file, '--device', 'nomatch'], { encoding: 'utf8', timeout: 20000 });
+  const run = spawnSync(python, ['-B', '-I', file, '--device', 'nomatch'], { encoding: 'utf8', timeout: 20000 });
   assert.equal(run.status, 1, run.stdout + run.stderr);
   assert.match(run.stdout, /^FAIL: no device matches/m);
   assert.ok(Date.now() - started < 10000, 'it should not launch anything');
