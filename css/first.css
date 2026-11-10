@@ -1,0 +1,2 @@
+#first { position: fixed; inset: 0; overflow: hidden; }
+html.first-on body > :not(#first) { display: none; }

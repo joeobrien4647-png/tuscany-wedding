@@ -126,7 +126,7 @@
 <link rel="stylesheet" href="css/postcard-home.css">
 <script src="js/guest-navigation.js" defer></script>
 <script src="js/invite.js"></script>
-<script id="optional-head" data-book-enabled="false" data-intro-enabled="false">
+<script id="optional-head" data-book-enabled="false" data-intro-enabled="false" data-first-enabled="false">
 (function () {
   var settings = document.currentScript, args = new URLSearchParams(location.search);
   var bookOn = settings.getAttribute("data-book-enabled") === "true";
@@ -134,12 +134,25 @@
   // signin=1 (the password reset link) goes straight to Sign in: no film, no book.
   var signingIn = args.get("signin") === "1";
   var book = args.get("book") === "1" || (bookOn && !signingIn && args.get("book") !== "0");
-  var intro = args.get("intro") === "1" || (introOn && !signingIn);
+  var firstOn = settings.getAttribute("data-first-enabled") === "true";
+  var first = !signingIn && (args.get("first") === "1" || (firstOn && args.get("first") !== "0"));
+  var intro = !first && (args.get("intro") === "1" || (introOn && !signingIn));
   window.sjOptionalIntro = { requested: intro, enabled: introOn };
   if (!intro && args.has("to")) {
     args.delete("to");
     var rest = args.toString();
     try { history.replaceState(history.state, "", location.pathname + (rest ? "?" + rest : "") + location.hash); } catch (e) {}
+  }
+  // The invitation layer replaces the book and the film when it is on.
+  if (first) {
+    window.sjOptionalIntro = { requested: false };
+    document.documentElement.classList.add("first-on");
+    document.write('<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Pinyon+Script&display=swap" rel="stylesheet">');
+    document.write('<link rel="stylesheet" href="css/first.css">');
+    ["core", "words", "store", "sound", "fx", "minute", "reply", "home", "cards", "app"].forEach(function (name) {
+      document.write('<script src="js/first/' + name + '.js" defer><' + '/script>');
+    });
+    return;
   }
   if (!book) return;
   document.write('<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Pinyon+Script&display=swap" rel="stylesheet">');
@@ -162,6 +175,7 @@
 })();
 </script>
 <div id="storybook" class="storybook" hidden aria-label="Sophie and Joe's storybook"><button type="button" class="sb-snd" aria-label="Music and sounds" aria-pressed="true">&#9835;</button></div>
+<div id="first" hidden aria-label="Sophie and Joe's invitation"></div>
 
 <a class="guest-skip" href="#card">Skip to RSVP</a>
 <div class="p-top">

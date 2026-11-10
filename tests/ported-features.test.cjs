@@ -57,7 +57,7 @@ test('ported guest words have no middle dots or em dashes', () => {
 
 test('the welcome film stays switched off on the homepage', () => {
   const home = read('index.html');
-  assert.match(home, /<script id="optional-head" data-book-enabled="false" data-intro-enabled="false">/);
+  assert.match(home, /<script id="optional-head" data-book-enabled="false" data-intro-enabled="false" data-first-enabled="false">/);
   assert.match(home, /<body class="postcard-home">\n<script id="optional-body">/);
 });
 
