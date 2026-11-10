@@ -212,6 +212,81 @@ html.first-on body > :not(#first) { display: none; }
 #first .fh-link { margin: 0 7px; padding: 6px 8px; font: 500 13px/1.2 var(--ui); color: var(--gold-hi); text-decoration: underline; text-underline-offset: 4px; text-align: center; }
 #first .fh-toast { position: absolute; z-index: 40; left: 50%; bottom: calc(var(--bottom) + 26px); transform: translateX(-50%); width: max-content; max-width: calc(100% - 40px); padding: 11px 18px; border-radius: 999px; background: var(--glass-hi); border: 1px solid var(--line-gold); font: 500 14px/1.3 var(--ui); color: var(--ink); text-align: center; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
 
+/* ==== Task 8: the dock's cards (one at a time, over the home screen; nothing scrolls) ==== */
+/* The frame: the prototype's letter (photo, night gradient, content at the foot) with a round close control. */
+#first .fc-card { z-index: 50; justify-content: flex-end; overflow: hidden; background: var(--night); animation: fm-fade .5s ease both; }
+#first .fc-bg { position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; overflow: hidden; background: var(--night); pointer-events: none; }
+/* The photo drifts inside a clipped box, so its scale never counts towards the card's size. */
+#first .fc-bg::before { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; background: center / cover no-repeat; animation: fc-drift 6s var(--ease) both; }
+#first .fc-bg::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; background: linear-gradient(180deg, rgba(10, 13, 22, .25) 0%, rgba(10, 13, 22, .55) 38%, rgba(10, 13, 22, .96) 74%); }
+@keyframes fc-drift { from { transform: scale(1.1); } to { transform: none; } }
+#first .fc-inner { position: relative; width: 100%; max-width: 520px; min-height: 0; margin: 0 auto; display: grid; gap: 14px; }
+#first .fc-t { font: 500 clamp(44px, 13vw, 72px)/1 var(--display); color: var(--ink); letter-spacing: -.01em; text-wrap: balance; overflow-wrap: anywhere; outline: none; padding-right: 48px; }
+#first .fc-body { display: grid; gap: 12px; }
+#first .fc-rise { animation: fm-fade-up .7s var(--ease) both; animation-delay: calc(150ms + var(--i, 0) * 90ms); }
+#first .fc-close { color: var(--ink); }
+#first .fc-grp { display: grid; gap: 6px; }
+#first .fc-grp-k { font: 600 10px/1.3 var(--ui); letter-spacing: .24em; text-transform: uppercase; color: var(--gold); }
+#first .fc-p { font: 400 15px/1.45 var(--ui); color: var(--ink-soft); }
+#first .fc-notyou { font-size: 13px; color: var(--ink-soft); }
+
+/* Reply: the answer and who is coming */
+#first .fc-reply .fc-bg::before { background-image: url(../images/first/night.webp); }
+#first .fc-names { list-style: none; padding: 0; display: grid; }
+#first .fc-names li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); font: italic 400 22px/1.2 var(--display); color: var(--ink); overflow-wrap: anywhere; }
+#first .fc-names li:last-child { border-bottom: 1px solid var(--line); }
+#first .fc-names svg { color: var(--gold); }
+
+/* Stay: the prototype's stay screen (villa photo above, three options that open, one confirm) */
+#first .fc-stay .fc-bg { bottom: auto; height: 54%; background: none; -webkit-mask-image: linear-gradient(180deg, #000 22%, transparent 96%); mask-image: linear-gradient(180deg, #000 22%, transparent 96%); }
+#first .fc-stay .fc-bg::before { background: linear-gradient(180deg, rgba(10, 13, 22, .78) 0%, rgba(10, 13, 22, .42) 46%, rgba(10, 13, 22, .12) 100%), url(../images/first/villa.webp) 50% 58% / cover; }
+#first .fc-stay .fc-bg::after { display: none; }
+#first .fc-stay .fc-inner { gap: 12px; }
+#first .fc-stay .fc-t { font-size: clamp(28px, 8.4vw, 40px); line-height: 1.08; margin-bottom: 4px; text-shadow: 0 2px 18px rgba(0, 0, 0, .8); }
+#first .fc-opts { display: grid; gap: 9px; }
+#first .fc-opt { position: relative; border-radius: 20px; border: 1px solid var(--line); background: var(--glass-hi); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); transition: border-color .3s, box-shadow .3s; }
+#first .fc-opt.fc-on { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 18px 44px rgba(0, 0, 0, .45); }
+#first .fc-opt-head { display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: center; gap: 12px; width: 100%; padding: 13px 14px 13px 16px; text-align: left; touch-action: manipulation; }
+#first .fc-opt-head[disabled] { cursor: default; }
+#first .fc-radio { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--line-gold); display: grid; place-items: center; transition: border-color .3s; }
+#first .fc-radio::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--gold); transform: scale(0); transition: transform .4s cubic-bezier(.3, 1.6, .5, 1); }
+#first .fc-opt.fc-on .fc-radio { border-color: var(--gold); }
+#first .fc-opt.fc-on .fc-radio::after { transform: scale(1); }
+#first .fc-opt-t { display: grid; gap: 3px; min-width: 0; }
+#first .fc-opt-title { font: 500 21px/1.12 var(--display); overflow-wrap: anywhere; }
+#first .fc-opt-sub { font: 400 13px/1.35 var(--ui); color: var(--ink-soft); transition: color .3s; }
+#first .fc-opt.fc-on .fc-opt-sub { color: var(--gold-hi); }
+#first .fc-opt-tag { position: absolute; top: -10px; right: 16px; padding: 6px 10px; border-radius: 999px; background: var(--gold); color: var(--on-gold); font: 600 9px/1 var(--ui); letter-spacing: .16em; text-transform: uppercase; box-shadow: 0 6px 16px rgba(0, 0, 0, .4); }
+#first .fc-opt-more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .45s var(--ease); }
+#first .fc-opt.fc-on .fc-opt-more { grid-template-rows: 1fr; }
+#first .fc-opt-more-in { overflow: hidden; min-height: 0; visibility: hidden; transition: visibility 0s .45s; }
+#first .fc-opt.fc-on .fc-opt-more-in { visibility: visible; transition: none; }
+#first .fc-opt-body { display: grid; gap: 11px; margin: 0 16px; padding: 12px 0 15px; border-top: 1px solid var(--line); }
+#first .fc-get, #first .fc-todo { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+#first .fc-get li, #first .fc-todo li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; align-items: start; font: 400 14px/1.35 var(--ui); color: var(--ink); }
+#first .fc-get svg { margin-top: 3px; color: var(--gold); }
+#first .fc-share { margin: 2px 0 0; padding-left: 26px; font: 400 13px/1.35 var(--ui); color: var(--ink-soft); }
+#first .fc-todo { counter-reset: fc-n; }
+#first .fc-todo li::before { counter-increment: fc-n; content: counter(fc-n); width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line-gold); color: var(--gold-hi); font: 600 10px/1 var(--ui); }
+#first .fc-word { font: italic 400 15px/1.3 var(--display); color: var(--ink-faint); }
+#first .fc-note { font: 500 14px/1.35 var(--ui); color: var(--gold-hi); text-align: center; }
+#first .fc-go-wrap { display: grid; margin-top: 2px; }
+#first .fc-go { width: 100%; }
+
+/* short phones: the Stay card with its longest option open still fits (the prototype's own sizes) */
+@media (max-height: 640px) {
+  #first .fc-t { font-size: clamp(40px, 12vw, 56px); }
+  #first .fc-stay .fc-inner { gap: 9px; }
+  #first .fc-stay .fc-t { font-size: 27px; margin-bottom: 2px; }
+  #first .fc-stay .fc-body { gap: 9px; }
+  #first .fc-opts { gap: 7px; }
+  #first .fc-opt-head { padding: 10px 12px 10px 14px; }
+  #first .fc-opt-title { font-size: 19px; }
+  #first .fc-opt-body { gap: 9px; padding: 10px 0 12px; }
+  #first .fc-get li, #first .fc-todo li { font-size: 13px; }
+  #first .fc-go { min-height: 52px; font-size: 17px; }
+}
+
 /* short phones: keep the cover inside the screen */
 @media (max-height: 680px) {
   #first .fm-cover-top { margin-top: 3vh; }
@@ -236,4 +311,7 @@ html.first-on body > :not(#first) { display: none; }
   #first .fr-btn.fr-busy { animation: none; }
   #first .fh-dk.fh-glow .fh-ico { animation: none; }
   #first .fh-dk:active .fh-ico { transform: none; }
+  #first .fc-card, #first .fc-rise { animation: fm-fade .4s ease both; }
+  #first .fc-bg::before { animation: none; }
+  #first .fc-opt-more, #first .fc-radio::after { transition: none; }
 }

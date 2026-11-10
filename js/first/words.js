@@ -115,7 +115,12 @@
       spring: SPRING,
       word: 'Have a word with us if you need to',
       fixed: 'Your choice is fixed now, please message Joe or Sophie',
+      saving: 'Saving your choice',
       sorted: 'All sorted'
+    },
+    replyCard: {
+      coming: 'Coming',
+      closed: 'To change your reply, please message Joe or Sophie'
     },
     travel: {
       title: 'Getting there',

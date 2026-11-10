@@ -153,7 +153,7 @@ test('refresh runs when the page is visible again, listening once', () => {
   assert.equal((js.match(/addEventListener\('visibilitychange'/g) || []).length, 1);
   assert.match(js, /visibilityState === 'visible'[^;\n]*refresh\(\)/);
   assert.match(js, /if \(listening\) return;/);
-  assert.match(js, /store\.load\(/);
+  assert.match(js, /store\.load\b/);
   assert.match(js, /mode: 'cantcome'/);
 });
 

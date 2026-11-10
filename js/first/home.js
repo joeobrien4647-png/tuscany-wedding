@@ -2,7 +2,8 @@
 // the next envelope, the six envelopes (all sealed in phase 1) and the dock of five, with Questions, the sound toggle
 // and a way to watch the invitation again. Ported from the first-minute prototype; every word is set with textContent.
 // show({ root, ctx }) draws it and ticks once a second; refresh() reads the household again (also when the page is
-// visible again) and leaves for the can't-come screen if the answer is now no. Cards open through cards.open when it exists.
+// visible again) and leaves for the can't-come screen if the answer is now no. Cards open through cards.open when it exists;
+// repaint() paints the dock again after a card has saved, without a read.
 (function (root) {
   'use strict';
   const TOAST_MS = 2300, COUNT_UP_MS = 1300;
@@ -101,8 +102,10 @@
     if (b) b.hidden = hide;
   }
 
-  // Takes the home screen away: its clock and toast stop, and the minute's sound button comes back.
+  // Takes the home screen away: any open card closes, its clock and toast stop, and the minute's sound button comes back.
   function clear() {
+    const cards = root.sjFirst && root.sjFirst.cards;
+    if (cards && typeof cards.close === 'function') cards.close({ quiet: true });
     const r = current;
     current = null;
     if (!r) return;
@@ -193,7 +196,7 @@
     const dock = el('nav', 'fh-dock');
     dock.setAttribute('aria-label', w.dock.label);
     const dockButtons = DOCK_KEYS.map((key, i) => {
-      const b = button('fh-dk', null, () => openCard(key));
+      const b = button('fh-dk', null, () => openCard(key, b));
       const ico = el('span', 'fh-ico');
       ico.innerHTML = ICON[DOCK_ICONS[i]];
       b.appendChild(ico);
@@ -205,7 +208,8 @@
 
     // The foot: Questions and watch again.
     const foot = el('div', 'fh-foot');
-    foot.appendChild(button('fh-link', w.home.questions, () => openCard('questions')));
+    const questions = button('fh-link', w.home.questions, () => openCard('questions', questions));
+    foot.appendChild(questions);
     foot.appendChild(button('fh-link', w.home.watch, watchAgain));
     inner.appendChild(foot);
 
@@ -224,9 +228,10 @@
     toastEl.hidden = true;
     box.appendChild(toastEl);
 
-    function openCard(key) {
+    // from: the control that opened the card, so focus goes back to it when the card closes.
+    function openCard(key, from) {
       const cards = first.cards;
-      if (cards && typeof cards.open === 'function') cards.open(key, ctx);
+      if (cards && typeof cards.open === 'function') cards.open(key, ctx, { root: host, from });
     }
     function tapEnvelope(b, env) {
       if (!REDUCE) anim(b, [{ transform: 'none' }, { transform: 'translateX(-6px) rotate(-1deg)' }, { transform: 'translateX(5px) rotate(1deg)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(2px)' }, { transform: 'none' }], { duration: 500, easing: 'ease', fill: 'none' });
@@ -294,6 +299,7 @@
   }
 
   // Reads the household, then lands: home with the fresh answer, the can't-come screen for a no.
+  // A save that lands while the read is out wins: the read is dropped and the household as it is now decides.
   function land(host, ctx) {
     const first = root.sjFirst || {}, token = ctx.invite && ctx.invite.token;
     const done = household => {
@@ -303,15 +309,21 @@
       else show({ root: host, ctx });
     };
     if (!token || !first.store) { done(undefined); return; }
-    first.store.load(token).then(done);
+    readFresh({ seq: 0, ctx }, first.store.load, done, () => done(ctx.household));
   }
 
-  function readFresh(r, load, apply) {
+  // Applies a read only if it is the newest one and the household was not replaced meanwhile; otherwise stale() if given.
+  function readFresh(r, load, apply, stale) {
     const seq = ++r.seq, householdAtStart = r.ctx.household;
     return load(r.ctx.invite.token).then(function (household) {
-      if (seq !== r.seq || r.ctx.household !== householdAtStart) return;
+      if (seq !== r.seq || r.ctx.household !== householdAtStart) { if (typeof stale === 'function') stale(); return; }
       apply(household);
     });
+  }
+
+  // Paints the dock again from ctx.household, without a read (after a card has saved).
+  function repaint() {
+    if (current && typeof current.paint === 'function') current.paint();
   }
 
   function refresh() {
@@ -335,7 +347,7 @@
     document.addEventListener('visibilitychange', () => { if (current && document.visibilityState === 'visible') refresh(); });
   }
 
-  const api = { envelopes, dockItems, bigCount, nextLine, afterRefresh, readFresh, home: { show, refresh, clear } };
+  const api = { envelopes, dockItems, bigCount, nextLine, afterRefresh, readFresh, home: { show, refresh, repaint, clear } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

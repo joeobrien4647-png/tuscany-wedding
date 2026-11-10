@@ -1,7 +1,8 @@
 // The reply: "Are you coming?", its answers, and the quiet screens around it (can't come, already replied, replies
 // closed, no link, one moment). One screen shows at a time, over the minute's stage; every word is set with textContent.
 // show({ root, ctx, mode, onSaved }) with mode 'ask' | 'closed' | 'nolink' | 'cantcome' | 'already', plus 'wait'
-// (with onRetry and failed) for app.js. ask also takes onWatch, a way to watch the invitation again.
+// (with onRetry and failed) for app.js, and 'change' (reads the household again, then asks) for the Reply card.
+// ask also takes onWatch, a way to watch the invitation again.
 (function (root) {
   'use strict';
   const HOME_AFTER_MS = 3200, HOME_AFTER_REDUCED_MS = 900, ALREADY_MS = 2400, WAIT_MS = 15000;
@@ -19,6 +20,9 @@
     }
     return null;
   }
+
+  // Fireworks only for a new yes: a yes saved again (say, only one of a couple now coming) stays quiet.
+  const firstYes = (before, choice) => !!choice && choice.answer === 'yes' && !(before && before.answer === 'yes');
 
   const reduced = () => !!(root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const haptic = p => { try { if (root.navigator.vibrate) root.navigator.vibrate(p); } catch (e) { /* no haptics */ } };
@@ -114,6 +118,7 @@
 
     const mode = o.mode;
     if (mode === 'ask') return ask();
+    if (mode === 'change') return changeAnswer();
     if (mode === 'yes') {
       centre(null, w.yes.title, w.yes.line).classList.add('fr-yes');
       after(reduced() ? HOME_AFTER_REDUCED_MS : HOME_AFTER_MS, goHome);
@@ -253,6 +258,7 @@
         });
       }
       function saved(choice) {
+        const before = ctx.household && ctx.household.reply;
         ctx.household = Object.assign({}, ctx.household, { reply: { answer: choice.answer, coming: choice.coming, at: ctx.now() } });
         if (typeof o.onSaved === 'function') o.onSaved(ctx.household.reply);
         if (choice.answer !== 'yes') {
@@ -261,13 +267,13 @@
           return;
         }
         again('yes');
-        celebrate(first);
+        if (firstYes(before, choice)) celebrate(first);
       }
       after(30, () => focus(q));
     }
   }
 
-  const api = { replyFor, reply: { show, clear } };
+  const api = { replyFor, firstYes, reply: { show, clear } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
