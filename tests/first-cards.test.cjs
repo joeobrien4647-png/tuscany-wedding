@@ -20,12 +20,12 @@ test('cards load in Node without touching the page; six keys, open and close', (
   assert.deepEqual(c.CARD_KEYS, ['reply', 'stay', 'travel', 'wear', 'weekend', 'questions']);
   assert.equal(typeof c.cards.open, 'function');
   assert.equal(typeof c.cards.close, 'function');
-  assert.deepEqual(c.cards.built().sort(), ['reply', 'stay']);
+  assert.deepEqual(c.cards.built().sort(), ['questions', 'reply', 'stay', 'travel', 'wear', 'weekend']);
 });
 
-test('open with a key that is not built yet, or not a card at all, does nothing', () => {
+test('open with a key that is not a card at all does nothing', () => {
   const c = cards();
-  for (const key of ['travel', 'wear', 'weekend', 'questions', 'nope', undefined])
+  for (const key of ['nope', 'built', undefined])
     assert.equal(c.cards.open(key, { invite: ONE, household: yes([true]), now: () => NOV }), false, String(key));
   assert.doesNotThrow(() => c.cards.close());
 });

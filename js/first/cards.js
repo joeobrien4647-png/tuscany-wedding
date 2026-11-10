@@ -61,6 +61,25 @@
     };
   }
 
+  // ---------- Travel, Wear, Weekend and Questions: what the cards show ----------
+  const copyRow = r => ({ k: r.k, v: r.v });
+  const travelView = w => ({ rows: w.travel.rows.map(copyRow) });
+  // Saturday first, then the two things to bring, then the other days (the design's order).
+  const wearView = w => ({
+    lines: [copyRow(w.wear.saturday), { k: null, v: w.wear.shoes }, { k: null, v: w.wear.layer },
+      copyRow(w.wear.friday), copyRow(w.wear.sunday)]
+  });
+  const DAY_IMAGES = ['fri', 'sat', 'sun', 'mon'];
+  const weekendView = w => ({
+    days: w.weekend.days.map((d, i) => ({ date: d.date, name: d.name, line: d.line, img: DAY_IMAGES[i] }))
+  });
+  // Bringing someone is asked only by guests invited alone.
+  function questionsView(invite, w) {
+    const people = invite && Array.isArray(invite.people) ? invite.people : [];
+    const keys = people.length === 1 ? ['gifts', 'reach', 'bring'] : ['gifts', 'reach'];
+    return keys.map(key => ({ key, q: w.questions[key].q, a: w.questions[key].a }));
+  }
+
   // "Not you?": forget the invitation on this phone and load the page again, never with the token.
   function notYou(invite, loc) {
     if (invite && typeof invite.forget === 'function') invite.forget();
@@ -358,7 +377,102 @@
     }
   };
 
+  // ---------- the Travel card ----------
+  CARDS.travel = {
+    build(card) {
+      card.heading(card.w.travel.title);
+      const list = card.rise(card.el('div', 'fc-rows'));
+      travelView(card.w).rows.forEach(r => list.appendChild(row(card, r.k, r.v)));
+      card.body.appendChild(list);
+    }
+  };
+
+  // A line of a letter: a small gold label over the words.
+  function row(card, k, v) {
+    const r = card.el('div', 'fc-row');
+    if (k) r.appendChild(card.el('span', 'fc-row-k', k));
+    r.appendChild(card.el('span', 'fc-row-v', v));
+    return r;
+  }
+
+  // ---------- the Wear card ----------
+  CARDS.wear = {
+    build(card) {
+      card.heading(card.w.wear.title);
+      const list = card.rise(card.el('div', 'fc-rows'));
+      wearView(card.w).lines.forEach(l => list.appendChild(row(card, l.k, l.v)));
+      card.body.appendChild(list);
+    }
+  };
+
+  // ---------- the Weekend card ----------
+  // Four day cards in a 2 x 2 grid (the prototype's rail would scroll sideways; nothing scrolls here).
+  CARDS.weekend = {
+    build(card) {
+      card.heading(card.w.weekend.title);
+      const grid = card.el('div', 'fc-days');
+      weekendView(card.w).days.forEach(d => {
+        const day = card.rise(card.el('div', 'fc-day'));
+        const img = card.el('img', 'fc-day-img');
+        img.src = 'images/first/' + d.img + '.webp';
+        img.alt = '';
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.setAttribute('aria-hidden', 'true');
+        day.appendChild(img);
+        const cap = card.el('div', 'fc-day-cap');
+        cap.appendChild(card.el('span', 'fc-grp-k', d.date));
+        cap.appendChild(card.el('span', 'fc-day-t', d.name));
+        cap.appendChild(card.el('span', 'fc-day-l', d.line));
+        day.appendChild(cap);
+        grid.appendChild(day);
+      });
+      card.body.appendChild(grid);
+    }
+  };
+
+  // ---------- the Questions card ----------
+  // A short list of questions; one answer open at a time, opening one closes the others.
+  CARDS.questions = {
+    build(card) {
+      const S = card.first.sound;
+      card.heading(card.w.questions.title);
+      const list = card.el('div', 'fc-qs');
+      let openKey = null;
+      const items = questionsView(card.ctx.invite, card.w).map(e => {
+        const box = card.rise(card.el('div', 'fc-q'));
+        const head = card.button('fc-q-head', null, () => toggle(e.key));
+        head.setAttribute('aria-expanded', 'false');
+        head.appendChild(card.el('span', 'fc-q-t', e.q));
+        const sign = card.el('span', 'fc-q-sign');
+        sign.setAttribute('aria-hidden', 'true');
+        head.appendChild(sign);
+        box.appendChild(head);
+        const more = card.el('div', 'fc-q-more');
+        const moreIn = card.el('div', 'fc-q-more-in');
+        moreIn.appendChild(card.el('p', 'fc-q-a', e.a));
+        more.appendChild(moreIn);
+        box.appendChild(more);
+        list.appendChild(box);
+        return { key: e.key, box, head };
+      });
+      card.body.appendChild(list);
+
+      function toggle(key) {
+        openKey = key === openKey ? null : key;
+        items.forEach(i => {
+          const on = i.key === openKey;
+          i.box.classList.toggle('fc-on', on);
+          i.head.setAttribute('aria-expanded', on ? 'true' : 'false');
+        });
+        if (S) S.pop(0.4);
+        haptic(8);
+      }
+    }
+  };
+
   const api = { CARD_KEYS, stayView, confirmLabel, saveStayChoice, replyView, notYou,
+    travelView, wearView, weekendView, questionsView,
     cards: { open, close, built: () => Object.keys(CARDS) } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

@@ -128,18 +128,15 @@
         { k: 'Fly to', v: 'Pisa' },
         { k: 'Then', v: 'Hire a car, about 2h15' },
         { k: 'Stuck for a lift', v: 'Message Joe or Sophie' }
-      ],
-      longerTitle: 'Staying longer?',
-      longer: 'Ideas for extra days are on the way'
+      ]
     },
     wear: {
       title: 'What to wear',
-      rows: [
-        { k: 'Friday', v: 'Come as you are' },
-        { k: 'Saturday', v: 'Dressed up for a warm evening outdoors, ties optional, colour encouraged' },
-        { k: 'Sunday', v: 'Swimwear and BBQ clothes' }
-      ],
-      shoes: 'Shoes that cope with gravel and grass, and a layer for after dark'
+      friday: { k: 'Friday', v: 'Come as you are' },
+      saturday: { k: 'Saturday', v: 'Dressed up for a warm evening outdoors, ties optional, colour encouraged' },
+      sunday: { k: 'Sunday', v: 'Swimwear and BBQ clothes' },
+      shoes: 'Shoes that cope with gravel and grass',
+      layer: 'A layer for after dark'
     },
     weekend: {
       title: 'The weekend',
@@ -153,8 +150,8 @@
     },
     questions: {
       title: 'Questions',
-      gifts: { q: 'Gifts?', a: 'Nothing needed, ask Joe or Sophie if you would like ideas' },
-      reach: { q: 'How do I reach you?', a: 'Message Joe or Sophie on WhatsApp' },
+      gifts: { q: 'Gifts?', a: 'Details will follow' },
+      reach: { q: 'How do I reach you?', a: 'Message Joe or Sophie directly, the way you normally would' },
       bring: { q: 'Can I bring someone?', a: 'Plus-ones are very limited, please ask Joe or Sophie directly' }
     },
     wait: {
