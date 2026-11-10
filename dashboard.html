@@ -504,19 +504,21 @@
       });
       const [ok, setOk] = useState(true);
       const [failed, setFailed] = useState(false);
+      const [loaded, setLoaded] = useState(false);
       const fbOk = React.useRef(false);
       useEffect(() => {
         const ref = db.ref(key);
         const handler = ref.on("value", (snap) => {
           fbOk.current = true;
           setFailed(false);
+          setLoaded(true);
           const incoming = snap.exists() ? snap.val() : def;
           const val = applyNorm(incoming);
           // no seed for no-cache keys: set({}) deletes the node and could wipe another admin's first write
           if (!snap.exists() && !noCache) ref.set(val);
           setD(val);
           if (!noCache) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
-        }, () => { fbOk.current = false; setFailed(true); });
+        }, () => { fbOk.current = false; setFailed(true); setLoaded(true); });
         return () => ref.off("value", handler);
       }, [key, applyNorm, def, noCache]);
       const save = useCallback((n) => {
@@ -525,7 +527,7 @@
         if (!noCache) { try { localStorage.setItem(key, JSON.stringify(next)); } catch {} }
         if (fbOk.current) db.ref(key).set(next);
       }, [key, applyNorm, noCache]);
-      return [d, save, ok, failed];
+      return [d, save, ok, failed, loaded];
     }
 
     function useFirebaseConnected() {
@@ -2662,9 +2664,10 @@
     /* ========== INVITATIONS (admin view of household/<token>) ========== */
     // Every write here is one leaf (household/<token>/reply or /stay) so a guest answering at the same moment is never overwritten.
     // Tokens are database keys only: they are never shown, and never stored in this browser.
-    function InvitationsPanel({ welcome, seen, household, failed }) {
+    function InvitationsPanel({ welcome, seen, household, status }) {
       const [busy, setBusy] = useState(null);
-      const rows = sjFirst.householdRows(welcome, seen, household);
+      const ready = status === "ready";
+      const rows = ready ? sjFirst.householdRows(welcome, seen, household) : [];
       const t = sjFirst.householdTotals(rows);
       const when = at => new Date(at).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
       const people = r => r.people.length;
@@ -2696,6 +2699,7 @@
         <div style={{ background: P.card, borderRadius: 12, padding: 14, marginBottom: 18, boxShadow: "0 1px 3px rgba(0,0,0,0.03)" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: P.txt }}>Invitations</div>
           <div style={{ fontSize: 11, color: P.txtM, margin: "2px 0 10px" }}>Replies and stay choices from the invitation page. Use the buttons for guests who answer by message. Each button changes only that household.</div>
+          {ready && (
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
             {[["Households", t.households, P.olive], ["Opened", t.opened, P.blue], ["Yes", t.yes, P.green], ["Can't come", t.cantCome, P.red],
               ["No reply", t.noReply, P.gold], ["Villa", t.villa, P.terra], ["Own place", t.own, P.terra], ["Not chosen", t.notChosen, P.stone]].map(([l, v, c]) => (
@@ -2705,8 +2709,10 @@
               </div>
             ))}
           </div>
-          {failed && <div data-invitations-failed style={{ fontSize: 12, color: P.red, marginBottom: 6 }}>Could not load the invitations. Check you are signed in as an admin and refresh. Do not trust the totals above.</div>}
-          {!failed && rows.length === 0 && <div style={{ fontSize: 12, color: P.txtL }}>No invitations yet</div>}
+          )}
+          {status === "loading" && <div data-invitations-loading style={{ fontSize: 12, color: P.txtL }}>Loading invitations</div>}
+          {status === "failed" && <div data-invitations-failed style={{ fontSize: 12, color: P.red, marginBottom: 6 }}>Could not load the invitations. Check you are signed in as an admin and refresh. Nothing is shown until it loads.</div>}
+          {ready && rows.length === 0 && <div style={{ fontSize: 12, color: P.txtL }}>No invitations yet</div>}
           {rows.map(r => {
             const yes = r.answer === "yes", off = busy === r.token;
             const heads = yes && r.coming ? r.coming.filter(Boolean).length : 0;
@@ -2749,7 +2755,7 @@
       );
     }
 
-    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, approved, chase, saveChase, nudges, welcome, welcomeSeen, household, invitesFailed }) {
+    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, approved, chase, saveChase, nudges, welcome, welcomeSeen, household, invitesStatus }) {
       const [resetNote, setResetNote] = useState({});
       const regs = Object.entries(safeObj(registrations, {})).map(([k, v]) => ({ ...safeObj(v, {}), _uid: k })).filter(r => r && r.name)
         .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -2880,7 +2886,7 @@
             ))}
           </div>
 
-          <InvitationsPanel welcome={welcome} seen={welcomeSeen} household={household} failed={invitesFailed} />
+          <InvitationsPanel welcome={welcome} seen={welcomeSeen} household={household} status={invitesStatus} />
 
           {(() => {
             const ps = Object.values(safeObj(profiles, {})).filter(p => p && p.name);
@@ -3728,10 +3734,10 @@
       const [chase, saveChase, b25] = useStorage("site-chase", {}, (v) => safeObj(v, {}));
       const [nudges, , b26] = useStorage("nudges", {}, (v) => safeObj(v, {}), { noCache: true });
       const [approved, , b27] = useStorage("approved", {}, (v) => safeObj(v, {}), { noCache: true });
-      const [welcome, , b28, welcomeFailed] = useStorage("welcome", EMPTY_MAP, asMap, { noCache: true });
-      const [welcomeSeen, , b29] = useStorage("welcomeSeen", EMPTY_MAP, asMap, { noCache: true });
-      const [household, , b30, householdFailed] = useStorage("household", EMPTY_MAP, asMap, { noCache: true });
-      const invitesFailed = welcomeFailed || householdFailed;
+      const [welcome, , b28, welcomeFailed, welcomeLoaded] = useStorage("welcome", EMPTY_MAP, asMap, { noCache: true });
+      const [welcomeSeen, , b29, seenFailed, seenLoaded] = useStorage("welcomeSeen", EMPTY_MAP, asMap, { noCache: true });
+      const [household, , b30, householdFailed, householdLoaded] = useStorage("household", EMPTY_MAP, asMap, { noCache: true });
+      const invitesStatus = welcomeFailed || householdFailed || seenFailed ? "failed" : welcomeLoaded && householdLoaded && seenLoaded ? "ready" : "loading";
       const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music, normalizeMusic);
       const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing, safeArr);
       const [seating, saveSeating, b9] = useStorage("wedding-seating-v3", DEFAULT_DATA.seating, (v) => ({ tables: safeArr(v?.tables).map(t => ({ ...t, guests: safeArr(t?.guests) })) }));
@@ -3812,7 +3818,7 @@
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} dayKit={dayKit} saveDayKit={saveDayKit} />}
             {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
             {tab === "total" && <TotalCostTab legalSpend={legalSpend} budget={budget} eurRate={eurRate} guests={guests} />}
-            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} approved={approved} chase={chase} saveChase={saveChase} nudges={nudges} welcome={welcome} welcomeSeen={welcomeSeen} household={household} invitesFailed={invitesFailed} />}
+            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} approved={approved} chase={chase} saveChase={saveChase} nudges={nudges} welcome={welcome} welcomeSeen={welcomeSeen} household={household} invitesStatus={invitesStatus} />}
           </div>
         </div>
       );

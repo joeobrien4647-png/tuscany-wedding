@@ -72,7 +72,6 @@ test('dashboard.html loads the first core and keeps the invitation data out of l
   for (const k of ['"welcome"', '"welcomeSeen"', '"household"']) assert.ok(keys.includes(k), k);
   assert.match(dashboard, /useStorage\("household"[^\n]*noCache: true/);
   assert.match(dashboard, /useStorage\("welcome"[^\n]*noCache: true/);
-  assert.match(dashboard, /useStorage\("welcomeSeen"[^\n]*noCache: true/);
   const writes = dashboard.match(/localStorage\.setItem\([^)]*\)/g) || [];
   assert.ok(!writes.some(w => /token|tok\b|household|welcome/i.test(w)), writes.join('\n'));
 });
@@ -81,8 +80,12 @@ test('dashboard writes go through the pure step plan, one leaf at a time', () =>
   assert.match(dashboard, /sjFirst\.adminSteps\(/);
   assert.match(dashboard, /db\.ref\("household\/" \+ r\.token \+ "\/" \+ st\.path\)/);
   assert.ok(!/db\.ref\("household"\)\.(set|update)/.test(dashboard));
-  assert.match(dashboard, /const \[household, , b\d+, householdFailed\] = useStorage\("household"/);
+  assert.match(dashboard, /const \[household, , b\d+, householdFailed, householdLoaded\] = useStorage\("household"/);
   assert.match(dashboard, /data-invitations-failed/);
+  assert.match(dashboard, /data-invitations-loading/);
+  assert.match(dashboard, /const \[welcomeSeen, , b\d+, seenFailed, seenLoaded\] = useStorage\("welcomeSeen"/);
+  assert.match(dashboard, /seenFailed \? "failed"/);
+  assert.match(dashboard, /\{ready && \(/);
 });
 
 const SV = { '.sv': 'timestamp' };
