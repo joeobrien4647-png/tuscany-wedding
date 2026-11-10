@@ -33,6 +33,7 @@
       back: 'Back',
       replied: 'Your reply is in',
       change: 'Change my answer',
+      saving: 'Saving your reply',
       closesNote: 'Replies close on {date}',
       watchAgain: 'Watch the invitation again'
     },

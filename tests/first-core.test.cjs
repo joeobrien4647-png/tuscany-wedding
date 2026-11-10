@@ -108,3 +108,24 @@ test('ukDate gives the UK calendar day', () => {
   assert.equal(ukDate(REPLIES_CLOSE_MS - 1), 'Sun 28 Feb');
   assert.equal(ukDate(Date.UTC(2027, 4, 28, 23)), 'Sat 29 May');
 });
+
+test('G6: isLocalTest needs a local or home-network host and wtest=1', () => {
+  const { isLocalTest } = require('../js/first/core.js');
+  for (const h of ['localhost', '127.0.0.1', '[::1]', '192.168.1.20', '10.0.0.5', '172.16.3.4'])
+    assert.equal(isLocalTest({ hostname: h, search: '?wtest=1' }), true, h);
+  assert.equal(isLocalTest({ hostname: 'localhost', search: '' }), false);
+  assert.equal(isLocalTest({ hostname: 'localhost', search: '?wtest=0' }), false);
+  for (const h of ['sophieandjoe2027.com', 'localhost.evil.com', '172.32.0.1', '192.169.0.1'])
+    assert.equal(isLocalTest({ hostname: h, search: '?wtest=1' }), false, h);
+  assert.equal(isLocalTest(null), false);
+  assert.equal(isLocalTest(undefined), false);
+});
+
+test('G6: store and app use the one isLocalTest in core', () => {
+  const fs = require('node:fs'), path = require('node:path');
+  for (const f of ['store.js', 'app.js']) {
+    const js = fs.readFileSync(path.join(__dirname, '..', 'js', 'first', f), 'utf8');
+    assert.doesNotMatch(js, /192\\.168/, f + ' has its own host check');
+    assert.match(js, /\.isLocalTest\(/, f);
+  }
+});

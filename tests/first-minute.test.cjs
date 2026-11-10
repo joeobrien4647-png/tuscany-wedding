@@ -76,3 +76,57 @@ test('sound and fx keep the prototype interface', () => {
     assert.match(sound, new RegExp('\\b' + k + '[,:\\s]'), 'sound.' + k);
   for (const k of ['dust', 'burst', 'show']) assert.match(fx, new RegExp('\\b' + k + '[,:\\s]'), 'fx.' + k);
 });
+
+test('G5: stop takes the src off the video and resets it', () => {
+  const js = read('js/first/minute.js');
+  const stop = js.match(/\n( *)function stop\(\) \{([\s\S]*?)\n\1\}/);
+  assert.ok(stop);
+  assert.match(stop[2], /removeAttribute\('src'\)/);
+  assert.match(stop[2], /\.load\(\)/);
+});
+
+test('G7: the music is not made or fetched when the script loads, only when needed, and never ahead with Save-Data', () => {
+  const vm = require('node:vm');
+  const src = read('js/first/sound.js');
+  function load(saveData) {
+    const made = [];
+    class Audio { constructor() { made.push(this); } }
+    const sandbox = { document: { addEventListener() {}, hidden: false }, Audio, navigator: { connection: { saveData } },
+      localStorage: { getItem: () => null, setItem() {} }, setTimeout, clearTimeout };
+    sandbox.window = sandbox;
+    vm.runInNewContext(src, sandbox);
+    return { made, sound: sandbox.sjFirst.sound };
+  }
+  const a = load(false);
+  assert.equal(a.made.length, 0, 'made on load');
+  a.sound.prepare();
+  assert.equal(a.made.length, 1);
+  assert.equal(a.made[0].preload, 'auto');
+  assert.match(a.made[0].src, /storybook-music\.mp3/);
+  a.sound.prepare();
+  assert.equal(a.made.length, 1, 'made once');
+  const b = load(true);
+  b.sound.unlock();
+  assert.equal(b.made.length, 1, 'unlock makes it');
+  assert.equal(b.made[0].preload, 'none');
+  assert.match(read('js/first/minute.js'), /if \(!o\.quick\) S\.prepare\(\);/);
+});
+
+test('G3: every inset has the four offsets before it, every aspect-ratio a height, and no flex gap', () => {
+  const css = read('css/first.css');
+  const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map(m => ({ sel: m[1].trim(), body: m[2] }));
+  for (const { sel, body } of rules) {
+    const decls = body.split(';').map(d => d.trim()).filter(Boolean);
+    const prop = d => d.split(':')[0].trim();
+    decls.forEach((d, i) => {
+      if (prop(d) === 'inset') {
+        const before = decls.slice(0, i).map(prop);
+        for (const side of ['top', 'right', 'bottom', 'left']) assert.ok(before.includes(side), sel + ' inset needs ' + side + ' first');
+      }
+      if (prop(d) === 'aspect-ratio') assert.ok(decls.map(prop).some(p => p === 'height' || p.startsWith('padding')), sel + ' aspect-ratio needs a height');
+    });
+    const display = decls.filter(d => prop(d) === 'display').map(d => d.split(':')[1].trim());
+    if (display.some(v => /flex/.test(v))) assert.ok(!decls.some(d => prop(d) === 'gap'), sel + ' uses gap in flex');
+    assert.doesNotMatch(body, /\d(dvh|svh|lvh)\b/, sel);
+  }
+});

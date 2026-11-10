@@ -114,7 +114,7 @@ test('app: landing decides, no clear answer means wait, fnow only in local test'
   assert.match(js, /\.token/);
   assert.match(js, /wtest/);
   assert.match(js, /fnow/);
-  assert.match(js, /isLocalTest\(\) \?/);
+  assert.match(js, /isLocalTest\(loc\) \?/);
   assert.match(js, /quick: true/);
 });
 
@@ -133,4 +133,30 @@ test('reply screens are styled inside #first', () => {
   const css = read('css/first.css');
   for (const c of ['fr-panel', 'fr-gold', 'fr-ghost', 'fr-on', 'fr-err', 'fr-center'])
     assert.match(css, new RegExp('#first [^{]*\\.' + c), c);
+});
+
+test('G1: the change control reads the household again before showing the question; unclear means wait', () => {
+  const js = read('js/first/reply.js');
+  const change = js.match(/\n( *)function changeAnswer\(\) \{([\s\S]*?)\n\1\}/);
+  assert.ok(change, 'function changeAnswer');
+  assert.match(change[2], /store\.load\(/);
+  assert.match(change[2], /=== undefined/);
+  assert.match(change[2], /'wait'/);
+  assert.match(change[2], /'ask'/);
+  assert.doesNotMatch(js, /again\('ask'\)/, 'nothing goes back to the question without reading again');
+});
+
+test('G8: a visible saving state on the chosen answer', () => {
+  const js = read('js/first/reply.js');
+  const { words } = require('../js/first/words.js');
+  assert.ok(words.ask.saving);
+  assert.match(js, /w\.ask\.saving/);
+  assert.match(js, /chosen[\s\S]{0,80}setAttribute\('aria-busy', 'true'\)/);
+  assert.match(read('css/first.css'), /#first [^{]*\.fr-saving/);
+});
+
+test('G9: the change control is the quiet text control on can\'t-come and already-replied', () => {
+  const js = read('js/first/reply.js');
+  assert.match(js, /changeControl\(s, w\.no\.again, 'fr-link'\)/);
+  assert.match(js, /changeControl\(s, w\.ask\.change, 'fr-link'\)/);
 });

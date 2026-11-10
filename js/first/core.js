@@ -10,6 +10,12 @@
     return !!enabled;
   }
 
+  // Testing only: a local or home-network host with ?wtest=1 (the same check as js/invite.js). loc is like window.location.
+  const LOCAL_HOST = /^(localhost|127\.0\.0\.1|\[::1\]|10(\.\d{1,3}){3}|192\.168(\.\d{1,3}){2}|172\.(1[6-9]|2\d|3[01])(\.\d{1,3}){2})$/;
+  function isLocalTest(loc) {
+    try { return LOCAL_HOST.test(loc.hostname) && new URLSearchParams(loc.search).get('wtest') === '1'; } catch (e) { return false; }
+  }
+
   const SENTIMENTAL = /\bour story\b|\blove story\b|\bshe said yes\b|\bhappily ever after\b|\bsoul ?mates?\b|\bfairy ?tale\b|\bmeant to be\b|\btrue love\b/i;
   // Copy rules for every guest-facing line: same four checks as js/storybook.js.
   function copyProblems(text) {
@@ -104,7 +110,7 @@
     return reply.answer === 'no' ? 'cantcome' : 'home';
   }
 
-  const api = { shouldShowFirst, copyProblems, WEDDING_MS, REPLIES_CLOSE_MS, SHARE_GBP, LOCKS, repliesOpen, countdown,
+  const api = { shouldShowFirst, isLocalTest, copyProblems, WEDDING_MS, REPLIES_CLOSE_MS, SHARE_GBP, LOCKS, repliesOpen, countdown,
     lockState, nextLock, comingCount, fill, ukDate, shareLine, canChangeStay, dockStates, stayLabel, landing };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

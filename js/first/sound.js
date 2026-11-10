@@ -11,10 +11,14 @@
   let el = null, ac = null, master = null, mg = null, wired = false, wanted = false, noiseBuf = null;
   let isOn = read(KEY) !== 'off';
 
+  const saveData = () => { try { return !!(root.navigator.connection && root.navigator.connection.saveData); } catch (e) { return false; } };
+  // The track is made, and fetched, only when it is about to be needed: a minute about to play, or the first unlock.
+  // With Save-Data on it is never fetched ahead; it loads when it plays.
   function media() {
-    if (!el && hasDom) { el = new Audio(); el.preload = 'auto'; el.src = MUSIC_SRC; }
+    if (!el && hasDom) { el = new Audio(); el.preload = saveData() ? 'none' : 'auto'; el.src = MUSIC_SRC; }
     return el;
   }
+  function prepare() { media(); }
   // Browsers refuse audio until a tap; where the browser can say so, wait for one instead of making a context it will block.
   const tapped = () => !(root.navigator && root.navigator.userActivation && !root.navigator.userActivation.hasBeenActive);
 
@@ -27,7 +31,7 @@
     try { ac = new AC(); master = ac.createGain(); master.gain.value = isOn ? 1 : 0; master.connect(ac.destination); } catch (e) { ac = null; }
     return ac;
   }
-  function unlock() { const c = ctx(); if (c && c.state !== 'running' && c.resume) c.resume().catch(() => {}); }
+  function unlock() { media(); const c = ctx(); if (c && c.state !== 'running' && c.resume) c.resume().catch(() => {}); }
   function play(m) { try { const p = m.play(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* no media playback */ } }
   function music() {
     const m = media();
@@ -75,7 +79,6 @@
   const on = () => isOn;
 
   if (hasDom) {
-    media();
     document.addEventListener('visibilitychange', () => {
       if (!el) return;
       if (document.hidden) { if (wanted) el.pause(); return; }
@@ -83,7 +86,7 @@
     });
   }
 
-  const api = { sound: { unlock, music, quiet, crack, chime, pop, boom, toggle, on } };
+  const api = { sound: { prepare, unlock, music, quiet, crack, chime, pop, boom, toggle, on } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

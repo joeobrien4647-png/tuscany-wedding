@@ -1,5 +1,5 @@
 /* ==== The layer: base ==== */
-#first { position: fixed; inset: 0; overflow: hidden; }
+#first { position: fixed; top: 0; right: 0; bottom: 0; left: 0; inset: 0; overflow: hidden; }
 html.first-on body > :not(#first) { display: none; }
 
 /* ==== The layer: look (the prototype's colours and fonts, scoped to the layer) ==== */
@@ -40,8 +40,8 @@ html.first-on body > :not(#first) { display: none; }
 #first .fm-defs { position: absolute; width: 0; height: 0; }
 
 /* the stage */
-#first .fm-stage { position: absolute; inset: 0; overflow: hidden; background: var(--night); }
-#first .fm-layer { position: absolute; inset: 0; width: 100%; height: 100%; }
+#first .fm-stage { position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; overflow: hidden; background: var(--night); }
+#first .fm-layer { position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; width: 100%; height: 100%; }
 #first .fm-media { opacity: 0; will-change: opacity, transform; }
 #first .fm-still { background-size: cover; background-position: center; }
 #first .fm-drive { object-fit: cover; object-position: 50% 50%; }
@@ -58,7 +58,7 @@ html.first-on body > :not(#first) { display: none; }
 
 /* screens */
 #first .fm-screen {
-  position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column;
+  position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; z-index: 10; display: flex; flex-direction: column;
   padding-top: calc(var(--top) + 22px); padding-bottom: calc(var(--bottom) + 22px);
   padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px));
 }
@@ -84,17 +84,17 @@ html.first-on body > :not(#first) { display: none; }
 @keyframes fm-fade-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes fm-fade { from { opacity: 0; } to { opacity: 1; } }
 #first .fm-seal-wrap { display: grid; justify-items: center; gap: 22px; }
-#first .fm-seal { position: relative; width: min(46vw, 184px, 30vh); aspect-ratio: 1; border-radius: 50%; touch-action: manipulation; animation: fm-land .9s 1.5s cubic-bezier(.3, 1.45, .5, 1) both; }
+#first .fm-seal { position: relative; width: min(46vw, 184px, 30vh); height: min(46vw, 184px, 30vh); aspect-ratio: 1; border-radius: 50%; touch-action: manipulation; animation: fm-land .9s 1.5s cubic-bezier(.3, 1.45, .5, 1) both; }
 #first .fm-seal::before {
-  content: ""; position: absolute; inset: -42%; border-radius: 50%; z-index: -1; pointer-events: none;
+  content: ""; position: absolute; top: -42%; right: -42%; bottom: -42%; left: -42%; inset: -42%; border-radius: 50%; z-index: -1; pointer-events: none;
   background: radial-gradient(closest-side, var(--ember), rgba(244, 169, 92, .1) 56%, transparent 74%);
   animation: fm-breathe 3.4s 2.4s ease-in-out infinite both; transition: opacity .4s;
 }
 #first .fm-seal:active .fm-seal-press { transform: scale(.93); }
-#first .fm-seal-press { position: absolute; inset: 0; transition: transform .22s var(--ease); }
-#first .fm-seal svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+#first .fm-seal-press { position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; transition: transform .22s var(--ease); }
+#first .fm-seal svg { position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; width: 100%; height: 100%; overflow: visible; }
 #first .fm-seal-whole { filter: drop-shadow(0 12px 18px rgba(0, 0, 0, .55)); }
-#first .fm-half { position: absolute; inset: 0; opacity: 0; transform-origin: 50% 72%; filter: drop-shadow(0 12px 18px rgba(0, 0, 0, .5)); }
+#first .fm-half { position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; opacity: 0; transform-origin: 50% 72%; filter: drop-shadow(0 12px 18px rgba(0, 0, 0, .5)); }
 #first .fm-crack { opacity: 0; filter: drop-shadow(0 0 6px rgba(255, 207, 138, .95)); }
 #first .fm-seal.fm-open .fm-seal-whole { visibility: hidden; }
 #first .fm-seal.fm-open::before { animation: none; opacity: 0; }
@@ -124,7 +124,8 @@ html.first-on body > :not(#first) { display: none; }
 
 /* controls */
 #first .fm-round { position: absolute; z-index: 30; top: calc(var(--top) + 14px); right: max(14px, env(safe-area-inset-right, 0px)); width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(10, 13, 22, .42); border: 1px solid var(--line); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); color: var(--ink); }
-#first .fm-skip { position: absolute; z-index: 30; bottom: calc(var(--bottom) + 18px); right: max(16px, env(safe-area-inset-right, 0px)); height: 40px; padding: 0 16px 0 18px; border-radius: 999px; display: flex; align-items: center; gap: 6px; background: rgba(10, 13, 22, .42); border: 1px solid var(--line); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); font: 500 12px/1 var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--ink); }
+#first .fm-skip svg { margin-left: 6px; }
+#first .fm-skip { position: absolute; z-index: 30; bottom: calc(var(--bottom) + 18px); right: max(16px, env(safe-area-inset-right, 0px)); height: 40px; padding: 0 16px 0 18px; border-radius: 999px; display: flex; align-items: center; background: rgba(10, 13, 22, .42); border: 1px solid var(--line); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); font: 500 12px/1 var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--ink); }
 
 /* ==== Task 6: the reply ==== */
 #first .fr .fm-screen { z-index: 20; }
@@ -145,13 +146,14 @@ html.first-on body > :not(#first) { display: none; }
 #first .fr-people { display: grid; gap: 10px; }
 #first .fr-people.fr-many { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 #first .fr-btn {
-  display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 58px; padding: 8px 16px; border-radius: 999px;
+  display: flex; align-items: center; justify-content: center; min-height: 58px; padding: 8px 16px; border-radius: 999px;
   font: 500 17px/1.2 var(--ui); letter-spacing: .02em; text-align: center; overflow-wrap: anywhere; touch-action: manipulation;
   transition: transform .2s var(--ease), background-color .2s, border-color .2s, box-shadow .2s, opacity .2s;
 }
 #first .fr-btn:active { transform: scale(.97); }
 #first .fr-btn[disabled] { cursor: default; opacity: .72; }
 #first .fr-btn.fr-on[disabled] { opacity: 1; }
+#first .fr-btn.fr-busy[disabled] { opacity: 1; }
 #first .fr-gold { background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, var(--gold-deep)); color: var(--on-gold); font-weight: 600; font-size: 19px; box-shadow: 0 12px 32px rgba(220, 183, 109, .3), inset 0 1px 0 rgba(255, 255, 255, .55); }
 #first .fr-ghost { min-height: 52px; font-size: 15px; border: 1px solid var(--line); background: rgba(245, 236, 220, .05); color: var(--ink); }
 #first .fr-gold.fr-on { box-shadow: 0 0 0 2px var(--night), 0 0 0 4px var(--gold-hi), 0 12px 32px rgba(220, 183, 109, .35); }
@@ -159,9 +161,12 @@ html.first-on body > :not(#first) { display: none; }
 #first .fr-person { font: italic 400 20px/1.15 var(--display); letter-spacing: 0; }
 #first .fr-link { justify-self: center; min-height: 44px; padding: 8px; font: 500 14px/1.2 var(--ui); color: var(--gold-hi); text-decoration: underline; text-underline-offset: 4px; text-align: center; }
 #first .fr-watch { font-size: 13px; color: var(--ink-soft); }
+#first .fr-saving { font: 500 14px/1.35 var(--ui); color: var(--ink-soft); text-align: center; }
+#first .fr-btn.fr-busy { animation: fr-pulse 1.2s ease-in-out infinite; }
+@keyframes fr-pulse { 50% { opacity: .78; } }
 #first .fr-err { font: 500 14px/1.35 var(--ui); color: var(--gold-hi); text-align: center; }
 #first .fr-center {
-  align-items: center; justify-content: center; gap: 18px; text-align: center;
+  display: grid; align-content: center; justify-items: center; gap: 18px; text-align: center;
   background: linear-gradient(180deg, rgba(10, 13, 22, .4), rgba(10, 13, 22, .9));
   animation: fm-fade .6s ease both;
 }
@@ -193,4 +198,5 @@ html.first-on body > :not(#first) { display: none; }
   #first .fm-seal:active .fm-seal-press { transform: none; }
   #first .fr-panel { animation: fm-fade .5s ease both; }
   #first .fr-btn:active { transform: none; }
+  #first .fr-btn.fr-busy { animation: none; }
 }

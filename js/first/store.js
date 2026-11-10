@@ -11,11 +11,11 @@
   const CHOICES = ['villa', 'own', 'later'], MAX_COMING = 8;
   const memory = {};
 
+  // core.js loads first on the page; under Node tests it is required here.
+  const core = root.sjFirst && root.sjFirst.isLocalTest ? root.sjFirst
+    : typeof require === 'function' ? require('./core.js') : {};
   function isLocalTest() {
-    try {
-      return /^(localhost|127\.0\.0\.1|\[::1\]|10(\.\d{1,3}){3}|192\.168(\.\d{1,3}){2}|172\.(1[6-9]|2\d|3[01])(\.\d{1,3}){2})$/
-        .test(location.hostname) && new URLSearchParams(location.search).get('wtest') === '1';
-    } catch (e) { return false; }
+    try { return core.isLocalTest(location); } catch (e) { return false; }
   }
   const base = () => (isLocalTest() ? '.local-test/' : DB + '/');
   const isObject = v => !!v && typeof v === 'object' && !Array.isArray(v);

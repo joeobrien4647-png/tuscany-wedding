@@ -97,7 +97,19 @@
     }
     // The change control on the can't-come and already-replied screens: only while replies are open.
     function changeControl(s, label, cls) {
-      if (open()) s.appendChild(button(cls, label, () => again('ask')));
+      if (open()) s.appendChild(button(cls, label, changeAnswer));
+    }
+    // Back to the question with the answer as it is now: a partner may have changed it from their own phone.
+    function changeAnswer() {
+      if (!invite) return;
+      show(Object.assign({}, o, { mode: 'wait', failed: false, onRetry: changeAnswer }));
+      const waiting = current;
+      first.store.load(invite.token).then(function (household) {
+        if (current !== waiting) return;
+        if (household === undefined) { show(Object.assign({}, o, { mode: 'wait', failed: true, onRetry: changeAnswer })); return; }
+        ctx.household = household;
+        show(Object.assign({}, o, { mode: 'ask' }));
+      });
     }
 
     const mode = o.mode;
@@ -109,13 +121,13 @@
     }
     if (mode === 'cantcome') {
       const s = centre(null, w.no.title, open() ? w.no.line : w.closed.message);
-      changeControl(s, w.no.again, 'fr-btn fr-gold fr-wide');
+      changeControl(s, w.no.again, 'fr-link');
       return;
     }
     if (mode === 'already') {
       const yes = !!(ctx.household && ctx.household.reply && ctx.household.reply.answer === 'yes');
       const s = centre(w.ask.replied, yes ? w.yes.title : w.no.title, open() ? null : w.closed.message);
-      changeControl(s, w.ask.change, 'fr-btn fr-ghost fr-wide');
+      changeControl(s, w.ask.change, 'fr-link');
       if (yes) after(ALREADY_MS, goHome);
       return;
     }
@@ -174,6 +186,10 @@
       who.appendChild(button('fr-link', w.ask.back, () => { if (!busy) showChoices(); }));
       panel.appendChild(who);
 
+      const saving = el('p', 'fr-saving', w.ask.saving);
+      saving.setAttribute('role', 'status');
+      saving.hidden = true;
+      panel.appendChild(saving);
       const note = el('p', 'fr-err');
       note.setAttribute('role', 'alert');
       note.hidden = true;
@@ -215,13 +231,16 @@
         busy = true;
         last = { reply: choice, chosen };
         mark(chosen);
-        note.hidden = true; retry.hidden = true;
+        note.hidden = true; retry.hidden = true; saving.hidden = false;
         all.forEach(b => { b.disabled = true; });
+        chosen.filter(Boolean).forEach(b => { b.classList.add('fr-busy'); b.setAttribute('aria-busy', 'true'); });
         panel.setAttribute('aria-busy', 'true');
         const token = invite ? invite.token : '';
         first.store.saveReply(token, choice).then(function (ok) {
           if (!live()) return;
           busy = false;
+          saving.hidden = true;
+          all.forEach(b => { b.classList.remove('fr-busy'); b.removeAttribute('aria-busy'); });
           panel.removeAttribute('aria-busy');
           all.forEach(b => { b.disabled = false; });
           if (!ok) {

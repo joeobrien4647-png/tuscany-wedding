@@ -101,7 +101,7 @@
     return grainUrl;
   }
 
-  const silent = { unlock() {}, music() {}, quiet() {}, crack() {}, chime() {}, pop() {}, boom() {}, toggle() { return false; }, on() { return false; } };
+  const silent = { prepare() {}, unlock() {}, music() {}, quiet() {}, crack() {}, chime() {}, pop() {}, boom() {}, toggle() { return false; }, on() { return false; } };
   const still = { attach() {}, dust() {}, burst() {}, show() {} };
   const haptic = p => { try { if (root.navigator.vibrate) root.navigator.vibrate(p); } catch (e) { /* no haptics in this browser */ } };
   const saveData = () => { try { return !!(root.navigator.connection && root.navigator.connection.saveData); } catch (e) { return false; } };
@@ -114,7 +114,8 @@
     current = null;
     r.timers.concat(r.later).forEach(t => root.clearTimeout(t));
     r.anims.forEach(a => { try { a.cancel(); } catch (e) { /* already gone */ } });
-    try { r.drive.pause(); } catch (e) { /* nothing playing */ }
+    // A detached video keeps downloading while it has a src: take it away and reset the element.
+    try { r.drive.pause(); r.drive.removeAttribute('src'); r.drive.load(); } catch (e) { /* nothing playing */ }
     if (r.opened) r.sound.quiet();
     if (r.box.parentNode) r.box.parentNode.removeChild(r.box);
   }
@@ -126,6 +127,7 @@
     const S = first.sound || silent, F = first.fx || still;
     const host = o.root;
     stop();
+    if (!o.quick) S.prepare();
 
     const box = document.createElement('div');
     box.className = 'fm';
