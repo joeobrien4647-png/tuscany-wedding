@@ -36,7 +36,7 @@ If `welcome` is already imported and current, there is nothing to do here.
 2. Open it on Joe's phone and Sophie's phone. Sound on. Watch the whole minute once, then use skip on a second link or after clearing the reply.
 3. Reply yes, pick who is coming, choose a place to stay, open each card.
 4. In the dashboard, Site tab, Invitations: the household should show as opened, replied, with the stay choice.
-5. Clear the test reply from the same row when you are done.
+5. From that row, set the household to "Can't come" by hand, then press Clear. Both should work without an error message. This is the one dashboard action that has not been run against the real rules: if Clear shows "Not done", stop and say so before inviting anyone.
 
 This is the first time it will have been seen or heard on a real phone. Things to look for: nothing cut off, nothing that scrolls, the music starts after the first tap and the sound button works, the video plays, the countdown is right.
 
