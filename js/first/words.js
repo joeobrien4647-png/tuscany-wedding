@@ -57,8 +57,11 @@
     home: {
       kicker: 'Your trip',
       countdown: 'days to go',
-      nextIn: 'Next envelope opens in {n} days',
-      nextTomorrow: 'Next envelope opens tomorrow',
+      countdownOne: 'day to go',
+      units: { h: 'h', m: 'm', s: 's' },
+      nextIn: 'opens in {n} days',
+      nextDay: 'opens in 1 day',
+      nextSoon: 'opens in {n}',
       allOpen: 'Everything is open',
       opens: 'Opens {date}',
       sealed: 'Sealed until {date}',
@@ -80,7 +83,9 @@
     },
     dock: {
       labels: ['Reply', 'Stay', 'Travel', 'Wear', 'Weekend'],
-      stay: { plain: 'Stay', choose: 'Choose stay', villa: 'La Conca', own: 'Own place' }
+      stay: { plain: 'Stay', choose: 'Choose stay', villa: 'La Conca', own: 'Own place' },
+      states: { plain: 'Ready to read', glow: 'Something to do', done: 'Done' },
+      label: 'Plan your trip'
     },
     stay: {
       title: 'Where will you stay?',

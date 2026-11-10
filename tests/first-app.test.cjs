@@ -86,6 +86,34 @@ test('reply yes: home when it exists, already-replied while it does not', async 
   assert.equal(last(without.calls), 'already');
 });
 
+test('reply yes with the home screen: return visits land on it, with the household and clock in ctx', async () => {
+  let got = null;
+  const b = boot({ seen: true, household: YES, home: true });
+  await settle();
+  assert.equal(b.calls.home, 1);
+  assert.ok(!b.calls.shown.includes('already'), 'no already-replied screen on a return visit');
+  const first = Object.assign({}, core, {
+    store: { seenMinute: () => true, markSeen() {}, load: () => Promise.resolve(YES) },
+    minute: { play() {} },
+    reply: { show() {}, clear() {} },
+    home: { show: o => { got = o; } }
+  });
+  app.run({ first, host: { hidden: true }, link: link(INVITE, TOKEN), location: { hostname: 'example.com', search: '' } });
+  await settle();
+  assert.ok(got && got.ctx.invite === INVITE && got.ctx.household === YES && typeof got.ctx.now === 'function');
+});
+
+test('reply yes found right after the minute: the already-replied screen, which hands off to home', async () => {
+  const b = boot({ household: YES, home: true });
+  await b.finish();
+  assert.equal(last(b.calls), 'already');
+  assert.equal(b.calls.home, 0);
+  const reply = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'js', 'first', 'reply.js'), 'utf8');
+  assert.match(reply, /if \(yes\) after\(ALREADY_MS, goHome\);/);
+  assert.match(reply, /again\('yes'\);/);
+  assert.match(reply, /after\(reduced\(\) \? HOME_AFTER_REDUCED_MS : HOME_AFTER_MS, goHome\);/);
+});
+
 test('reply no: the can\'t-come screen', async () => {
   const b = boot({ seen: true, household: NO });
   await settle();
