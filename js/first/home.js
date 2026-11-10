@@ -22,11 +22,13 @@
     return core.LOCKS.map(lock => {
       const name = w.home.envelopes[lock.key].name;
       const stamp = lock.opensMs === null ? w.home.photosStamp : core.ukDate(lock.opensMs);
+      // Past its date with nothing inside yet: it is nearly ready, never "opens" on a date gone by.
+      const due = lock.opensMs !== null && nowMs >= lock.opensMs;
       return {
         key: lock.key, name, stamp,
         state: core.lockState(lock, nowMs, false),
-        label: name + ', ' + core.fill(w.home.sealed, { date: stamp }),
-        toast: core.fill(w.home.opens, { date: stamp })
+        label: name + ', ' + (due ? w.home.soon : core.fill(w.home.sealed, { date: stamp })),
+        toast: due ? w.home.soon : core.fill(w.home.opens, { date: stamp })
       };
     });
   }
@@ -56,11 +58,18 @@
     return w.home.envelopes[lock.key].name + ' ' + when;
   }
 
-  // What a fresh read of the household does: an object replaces it, a no leaves, no clear answer keeps the screen.
-  function afterRefresh(household) {
-    if (!household || typeof household !== 'object') return 'keep';
-    return household.reply && household.reply.answer === 'no' ? 'cantcome' : 'render';
+  // What a fresh read of the household does: no clear answer keeps the screen, a no leaves for can't come, and no
+  // reply at all (cleared or deleted) goes back to the question while replies are open, to the closed screen after.
+  function afterRefresh(household, nowMs) {
+    if (household === undefined || (household !== null && typeof household !== 'object')) return 'keep';
+    const reply = household && household.reply;
+    if (!reply) return core.repliesOpen(nowMs) ? 'ask' : 'closed';
+    return reply.answer === 'no' ? 'cantcome' : 'render';
   }
+
+  // Whether a fresh read brings a different stay choice (a partner chose on their own phone).
+  const choiceOf = h => (h && h.stay && h.stay.choice) || null;
+  const stayChanged = (before, after) => choiceOf(before) !== choiceOf(after);
 
   const svg = (inner, size) => '<svg width="' + (size || 20) + '" height="' + (size || 20) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + inner + '</svg>';
   const ICON = {
@@ -127,7 +136,7 @@
     host.appendChild(box);
     host.hidden = false;
     minuteSound(host, true);
-    const r = { box, host, ctx, clock: 0, toastTimer: 0, anims: [], counting: false, seq: 0 };
+    const r = { box, host, ctx, clock: 0, toastTimer: 0, toastGen: 0, anims: [], counting: false, seq: 0 };
     current = r;
     const live = () => current === r;
     const REDUCE = reduced();
@@ -136,6 +145,7 @@
       if (!e || !e.animate) return null;
       const made = e.animate(frames, Object.assign({ duration: 700, easing: 'cubic-bezier(.22,1,.36,1)', fill: 'both' }, a));
       r.anims.push(made);
+      made.addEventListener('finish', () => { const i = r.anims.indexOf(made); if (i >= 0) r.anims.splice(i, 1); });
       return made;
     }
     const rise = (e, delay, d) => anim(e, REDUCE ? [{ opacity: 0 }, { opacity: 1 }] : [{ opacity: 0, transform: 'translateY(18px)' }, { opacity: 1, transform: 'none' }], { duration: d || 700, delay: delay || 0 });
@@ -168,8 +178,11 @@
     const clockEl = el('span', 'fh-clock');
     side.appendChild(daysLabel);
     side.appendChild(clockEl);
+    const todayEl = el('span', 'fh-today', w.home.today);
+    todayEl.hidden = true;
     count.appendChild(days);
     count.appendChild(side);
+    count.appendChild(todayEl);
     inner.appendChild(count);
     const next = el('p', 'fh-next');
     const nextIcon = el('span', 'fh-next-i');
@@ -240,14 +253,15 @@
       toast(env.toast);
     }
     function toast(text) {
+      const gen = ++r.toastGen;
       toastEl.textContent = text;
       toastEl.hidden = false;
       anim(toastEl, [{ opacity: 0, transform: 'translate(-50%, 10px)' }, { opacity: 1, transform: 'translate(-50%, 0)' }], { duration: 300 });
       root.clearTimeout(r.toastTimer);
       r.toastTimer = root.setTimeout(() => {
-        if (!live()) return;
+        if (!live() || gen !== r.toastGen) return;
         const a = anim(toastEl, [{ opacity: 1 }, { opacity: 0 }], { duration: 300 });
-        if (a) a.onfinish = () => { toastEl.hidden = true; }; else toastEl.hidden = true;
+        if (a) a.onfinish = () => { if (gen === r.toastGen) toastEl.hidden = true; }; else toastEl.hidden = true;
       }, TOAST_MS);
     }
     function watchAgain() {
@@ -266,6 +280,11 @@
     }
     function tick() {
       const now = ctx.now(), c = bigCount(now, w), line = nextLine(now, w);
+      // On the wedding day the countdown says so; after it, the countdown goes.
+      const day = core.weddingDay(now);
+      count.hidden = day === 'after';
+      days.hidden = side.hidden = day !== 'before';
+      todayEl.hidden = day !== 'today';
       if (!r.counting) days.textContent = String(c.days);
       daysLabel.textContent = c.label;
       clockEl.textContent = c.clock;
@@ -288,6 +307,7 @@
     }
 
     r.paint = paintDock;
+    r.toast = toast;
     paintDock();
     countUp(tick());
     r.clock = root.setInterval(() => { if (live()) tick(); }, 1000);
@@ -303,10 +323,10 @@
   function land(host, ctx) {
     const first = root.sjFirst || {}, token = ctx.invite && ctx.invite.token;
     const done = household => {
-      const next = afterRefresh(household);
+      const next = afterRefresh(household, ctx.now());
       if (next !== 'keep') ctx.household = household;
-      if (next === 'cantcome') first.reply.show({ root: host, ctx, mode: 'cantcome' });
-      else show({ root: host, ctx });
+      if (next === 'render' || next === 'keep') show({ root: host, ctx });
+      else first.reply.show({ root: host, ctx, mode: next });
     };
     if (!token || !first.store) { done(undefined); return; }
     readFresh({ seq: 0, ctx }, first.store.load, done, () => done(ctx.household));
@@ -321,6 +341,11 @@
     });
   }
 
+  // A short message on the home screen (a card's save that failed after the card was closed).
+  function toastHome(text) {
+    if (current && typeof current.toast === 'function') current.toast(text);
+  }
+
   // Paints the dock again from ctx.household, without a read (after a card has saved).
   function repaint() {
     if (current && typeof current.paint === 'function') current.paint();
@@ -332,10 +357,15 @@
     if (!token || !first.store) return Promise.resolve();
     return readFresh(r, first.store.load, function (household) {
       if (current !== r) return;
-      const next = afterRefresh(household);
+      const next = afterRefresh(household, r.ctx.now());
       if (next === 'keep') return;
+      const changed = stayChanged(r.ctx.household, household);
       r.ctx.household = household;
-      if (next === 'cantcome') { clear(); first.reply.show({ root: r.host, ctx: r.ctx, mode: 'cantcome' }); return; }
+      // cantcome, ask or closed: the home screen (and any card) goes.
+      if (next !== 'render') { clear(); first.reply.show({ root: r.host, ctx: r.ctx, mode: next }); return; }
+      // A partner's different stay choice: an open Stay card would overwrite it, so it closes.
+      const cards = first.cards;
+      if (changed && cards && typeof cards.openKey === 'function' && cards.openKey() === 'stay') cards.close();
       r.paint();
     });
   }
@@ -347,7 +377,7 @@
     document.addEventListener('visibilitychange', () => { if (current && document.visibilityState === 'visible') refresh(); });
   }
 
-  const api = { envelopes, dockItems, bigCount, nextLine, afterRefresh, readFresh, home: { show, refresh, repaint, clear } };
+  const api = { envelopes, dockItems, bigCount, nextLine, afterRefresh, stayChanged, readFresh, home: { show, refresh, repaint, toast: toastHome, clear } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

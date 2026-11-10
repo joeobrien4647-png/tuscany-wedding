@@ -117,7 +117,7 @@ test('stay save: ok replaces ctx.household with a new object; a failure keeps it
 
 test('stay card: a failed save shows errors.save, keeps the pick and offers a retry; taps are ignored while saving', () => {
   const js = read('js/first/cards.js');
-  const then = js.match(/\n( *)saveStayChoice\([^)]*\)\.then\(function \(ok\) \{([\s\S]*?)\n\1\}\);/);
+  const then = js.match(/\n( *)(?:stayInFlight = )?saveStayChoice\([^)]*\)\.then\(function \(ok\) \{([\s\S]*?)\n\1\}\);/);
   assert.ok(then, 'saveStayChoice(...).then(function (ok) { ... })');
   const fail = then[2].indexOf('if (!ok)');
   assert.ok(fail >= 0);
@@ -125,7 +125,7 @@ test('stay card: a failed save shows errors.save, keeps the pick and offers a re
   assert.match(branch, /w\.errors\.save/);
   assert.match(branch, /w\.errors\.retry/);
   assert.doesNotMatch(branch, /pick\(|picked =/);
-  assert.match(js, /if \(busy\) return;/);
+  assert.match(js, /if \(busy \|\| stayInFlight\) return;/);
   assert.match(js, /w\.stay\.saving/);
   assert.match(js, /home\.repaint\(\)/);
 });

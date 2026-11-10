@@ -121,6 +121,8 @@
   // The card's background and anything else it needs is styled under #first .fc-<key>.
   const CARDS = {};
   let current = null, listening = false;
+  // A stay save still out (it may outlive its card): a second one waits until it settles, so two never race.
+  let stayInFlight = null;
 
   function open(key, ctx, opts) {
     const spec = CARD_KEYS.indexOf(key) >= 0 ? CARDS[key] : null;
@@ -205,7 +207,8 @@
     if (e.key !== 'Tab') return;
     const list = Array.from(r.box.querySelectorAll(FOCUSABLE)).filter(x => x.getClientRects().length);
     if (!list.length) return;
-    const a = document.activeElement, head = list[0], tail = list[list.length - 1], inside = r.box.contains(a);
+    // The heading (tabindex -1) is not in the list, so it counts as outside: Shift+Tab from it stays in the card.
+    const a = document.activeElement, head = list[0], tail = list[list.length - 1], inside = list.indexOf(a) >= 0;
     if (e.shiftKey && (a === head || !inside)) { e.preventDefault(); focus(tail); }
     else if (!e.shiftKey && (a === tail || !inside)) { e.preventDefault(); focus(head); }
   }
@@ -258,7 +261,7 @@
   CARDS.stay = {
     build(card) {
       const { ctx, w, first } = card, S = first.sound;
-      const view = stayView(ctx.household, ctx.now(), w);
+      let view = stayView(ctx.household, ctx.now(), w);
       let picked = view.picked, busy = false, failed = false;
       card.heading(w.stay.title);
 
@@ -352,20 +355,38 @@
         if (on) go.setAttribute('aria-busy', 'true'); else go.removeAttribute('aria-busy');
         saving.hidden = !on;
       }
+      // After an earlier card's save settles: the choice and whether it is fixed, as they are now.
+      function refreshView() {
+        view = stayView(ctx.household, ctx.now(), w);
+        picked = view.picked;
+        paint(picked);
+        items.forEach(i => { i.head.disabled = view.locked; });
+        go.disabled = view.locked;
+        fixed.textContent = view.note || '';
+        fixed.hidden = !view.note;
+      }
       function confirm() {
-        if (busy) return;
+        if (busy || stayInFlight) return;
         if (view.locked) return;
         const choice = picked;
         note.hidden = true;
         setBusy(true);
-        saveStayChoice(first.store, ctx, choice).then(function (ok) {
-          if (!card.live()) { busy = false; if (ok) card.saved(); return; }
+        stayInFlight = saveStayChoice(first.store, ctx, choice).then(function (ok) {
+          stayInFlight = null;
+          if (!card.live()) {
+            busy = false;
+            if (ok) card.saved();
+            else if (first.home && typeof first.home.toast === 'function') first.home.toast(w.errors.save);
+            return;
+          }
           setBusy(false);
           if (!ok) {
             failed = true;
             note.textContent = w.errors.save;
             note.hidden = false;
             go.textContent = w.errors.retry;
+            // A partner may have said no meanwhile (the database then refuses a stay): a fresh read leaves for can't come.
+            if (first.home && typeof first.home.refresh === 'function') first.home.refresh();
             return;
           }
           if (S) S.pop();
@@ -374,6 +395,10 @@
         });
       }
       paint(picked);
+      if (stayInFlight) {
+        setBusy(true);
+        stayInFlight.then(() => { if (!card.live()) return; setBusy(false); refreshView(); });
+      }
     }
   };
 
@@ -451,6 +476,8 @@
         const more = card.el('div', 'fc-q-more');
         const moreIn = card.el('div', 'fc-q-more-in');
         moreIn.appendChild(card.el('p', 'fc-q-a', e.a));
+        moreIn.id = 'fc-q-' + e.key;
+        head.setAttribute('aria-controls', moreIn.id);
         more.appendChild(moreIn);
         box.appendChild(more);
         list.appendChild(box);
@@ -473,7 +500,7 @@
 
   const api = { CARD_KEYS, stayView, confirmLabel, saveStayChoice, replyView, notYou,
     travelView, wearView, weekendView, questionsView,
-    cards: { open, close, built: () => Object.keys(CARDS) } };
+    cards: { open, close, openKey: () => (current ? current.key : null), built: () => Object.keys(CARDS) } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

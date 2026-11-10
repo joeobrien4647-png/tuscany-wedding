@@ -64,6 +64,8 @@
       nextSoon: 'opens in {n}',
       allOpen: 'Everything is open',
       opens: 'Opens {date}',
+      soon: 'Nearly ready',
+      today: 'Today',
       sealed: 'Sealed until {date}',
       open: 'Open',
       close: 'Close',
@@ -100,7 +102,7 @@
       },
       own: {
         title: 'I’ll book my own place',
-        sub: 'Stay nearby and join us each day',
+        sub: 'Stay nearby, join the three gatherings',
         get: ['Friday evening, the wedding and Pool day & BBQ', 'Food and drinks at all three'],
         need: ['Sort your own breakfasts and other lunches', 'Nothing to pay us']
       },
@@ -140,7 +142,6 @@
     },
     weekend: {
       title: 'The weekend',
-      swipe: 'Swipe through the four days',
       days: [
         { date: 'Fri 28 May', name: 'Pizza night', line: 'Arrive and settle in' },
         { date: 'Sat 29 May', name: 'The wedding', line: 'Dressed up, outdoors, long evening' },

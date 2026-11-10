@@ -41,6 +41,8 @@
   ]);
 
   const repliesOpen = nowMs => nowMs < REPLIES_CLOSE_MS;
+  // The wedding day is the UK calendar day that starts at WEDDING_MS (BST all day, so 24 hours long).
+  const weddingDay = nowMs => (nowMs < WEDDING_MS ? 'before' : nowMs < WEDDING_MS + 86400000 ? 'today' : 'after');
 
   function countdown(targetMs, nowMs) {
     const left = Math.max(0, Math.floor((targetMs - nowMs) / 1000));
@@ -110,7 +112,7 @@
     return reply.answer === 'no' ? 'cantcome' : 'home';
   }
 
-  const api = { shouldShowFirst, isLocalTest, copyProblems, WEDDING_MS, REPLIES_CLOSE_MS, SHARE_GBP, LOCKS, repliesOpen, countdown,
+  const api = { shouldShowFirst, isLocalTest, copyProblems, WEDDING_MS, REPLIES_CLOSE_MS, SHARE_GBP, LOCKS, repliesOpen, weddingDay, countdown,
     lockState, nextLock, comingCount, fill, ukDate, shareLine, canChangeStay, dockStates, stayLabel, landing };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

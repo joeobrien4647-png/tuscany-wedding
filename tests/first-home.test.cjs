@@ -97,13 +97,12 @@ test('small countdown names the next envelope, moves on after its time and hides
   assert.equal(h.nextLine(Date.UTC(2027, 4, 27, 7, 0, 1), words), null);
 });
 
-test('refresh: an object re-renders, a no leaves for can\'t come, null and undefined keep the screen', () => {
+test('refresh: an object re-renders, a no leaves for can\'t come, no clear answer keeps the screen', () => {
   const h = home();
-  assert.equal(h.afterRefresh(YES), 'render');
-  assert.equal(h.afterRefresh(stay('villa')), 'render');
-  assert.equal(h.afterRefresh(NO), 'cantcome');
-  assert.equal(h.afterRefresh(null), 'keep');
-  assert.equal(h.afterRefresh(undefined), 'keep');
+  assert.equal(h.afterRefresh(YES, NOV), 'render');
+  assert.equal(h.afterRefresh(stay('villa'), NOV), 'render');
+  assert.equal(h.afterRefresh(NO, NOV), 'cantcome');
+  assert.equal(h.afterRefresh(undefined, NOV), 'keep');
 });
 
 function deferredLoads() {
@@ -154,7 +153,7 @@ test('refresh runs when the page is visible again, listening once', () => {
   assert.match(js, /visibilityState === 'visible'[^;\n]*refresh\(\)/);
   assert.match(js, /if \(listening\) return;/);
   assert.match(js, /store\.load\b/);
-  assert.match(js, /mode: 'cantcome'/);
+  assert.match(js, /reply\.show\(\{ root: r\.host, ctx: r\.ctx, mode: next \}\)/);
 });
 
 test('the clock stops when the home screen is left and never doubles', () => {

@@ -24,6 +24,10 @@
   // Fireworks only for a new yes: a yes saved again (say, only one of a couple now coming) stays quiet.
   const firstYes = (before, choice) => !!choice && choice.answer === 'yes' && !(before && before.answer === 'yes');
 
+  // Where Back on the asked-again question returns to: the screen whose change control was tapped
+  // ('change' is the Reply card on the home screen). A wait in between keeps the origin it was given.
+  const changeOrigin = (mode, backTo) => backTo || (mode === 'change' ? 'home' : mode);
+
   const reduced = () => !!(root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const haptic = p => { try { if (root.navigator.vibrate) root.navigator.vibrate(p); } catch (e) { /* no haptics */ } };
 
@@ -77,7 +81,7 @@
     current = r;
     const live = () => current === r;
     const after = (ms, fn) => { r.timers.push(root.setTimeout(() => { if (live()) fn(); }, ms)); };
-    const again = mode => show(Object.assign({}, o, { mode }));
+    const again = mode => show(Object.assign({}, o, { mode, backTo: null }));
     const open = () => first.repliesOpen(ctx.now());
     function goHome() {
       const home = first.home;
@@ -106,13 +110,14 @@
     // Back to the question with the answer as it is now: a partner may have changed it from their own phone.
     function changeAnswer() {
       if (!invite) return;
-      show(Object.assign({}, o, { mode: 'wait', failed: false, onRetry: changeAnswer }));
+      const back = { backTo: changeOrigin(o.mode, o.backTo) };
+      show(Object.assign({}, o, back, { mode: 'wait', failed: false, onRetry: changeAnswer }));
       const waiting = current;
       first.store.load(invite.token).then(function (household) {
         if (current !== waiting) return;
-        if (household === undefined) { show(Object.assign({}, o, { mode: 'wait', failed: true, onRetry: changeAnswer })); return; }
+        if (household === undefined) { show(Object.assign({}, o, back, { mode: 'wait', failed: true, onRetry: changeAnswer })); return; }
         ctx.household = household;
-        show(Object.assign({}, o, { mode: 'ask' }));
+        show(Object.assign({}, o, back, { mode: 'ask' }));
       });
     }
 
@@ -203,6 +208,17 @@
       panel.appendChild(note);
       panel.appendChild(retry);
       if (typeof o.onWatch === 'function') panel.appendChild(button('fr-link fr-watch', w.ask.watchAgain, () => { if (!busy) o.onWatch(); }));
+      // Asked again from a change control: a way back to where they were, saving nothing.
+      let backBtn = null;
+      if (o.backTo) {
+        backBtn = button('fr-link fr-back', w.ask.back, goBack);
+        panel.appendChild(backBtn);
+      }
+      function goBack() {
+        if (busy) return;
+        if (o.backTo === 'home') { goHome(); return; }
+        again(o.backTo);
+      }
 
       const all = [yes, no].concat(onlyOne ? [onlyOne] : [], personButtons);
       function mark(chosen) {
@@ -211,12 +227,14 @@
       }
       function pickWho() {
         if (busy) return;
+        if (backBtn) backBtn.hidden = true;
         choices.hidden = true; who.hidden = false;
         q.textContent = w.ask.who;
         focus(q);
       }
       function showChoices() {
         who.hidden = true; choices.hidden = false;
+        if (backBtn) backBtn.hidden = false;
         q.textContent = w.ask.question;
         focus(q);
       }
@@ -273,7 +291,7 @@
     }
   }
 
-  const api = { replyFor, firstYes, reply: { show, clear } };
+  const api = { replyFor, firstYes, changeOrigin, reply: { show, clear } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
