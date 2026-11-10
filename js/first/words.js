@@ -30,6 +30,7 @@
       no: 'Can’t make it',
       onlyOne: 'Only one of us can make it',
       who: 'Who is coming?',
+      back: 'Back',
       replied: 'Your reply is in',
       change: 'Change my answer',
       closesNote: 'Replies close on {date}',
@@ -145,9 +146,13 @@
       reach: { q: 'How do I reach you?', a: 'Message Joe or Sophie on WhatsApp' },
       bring: { q: 'Can I bring someone?', a: 'Plus-ones are very limited, please ask Joe or Sophie directly' }
     },
+    wait: {
+      line: 'One moment'
+    },
     errors: {
       save: 'Could not save, please try again',
-      load: 'Could not load, please try again'
+      load: 'Could not load, please try again',
+      retry: 'Try again'
     }
   };
 

@@ -2,7 +2,7 @@
 // Draws on the canvas the minute hands it with attach(canvas); before that, and with reduced motion, it draws nothing.
 (function (root) {
   'use strict';
-  let c = null, g = null, W = 0, H = 0, parts = [], raf = 0, last = 0, listening = false;
+  let c = null, g = null, W = 0, H = 0, parts = [], raf = 0, last = 0, listening = false, timers = [];
   const reduced = () => !!(root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const boom = () => { const s = root.sjFirst && root.sjFirst.sound; if (s) s.boom(); };
 
@@ -12,10 +12,16 @@
     W = root.innerWidth; H = root.innerHeight;
     c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); g.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
+  // Stops everything: rockets still waiting to launch, the frame loop and every spark, and clears the canvas.
+  function stop() {
+    timers.forEach(t => root.clearTimeout(t)); timers = [];
+    if (raf) { root.cancelAnimationFrame(raf); raf = 0; }
+    last = 0; parts = [];
+    if (g) g.clearRect(0, 0, W, H);
+  }
   function attach(canvas) {
     const ok = canvas && canvas.getContext && canvas.getContext('2d');
-    if (raf) { root.cancelAnimationFrame(raf); raf = 0; last = 0; }
-    parts = [];
+    stop();
     c = ok ? canvas : null; g = ok || null;
     if (!c) return;
     if (!listening) { root.addEventListener('resize', size); listening = true; }
@@ -63,14 +69,15 @@
     }
   }
   function show() {
+    stop();
     if (reduced() || !c) return;
     const plan = [[0.3, 0.24, 40], [0.72, 0.18, 28], [0.5, 0.33, 48], [0.2, 0.4, 350], [0.8, 0.38, 42]];
-    plan.forEach((p, i) => root.setTimeout(() => {
+    plan.forEach((p, i) => timers.push(root.setTimeout(() => {
       add({ rocket: true, x: W * p[0], y: H + 8, ty: H * p[1], vx: (Math.random() - 0.5) * 0.6, vy: -(13 + H * 0.012), drag: 0.995, grav: 0.3, life: 9, decay: 0, r: 2.4, h: p[2], s: 90, l: 80, trail: 1.6 });
-    }, i * 200));
+    }, i * 200)));
   }
 
-  const api = { fx: { attach, dust, burst, show } };
+  const api = { fx: { attach, dust, burst, show, stop } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
