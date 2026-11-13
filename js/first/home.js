@@ -34,13 +34,19 @@
   }
 
   // The five dock items: plain, glowing (something to do) or done. Only the reply and the stay choice change them.
-  function dockItems(household, w) {
-    const states = core.dockStates(household);
+  function dockItems(household, w, travelStamped) {
+    const states = core.dockStates(household, travelStamped);
     return DOCK_KEYS.map((key, i) => {
       const label = key === 'stay' ? core.stayLabel(household, w.dock.stay) : w.dock.labels[i];
       const state = states[key];
       return { key, label, state, aria: label + ', ' + w.dock.states[state] };
     });
+  }
+
+  // Whether this phone holds a stamped Getting there ticket for this invitation.
+  function travelStamped(ctx) {
+    const store = (root.sjFirst || {}).store, token = ctx && ctx.invite && ctx.invite.token;
+    return !!(store && store.travelCopy && token) && store.travelCopy.read(token).tickets.some(Boolean);
   }
 
   function bigCount(nowMs, w) {
@@ -271,7 +277,7 @@
     }
 
     function paintDock() {
-      dockItems(ctx.household, w).forEach((item, i) => {
+      dockItems(ctx.household, w, travelStamped(ctx)).forEach((item, i) => {
         const b = dockButtons[i];
         b.className = 'fh-dk fh-' + item.state;
         b.setAttribute('aria-label', item.aria);

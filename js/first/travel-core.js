@@ -22,6 +22,9 @@
   const MAX_TEXT = 60, MAX_PEOPLE = 8, MAX_FROMS = 18;
   const CODE = /^[A-Z]{3}$/;
 
+  // core.js loads first on the page; under Node tests it is required here.
+  const core = root.sjFirst && root.sjFirst.fill ? root.sjFirst
+    : typeof require === 'function' ? require('./core.js') : {};
   const isObject = v => !!v && typeof v === 'object' && !Array.isArray(v);
   const isCode = v => typeof v === 'string' && CODE.test(v);
   const isKind = v => KINDS.indexOf(v) >= 0;
@@ -153,6 +156,17 @@
     return PLAN_KEYS.every(k => JSON.stringify(p[k]) === JSON.stringify(raw[k])) ? p : null;
   }
 
+  // The plan a stamped ticket came from, so it can be opened again and changed; null for anything that is not a ticket.
+  function planOf(ticket) {
+    const tk = cleanTicket(ticket);
+    if (!tk) return null;
+    let p = choose(newPlan(), isCode(tk.from) ? { froms: [tk.from] } : { kind: tk.from });
+    const to = tk.to || (tk.from === 'ITALY' ? 'NONE' : null);
+    if (to) p = choose(p, { route: { from: tk.from, to, via: tk.via } });
+    if (tk.toText) p = choose(p, { toText: tk.toText });
+    return ['last', 'arrive', 'leave'].reduce((plan, k) => choose(plan, { [k]: tk[k] }), p);
+  }
+
   // { gbp, at } for a route with a usable, recent price; otherwise null.
   function priceFor(prices, from, to, nowMs) {
     const e = isObject(prices) && isObject(prices.routes) ? prices.routes[from + '-' + to] : null;
@@ -190,6 +204,77 @@
     return rows.map(r => ({ from: r.from, to: r.to, airlines: r.airlines, driveRank: r.driveRank, price: r.price }));
   }
 
+  // ---------- what the ticket shows ----------
+  const text = v => (typeof v === 'string' ? v : '');
+  const airportOf = (data, code) => airportsByDrive(data).find(a => a.code === code) || null;
+  function ukName(data, code) {
+    const a = isObject(data) && isObject(data.ukAirports) ? data.ukAirports[code] : null;
+    return isObject(a) ? text(a.name) : '';
+  }
+  const driveOf = a => (a && isObject(a.drive) ? a.drive : {});
+
+  // The four boxes: { from, to, last, days }, each { v, s } (the value and a small note) or null while empty.
+  function fields(plan, data, w) {
+    const T = w.travel, box = (v, s) => ({ v, s: s || '' });
+    let from = null, to = null;
+    if (isKind(plan.from)) from = box(T.from.kinds[plan.from]);
+    else if (plan.from) from = box(plan.from, ukName(data, plan.from));
+    else if (plan.froms.length === 1) from = box(plan.froms[0], ukName(data, plan.froms[0]));
+    else if (plan.froms.length) from = box(plan.froms[0] + ' +' + (plan.froms.length - 1));
+    if (plan.from === 'ROAD' || plan.from === 'TRAIN') to = box(w.minute.estate);
+    else if (plan.to === 'NONE') to = box(T.route.notFlying);
+    else if (plan.to === 'OTHER') to = plan.toText.trim() ? box(plan.toText.trim()) : null;
+    else if (plan.to) to = box(plan.to, text((airportOf(data, plan.to) || {}).shortName));
+    const a = plan.arrive ? T.days.arrive[plan.arrive] : '', l = plan.leave ? T.days.leave[plan.leave] : '';
+    return {
+      from, to,
+      last: plan.last ? box(T.last.options[plan.last]) : null,
+      days: a && l ? box(core.fill(T.days.span, { from: a, to: l })) : a || l ? box(a || l) : null
+    };
+  }
+
+  // One line under the boxes for where the plan has got to.
+  function summary(plan, data, w) {
+    const T = w.travel, S = T.summary;
+    if (plan.from === 'ROAD') return S.road;
+    if (plan.from === 'TRAIN') return S.train;
+    if (plan.to === 'NONE') return S.italy;
+    const airport = plan.to && plan.to !== 'OTHER' ? airportOf(data, plan.to) : null;
+    const place = plan.to === 'OTHER' ? plan.toText.trim() : plan.to ? text((airport || {}).shortName) || plan.to : '';
+    const drive = text(driveOf(airport).label);
+    const tail = drive ? ', ' + core.fill(T.route.drive, { drive }) : '';
+    if (isKind(plan.from)) return place ? core.fill(S.landing, { to: place }) + tail : T.from.kinds[plan.from];
+    if (plan.from && place) return core.fill(S.trip, { from: ukName(data, plan.from) || plan.from, to: place }) + tail;
+    if (plan.froms.length === 1) return core.fill(S.comparingOne, { from: ukName(data, plan.froms[0]) || plan.froms[0] });
+    return plan.froms.length ? core.fill(S.comparing, { n: plan.froms.length }) : S.empty;
+  }
+
+  // The sourced lines for the last stretch from the landing airport: drive and distance, tolls, public transport.
+  // Empty when the plan lands nowhere the data knows.
+  function lastFacts(plan, data, w) {
+    const airport = plan.to ? airportOf(data, plan.to) : null;
+    if (!airport) return [];
+    const d = driveOf(airport), lines = [];
+    if (text(d.label) && typeof d.km === 'number') lines.push(core.fill(w.travel.last.fact, { drive: d.label, km: Math.round(d.km) }));
+    if (isObject(d.tolls) && text(d.tolls.summary)) lines.push(d.tolls.summary);
+    const pt = isObject(airport.publicTransport) ? text(airport.publicTransport.summary) : '';
+    if (pt) lines.push(w.travel.last.options.public + ': ' + pt);
+    return lines;
+  }
+
+  // The people coming, by their place on the invitation: [{ i, name }].
+  function comingPeople(invite, household) {
+    const people = isObject(invite) && Array.isArray(invite.people) ? invite.people : [];
+    const reply = isObject(household) && isObject(household.reply) ? household.reply : null;
+    if (!reply || reply.answer !== 'yes' || !Array.isArray(reply.coming)) return [];
+    return people.map((name, i) => ({ i, name })).filter(p => typeof p.name === 'string' && reply.coming[p.i] === true);
+  }
+  // who for a ticket: one boolean per person on the invitation, true for the places picked.
+  function whoList(count, picked) {
+    const n = Math.max(0, Math.min(MAX_PEOPLE, Math.floor(Number(count)) || 0));
+    return Array.from({ length: n }, (_, i) => picked.indexOf(i) >= 0);
+  }
+
   // Google Flights for this route on the guest's days, or Fri 28 to Mon 31 May 2027 until they have chosen.
   function flightsLink(from, to, arrive, leave) {
     if (!isCode(from) || !isCode(to)) return null;
@@ -204,7 +289,7 @@
   }
 
   const api = { LAST, ARRIVE, LEAVE, KINDS, GROUPS, PRICE_MAX_AGE_MS, newPlan, choose, nextStep, lastOptions, routes, airportsByDrive,
-    ticketOf, cleanTicket, cleanPlan, priceFor, flightsLink, canStamp };
+    ticketOf, cleanTicket, cleanPlan, planOf, priceFor, flightsLink, canStamp, fields, summary, lastFacts, comingPeople, whoList };
   root.sjFirst = root.sjFirst || {};
   root.sjFirst.travel = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

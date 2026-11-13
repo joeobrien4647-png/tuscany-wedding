@@ -118,7 +118,7 @@
   //   card.ctx, card.w, card.first                  card.el(tag, cls, text), card.button(cls, text, onClick)
   //   card.rise(e)     marks e to rise in, in order card.close(opts)  closes it ({ quiet: true }: no sound, no focus back)
   //   card.live()      false once the card is gone  card.saved()  closes it and repaints the home screen's dock
-  //   card.host        the #first element
+  //   card.host        the #first element          card.onClose(fn)  runs fn when the card closes
   // The card's background and anything else it needs is styled under #first .fc-<key>.
   const CARDS = {};
   let current = null, listening = false;
@@ -157,12 +157,13 @@
     shut.setAttribute('aria-label', w.home.close);
     card.appendChild(shut);
 
-    const r = { key, box, host, opener: o.from || document.activeElement, behind: [] };
+    const r = { key, box, host, opener: o.from || document.activeElement, behind: [], closers: [] };
     const api = {
       body, ctx, w, first, host, el, button,
       heading(title, kick) { h.textContent = title; kicker.textContent = kick || ''; kicker.hidden = !kick; },
       rise(e) { e.classList.add('fc-rise'); return e; },
       live: () => current === r,
+      onClose(fn) { if (typeof fn === 'function') r.closers.push(fn); },
       close: opts2 => { if (current === r) close(opts2); },
       saved() {
         if (current === r) close();
@@ -195,6 +196,7 @@
       if (b.hidden === null) b.e.removeAttribute('aria-hidden'); else b.e.setAttribute('aria-hidden', b.hidden);
     });
     if (r.box.parentNode) r.box.parentNode.removeChild(r.box);
+    r.closers.forEach(fn => { try { fn(); } catch (e) { /* a card's tidy-up never blocks closing */ } });
     if (o.quiet) return;
     if (first.sound) first.sound.pop(0.4);
     if (r.opener && r.opener.isConnected) focus(r.opener);
@@ -404,11 +406,8 @@
   };
 
   // ---------- the Travel card ----------
-  CARDS.travel = {
-    build(card) {
-      card.heading(card.w.travel.title);
-    }
-  };
+  // Getting there is its own screen: js/first/travel-card.js.
+  CARDS.travel = { build: card => root.sjFirst.travelCard.build(card) };
 
   // A line of a letter: a small gold label over the words.
   function row(card, k, v) {

@@ -131,6 +131,7 @@
       mapLabel: 'A map of your trip',
       back: 'Back',
       stampMark: 'Confirmed',
+      view: { whole: 'Whole trip', close: 'Close up' },
       fields: { from: 'From', to: 'To', last: 'Last stretch', days: 'Days', choose: 'Choose' },
       summary: {
         empty: 'Build your trip',
@@ -174,19 +175,20 @@
       last: {
         title: 'And the last stretch?',
         options: { hire: 'Hire car', lift: 'Getting a lift', taxi: 'Taxi', public: 'Public transport', own: 'Own car' },
-        fact: '{drive}, {km} km',
+        fact: 'By road: {drive}, {km} km',
         liftNote: 'Just so we know, lifts are yours to sort out'
       },
       days: {
         title: 'Which days?',
         arriving: 'Arriving',
         leaving: 'Leaving',
+        span: '{from} to {to}',
         arrive: { early: 'Earlier', thu: 'Thu 27', fri: 'Fri 28', sat: 'Sat 29' },
         leave: { sun: 'Sun 30', mon: 'Mon 31', later: 'Staying on' }
       },
       done: {
         title: 'All set?',
-        hint: 'You can change it any time',
+        hint: 'Tap any box on the ticket to change it',
         stamp: 'Stamp my ticket',
         needReply: 'Reply first, then stamp',
         saving: 'Stamping your ticket',

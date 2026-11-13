@@ -275,7 +275,6 @@ html.first-on body > :not(#first) { display: none; }
 #first .fc-go { width: 100%; }
 
 /* ==== Task 9: Travel, Wear, Weekend and Questions ==== */
-#first .fc-travel .fc-bg::before { background-image: url(../images/first/estate.webp); }
 #first .fc-wear .fc-bg::before { background-image: url(../images/first/sat.webp); }
 #first .fc-weekend .fc-bg::before { background-image: url(../images/first/night.webp); }
 #first .fc-questions .fc-bg::before { background-image: url(../images/first/night-blur.webp); }
@@ -348,6 +347,93 @@ html.first-on body > :not(#first) { display: none; }
   #first .fr-ghost { min-height: 48px; }
 }
 
+/* ==== Getting there: the card (js/first/travel-card.js) ====
+   One screen, three parts that never change size: the map, the ticket, the tray. Only the tray's list scrolls. */
+#first .fc-card.fc-travel { padding: 0; justify-content: flex-start; }
+#first .fc-travel {
+  --tc-paper: #f1e6cf; --tc-paper-hi: #f8f0de; --tc-ink: #1c160a; --tc-soft: rgba(28, 22, 10, .66); --tc-rule: rgba(28, 22, 10, .22);
+  --tc-pick: rgba(157, 123, 59, .2); --tc-stamp: #9c3b2a; --tc-wash: rgba(220, 183, 109, .13);
+  --tc-l: max(16px, env(safe-area-inset-left, 0px)); --tc-r: max(16px, env(safe-area-inset-right, 0px));
+}
+#first .fc-travel .fc-bg::before, #first .fc-travel .fc-bg::after { display: none; }
+#first .fc-travel .fc-inner { flex: 1 1 auto; min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr); gap: 0; }
+#first .fc-travel .fc-t { position: absolute; z-index: 3; top: calc(var(--top) + 28px); left: max(20px, env(safe-area-inset-left, 0px)); padding: 0; font: 500 12px/1.3 var(--ui); letter-spacing: .32em; text-transform: uppercase; color: var(--gold); pointer-events: none; }
+#first .fc-travel .fc-body { min-height: 0; display: grid; grid-template-rows: minmax(0, 1fr) auto clamp(196px, 37vh, 320px); gap: 0; }
+
+/* the map's box */
+#first .fc-travel .tc-map { position: relative; min-height: 0; overflow: hidden; }
+#first .fc-travel .tc-map::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 56px; background: linear-gradient(to bottom, transparent, var(--night)); pointer-events: none; }
+#first .fc-travel .tc-view { position: absolute; z-index: 3; top: calc(var(--top) + 60px); left: max(20px, env(safe-area-inset-left, 0px)); min-height: 32px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--glass); color: var(--ink-soft); font: 400 12px/1.2 var(--ui); letter-spacing: .06em; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+
+/* the ticket */
+#first .fc-travel .tc-ticket-wrap { position: relative; z-index: 2; margin-top: -18px; padding-left: var(--tc-l); padding-right: var(--tc-r); }
+#first .fc-travel .tc-ticket { position: relative; background: linear-gradient(to bottom, var(--tc-paper-hi), var(--tc-paper)); color: var(--tc-ink); border-radius: 10px; box-shadow: 0 12px 30px rgba(0, 0, 0, .5); }
+#first .fc-travel .tc-top { display: grid; grid-template-columns: auto auto; justify-content: space-between; align-items: baseline; gap: 10px; padding: 6px 14px 0; }
+#first .fc-travel .tc-script { font: 400 24px/1 var(--script); white-space: nowrap; }
+#first .fc-travel .tc-meta { font: 500 9.5px/1.3 var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--tc-soft); white-space: nowrap; }
+#first .fc-travel .tc-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 2px 6px 4px; }
+#first .fc-travel .tc-f { display: block; min-width: 0; width: 100%; text-align: left; padding: 5px 8px 6px; border-radius: 7px; border-bottom: 2px solid transparent; color: var(--tc-ink); transition: background .25s; }
+#first .fc-travel .tc-f:focus-visible { outline-color: var(--gold-deep); outline-offset: -2px; }
+#first .fc-travel .tc-f[disabled] { cursor: default; }
+#first .fc-travel .tc-f.tc-on { background: var(--tc-pick); border-bottom-color: var(--gold-deep); }
+#first .fc-travel .tc-f-l { display: block; font: 600 9px/1.4 var(--ui); letter-spacing: .18em; text-transform: uppercase; color: var(--tc-soft); }
+#first .fc-travel .tc-f-row { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 7px; min-width: 0; height: 28px; overflow: hidden; }
+#first .fc-travel .tc-long .tc-f-row { grid-template-columns: minmax(0, 1fr); }
+#first .fc-travel .tc-long .tc-f-s { display: none; }
+#first .fc-travel .tc-f-v { font: 600 21px/1.15 var(--display); white-space: nowrap; }
+#first .fc-travel .tc-f-s { min-width: 0; font: 400 11.5px/1.2 var(--ui); color: var(--tc-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#first .fc-travel .tc-long .tc-f-v { min-width: 0; font-size: 13.5px; line-height: 1.04; white-space: normal; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+#first .fc-travel .tc-empty .tc-f-v { font: 400 14px/1.2 var(--ui); color: var(--tc-soft); }
+#first .fc-travel .tc-perf { position: relative; border-top: 1.5px dashed var(--tc-rule); margin: 0 10px; }
+#first .fc-travel .tc-perf::before, #first .fc-travel .tc-perf::after { content: ""; position: absolute; top: -8px; width: 15px; height: 15px; border-radius: 50%; background: var(--night); }
+#first .fc-travel .tc-perf::before { left: -18px; }
+#first .fc-travel .tc-perf::after { right: -18px; }
+#first .fc-travel .tc-foot { display: grid; align-items: center; height: 40px; padding: 4px 122px 6px 14px; }
+#first .fc-travel .tc-sum { font: 400 12px/1.3 var(--ui); color: var(--tc-soft); overflow-wrap: anywhere; }
+#first .fc-travel .tc-stamp { position: absolute; right: 12px; bottom: 8px; padding: 4px 9px 3px; border: 2px solid var(--tc-stamp); border-radius: 5px; color: var(--tc-stamp); font: 600 11px/1.25 var(--ui); letter-spacing: .2em; text-transform: uppercase; text-align: center; transform: rotate(-8deg); opacity: 0; pointer-events: none; }
+#first .fc-travel .tc-stamped .tc-stamp { opacity: .9; }
+#first .fc-travel .tc-slam .tc-stamp { animation: tc-slam .34s var(--ease) both; }
+#first .fc-travel .tc-slam { animation: tc-thud .3s .26s; }
+@keyframes tc-slam { from { opacity: 0; transform: rotate(-8deg) scale(2.3); } to { opacity: .9; transform: rotate(-8deg) scale(1); } }
+@keyframes tc-thud { 30% { transform: translateY(2px); } 60% { transform: translateY(-1px); } }
+
+/* the tray */
+#first .fc-travel .tc-tray { min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 9px; padding: 13px var(--tc-r) calc(var(--bottom) + 12px) var(--tc-l); }
+#first .fc-travel .tc-head { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 10px; min-width: 0; }
+#first .fc-travel .tc-head.tc-has-back { grid-template-columns: auto minmax(0, 1fr); }
+#first .fc-travel .tc-head.tc-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+#first .fc-travel .tc-h { margin: 0; min-width: 0; font: 500 19px/1.2 var(--display); color: var(--ink); outline: none; text-wrap: balance; }
+#first .fc-travel .tc-back { min-height: 32px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line); font: 400 12.5px/1.2 var(--ui); color: var(--ink-soft); }
+#first .fc-travel .tc-opts { grid-row: 2; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; display: grid; grid-auto-rows: max-content; align-content: start; gap: 10px; padding: 3px 3px 4px; margin: -3px; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+#first .fc-travel .tc-chips { display: flex; flex-wrap: wrap; margin: -3.5px; }
+#first .fc-travel .tc-chip { margin: 3.5px; min-height: 40px; padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line); font: 400 14px/1.2 var(--ui); color: var(--ink); transition: background .2s, border-color .2s, color .2s; }
+#first .fc-travel .tc-chip small { margin-left: 6px; font-size: 10.5px; letter-spacing: .1em; color: var(--ink-faint); }
+#first .fc-travel .tc-chip.tc-on { background: var(--gold); border-color: var(--gold); color: var(--on-gold); }
+#first .fc-travel .tc-chip.tc-on small { color: var(--on-gold); }
+#first .fc-travel .tc-lab { font: 500 10px/1.3 var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--ink-faint); }
+#first .fc-travel .tc-note { font: 400 12.5px/1.45 var(--ui); color: var(--ink-faint); }
+#first .fc-travel .tc-note[role] { color: var(--gold-hi); }
+#first .fc-travel .tc-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 1px 12px; align-items: baseline; width: 100%; text-align: left; padding: 9px 12px; border: 1px solid var(--line); border-radius: 12px; transition: background .2s, border-color .2s; }
+#first .fc-travel .tc-row.tc-on { border-color: var(--gold); background: var(--tc-wash); }
+#first .fc-travel .tc-row b { min-width: 0; font: 500 17px/1.25 var(--display); overflow-wrap: anywhere; }
+#first .fc-travel .tc-row i { font: 400 13px/1.25 var(--ui); font-style: normal; color: var(--ink-soft); white-space: nowrap; }
+#first .fc-travel .tc-row span { grid-column: 1 / -1; min-width: 0; font: 400 12.5px/1.35 var(--ui); color: var(--ink-faint); }
+#first .fc-travel .tc-row em { grid-column: 1 / -1; font: 500 12.5px/1.35 var(--ui); font-style: normal; color: var(--gold-hi); }
+#first .fc-travel .tc-fact { display: grid; gap: 4px; padding: 9px 12px; border-left: 2px solid var(--gold-deep); background: var(--tc-wash); border-radius: 0 8px 8px 0; font: 400 13.5px/1.45 var(--ui); color: var(--ink-soft); }
+#first .fc-travel .tc-input { width: 100%; min-height: 46px; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--line-gold); background: rgba(245, 236, 220, .06); color: var(--ink); font: 400 16px/1.2 var(--ui); }
+#first .fc-travel .tc-input::placeholder { color: var(--ink-faint); }
+#first .fc-travel .tc-input:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 2px; }
+#first .fc-travel .tc-cta { grid-row: 3; width: 100%; min-height: 48px; padding: 8px 16px; border-radius: 999px; background: linear-gradient(180deg, var(--gold-hi), var(--gold) 55%, var(--gold-deep)); color: var(--on-gold); font: 600 15px/1.2 var(--ui); letter-spacing: .08em; text-align: center; }
+#first .fc-travel .tc-cta[disabled] { opacity: .5; cursor: default; }
+#first .fc-travel .tc-cta.tc-busy { opacity: 1; animation: fr-pulse 1.2s ease-in-out infinite; }
+#first .fc-travel .tc-ghost { width: 100%; min-height: 44px; padding: 8px 16px; border-radius: 999px; border: 1px solid var(--line-gold); color: var(--gold-hi); font: 400 14px/1.2 var(--ui); letter-spacing: .06em; text-align: center; }
+#first .fc-travel .tc-text, #first .fc-travel .tc-live { justify-self: start; min-height: 40px; padding: 8px 2px; display: inline-flex; align-items: center; font: 500 14px/1.2 var(--ui); color: var(--gold-hi); text-decoration: underline; text-underline-offset: 4px; }
+#first .fc-travel .tc-live:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 3px; }
+@media (max-height: 640px) {
+  #first .fc-travel .fc-body { grid-template-rows: minmax(0, 1fr) auto clamp(196px, 36vh, 230px); }
+  #first .fc-travel .tc-tray { padding-top: 11px; gap: 8px; }
+}
+
 /* reduced motion: every scene is a gentle fade, nothing moves or loops */
 
 /* ==== Getting there: the map (js/first/travel-map.js) ==== */
@@ -398,4 +484,6 @@ html.first-on body > :not(#first) { display: none; }
   #first .fc-q-more, #first .fc-q-sign::before, #first .fc-q-sign::after { transition: none; }
   #first .fc-travel .tm-ring { animation: none !important; }
   #first .fc-travel .tm-pt, #first .fc-travel .tm-dot text { transition: none; }
+  #first .fc-travel .tc-slam, #first .fc-travel .tc-slam .tc-stamp, #first .fc-travel .tc-cta.tc-busy { animation: none; }
+  #first .fc-travel .tc-f, #first .fc-travel .tc-chip, #first .fc-travel .tc-row { transition: none; }
 }

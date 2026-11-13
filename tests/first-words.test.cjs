@@ -63,14 +63,15 @@ test('the Getting there card has every line it reads, and the old three rows are
     'route.sorts': ['drive', 'airport', 'price'],
     last: ['title', 'fact', 'liftNote'],
     'last.options': ['hire', 'lift', 'taxi', 'public', 'own'],
-    days: ['title', 'arriving', 'leaving'],
+    days: ['title', 'arriving', 'leaving', 'span'],
     'days.arrive': ['early', 'thu', 'fri', 'sat'],
     'days.leave': ['sun', 'mon', 'later'],
     done: ['title', 'hint', 'stamp', 'needReply', 'saving', 'failed', 'retry'],
     stamped: ['title', 'hint', 'change', 'another', 'who', 'next', 'remove', 'ticket'],
     price: ['from', 'checked', 'live'],
     load: ['wait', 'failed', 'retry'],
-    summary: ['empty', 'comparing', 'comparingOne', 'trip', 'landing', 'road', 'train', 'italy']
+    summary: ['empty', 'comparing', 'comparingOne', 'trip', 'landing', 'road', 'train', 'italy'],
+    view: ['whole', 'close']
   };
   const at = p => p.split('.').reduce((o, k) => o && o[k], words.travel);
   for (const [group, keys] of Object.entries(need)) for (const k of keys) assert.equal(typeof at(group)[k], 'string', group + '.' + k);

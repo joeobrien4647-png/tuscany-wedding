@@ -87,12 +87,13 @@
   const canChangeStay = (household, nowMs) =>
     repliesOpen(nowMs) || !['villa', 'own'].includes(stayChoiceOf(household));
 
-  function dockStates(household) {
+  // travelStamped: this phone holds a stamped Getting there ticket (the database never tells a link).
+  function dockStates(household, travelStamped) {
     const choice = stayChoiceOf(household);
     return {
       reply: replyOf(household) ? 'done' : 'glow',
       stay: choice === 'villa' || choice === 'own' ? 'done' : stayIsOpen(household) ? 'glow' : 'plain',
-      travel: 'plain', wear: 'plain', weekend: 'plain'
+      travel: travelStamped === true ? 'done' : 'plain', wear: 'plain', weekend: 'plain'
     };
   }
 
