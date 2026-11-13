@@ -1,7 +1,8 @@
 (function (root) {
   'use strict';
   // Where a household's reply and stay choice are kept and read: household/<token> over the database's REST API,
-  // no sign-in. The token is the personal link's own token (see js/invite.js) and only ever goes in the request path.
+  // no sign-in. Stamped Getting there tickets go to travel/<token>/<n>, which a link can write and never read, so the
+  // phone keeps its own copy of what it stamped (travelCopy). The token is the personal link's own token (see js/invite.js) and only ever goes in the request path.
   // load resolves: a cleaned object, null (the database answered: no record) or undefined (no clear answer).
   // Testing only: ?wtest=1 on a local or home-network server reads .local-test/household/<token>.json and keeps
   // saves in memory for the page's life (same check as js/invite.js).
@@ -9,6 +10,7 @@
   const TOKEN = /^[A-Za-z0-9_-]{16,64}$/, WAIT_MS = 15000, SEEN_KEY = 'sj-first-seen';
   const OPTS = { cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer' };
   const CHOICES = ['villa', 'own', 'later'], MAX_COMING = 8;
+  const TRAVEL_KEY = 'sj-first-travel', MAX_TICKETS = 8;
   const memory = {};
 
   // core.js loads first on the page; under Node tests it is required here.
@@ -110,10 +112,58 @@
     return put(token, 'stay', { choice });
   }
 
+  // ---------- Getting there tickets ----------
+  // travel-core.js loads after this file on the page, so it is looked up when first needed.
+  function travelRules() {
+    return (root.sjFirst && root.sjFirst.travel) || (typeof require === 'function' ? require('./travel-core.js') : null);
+  }
+  const ticketSlot = n => Number.isInteger(n) && n >= 0 && n < MAX_TICKETS;
+  // Ticket 0 covers the household and names nobody; a later ticket says who it is for.
+  function saveTicket(token, n, ticket) {
+    const rules = travelRules(), clean = rules ? rules.cleanTicket(ticket) : null;
+    if (!TOKEN.test(token || '') || !ticketSlot(n) || !clean || (n === 0) !== !clean.who) return Promise.resolve(false);
+    if (isLocalTest()) return Promise.resolve(true);
+    const body = Object.assign({}, clean, { at: { '.sv': 'timestamp' } });
+    return request(DB + '/travel/' + token + '/' + n + '.json', { method: 'PUT', body: JSON.stringify(body) }).then(r => !!(r && r.ok));
+  }
+  function removeTicket(token, n) {
+    if (!TOKEN.test(token || '') || !ticketSlot(n)) return Promise.resolve(false);
+    if (isLocalTest()) return Promise.resolve(true);
+    return request(DB + '/travel/' + token + '/' + n + '.json', { method: 'DELETE' }).then(r => !!(r && r.ok));
+  }
+
+  // The phone's own copy: { draft: plan | null, tickets: [ticket | null, ...] }. It is marked with a fingerprint of
+  // the token (never the token), so another invitation opened on this phone reads nothing.
+  function fingerprint(token) {
+    let a = 0x811c9dc5, b = 0x1b873593;
+    for (let i = 0; i < token.length; i++) {
+      a = Math.imul(a ^ token.charCodeAt(i), 0x01000193);
+      b = Math.imul(b + token.charCodeAt(i), 0x85ebca6b) ^ (b >>> 13);
+    }
+    return (a >>> 0).toString(16) + (b >>> 0).toString(16);
+  }
+  const emptyCopy = () => ({ draft: null, tickets: [] });
+  const travelCopy = {
+    read(token) {
+      const rules = travelRules();
+      if (!TOKEN.test(token || '') || !rules) return emptyCopy();
+      let raw = null;
+      try { raw = JSON.parse(localStorage.getItem(TRAVEL_KEY)); } catch (e) { return emptyCopy(); }
+      if (!isObject(raw) || raw.v !== 1 || raw.id !== fingerprint(token) || !Array.isArray(raw.tickets)) return emptyCopy();
+      return { draft: rules.cleanPlan(raw.draft), tickets: raw.tickets.slice(0, MAX_TICKETS).map(t => rules.cleanTicket(t)) };
+    },
+    write(token, copy) {
+      if (!TOKEN.test(token || '') || !isObject(copy)) return;
+      const kept = { v: 1, id: fingerprint(token), draft: copy.draft || null, tickets: Array.isArray(copy.tickets) ? copy.tickets : [] };
+      try { localStorage.setItem(TRAVEL_KEY, JSON.stringify(kept)); } catch (e) { /* storage blocked: the card still works */ }
+    },
+    clear() { try { localStorage.removeItem(TRAVEL_KEY); } catch (e) { /* nothing kept */ } }
+  };
+
   function seenMinute() { try { return localStorage.getItem(SEEN_KEY) === '1'; } catch (e) { return false; } }
   function markSeen() { try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) {} }
 
-  const api = { load, saveReply, saveStay, seenMinute, markSeen, clean };
+  const api = { load, saveReply, saveStay, saveTicket, removeTicket, travelCopy, seenMinute, markSeen, clean };
   root.sjFirst = root.sjFirst || {};
   root.sjFirst.store = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

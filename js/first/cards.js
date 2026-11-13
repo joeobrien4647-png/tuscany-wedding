@@ -83,6 +83,8 @@
   // "Not you?": forget the invitation on this phone and load the page again, never with the token.
   function notYou(invite, loc) {
     if (invite && typeof invite.forget === 'function') invite.forget();
+    const store = root.sjFirst && root.sjFirst.store;
+    if (store && store.travelCopy) store.travelCopy.clear();
     const args = new URLSearchParams(loc.search || '');
     args.delete('w');
     const rest = args.toString();

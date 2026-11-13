@@ -68,6 +68,25 @@
         "$other": { ".validate": false }
       }
     },
+    "travel": {
+      "$token": {
+        ".validate": "root.child('welcome').child($token).exists()",
+        "$n": {
+          ".write": "$n.matches(/^[0-7]$/) && root.child('household').child($token).child('reply').child('answer').val() === 'yes'",
+          ".validate": "newData.hasChildren(['from', 'last', 'arrive', 'leave', 'at'])",
+          "from": { ".validate": "newData.isString() && newData.val().matches(/^[A-Z]{3,6}$/)" },
+          "to": { ".validate": "newData.isString() && newData.val().matches(/^[A-Z]{3,5}$/)" },
+          "toText": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 60" },
+          "via": { ".validate": "newData.val() === 'direct' || newData.val() === 'change'" },
+          "last": { ".validate": "newData.val() === 'hire' || newData.val() === 'lift' || newData.val() === 'taxi' || newData.val() === 'public' || newData.val() === 'own'" },
+          "arrive": { ".validate": "newData.val() === 'early' || newData.val() === 'thu' || newData.val() === 'fri' || newData.val() === 'sat'" },
+          "leave": { ".validate": "newData.val() === 'sun' || newData.val() === 'mon' || newData.val() === 'later'" },
+          "who": { ".validate": "newData.hasChildren()", "$i": { ".validate": "newData.isBoolean() && $i.matches(/^[0-7]$/)" } },
+          "at": { ".validate": "newData.val() == now" },
+          "$other": { ".validate": false }
+        }
+      }
+    },
     "welcomeSeen": {
       "$token": {
         "last": {
