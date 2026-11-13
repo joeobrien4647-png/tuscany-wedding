@@ -1076,6 +1076,11 @@
  "ukAirports": {
   "BFS": {
    "name": "Belfast International",
+   "pos": {
+    "lat": 54.65278,
+    "lon": -6.2153,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "FCO",
@@ -1085,6 +1090,11 @@
   },
   "BHX": {
    "name": "Birmingham",
+   "pos": {
+    "lat": 52.45438,
+    "lon": -1.7469,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "PSA",
@@ -1111,6 +1121,11 @@
   },
   "BRS": {
    "name": "Bristol",
+   "pos": {
+    "lat": 51.38307,
+    "lon": -2.71866,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "PSA",
@@ -1124,6 +1139,11 @@
   },
   "CWL": {
    "name": "Cardiff",
+   "pos": {
+    "lat": 51.39786,
+    "lon": -3.34382,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "FCO",
@@ -1134,6 +1154,11 @@
   },
   "EMA": {
    "name": "East Midlands",
+   "pos": {
+    "lat": 52.82811,
+    "lon": -1.33221,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "CIA",
@@ -1143,6 +1168,11 @@
   },
   "EDI": {
    "name": "Edinburgh",
+   "pos": {
+    "lat": 55.95008,
+    "lon": -3.36147,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "BLQ",
@@ -1173,6 +1203,11 @@
   },
   "GLA": {
    "name": "Glasgow",
+   "pos": {
+    "lat": 55.87058,
+    "lon": -4.43517,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "PSA",
@@ -1190,6 +1225,11 @@
   },
   "PIK": {
    "name": "Glasgow Prestwick",
+   "pos": {
+    "lat": 55.50217,
+    "lon": -4.59484,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "PSA",
@@ -1200,6 +1240,11 @@
   },
   "LBA": {
    "name": "Leeds Bradford",
+   "pos": {
+    "lat": 53.8667,
+    "lon": -1.66014,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "PSA",
@@ -1213,6 +1258,11 @@
   },
   "LPL": {
    "name": "Liverpool",
+   "pos": {
+    "lat": 53.33577,
+    "lon": -2.85023,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "CIA",
@@ -1222,6 +1272,11 @@
   },
   "LCY": {
    "name": "London City",
+   "pos": {
+    "lat": 51.50427,
+    "lon": 0.054,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "FLR",
@@ -1231,6 +1286,11 @@
   },
   "LGW": {
    "name": "London Gatwick",
+   "pos": {
+    "lat": 51.15409,
+    "lon": -0.1884,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "FLR",
@@ -1248,6 +1308,11 @@
   },
   "LHR": {
    "name": "London Heathrow",
+   "pos": {
+    "lat": 51.46775,
+    "lon": -0.45477,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "PEG",
@@ -1278,6 +1343,11 @@
   },
   "LTN": {
    "name": "London Luton",
+   "pos": {
+    "lat": 51.87804,
+    "lon": -0.37014,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "BLQ",
@@ -1295,6 +1365,11 @@
   },
   "SEN": {
    "name": "London Southend",
+   "pos": {
+    "lat": 51.57017,
+    "lon": 0.69246,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "PSA",
@@ -1304,6 +1379,11 @@
   },
   "STN": {
    "name": "London Stansted",
+   "pos": {
+    "lat": 51.88697,
+    "lon": 0.24293,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "PEG",
@@ -1329,6 +1409,11 @@
   },
   "MAN": {
    "name": "Manchester",
+   "pos": {
+    "lat": 53.35032,
+    "lon": -2.27988,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "BLQ",
@@ -1366,6 +1451,11 @@
   },
   "NCL": {
    "name": "Newcastle",
+   "pos": {
+    "lat": 55.03858,
+    "lon": -1.69252,
+    "source": "osm-airports"
+   },
    "flies": [
     {
      "to": "FCO",
