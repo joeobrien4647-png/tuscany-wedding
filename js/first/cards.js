@@ -63,7 +63,6 @@
 
   // ---------- Travel, Wear, Weekend and Questions: what the cards show ----------
   const copyRow = r => ({ k: r.k, v: r.v });
-  const travelView = w => ({ rows: w.travel.rows.map(copyRow) });
   // Saturday first, then the two things to bring, then the other days (the design's order).
   const wearView = w => ({
     lines: [copyRow(w.wear.saturday), { k: null, v: w.wear.shoes }, { k: null, v: w.wear.layer },
@@ -408,9 +407,6 @@
   CARDS.travel = {
     build(card) {
       card.heading(card.w.travel.title);
-      const list = card.rise(card.el('div', 'fc-rows'));
-      travelView(card.w).rows.forEach(r => list.appendChild(row(card, r.k, r.v)));
-      card.body.appendChild(list);
     }
   };
 
@@ -501,7 +497,7 @@
   };
 
   const api = { CARD_KEYS, stayView, confirmLabel, saveStayChoice, replyView, notYou,
-    travelView, wearView, weekendView, questionsView,
+    wearView, weekendView, questionsView,
     cards: { open, close, openKey: () => (current ? current.key : null), built: () => Object.keys(CARDS) } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

@@ -23,7 +23,7 @@ test('every word passes the copy rules, with no amount or stray placeholder', ()
     assert.deepEqual(copyProblems(s), [], path);
     assert.ok(!s.includes('£') && !s.includes('150'), path + ' has an amount');
     assert.ok(s.trim() === s && s.length > 0, path + ' is empty or padded');
-    for (const m of s.match(/\{[^}]*\}/g) || []) assert.ok(['{n}', '{names}', '{date}', '{share}'].includes(m), path + ' uses ' + m);
+    for (const m of s.match(/\{[^}]*\}/g) || []) assert.ok(['{n}', '{names}', '{date}', '{share}', '{from}', '{to}', '{drive}', '{km}', '{price}'].includes(m), path + ' uses ' + m);
   }
 });
 
@@ -51,4 +51,40 @@ test('envelopes are keyed by lock key and hold only a name', () => {
   assert.deepEqual(Object.keys(words.home.envelopes), LOCKS.map(l => l.key));
   for (const e of Object.values(words.home.envelopes)) assert.deepEqual(Object.keys(e), ['name']);
   assert.equal(words.home.photosStamp, 'June');
+});
+
+test('the Getting there card has every line it reads, and the old three rows are gone', () => {
+  const need = {
+    fields: ['from', 'to', 'last', 'days', 'choose'],
+    from: ['title', 'hint', 'airports', 'or', 'compare', 'compareOne'],
+    'from.groups': ['london', 'northwest', 'yorkshire', 'midlands', 'scotland', 'southwest', 'ni'],
+    'from.kinds': ['ABROAD', 'ITALY', 'ROAD', 'TRAIN'],
+    route: ['title', 'landing', 'again', 'usually', 'drive', 'change', 'changeFrom', 'other', 'otherHint', 'otherDone', 'notFlying', 'noDirect', 'check'],
+    'route.sorts': ['drive', 'airport', 'price'],
+    last: ['title', 'fact', 'liftNote'],
+    'last.options': ['hire', 'lift', 'taxi', 'public', 'own'],
+    days: ['title', 'arriving', 'leaving'],
+    'days.arrive': ['early', 'thu', 'fri', 'sat'],
+    'days.leave': ['sun', 'mon', 'later'],
+    done: ['title', 'hint', 'stamp', 'needReply', 'saving', 'failed', 'retry'],
+    stamped: ['title', 'hint', 'change', 'another', 'who', 'next', 'remove', 'ticket'],
+    price: ['from', 'checked', 'live'],
+    load: ['wait', 'failed', 'retry'],
+    summary: ['empty', 'comparing', 'comparingOne', 'trip', 'landing', 'road', 'train', 'italy']
+  };
+  const at = p => p.split('.').reduce((o, k) => o && o[k], words.travel);
+  for (const [group, keys] of Object.entries(need)) for (const k of keys) assert.equal(typeof at(group)[k], 'string', group + '.' + k);
+  for (const k of ['title', 'stampMark', 'mapLabel', 'back']) assert.equal(typeof words.travel[k], 'string', k);
+  assert.equal(words.travel.rows, undefined);
+  assert.equal(words.travel.longer, undefined);
+  assert.ok(words.travel.from.compare.includes('{n}'));
+  assert.ok(words.travel.price.from.includes('{price}') && words.travel.price.checked.includes('{date}'));
+  assert.ok(words.travel.last.fact.includes('{drive}') && words.travel.last.fact.includes('{km}'));
+  assert.ok(words.travel.summary.trip.includes('{from}') && words.travel.summary.trip.includes('{to}'));
+});
+test('the Getting there words never promise a transfer and say routes can change', () => {
+  const all = leaves(words.travel).map(([, s]) => s).join(' | ');
+  assert.doesNotMatch(all, /transfer|minibus|shuttle|we.ll (collect|pick)/i);
+  assert.match(words.travel.route.usually, /usually/i);
+  assert.match(words.travel.route.check, /check before you book/i);
 });

@@ -1,5 +1,6 @@
 // Every line here is a placeholder for Joe and Sophie to rewrite.
-// Keep lines short and plain. Placeholders: {n}, {names}, {date}, {share}. No amounts or payment dates in this file.
+// Keep lines short and plain. Placeholders: {n}, {names}, {date}, {share}, and on the Getting there card {from}, {to},
+// {drive}, {km}, {price}. No amounts or payment dates in this file.
 (function (root) {
   'use strict';
   const SPRING = 'Send your share in the spring';
@@ -124,13 +125,86 @@
       coming: 'Coming',
       closed: 'To change your reply, please message Joe or Sophie'
     },
+    // The Getting there card. Airports, airlines, drive times and tolls are not here: they come from the data file.
     travel: {
       title: 'Getting there',
-      rows: [
-        { k: 'Fly to', v: 'Pisa' },
-        { k: 'Then', v: 'Hire a car, about 2h15' },
-        { k: 'Stuck for a lift', v: 'Message Joe or Sophie' }
-      ]
+      mapLabel: 'A map of your trip',
+      back: 'Back',
+      stampMark: 'Confirmed',
+      fields: { from: 'From', to: 'To', last: 'Last stretch', days: 'Days', choose: 'Choose' },
+      summary: {
+        empty: 'Build your trip',
+        comparing: 'Comparing {n} airports',
+        comparingOne: 'Flying from {from}',
+        trip: '{from} to {to}',
+        landing: 'Landing at {to}',
+        italy: 'Already in Italy',
+        road: 'Driving all the way',
+        train: 'By train all the way'
+      },
+      from: {
+        title: 'Where are you setting off from?',
+        hint: 'Pick as many airports as you like',
+        airports: 'UK airports',
+        or: 'Or',
+        compare: 'Compare {n} routes',
+        compareOne: 'See 1 route',
+        groups: {
+          london: 'London', northwest: 'North West', yorkshire: 'Yorkshire and North East', midlands: 'Midlands',
+          scotland: 'Scotland', southwest: 'South West and Wales', ni: 'Northern Ireland'
+        },
+        kinds: { ABROAD: 'Outside the UK', ITALY: 'Already in Italy', ROAD: 'Driving all the way', TRAIN: 'Train all the way' }
+      },
+      route: {
+        title: 'Pick a route',
+        landing: 'Where are you landing?',
+        again: 'See the routes again',
+        sorts: { drive: 'Shortest drive', airport: 'By airport', price: 'Cheapest' },
+        usually: 'Usually {names}',
+        drive: '{drive} drive',
+        check: 'Routes change, so check before you book',
+        change: 'Flying with a change?',
+        changeFrom: 'Leaving from',
+        other: 'Landing somewhere else?',
+        otherHint: 'Which airport?',
+        otherDone: 'Use this airport',
+        notFlying: 'Not flying',
+        noDirect: 'No direct flights from here, try flying with a change'
+      },
+      last: {
+        title: 'And the last stretch?',
+        options: { hire: 'Hire car', lift: 'Getting a lift', taxi: 'Taxi', public: 'Public transport', own: 'Own car' },
+        fact: '{drive}, {km} km',
+        liftNote: 'Just so we know, lifts are yours to sort out'
+      },
+      days: {
+        title: 'Which days?',
+        arriving: 'Arriving',
+        leaving: 'Leaving',
+        arrive: { early: 'Earlier', thu: 'Thu 27', fri: 'Fri 28', sat: 'Sat 29' },
+        leave: { sun: 'Sun 30', mon: 'Mon 31', later: 'Staying on' }
+      },
+      done: {
+        title: 'All set?',
+        hint: 'You can change it any time',
+        stamp: 'Stamp my ticket',
+        needReply: 'Reply first, then stamp',
+        saving: 'Stamping your ticket',
+        failed: 'Could not stamp it, please try again',
+        retry: 'Try again'
+      },
+      stamped: {
+        title: 'Ticket stamped',
+        hint: 'Only Joe and Sophie can see your plan',
+        change: 'Change something',
+        another: 'Someone travelling separately?',
+        who: 'Who is this ticket for?',
+        next: 'Next',
+        remove: 'Remove this ticket',
+        ticket: 'Ticket {n}'
+      },
+      price: { from: 'from about {price}', checked: 'checked {date}', live: 'See live prices' },
+      load: { wait: 'Unfolding the map', failed: 'Could not load the map', retry: 'Try again' }
     },
     wear: {
       title: 'What to wear',

@@ -12,17 +12,10 @@ const TWO = { token: 'tCardsTwo000002bb', display: 'Kit and Sam', people: ['Kit 
 const allText = o => JSON.stringify(o);
 const DASHES = new RegExp('[\\u2014\\u00b7]');
 
-test('travel: exactly the three rows from the design, and no staying-longer list (the published site has none)', () => {
-  const v = cards().travelView(words);
-  assert.deepEqual(v.rows, [
-    { k: 'Fly to', v: 'Pisa' },
-    { k: 'Then', v: 'Hire a car, about 2h15' },
-    { k: 'Stuck for a lift', v: 'Message Joe or Sophie' }
-  ]);
-  assert.equal(v.longer, undefined);
+test('travel: no staying-longer list (the published site has none) and no times or amounts in its words', () => {
   assert.equal(words.travel.longer, undefined);
   assert.equal(words.travel.longerTitle, undefined);
-  assert.doesNotMatch(allText(v), /airline|flight time|\b\d{1,2}:\d\d\b|£/i);
+  assert.doesNotMatch(allText(words.travel), /flight time|\b\d{1,2}:\d\d\b|£/i);
 });
 
 test('wear: the five lines in order, Saturday, shoes, layer, Friday, Sunday, and nothing else', () => {
