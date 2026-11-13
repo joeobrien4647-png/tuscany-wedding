@@ -148,6 +148,7 @@
         hint: 'Pick as many airports as you like',
         airports: 'UK airports',
         or: 'Or',
+        each: 'Airport by airport',
         compare: 'Compare {n} routes',
         compareOne: 'See 1 route',
         groups: {

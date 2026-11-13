@@ -56,7 +56,7 @@ test('envelopes are keyed by lock key and hold only a name', () => {
 test('the Getting there card has every line it reads, and the old three rows are gone', () => {
   const need = {
     fields: ['from', 'to', 'last', 'days', 'choose'],
-    from: ['title', 'hint', 'airports', 'or', 'compare', 'compareOne'],
+    from: ['title', 'hint', 'airports', 'or', 'each', 'compare', 'compareOne'],
     'from.groups': ['london', 'northwest', 'yorkshire', 'midlands', 'scotland', 'southwest', 'ni'],
     'from.kinds': ['ABROAD', 'ITALY', 'ROAD', 'TRAIN'],
     route: ['title', 'landing', 'again', 'usually', 'drive', 'change', 'changeFrom', 'other', 'otherHint', 'otherDone', 'notFlying', 'noDirect', 'check'],

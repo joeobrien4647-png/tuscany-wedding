@@ -2671,7 +2671,7 @@
       const ready = status === "ready";
       const rows = ready ? sjFirst.householdRows(welcome, seen, household) : [];
       const t = sjFirst.householdTotals(rows);
-      const travelRows = ready ? sjFirst.travelRows(welcome, travel) : [];
+      const travelRows = ready ? sjFirst.travelRows(welcome, travel, household) : [];
       const ticketsOf = token => (travelRows.find(x => x.token === token) || { tickets: [] }).tickets;
       const arrivalList = sjFirst.arrivals(travelRows);
       const when = at => new Date(at).toLocaleDateString("en-GB", { day: "numeric", month: "short" });

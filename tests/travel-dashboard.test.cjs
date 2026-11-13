@@ -12,6 +12,8 @@ const welcome = {
   tokC: { display: 'Bea Hollis', lines: ['x'] },
   tokD: { display: 'Kit and Sam', lines: ['x'], people: ['Kit Moss', 'Sam Lee'] }
 };
+const yes = coming => ({ reply: { answer: 'yes', coming, at: 1 } });
+const household = { tokA: yes([true, true]), tokB: yes([true]), tokC: yes([true]), tokD: yes([true, true]), tokOrphan: yes([true]) };
 const fly = { from: 'MAN', to: 'PSA', via: 'direct', last: 'hire', arrive: 'fri', leave: 'mon', at: 1800000000000 };
 const travel = {
   tokA: { 0: fly, 1: { from: 'ROAD', last: 'own', arrive: 'thu', leave: 'sun', who: [false, true], at: 1800000005000 } },
@@ -21,7 +23,7 @@ const travel = {
 };
 
 test('travelRows: one row per invited household with a ticket, tickets in order', () => {
-  const rows = travelRows(welcome, travel);
+  const rows = travelRows(welcome, travel, household);
   assert.deepEqual(rows.map(r => r.token), ['tokC', 'tokA', 'tokB']);
   const a = rows.find(r => r.token === 'tokA');
   assert.equal(a.display, 'the Aldens');
@@ -29,7 +31,7 @@ test('travelRows: one row per invited household with a ticket, tickets in order'
   assert.deepEqual(a.tickets[1], { n: 1, who: ['Ben Alden'], from: 'ROAD', to: null, toText: null, via: null, last: 'own', arrive: 'thu', leave: 'sun', at: 1800000005000 });
 });
 test('travelRows: households not in welcome and tickets that are not tickets are dropped', () => {
-  const rows = travelRows(welcome, travel);
+  const rows = travelRows(welcome, travel, household);
   assert.ok(!rows.some(r => r.token === 'tokOrphan'));
   assert.ok(!rows.some(r => r.token === 'tokD'), 'no ticket, no row');
   const c = rows.find(r => r.token === 'tokC');
@@ -37,18 +39,20 @@ test('travelRows: households not in welcome and tickets that are not tickets are
   assert.equal(c.tickets[0].toText, 'Ancona');
 });
 test('travelRows: missing or malformed inputs give []', () => {
-  assert.deepEqual(travelRows(null, travel), []);
-  assert.deepEqual(travelRows(welcome, null), []);
-  assert.deepEqual(travelRows('x', 7), []);
-  assert.deepEqual(travelRows(welcome, { tokA: 'junk', tokB: { 9: fly, x: fly } }), []);
+  assert.deepEqual(travelRows(null, travel, household), []);
+  assert.deepEqual(travelRows(welcome, null, household), []);
+  assert.deepEqual(travelRows('x', 7, household), []);
+  assert.deepEqual(travelRows(welcome, { tokA: 'junk', tokB: { 9: fly, x: fly } }, household), []);
+  assert.deepEqual(travelRows(welcome, travel), [], 'no replies known, so nobody is known to be coming');
+  assert.deepEqual(travelRows(welcome, travel, 'junk'), []);
 });
 test('travelRows: who names come from the invitation by position, and a position with no name is skipped', () => {
   const rows = travelRows({ t1: { display: 'One', lines: [], people: ['Ana'] } },
-    { t1: { 0: fly, 1: { from: 'TRAIN', last: 'taxi', arrive: 'fri', leave: 'mon', who: [false, true], at: 3 } } });
+    { t1: { 0: fly, 1: { from: 'TRAIN', last: 'taxi', arrive: 'fri', leave: 'mon', who: [false, true], at: 3 } } }, { t1: yes([true, true]) });
   assert.deepEqual(rows[0].tickets[1].who, []);
 });
 test('ticketLine says a ticket in one plain line', () => {
-  const rows = travelRows(welcome, travel);
+  const rows = travelRows(welcome, travel, household);
   const line = (token, i) => ticketLine(rows.find(r => r.token === token).tickets[i]);
   assert.equal(line('tokA', 0), 'MAN to PSA, hire car, Fri 28 to Mon 31');
   assert.equal(line('tokA', 1), 'Ben Alden: driving all the way, own car, Thu 27 to Sun 30');
@@ -60,7 +64,7 @@ test('ticketLine says a ticket in one plain line', () => {
 });
 test('arrivals groups households landing at the same place on the same day, by day then place', () => {
   const both = { ...travel, tokD: { 0: { from: 'LGW', to: 'PSA', via: 'direct', last: 'lift', arrive: 'fri', leave: 'mon', at: 9 } } };
-  const list = arrivals(travelRows(welcome, both));
+  const list = arrivals(travelRows(welcome, both, household));
   assert.deepEqual(list, [
     { to: 'By road', arrive: 'thu', households: ['the Aldens (Ben Alden)'] },
     { to: 'PSA', arrive: 'fri', households: ['Kit and Sam', 'the Aldens', 'Zed Ward'] },
@@ -81,4 +85,26 @@ test('dashboard.html reads travel without caching it and loads the travel rules 
 test('the dashboard only reads tickets: nothing writes to travel', () => {
   assert.doesNotMatch(dashboard, /db\.ref\("travel/);
   assert.doesNotMatch(dashboard, /saveTravel|setTravel/);
+});
+
+test('travelRows: a household that is no longer coming has no tickets or arrivals', () => {
+  const changed = { ...household, tokA: { reply: { answer: 'no', coming: [false, false], at: 9 } }, tokB: {} };
+  const rows = travelRows(welcome, travel, changed);
+  assert.deepEqual(rows.map(r => r.token), ['tokC']);
+  assert.ok(!JSON.stringify(arrivals(rows)).includes('Aldens'));
+});
+test('travelRows: a separate ticket for someone who is no longer coming is dropped, and names keep to who is coming', () => {
+  const benOut = { ...household, tokA: yes([true, false]) };
+  assert.deepEqual(travelRows(welcome, travel, benOut).find(r => r.token === 'tokA').tickets.map(t => t.n), [0]);
+  const three = { t1: { display: 'Three', lines: [], people: ['Ana', 'Ben', 'Cy'] } };
+  const tickets = { t1: { 0: fly, 1: { from: 'TRAIN', last: 'taxi', arrive: 'fri', leave: 'mon', who: [false, true, true], at: 3 } } };
+  assert.deepEqual(travelRows(three, tickets, { t1: yes([true, true, false]) })[0].tickets[1].who, ['Ben']);
+});
+test('ticketLine keeps an airport code in capitals after the names on a separate ticket', () => {
+  assert.equal(ticketLine({ who: ['Sam Lee'], from: 'MAN', to: 'PSA', via: 'direct', last: 'hire', arrive: 'fri', leave: 'mon' }), 'Sam Lee: MAN to PSA, hire car, Fri 28 to Mon 31');
+  assert.equal(ticketLine({ who: ['Sam Lee'], from: 'ABROAD', to: 'FCO', last: 'taxi', arrive: 'fri', leave: 'mon' }), 'Sam Lee: outside the UK to FCO, taxi, Fri 28 to Mon 31');
+  assert.equal(ticketLine({ who: ['Sam Lee'], from: 'ITALY', to: null, last: 'own', arrive: 'fri', leave: 'mon' }), 'Sam Lee: already in Italy, not flying, own car, Fri 28 to Mon 31');
+});
+test('the dashboard gives travelRows the replies', () => {
+  assert.match(dashboard, /sjFirst\.travelRows\(welcome, travel, household\)/);
 });

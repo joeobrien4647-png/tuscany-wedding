@@ -117,3 +117,20 @@ test('the prices file ships empty until the price job exists, so the card never 
   assert.deepEqual(prices.routes, {});
   assert.equal(prices.for.currency, 'GBP');
 });
+
+// ---- from the whole-branch review ----
+test('backTo: a ticket that is already stamped can always be gone back to; a brand-new first ticket has nowhere to go', () => {
+  const tk = { from: 'ROAD', last: 'own', arrive: 'fri', leave: 'mon' };
+  assert.equal(card.backTo('last', 0, [tk]), 0, 'changing the stamped household ticket');
+  assert.equal(card.backTo('from', 1, [tk]), 0, 'a new separate ticket goes back to the first');
+  assert.equal(card.backTo('done', 1, [tk, tk]), 1, 'changing a stamped separate ticket');
+  assert.equal(card.backTo('days', 2, [null, tk]), 1, 'the first one that exists');
+  assert.equal(card.backTo('from', 0, []), -1);
+  assert.equal(card.backTo('from', 0, [null, null]), -1);
+  assert.equal(card.backTo('stamped', 0, [tk]), -1, 'already there');
+});
+test('the other ways of setting off come before the long list of single airports', () => {
+  const js = read('js/first/travel-card.js');
+  const kinds = js.indexOf("chip('k-' + k"), each = js.indexOf("chip('a-' + c"), areas = js.indexOf("chip('g-' + g.key");
+  assert.ok(areas > 0 && kinds > areas && each > kinds, [areas, kinds, each].join(' '));
+});

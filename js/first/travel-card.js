@@ -84,6 +84,13 @@
     }, () => false);
   }
 
+  // Which stamped ticket Back returns to while one is being changed or a new one built: its index, or -1 for none.
+  function backTo(step, n, tickets) {
+    const list = Array.isArray(tickets) ? tickets : [];
+    if (step === 'stamped') return -1;
+    return list[n] ? n : list.findIndex(Boolean);
+  }
+
   // ---------- the screen ----------
   const haptic = p => { try { if (root.navigator.vibrate) root.navigator.vibrate(p); } catch (e) { /* no haptics */ } };
   function focus(e) { try { e.focus({ preventScroll: true }); } catch (err) { /* not focusable */ } }
@@ -141,19 +148,23 @@
       if (role) p.setAttribute('role', role);
       return p;
     }
+    function loadFailed() {
+      tray.textContent = '';
+      tray.appendChild(note(T.load.failed, 'alert'));
+      tray.appendChild(el('div', 'tc-opts'));
+      const again = button('tc-cta', T.load.retry, load);
+      tray.appendChild(again);
+      focus(again);
+    }
     function load() {
       tray.textContent = '';
       tray.appendChild(note(T.load.wait, 'status'));
       tray.appendChild(el('div', 'tc-opts'));
       loadData(typeof root.fetch === 'function' ? root.fetch.bind(root) : null).then(function (res) {
         if (gone) return;
-        if (res) { start(res); return; }
-        tray.textContent = '';
-        tray.appendChild(note(T.load.failed, 'alert'));
-        tray.appendChild(el('div', 'tc-opts'));
-        const again = button('tc-cta', T.load.retry, load);
-        tray.appendChild(again);
-        focus(again);
+        if (!res) { loadFailed(); return; }
+        // Anything that stops the card starting (the map's script not arriving, say) is a failed load too.
+        try { start(res); } catch (e) { if (map) { map.destroy(); map = null; } loadFailed(); }
       });
     }
     function start(res) {
@@ -260,7 +271,7 @@
       go('from');
     }
     function backToStamped() {
-      const i = tickets[n] ? n : tickets.findIndex(Boolean);
+      const i = backTo('', n, tickets);
       if (i < 0) return;
       view(i);
       go('stamped');
@@ -380,16 +391,17 @@
     const TRAYS = {
       from(t) {
         t.title = T.from.title;
-        if (n > 0 && !tickets[n]) t.back = backToStamped;
         const have = ukCodes();
         t.opts.appendChild(label(T.from.airports));
         t.opts.appendChild(el('p', 'tc-note', T.from.hint));
         t.opts.appendChild(chips(travel.GROUPS.map(g => ({ key: g.key, codes: g.codes.filter(c => have.indexOf(c) >= 0) })).filter(g => g.codes.length)
           .map(g => chip('g-' + g.key, T.from.groups[g.key], g.codes.length > 1 ? String(g.codes.length) : '', g.codes.every(c => plan.froms.indexOf(c) >= 0), () => toggleGroup(g.codes)))));
-        t.opts.appendChild(chips(have.slice().sort((a, b) => (ukName(a) < ukName(b) ? -1 : 1))
-          .map(c => chip('a-' + c, ukName(c), c, plan.froms.indexOf(c) >= 0, () => toggleFrom(c)))));
+        // The other ways of setting off sit above the long list of single airports, so nobody has to hunt for them.
         t.opts.appendChild(label(T.from.or));
         t.opts.appendChild(chips(travel.KINDS.map(k => chip('k-' + k, T.from.kinds[k], '', plan.from === k, () => set({ kind: k })))));
+        t.opts.appendChild(label(T.from.each));
+        t.opts.appendChild(chips(have.slice().sort((a, b) => (ukName(a) < ukName(b) ? -1 : 1))
+          .map(c => chip('a-' + c, ukName(c), c, plan.froms.indexOf(c) >= 0, () => toggleFrom(c)))));
         if (plan.froms.length) {
           t.quiet = true;   // the compare button takes the heading's room; the heading stays for screen readers
           const count = travel.routes(data, plan.froms, 'drive').length;
@@ -484,7 +496,6 @@
       },
       done(t) {
         t.title = T.done.title;
-        if (n > 0 && !tickets[n]) t.back = backToStamped;
         t.opts.appendChild(el('p', 'tc-note', T.done.hint));
         const live = liveLink();
         if (live) t.opts.appendChild(live);
@@ -531,6 +542,8 @@
 
       const t = { title: '', back: null, cta: null, quiet: false, opts: el('div', 'tc-opts') };
       (TRAYS[step] || TRAYS.from)(t);
+      // Changing a stamped ticket, or building another, can always be given up: Back shows the stamped ticket again.
+      if (!t.back && step !== 'who' && backTo(step, n, tickets) >= 0) t.back = backToStamped;
       tray.textContent = '';
       const head = el('div', 'tc-head' + (t.back ? ' tc-has-back' : '') + (t.quiet && !t.back ? ' tc-sr' : ''));
       if (t.back) head.appendChild(keyed(button('tc-back', T.back, t.back), 'back'));
@@ -565,7 +578,7 @@
     load();
   }
 
-  const api = { build, loadData, forgetData, stepAfter, stamp, unstamp };
+  const api = { build, loadData, forgetData, stepAfter, backTo, stamp, unstamp };
   root.sjFirst = root.sjFirst || {};
   root.sjFirst.travelCard = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

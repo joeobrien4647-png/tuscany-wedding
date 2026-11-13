@@ -165,18 +165,22 @@
   // One row per invited household that has a stamped ticket: { token, display, tickets: [{ n, who, from, to, toText,
   // via, last, arrive, leave, at }] }. who is the names it is for (from the invitation, by position) or null for the
   // household's own ticket. Households not in welcome are dropped; so is anything that is not a ticket.
-  function travelRows(welcome, travel) {
+  // Only people who are coming count: a household whose reply is no longer yes shows no tickets, a separate ticket
+  // for someone no longer coming is dropped, and who never names anyone who is not coming.
+  function travelRows(welcome, travel, household) {
     const rules = travelRules();
-    if (!isObj(welcome) || !isObj(travel) || !rules) return [];
+    if (!isObj(welcome) || !isObj(travel) || !isObj(household) || !rules) return [];
     const rows = Object.keys(welcome).filter((token) => isObj(welcome[token])).map((token) => {
       const w = welcome[token], people = Array.isArray(w.people) ? w.people : [];
       const saved = Array.isArray(travel[token]) || isObj(travel[token]) ? travel[token] : {};
+      const reply = isObj(household[token]) && isObj(household[token].reply) ? household[token].reply : null;
+      const coming = reply && reply.answer === 'yes' && Array.isArray(reply.coming) ? reply.coming : null;
       const tickets = [];
-      for (let n = 0; n < 8; n++) {
+      for (let n = 0; coming && n < 8; n++) {
         const t = rules.cleanTicket(saved[n]);
-        if (!t) continue;
+        if (!t || (t.who && !t.who.some((on, i) => on && coming[i] === true))) continue;
         tickets.push({
-          n, who: t.who ? people.filter((p, i) => typeof p === 'string' && t.who[i] === true) : null,
+          n, who: t.who ? people.filter((p, i) => typeof p === 'string' && t.who[i] === true && coming[i] === true) : null,
           from: t.from, to: t.to || null, toText: t.toText || null, via: t.via || null,
           last: t.last, arrive: t.arrive, leave: t.leave, at: typeof t.at === 'number' ? t.at : null,
         });
@@ -202,7 +206,8 @@
     if (t.from === 'ITALY') trip = kind + (t.to ? ', landing at ' + landsAt(t) : ', not flying');
     const names = Array.isArray(t.who) && t.who.length ? t.who.join(', ') + ': ' : '';
     const line = [trip, TICKET_LAST[t.last], TICKET_ARRIVE[t.arrive] + ' ' + TICKET_LEAVE[t.leave]].join(', ');
-    return names ? names + line.charAt(0).toLowerCase() + line.slice(1) : line;
+    // After the names the sentence carries on in lower case, but an airport code stays as it is.
+    return names + (names && kind ? line.charAt(0).toLowerCase() + line.slice(1) : line);
   }
 
   // Who lands where on which day, for information: [{ to, arrive, households }], by day then place.

@@ -711,6 +711,8 @@ async def flow_travel(f, guest):
     p = f.page
     await open_travel(f, guest)
     await f.stop('travel-empty', CARD_TRAVEL + ['.tc-chip'])
+    reach = await p.evaluate("() => { const o = document.querySelector('#first .tc-opts'), k = o.querySelector('[data-k=\"k-TRAIN\"]'); return (k.getBoundingClientRect().bottom - o.getBoundingClientRect().top) / o.clientHeight; }")
+    f.expect(reach <= 2.6, 'the other ways of setting off are %.1f tray-lists down' % reach)
     await tk(f, 'g-london')
     await tk(f, 'a-MAN')
     await map_still(p)
@@ -748,6 +750,12 @@ async def flow_travel(f, guest):
         await tk(f, 'stamp', 1200)
         f.expect(await p.locator('#first .tc-tray [data-k^="t-"]').count() == 2, 'two tickets are not both offered')
         await f.stop('travel-two-tickets', CARD_TRAVEL + ['.tc-ticket.tc-stamped', '.tc-chip', '.tc-ghost'])
+    # Starting a change takes the stamp off the ticket; Back must bring the stamped ticket straight back.
+    await box(f, 2)
+    f.expect(not await p.is_visible('#first .tc-ticket.tc-stamped'), 'the stamp stayed on while changing the ticket')
+    await f.stop('travel-changing', CARD_TRAVEL + ['.tc-chip', '.tc-back'])
+    await tk(f, 'back')
+    f.expect(await p.is_visible('#first .tc-ticket.tc-stamped'), 'Back did not return to the stamped ticket')
     await close_card(f)
     dock = await p.evaluate(DOCK_JS)
     f.expect(dock[2][0] == 'fh-done', 'Travel is not ticked after a stamp: %s' % dock[2])
@@ -814,6 +822,18 @@ async def flow_travel_ways(f, guest):
     await f.stop('travel-longest-names', CARD_TRAVEL + ['.tc-cta', '.tc-live'])
 
 
+async def flow_travel_no_map(f, guest):
+    """The map's own script never arrived: the card says so and offers another try, and never sits on its wait line."""
+    p = f.page
+    await p.route('**/js/first/travel-map.js', lambda route: route.fulfill(status=200, content_type='text/javascript', body='/* not delivered */'))
+    await with_seen_home(f, guest, replied(guest))
+    await open_dock(f, 2)
+    await p.wait_for_selector('#first .tc-note[role=alert]', state='visible', timeout=6000)
+    await p.wait_for_timeout(400)
+    await f.stop('travel-map-missing', CARD + ['.tc-ticket', '.tc-f', '.tc-note[role=alert]', '.tc-cta'])
+    await close_card(f)
+
+
 # The data file answered with something that is not the data: the card must say so and offer another try.
 NOT_THE_DATA = '{"airports": []}'
 
@@ -862,7 +882,8 @@ PER_INVITE = [('first-visit', flow_first_visit), ('cards', flow_cards), ('travel
 PER_DEVICE = [('no-link', flow_no_link, None), ('full-minute', flow_full_minute, 2), ('wedding-day', flow_wedding_day, 1),
               ('sealed-envelope', flow_sealed_envelope, 1), ('reply-save', flow_reply_save, 'spare'),
               ('stay-save', flow_stay_save, 'spare'), ('busy-guard', flow_busy_guard, 'spare'),
-              ('travel-ways', flow_travel_ways, 1), ('travel-failures', flow_travel_failures, 'spare')]
+              ('travel-ways', flow_travel_ways, 1), ('travel-failures', flow_travel_failures, 'spare'),
+              ('travel-no-map', flow_travel_no_map, 'spare')]
 
 
 def plan(invites, spare, only=''):

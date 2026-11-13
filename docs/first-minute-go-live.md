@@ -49,7 +49,7 @@ Check: open the site as a guest would. It should look and behave exactly as it d
 
 This is the first time it will have been seen or heard on a real phone. Things to look for: nothing cut off, nothing that scrolls, the music starts after the first tap and the sound button works, the video plays, the countdown is right.
 
-Optional, on a computer with Python and Playwright installed and a network connection: `python scripts/check-first-fit.py` runs every screen on four phone setups and stops with an error if anything is cut off. It takes about six minutes.
+Optional, on a computer with Python and Playwright installed and a network connection: `python scripts/check-first-fit.py` runs every screen on four phone setups and stops with an error if anything is cut off. It takes about twelve minutes.
 
 ## 4a. The Getting there card
 
@@ -64,6 +64,7 @@ What it adds: a guest builds their trip on a map, fills a ticket and stamps it. 
 3. Paste the `getting-there` branch's `firebase.rules.json` and publish.
 4. Check a link cannot read tickets: in the Rules Playground, a read of `/travel` and of `/travel/anything` with no sign-in should both be denied.
 5. Check a household with no yes cannot stamp: in the Rules Playground, a set at `/travel/<a key with no reply>/0` with no sign-in should be denied.
+6. Two more that should be denied, using a key that has replied yes: a read of `/travel/<that key>/0`, and a set at `/travel/<that key>/8` (there are only eight tickets, 0 to 7).
 
 Not yet proven: the rules have only been checked for shape by the tests. That they accept a real stamp is proven by the two-phone test below, and by nothing before it. Until the rules are published, stamping on the live site fails with "Could not stamp it" and nothing is lost.
 

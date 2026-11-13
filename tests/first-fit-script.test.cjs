@@ -122,3 +122,9 @@ test('the phone-fit script names its three new exceptions and why', () => {
   assert.match(py, /MAP_OK = \[\s*'\.tm-svg',\s+#/);
   assert.match(py, /a\.scrollWidth > a\.clientWidth \+ 1/, 'a scrolling list is still checked sideways');
 });
+
+test('the phone-fit script covers a missing map script and going back from a change', () => {
+  const py = source();
+  for (const stop of ['travel-map-missing', 'travel-changing']) assert.ok(py.includes("'" + stop + "'"), stop);
+  assert.match(py, /flow_travel_no_map/);
+});
