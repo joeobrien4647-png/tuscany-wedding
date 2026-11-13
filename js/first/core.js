@@ -157,6 +157,69 @@
     };
   }
 
+  // ---- admin view of the Getting there tickets (travel/<token>/<n>, readable only by the admin sign-in) ----
+  // travel-core.js loads after this file, so it is looked up when first needed.
+  function travelRules() {
+    return (root.sjFirst && root.sjFirst.travel) || (typeof require === 'function' ? require('./travel-core.js') : null);
+  }
+  // One row per invited household that has a stamped ticket: { token, display, tickets: [{ n, who, from, to, toText,
+  // via, last, arrive, leave, at }] }. who is the names it is for (from the invitation, by position) or null for the
+  // household's own ticket. Households not in welcome are dropped; so is anything that is not a ticket.
+  function travelRows(welcome, travel) {
+    const rules = travelRules();
+    if (!isObj(welcome) || !isObj(travel) || !rules) return [];
+    const rows = Object.keys(welcome).filter((token) => isObj(welcome[token])).map((token) => {
+      const w = welcome[token], people = Array.isArray(w.people) ? w.people : [];
+      const saved = Array.isArray(travel[token]) || isObj(travel[token]) ? travel[token] : {};
+      const tickets = [];
+      for (let n = 0; n < 8; n++) {
+        const t = rules.cleanTicket(saved[n]);
+        if (!t) continue;
+        tickets.push({
+          n, who: t.who ? people.filter((p, i) => typeof p === 'string' && t.who[i] === true) : null,
+          from: t.from, to: t.to || null, toText: t.toText || null, via: t.via || null,
+          last: t.last, arrive: t.arrive, leave: t.leave, at: typeof t.at === 'number' ? t.at : null,
+        });
+      }
+      return { token, display: typeof w.display === 'string' ? w.display : '', tickets };
+    }).filter((r) => r.tickets.length > 0);
+    return rows.sort((a, b) => a.display.toLowerCase().localeCompare(b.display.toLowerCase()) || (a.token < b.token ? -1 : 1));
+  }
+
+  const TICKET_LAST = { hire: 'hire car', lift: 'getting a lift', taxi: 'taxi', public: 'public transport', own: 'own car' };
+  const TICKET_ARRIVE = { early: 'earlier in the week', thu: 'Thu 27', fri: 'Fri 28', sat: 'Sat 29' };
+  const TICKET_LEAVE = { sun: 'to Sun 30', mon: 'to Mon 31', later: 'then staying on' };
+  const TICKET_FROM = { ABROAD: 'Outside the UK', ITALY: 'Already in Italy', ROAD: 'Driving all the way', TRAIN: 'Train all the way' };
+  const ARRIVAL_PLACE = { ROAD: 'By road', TRAIN: 'By train', ITALY: 'Already in Italy' };
+  const landsAt = (t) => (t.to === 'OTHER' ? t.toText || 'somewhere else' : t.to);
+
+  // A ticket from travelRows in one plain line for the dashboard, airport codes as saved.
+  function ticketLine(t) {
+    if (!isObj(t)) return '';
+    const kind = TICKET_FROM[t.from];
+    let trip = kind || t.from + ' to ' + landsAt(t) + (t.via === 'change' ? ' with a change' : '');
+    if (t.from === 'ABROAD') trip = kind + ' to ' + landsAt(t);
+    if (t.from === 'ITALY') trip = kind + (t.to ? ', landing at ' + landsAt(t) : ', not flying');
+    const names = Array.isArray(t.who) && t.who.length ? t.who.join(', ') + ': ' : '';
+    const line = [trip, TICKET_LAST[t.last], TICKET_ARRIVE[t.arrive] + ' ' + TICKET_LEAVE[t.leave]].join(', ');
+    return names ? names + line.charAt(0).toLowerCase() + line.slice(1) : line;
+  }
+
+  // Who lands where on which day, for information: [{ to, arrive, households }], by day then place.
+  function arrivals(rows) {
+    const groups = {};
+    (Array.isArray(rows) ? rows : []).forEach((r) => r.tickets.forEach((t) => {
+      const to = t.to ? landsAt(t) : ARRIVAL_PLACE[t.from] || t.from;
+      const key = t.arrive + '|' + to;
+      groups[key] = groups[key] || { to, arrive: t.arrive, households: [] };
+      groups[key].households.push(r.display + (Array.isArray(t.who) && t.who.length ? ' (' + t.who.join(', ') + ')' : ''));
+    }));
+    const day = (g) => ['early', 'thu', 'fri', 'sat'].indexOf(g.arrive);
+    return Object.keys(groups).map((k) => groups[k]).sort((a, b) => day(a) - day(b) || a.to.toLowerCase().localeCompare(b.to.toLowerCase()))
+      .map((g) => ({ to: g.to, arrive: g.arrive, households: g.households.slice().sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase())) }));
+  }
+  const arrivalDay = (key) => TICKET_ARRIVE[key] || '';
+
   // ---- admin hand-edits: pure builders for the one-leaf writes the dashboard makes ----
   const SERVER_TIME = { '.sv': 'timestamp' };
   const clampPeople = (n) => Math.min(8, Math.max(1, Math.floor(Number(n)) || 1));
@@ -212,7 +275,8 @@
   }
 
   const api = { shouldShowFirst, isLocalTest, copyProblems, WEDDING_MS, REPLIES_CLOSE_MS, SHARE_GBP, LOCKS, repliesOpen, weddingDay, countdown,
-    lockState, nextLock, comingCount, fill, ukDate, shareLine, canChangeStay, dockStates, stayLabel, landing, householdRows, householdTotals, adminReply, adminToggleComing, adminStay, adminSteps, adminFailureMessage };
+    lockState, nextLock, comingCount, fill, ukDate, shareLine, canChangeStay, dockStates, stayLabel, landing, householdRows, householdTotals,
+    travelRows, ticketLine, arrivals, arrivalDay, adminReply, adminToggleComing, adminStay, adminSteps, adminFailureMessage };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
