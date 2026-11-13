@@ -320,7 +320,7 @@
         const val = f[bx.key];
         bx.v.textContent = val ? val.v : T.fields.choose;
         bx.s.textContent = val ? val.s : '';
-        bx.b.className = 'tc-f' + (val ? '' : ' tc-empty') + (bx.key === inHand ? ' tc-on' : '') + (val && val.v.length > 7 ? ' tc-long' : '');
+        bx.b.className = 'tc-f' + (val ? '' : ' tc-empty') + (bx.key === inHand ? ' tc-on' : '') + (val && (val.v.length > 6 || bx.key === 'last' || bx.key === 'days') ? ' tc-long' : '');
         bx.b.setAttribute('aria-label', T.fields[bx.key] + ', ' + (val ? val.v + (val.s ? ', ' + val.s : '') : T.fields.choose));
         bx.b.disabled = busy;
       });

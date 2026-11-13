@@ -238,8 +238,14 @@
     }
 
     // Each scene checks after every wait that it is still the newest; a newer show() takes over where it left off.
-    async function play(v, scene, fast) {
-      const my = ++run, ms = n => (fast ? 0 : n), stale = () => my !== run;
+    // tm-still is on the drawing whenever nothing is moving: a newer scene takes it off until that one has finished.
+    function play(v, scene, fast) {
+      const my = ++run;
+      svg.classList.remove('tm-still');
+      return draw2(v, scene, fast, my).then(function () { if (my === run) svg.classList.add('tm-still'); });
+    }
+    async function draw2(v, scene, fast, my) {
+      const ms = n => (fast ? 0 : n), stale = () => my !== run;
       const fresh = scene === 'trip' && lastTrip !== v.from + '>' + v.to;
       lastTrip = scene === 'trip' ? v.from + '>' + v.to : '';
       paint(v, scene);

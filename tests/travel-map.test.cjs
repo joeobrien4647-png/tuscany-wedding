@@ -81,3 +81,9 @@ test('the map writes labels as text and the stylesheet styles it under the trave
   assert.match(css, /#first \.fc-travel \.tm-svg/);
   assert.match(css, /#first \.fc-travel \.tm-dot/);
 });
+
+test('the map marks itself still once a scene has finished drawing, so a check can wait for it', () => {
+  const js = read('js/first/travel-map.js');
+  assert.match(js, /classList\.remove\('tm-still'\)/);
+  assert.match(js, /classList\.add\('tm-still'\)/);
+});

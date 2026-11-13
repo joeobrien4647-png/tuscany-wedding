@@ -104,3 +104,21 @@ test('--device with no match exits 1 at once, without a browser or fixtures', { 
   assert.ok(Date.now() - started < 10000, 'it should not launch anything');
   assert.deepEqual(listFixtures(), before, 'fixtures were written or removed');
 });
+
+test('the phone-fit script walks the Getting there card: every stop the plan names', () => {
+  const py = source();
+  for (const stop of ['travel-empty', 'travel-comparing', 'travel-routes', 'travel-last-stretch', 'travel-whole-trip', 'travel-days', 'travel-ready',
+    'travel-stamped', 'travel-who', 'travel-two-tickets', 'travel-reopened', 'travel-abroad', 'travel-italy-not-flying', 'travel-road', 'travel-train',
+    'travel-change', 'travel-somewhere-else', 'travel-longest-names', 'travel-data-refused', 'travel-stamp-refused', 'travel-stamp-retried'])
+    assert.ok(py.includes("'" + stop + "'"), stop);
+  assert.match(py, /\('travel', flow_travel\)/);
+  assert.match(py, /flow_travel_ways/);
+  assert.match(py, /flow_travel_failures/);
+});
+test('the phone-fit script names its three new exceptions and why', () => {
+  const py = source();
+  assert.match(py, /SCROLL_OK = \[\s*'\.tc-opts',\s+#/);
+  assert.match(py, /SR_ONLY_OK = \[\s*'\.tc-sr',\s+#/);
+  assert.match(py, /MAP_OK = \[\s*'\.tm-svg',\s+#/);
+  assert.match(py, /a\.scrollWidth > a\.clientWidth \+ 1/, 'a scrolling list is still checked sideways');
+});

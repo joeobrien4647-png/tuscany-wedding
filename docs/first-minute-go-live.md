@@ -51,9 +51,41 @@ This is the first time it will have been seen or heard on a real phone. Things t
 
 Optional, on a computer with Python and Playwright installed and a network connection: `python scripts/check-first-fit.py` runs every screen on four phone setups and stops with an error if anything is cut off. It takes about six minutes.
 
+## 4a. The Getting there card
+
+Built on the `getting-there` branch, on top of sections 1 to 4, which were done on 11 Nov 2026. Nothing in this section has been run. The card sits behind the same switch, so guests see nothing until section 6.
+
+What it adds: a guest builds their trip on a map, fills a ticket and stamps it. A stamped ticket is saved at `travel/<their key>/<ticket number>`, where a personal link can write but never read. Only a signed-in admin can read it, so guests cannot see each other's plans. The phone that stamped a ticket keeps its own copy and shows it again; another phone starts empty.
+
+**Publish the rules (Joe only).** The branch adds one block, `travel`, to `firebase.rules.json`, beside `household`. Nothing else in the file changes.
+
+1. Firebase console, Realtime Database, Rules tab. Copy what is live now into a file you keep (your way back).
+2. Compare the live rules with `firebase.rules.json` on `main`. They should match what you published on 11 Nov. If they differ, stop and work out why first.
+3. Paste the `getting-there` branch's `firebase.rules.json` and publish.
+4. Check a link cannot read tickets: in the Rules Playground, a read of `/travel` and of `/travel/anything` with no sign-in should both be denied.
+5. Check a household with no yes cannot stamp: in the Rules Playground, a set at `/travel/<a key with no reply>/0` with no sign-in should be denied.
+
+Not yet proven: the rules have only been checked for shape by the tests. That they accept a real stamp is proven by the two-phone test below, and by nothing before it. Until the rules are published, stamping on the live site fails with "Could not stamp it" and nothing is lost.
+
+**Push with the switch still off (Joe only).** Merge `getting-there` into `main` and push, as in section 3. The site should look exactly as before.
+
+**Try it on two phones.**
+
+1. Use your own household's link with `&first=1&test=1`, on both phones.
+2. Open Travel. Pick London and Manchester, compare, choose a route, pick the last stretch and the days, stamp. The Travel button on the home screen should tick gold.
+3. Close the card and open it again: the stamped ticket should still be there. On the second phone the card starts empty: that is by design.
+4. Tap "Someone travelling separately?", pick one of you, build a second ticket and stamp it.
+5. Try the other ways of setting off (outside the UK, already in Italy, driving, train), "Flying with a change?" and "Landing somewhere else?". You do not need to stamp these.
+6. In the dashboard, Site tab, Invitations: your household's row should show a "Travel" line for each ticket, and an Arrivals list underneath.
+7. Things to look for on a real phone: nothing cut off, only the list at the bottom scrolls, the map moves smoothly, typing an airport name does not hide the box behind the keyboard.
+
+**Clear the test tickets (Joe only).** The dashboard shows tickets but does not change them. In the Firebase console, Realtime Database, Data tab, open `travel`, find your household's key and delete that one entry. Never delete `travel` itself once guests have stamped. Then on each phone open the Reply card and tap "Not you?", which also forgets the ticket kept on that phone.
+
+Not in yet: prices on the routes. The "See live prices" link works now and opens Google Flights for the chosen route and days. Prices shown on the card come in January, and need a SerpApi account and key that only Joe can create.
+
 ## 5. Write the words
 
-Every guest-facing line is in `js/first/words.js` and every one is a placeholder. Replace them with your own. Ones that need a decision, not just wording:
+Every guest-facing line is in `js/first/words.js` and every one is a placeholder. Replace them with your own. The Getting there card's lines are under `travel`; its airports, airlines, drive times and tolls are not words, they come from `data/getting-there.json`. Ones that need a decision, not just wording:
 
 - The gifts answer (it says details will follow)
 - The line under "your own place"
@@ -85,4 +117,4 @@ Push sections 5 to 7 together. Open one real link without `&first=1` to confirm 
 
 ## What this does not include
 
-Food needs, travel days, the song request and the paid mark (phase 2), and what is inside each sealed envelope (phase 3). The envelopes show their opening dates and stay sealed until those are built.
+Food needs, the song request and the paid mark (phase 2; travel days are now part of the Getting there card), prices on the Getting there routes (January), and what is inside each sealed envelope (phase 3). The envelopes show their opening dates and stay sealed until those are built.

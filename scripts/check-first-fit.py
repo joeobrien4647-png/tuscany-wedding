@@ -73,7 +73,8 @@ CARD_REPLY = CARD + ['.fc-change', '.fc-notyou']
 CARD_REPLY_CLOSED = CARD + ['.fc-notyou']
 CARD_STAY = CARD + ['.fc-opt-head', '.fc-opt.fc-on .fc-opt-body', '.fc-go']
 CARD_STAY_FIXED = CARD + ['.fc-opt-head']   # the confirm button is dimmed on purpose once the choice is fixed
-CARD_TRAVEL = CARD + ['.fc-row']
+# The Getting there card: the ticket and its four boxes, the tray's heading, and the map once it has stopped moving.
+CARD_TRAVEL = CARD + ['.tc-ticket', '.tc-f', '.tc-h', '.tm-svg.tm-still']
 CARD_WEAR = CARD + ['.fc-row']
 CARD_WEEKEND = CARD + ['.fc-day']
 CARD_QUESTIONS = CARD + ['.fc-q-head']
@@ -87,13 +88,22 @@ DRIFT_OK = [
     '.fm-stage',     # the film and photo layers behind the minute drift for up to 8 s
     '.fc-bg',        # the picture behind an open card drifts for 6 s
 ]
+SCROLL_OK = [
+    '.tc-opts',      # the Getting there tray's list scrolls inside itself (the approved design's one exception); never sideways
+]
+SR_ONLY_OK = [
+    '.tc-sr',        # the tray's heading while the compare button takes its place: kept for screen readers, not shown
+]
+MAP_OK = [
+    '.tm-svg',       # the map's own labels run past its edge when it zooms in; the svg clips them and is itself measured
+]
 BLEED_OK = [
     '.fm-stage',     # the full-bleed film and photo layers are scaled past the screen edges so they never show a gap
     '.fm-defs',      # the 0 x 0 svg that only holds the seal's gradients and clip paths
 ]
 
 # One in-page function: wait for the required elements to be visible and still, then measure the screen.
-MEASURE_JS = r"""async ({ required, strictVertical, overlayOk, bleedOk, driftOk }) => {
+MEASURE_JS = r"""async ({ required, strictVertical, overlayOk, bleedOk, driftOk, scrollOk, srOk, mapOk }) => {
   const first = document.getElementById('first'), de = document.documentElement, vw = innerWidth, vh = innerHeight;
   const out = { missing: [], doc: 0, card: 0, cut: [] };
   const opacity = el => { let o = 1; for (let a = el; a && a !== de; a = a.parentElement) o *= parseFloat(getComputedStyle(a).opacity); return o; };
@@ -142,6 +152,14 @@ MEASURE_JS = r"""async ({ required, strictVertical, overlayOk, bleedOk, driftOk 
   const clipBox = el => { for (let a = el.parentElement; a && a !== de; a = a.parentElement) if (clips(a)) return a; return null; };
   const near = (r, box, slack) => r.left >= box.left - slack && r.right <= box.right + slack && r.top >= box.top - slack && r.bottom <= box.bottom + slack;
   const sideways = el => el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 1;
+  // Inside a list that scrolls on purpose, only the part of a rectangle the list is showing counts (null: scrolled away).
+  const scroller = el => { for (const s of scrollOk) { const a = el.closest(s); if (a) return a; } return null; };
+  const showing = (r, el) => {
+    const sc = scroller(el);
+    if (!sc) return r;
+    const b = sc.getBoundingClientRect(), top = Math.max(r.top, b.top), bottom = Math.min(r.bottom, b.bottom);
+    return bottom - top < 1 ? null : { left: r.left, right: r.right, top, bottom, width: r.width, height: bottom - top };
+  };
   const tallerThanBox = el => {
     const extra = el.scrollHeight - el.clientHeight;
     if (el.clientWidth <= 0 || extra <= 1) return false;
@@ -157,25 +175,29 @@ MEASURE_JS = r"""async ({ required, strictVertical, overlayOk, bleedOk, driftOk 
   let n;
   while ((n = walker.nextNode())) {
     const text = n.textContent.trim(), el = n.parentElement;
-    if (!text || !el || !el.getClientRects().length || gone(el)) continue;
+    if (!text || !el || !el.getClientRects().length || gone(el) || srOk.some(s => el.closest(s))) continue;
     const short = '"' + text.slice(0, 32) + '"';
     { const cs = getComputedStyle(el); used.set(cs.fontFamily.split(',')[0].replace(/["']/g, '').trim() + '|' + (cs.fontStyle === 'normal' ? 'normal' : 'italic'), 1); }
-    if (sideways(el)) say(el, 'text spills sideways from ' + label(el) + ' ' + short);
+    // A label drawn inside the map is svg text: it has no box of its own to spill from.
+    const inMap = mapOk.some(s => el.closest(s));
+    if (inMap) { /* measured as part of the svg below */ }
+    else if (sideways(el)) say(el, 'text spills sideways from ' + label(el) + ' ' + short);
     else if (!clips(el) && tallerThanBox(el)) say(el, 'text taller than its box ' + label(el) + ' ' + short);
     for (let a = el; a && a !== first.parentElement; a = a.parentElement)
-      if (clips(a) && a.clientWidth > 0 && (a.scrollWidth > a.clientWidth + 1 || a.scrollHeight > a.clientHeight + 1)) say(a, 'clipping box overflows ' + label(a) + ' ' + short);
+      if (clips(a) && a.clientWidth > 0 && (a.scrollWidth > a.clientWidth + 1 || (!scrollOk.some(s => a.matches(s)) && a.scrollHeight > a.clientHeight + 1))) say(a, 'clipping box overflows ' + label(a) + ' ' + short);
     const range = document.createRange(); range.selectNodeContents(n);
     const box = !el.closest('svg') && clipBox(el), bounds = box && box.getBoundingClientRect();
-    for (const r of range.getClientRects()) {
-      if (!r.width) continue;
-      if (r.left < -0.5 || r.right > vw + 0.5 || r.top < -0.5 || r.bottom > vh + 0.5)
+    for (const whole of range.getClientRects()) {
+      const r = whole.width ? showing(whole, el) : null;
+      if (!r) continue;
+      if (!inMap && (r.left < -0.5 || r.right > vw + 0.5 || r.top < -0.5 || r.bottom > vh + 0.5))
         say(short + 'out', 'outside the screen ' + short + ' ' + [r.left, r.top, r.right, r.bottom].map(Math.round));
       if (bounds && !near(r, bounds, 0.5)) say(short + 'box', 'cut by its box ' + label(box) + ' ' + short);
     }
     if (!el.closest('svg')) {
       // The line box (the element's own box) is what a neighbour must not enter; inline text uses its own rectangle.
-      const b = getComputedStyle(el).display === 'inline' ? range.getBoundingClientRect() : el.getBoundingClientRect();
-      if (b.width > 0 && b.height > 0 && !overlayOk.some(s => el.closest(s))) texts.set(el, { b, short });
+      const b = showing(getComputedStyle(el).display === 'inline' ? range.getBoundingClientRect() : el.getBoundingClientRect(), el);
+      if (b && b.width > 0 && b.height > 0 && !overlayOk.some(s => el.closest(s))) texts.set(el, { b, short });
     }
   }
   const list = Array.from(texts.entries());
@@ -200,8 +222,8 @@ MEASURE_JS = r"""async ({ required, strictVertical, overlayOk, bleedOk, driftOk 
   for (const el of scope.querySelectorAll('button, a, img, video, svg')) {
     if (el.tagName.toLowerCase() === 'svg' && el.parentElement && el.parentElement.closest('svg')) continue;
     if (bleedOk.some(s => el.closest(s)) || gone(el)) continue;
-    const r = el.getBoundingClientRect();
-    if (r.width < 1 || r.height < 1) continue;
+    const r = showing(el.getBoundingClientRect(), el);
+    if (!r || r.width < 1 || r.height < 1) continue;
     if (!near(r, { left: 0, top: 0, right: vw, bottom: vh }, 0.5)) say(el, 'outside the screen ' + label(el) + ' ' + [r.left, r.top, r.right, r.bottom].map(Math.round));
     const box = clipBox(el);
     if (box && !near(r, box.getBoundingClientRect(), 0.5)) say(el, 'sticks out of its box ' + label(el) + ' in ' + label(box));
@@ -342,7 +364,8 @@ class Flow:
     async def stop(self, name, required):
         """Wait until every required element is visible and still, then measure the whole screen."""
         found = await self.page.evaluate(MEASURE_JS, {'required': required, 'strictVertical': self.device['engine'] == 'webkit',
-                                                       'overlayOk': OVERLAY_TEXT_OK, 'bleedOk': BLEED_OK, 'driftOk': DRIFT_OK})
+                                                       'overlayOk': OVERLAY_TEXT_OK, 'bleedOk': BLEED_OK, 'driftOk': DRIFT_OK,
+                                                       'scrollOk': SCROLL_OK, 'srOk': SR_ONLY_OK, 'mapOk': MAP_OK})
         new_errors = self.errors[self.seen_errors:]
         self.seen_errors = len(self.errors)
         if self.shots:
@@ -461,8 +484,10 @@ async def flow_cards(f, guest):
     await p.wait_for_selector('#first .fc', state='detached')
     await p.wait_for_timeout(500)
     await f.stop('home-after-stay', HOME)
-    for nth, name, required in ((2, 'travel', CARD_TRAVEL), (3, 'wear', CARD_WEAR), (4, 'weekend', CARD_WEEKEND)):
+    for nth, name, required in ((2, 'travel', CARD_TRAVEL + ['.tc-chip']), (3, 'wear', CARD_WEAR), (4, 'weekend', CARD_WEEKEND)):
         await open_dock(f, nth)
+        if nth == 2:
+            await map_still(f.page)
         await f.stop('card-' + name, required)
         await close_card(f)
     await p.click('#first .fh-link >> text=Questions')
@@ -656,12 +681,188 @@ async def flow_busy_guard(f, guest):
     await f.stop('busy-guard-done', HOME)
 
 
-PER_INVITE = [('first-visit', flow_first_visit), ('cards', flow_cards), ('cant-come', flow_cant_come), ('closed', flow_closed),
+# ---------- the Getting there card ----------
+async def map_still(p, arrived=False):
+    """Wait until the map has finished drawing; after a chosen route, also for the villa's two pulses."""
+    await p.wait_for_selector('#first .tm-svg.tm-still', state='attached', timeout=12000)
+    await p.wait_for_timeout(2700 if arrived else 300)
+
+
+async def tk(f, key, wait=300):
+    """Tap the tray control that carries this key (the list scrolls it into view first)."""
+    await f.page.click('#first .tc-tray [data-k="%s"]' % key)
+    await f.page.wait_for_timeout(wait)
+
+
+async def box(f, nth):
+    """Tap one of the ticket's four boxes: 0 From, 1 To, 2 Last stretch, 3 Days."""
+    await f.page.click('#first .tc-f >> nth=%d' % nth)
+    await f.page.wait_for_timeout(300)
+
+
+async def open_travel(f, guest):
+    await with_seen_home(f, guest, replied(guest))
+    await open_dock(f, 2)
+    await map_still(f.page)
+
+
+async def flow_travel(f, guest):
+    """Empty, London plus Manchester compared, a chosen route, last stretch, days, stamp, a second ticket, reopen."""
+    p = f.page
+    await open_travel(f, guest)
+    await f.stop('travel-empty', CARD_TRAVEL + ['.tc-chip'])
+    await tk(f, 'g-london')
+    await tk(f, 'a-MAN')
+    await map_still(p)
+    f.expect(await p.inner_text('#first .tc-cta') == 'Compare 22 routes', 'London plus Manchester is not 22 routes: %s' % await p.inner_text('#first .tc-cta'))
+    await f.stop('travel-comparing', CARD_TRAVEL[:-2] + ['.tm-svg.tm-still', '.tc-chip', '.tc-cta'])
+    await tk(f, 'compare')
+    f.expect(await p.locator('#first .tc-row').count() == 22, 'the route list does not have 22 rows')
+    await f.stop('travel-routes', CARD_TRAVEL + ['.tc-row'])
+    await tk(f, 's-airport')
+    await f.stop('travel-routes-by-airport', CARD_TRAVEL + ['.tc-row'])
+    await tk(f, 'r-MANPSA')
+    await map_still(p, arrived=True)
+    await f.stop('travel-last-stretch', CARD_TRAVEL + ['.tc-chip', '.tc-fact', '.tc-view'])
+    await p.click('#first .tc-view')
+    await map_still(p, arrived=True)
+    await f.stop('travel-whole-trip', CARD_TRAVEL + ['.tc-chip', '.tc-view'])
+    await tk(f, 'last-hire')
+    await f.stop('travel-days', CARD_TRAVEL + ['.tc-chip'])
+    await tk(f, 'arr-fri')
+    await tk(f, 'lea-mon')
+    await f.stop('travel-ready', CARD_TRAVEL + ['.tc-cta', '.tc-live'])
+    await tk(f, 'stamp', 1200)
+    f.expect(await p.is_visible('#first .tc-ticket.tc-stamped'), 'the ticket is not shown as stamped')
+    await f.stop('travel-stamped', CARD_TRAVEL + ['.tc-ticket.tc-stamped', '.tc-ghost'])
+    if len(guest['people']) > 1:
+        await tk(f, 'another')
+        await tk(f, 'p-1')
+        await f.stop('travel-who', CARD_TRAVEL + ['.tc-chip', '.tc-cta', '.tc-back'])
+        await tk(f, 'who-next')
+        await tk(f, 'k-ROAD')
+        await map_still(p, arrived=True)
+        await tk(f, 'arr-thu')
+        await tk(f, 'lea-sun')
+        await f.stop('travel-second-ready', CARD_TRAVEL + ['.tc-cta', '.tc-back'])
+        await tk(f, 'stamp', 1200)
+        f.expect(await p.locator('#first .tc-tray [data-k^="t-"]').count() == 2, 'two tickets are not both offered')
+        await f.stop('travel-two-tickets', CARD_TRAVEL + ['.tc-ticket.tc-stamped', '.tc-chip', '.tc-ghost'])
+    await close_card(f)
+    dock = await p.evaluate(DOCK_JS)
+    f.expect(dock[2][0] == 'fh-done', 'Travel is not ticked after a stamp: %s' % dock[2])
+    await f.stop('home-after-travel', HOME)
+    await open_dock(f, 2)
+    await map_still(p, arrived=True)
+    f.expect(await p.is_visible('#first .tc-ticket.tc-stamped'), 'the stamped ticket did not show again on this phone')
+    await f.stop('travel-reopened', CARD_TRAVEL + ['.tc-ticket.tc-stamped', '.tc-ghost'])
+
+
+async def flow_travel_ways(f, guest):
+    """Every other way of setting off, a change, landing somewhere else, and the longest names the data holds."""
+    p = f.page
+    await open_travel(f, guest)
+    await tk(f, 'k-ABROAD')
+    await map_still(p)
+    await f.stop('travel-abroad', CARD_TRAVEL + ['.tc-row'])
+    await tk(f, 'l-FCO')
+    await map_still(p, arrived=True)
+    await f.stop('travel-abroad-landed', CARD_TRAVEL + ['.tc-chip', '.tc-fact'])
+    await box(f, 0)
+    await tk(f, 'k-ITALY')
+    await map_still(p)
+    await f.stop('travel-italy', CARD_TRAVEL + ['.tc-row'])
+    await tk(f, 'none')
+    await map_still(p)
+    await f.stop('travel-italy-not-flying', CARD_TRAVEL + ['.tc-chip'])
+    await box(f, 0)
+    await tk(f, 'k-ROAD')
+    await map_still(p, arrived=True)
+    await f.stop('travel-road', CARD_TRAVEL + ['.tc-chip'])
+    await box(f, 0)
+    await tk(f, 'k-TRAIN')
+    await map_still(p, arrived=True)
+    await f.stop('travel-train', CARD_TRAVEL + ['.tc-chip'])
+    await box(f, 0)
+    await tk(f, 'a-EDI')
+    await tk(f, 'a-GLA')
+    await tk(f, 'compare')
+    await tk(f, 'change')
+    await map_still(p)
+    await f.stop('travel-change', CARD_TRAVEL + ['.tc-row', '.tc-chip', '.tc-back'])
+    await tk(f, 'lv-GLA')
+    await tk(f, 'c-PEG')
+    await map_still(p, arrived=True)
+    await f.stop('travel-change-chosen', CARD_TRAVEL + ['.tc-chip', '.tc-fact'])
+    await box(f, 1)
+    await tk(f, 'other')
+    await p.fill('#first .tc-input', 'Ancona')
+    await p.wait_for_timeout(200)
+    await f.stop('travel-somewhere-else', CARD_TRAVEL + ['.tc-input', '.tc-cta', '.tc-back'])
+    await tk(f, 'other-done')
+    await map_still(p)
+    f.expect(await p.locator('#first .tc-live').count() == 0, 'a live-prices link was offered for an airport the card does not know')
+    await f.stop('travel-somewhere-else-set', CARD_TRAVEL + ['.tc-chip'])
+    await box(f, 0)
+    await tk(f, 'a-BFS')
+    await tk(f, 'compare')
+    await tk(f, 'r-BFSFCO')
+    await map_still(p, arrived=True)
+    await tk(f, 'last-public')
+    await tk(f, 'arr-early')
+    await tk(f, 'lea-later')
+    await f.stop('travel-longest-names', CARD_TRAVEL + ['.tc-cta', '.tc-live'])
+
+
+# The data file answered with something that is not the data: the card must say so and offer another try.
+NOT_THE_DATA = '{"airports": []}'
+
+
+async def flow_travel_failures(f, guest):
+    """The data refused, then a refused stamp: nothing is shown as stamped, the plan is kept, and a retry works."""
+    p = f.page
+    await with_seen_home(f, guest, replied(guest))
+    await p.route('**/data/getting-there.json', lambda route: route.fulfill(status=200, content_type='application/json', body=NOT_THE_DATA))
+    await open_dock(f, 2)
+    await p.wait_for_selector('#first .tc-note[role=alert]', state='visible')
+    await p.wait_for_timeout(400)
+    await f.stop('travel-data-refused', CARD + ['.tc-ticket', '.tc-f', '.tc-note[role=alert]', '.tc-cta'])
+    await p.unroute('**/data/getting-there.json')
+    await p.click('#first .tc-cta >> text=' + TRY_AGAIN)
+    await map_still(p)
+    await f.stop('travel-data-retried', CARD_TRAVEL + ['.tc-chip'])
+    await tk(f, 'k-ROAD')
+    await map_still(p, arrived=True)
+    await tk(f, 'arr-fri')
+    await tk(f, 'lea-mon')
+    await p.evaluate("() => { window.__real = sjFirst.store.saveTicket; }")
+    await p.evaluate(SLOW_FALSE % ('saveTicket', 'false'))
+    await tk(f, 'stamp', 0)
+    await p.evaluate("() => { const b = document.querySelector('#first .tc-tray [data-k=\"stamp\"]'); b.click(); b.click(); }")
+    await p.wait_for_timeout(150)
+    f.expect(await p.is_visible('#first .tc-note[role=status]'), 'no stamping line while the ticket saves')
+    await f.stop('travel-stamping', CARD + ['.tc-ticket', '.tc-f', '.tc-h', '.tc-note[role=status]'])
+    await p.wait_for_selector('#first .tc-note[role=alert]', state='visible')
+    await p.wait_for_timeout(500)
+    f.expect(await p.evaluate('() => window.__writes') == 1, 'a double tap sent more than one ticket write')
+    f.expect(not await p.is_visible('#first .tc-ticket.tc-stamped'), 'the ticket shows as stamped after a refused save')
+    f.expect(await p.inner_text('#first .tc-f >> nth=3') != '', 'the plan was lost after a refused save')
+    dock = await p.evaluate(DOCK_JS)
+    f.expect(dock[2][0] != 'fh-done', 'Travel was ticked after a refused save: %s' % dock[2])
+    await f.stop('travel-stamp-refused', CARD_TRAVEL + ['.tc-note[role=alert]', '.tc-cta'])
+    await p.evaluate("() => { sjFirst.store.saveTicket = window.__real; }")
+    await tk(f, 'stamp', 1200)
+    f.expect(await p.is_visible('#first .tc-ticket.tc-stamped'), 'the retry did not stamp the ticket')
+    await f.stop('travel-stamp-retried', CARD_TRAVEL + ['.tc-ticket.tc-stamped', '.tc-ghost'])
+
+
+PER_INVITE = [('first-visit', flow_first_visit), ('cards', flow_cards), ('travel', flow_travel), ('cant-come', flow_cant_come), ('closed', flow_closed),
               ('closed-replied', flow_closed_replied), ('second-visit', flow_second_visit)]
 # (name, flow, which guest): an index into INVITES, 'spare', or None for the first invitation.
 PER_DEVICE = [('no-link', flow_no_link, None), ('full-minute', flow_full_minute, 2), ('wedding-day', flow_wedding_day, 1),
               ('sealed-envelope', flow_sealed_envelope, 1), ('reply-save', flow_reply_save, 'spare'),
-              ('stay-save', flow_stay_save, 'spare'), ('busy-guard', flow_busy_guard, 'spare')]
+              ('stay-save', flow_stay_save, 'spare'), ('busy-guard', flow_busy_guard, 'spare'),
+              ('travel-ways', flow_travel_ways, 1), ('travel-failures', flow_travel_failures, 'spare')]
 
 
 def plan(invites, spare, only=''):

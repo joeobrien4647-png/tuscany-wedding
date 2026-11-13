@@ -99,3 +99,31 @@ test('whoList: a list as long as the invitation, true for the people picked', ()
   assert.deepEqual(t.whoList(2, [0, 1, 5]), [true, true]);
   assert.deepEqual(t.whoList(0, [0]), []);
 });
+
+// The ticket's boxes and its two-line summary have fixed room on a 375 px phone.
+test('summary leaves the drive off when the line would not fit in two lines', () => {
+  const s = steps => t.summary(walk(steps), data, W);
+  assert.equal(s([{ froms: ['BFS'] }, { route: { from: 'BFS', to: 'FCO', via: 'direct' } }]), 'Belfast International to Rome Fiumicino');
+  assert.equal(s([{ froms: ['LHR'] }, { route: { from: 'LHR', to: 'PSA', via: 'direct' } }]), 'London Heathrow to Pisa, about 2 hr 30 min drive');
+  for (const from of Object.keys(data.ukAirports)) for (const a of data.airports) {
+    const line = s([{ froms: [from] }, { route: { from, to: a.code, via: 'change' } }]);
+    assert.ok(line.length <= t.SUMMARY_MAX, line);
+  }
+});
+test('fields: the small name beside a code is left off when the two would not fit the box', () => {
+  assert.deepEqual(t.fields(walk([{ froms: ['PIK'] }]), data, W).from, { v: 'PIK', s: '' });
+  assert.deepEqual(t.fields(walk([{ froms: ['BFS'] }]), data, W).from, { v: 'BFS', s: '' });
+  assert.deepEqual(t.fields(walk([{ froms: ['STN'] }]), data, W).from, { v: 'STN', s: 'London Stansted' });
+  assert.deepEqual(t.fields(walk([{ kind: 'ABROAD' }, { route: { to: 'FCO' } }]), data, W).to, { v: 'FCO', s: 'Rome Fiumicino' });
+});
+
+test('a long somewhere-else airport is shortened on the ticket, never in what is saved', () => {
+  const long = 'Aeroporto Internazionale di Ancona Falconara Raffaello Sanzio';
+  const p = walk([{ froms: ['PIK'] }, { route: { from: 'PIK', to: 'OTHER' } }, { toText: long }, { last: 'lift' }, { arrive: 'fri' }, { leave: 'mon' }]);
+  const shown = t.fields(p, data, W).to.v;
+  assert.ok(shown.length <= 30 && shown.endsWith('\u2026') && long.startsWith(shown.slice(0, -1).trim()), shown);
+  assert.ok(t.summary(p, data, W).length <= t.SUMMARY_MAX, t.summary(p, data, W));
+  assert.ok(t.summary(walk([{ kind: 'ABROAD' }, { route: { to: 'OTHER' } }, { toText: long }]), data, W).length <= t.SUMMARY_MAX);
+  assert.equal(t.ticketOf(p).toText, long.slice(0, 60));
+  assert.equal(t.fields(walk([{ kind: 'ABROAD' }, { route: { to: 'OTHER' } }, { toText: 'Ancona' }]), data, W).to.v, 'Ancona');
+});

@@ -20,6 +20,8 @@
   const ARRIVE_DATE = { thu: '2027-05-27', fri: '2027-05-28', sat: '2027-05-29' };
   const LEAVE_DATE = { sun: '2027-05-30', mon: '2027-05-31' };
   const MAX_TEXT = 60, MAX_PEOPLE = 8, MAX_FROMS = 18;
+  // Room on the ticket at 375 px: a code with its name in one box, and two lines of summary under the boxes.
+  const BOX_MAX = 18, SUMMARY_MAX = 52, PLACE_MAX = 30;
   const CODE = /^[A-Z]{3}$/;
 
   // core.js loads first on the page; under Node tests it is required here.
@@ -212,10 +214,15 @@
     return isObject(a) ? text(a.name) : '';
   }
   const driveOf = a => (a && isObject(a.drive) ? a.drive : {});
+  // The guest's own words for an airport, shortened to what the ticket has room for.
+  function placeText(plan) {
+    const s = plan.toText.trim();
+    return s.length > PLACE_MAX ? s.slice(0, PLACE_MAX - 1).trim() + '\u2026' : s;
+  }
 
   // The four boxes: { from, to, last, days }, each { v, s } (the value and a small note) or null while empty.
   function fields(plan, data, w) {
-    const T = w.travel, box = (v, s) => ({ v, s: s || '' });
+    const T = w.travel, box = (v, s) => ({ v, s: s && v.length + s.length <= BOX_MAX ? s : '' });
     let from = null, to = null;
     if (isKind(plan.from)) from = box(T.from.kinds[plan.from]);
     else if (plan.from) from = box(plan.from, ukName(data, plan.from));
@@ -223,7 +230,7 @@
     else if (plan.froms.length) from = box(plan.froms[0] + ' +' + (plan.froms.length - 1));
     if (plan.from === 'ROAD' || plan.from === 'TRAIN') to = box(w.minute.estate);
     else if (plan.to === 'NONE') to = box(T.route.notFlying);
-    else if (plan.to === 'OTHER') to = plan.toText.trim() ? box(plan.toText.trim()) : null;
+    else if (plan.to === 'OTHER') to = placeText(plan) ? box(placeText(plan)) : null;
     else if (plan.to) to = box(plan.to, text((airportOf(data, plan.to) || {}).shortName));
     const a = plan.arrive ? T.days.arrive[plan.arrive] : '', l = plan.leave ? T.days.leave[plan.leave] : '';
     return {
@@ -240,11 +247,12 @@
     if (plan.from === 'TRAIN') return S.train;
     if (plan.to === 'NONE') return S.italy;
     const airport = plan.to && plan.to !== 'OTHER' ? airportOf(data, plan.to) : null;
-    const place = plan.to === 'OTHER' ? plan.toText.trim() : plan.to ? text((airport || {}).shortName) || plan.to : '';
+    const place = plan.to === 'OTHER' ? placeText(plan) : plan.to ? text((airport || {}).shortName) || plan.to : '';
     const drive = text(driveOf(airport).label);
     const tail = drive ? ', ' + core.fill(T.route.drive, { drive }) : '';
-    if (isKind(plan.from)) return place ? core.fill(S.landing, { to: place }) + tail : T.from.kinds[plan.from];
-    if (plan.from && place) return core.fill(S.trip, { from: ukName(data, plan.from) || plan.from, to: place }) + tail;
+    const withDrive = line => (line.length + tail.length <= SUMMARY_MAX ? line + tail : line);
+    if (isKind(plan.from)) return place ? withDrive(core.fill(S.landing, { to: place })) : T.from.kinds[plan.from];
+    if (plan.from && place) return withDrive(core.fill(S.trip, { from: ukName(data, plan.from) || plan.from, to: place }));
     if (plan.froms.length === 1) return core.fill(S.comparingOne, { from: ukName(data, plan.froms[0]) || plan.froms[0] });
     return plan.froms.length ? core.fill(S.comparing, { n: plan.froms.length }) : S.empty;
   }
@@ -288,7 +296,7 @@
     return answer === 'yes' ? 'yes' : answer === 'no' ? 'no' : 'reply';
   }
 
-  const api = { LAST, ARRIVE, LEAVE, KINDS, GROUPS, PRICE_MAX_AGE_MS, newPlan, choose, nextStep, lastOptions, routes, airportsByDrive,
+  const api = { LAST, ARRIVE, LEAVE, KINDS, GROUPS, PRICE_MAX_AGE_MS, SUMMARY_MAX, newPlan, choose, nextStep, lastOptions, routes, airportsByDrive,
     ticketOf, cleanTicket, cleanPlan, planOf, priceFor, flightsLink, canStamp, fields, summary, lastFacts, comingPeople, whoList };
   root.sjFirst = root.sjFirst || {};
   root.sjFirst.travel = api;
