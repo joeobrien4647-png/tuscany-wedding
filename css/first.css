@@ -349,6 +349,36 @@ html.first-on body > :not(#first) { display: none; }
 }
 
 /* reduced motion: every scene is a gentle fade, nothing moves or loops */
+
+/* ==== Getting there: the map (js/first/travel-map.js) ==== */
+#first .fc-travel { --tm-land: #141927; --tm-italy: #1f2638; --tm-ember: #f4a95c; }
+#first .fc-travel .tm-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; touch-action: manipulation; }
+#first .fc-travel .tm-land { fill: var(--tm-land); }
+#first .fc-travel .tm-italy { fill: var(--tm-italy); stroke: var(--line-gold); stroke-opacity: .45; }
+#first .fc-travel .tm-glow-in { stop-color: var(--tm-ember); stop-opacity: .34; }
+#first .fc-travel .tm-glow-out { stop-color: var(--tm-ember); stop-opacity: 0; }
+#first .fc-travel .tm-route { fill: none; stroke: var(--gold); stroke-linecap: round; stroke-linejoin: round; }
+#first .fc-travel .tm-arc { stroke: var(--gold-hi); }
+#first .fc-travel .tm-fanline { opacity: .6; }
+#first .fc-travel .tm-plane { fill: var(--gold-hi); }
+#first .fc-travel .tm-dot { cursor: pointer; }
+#first .fc-travel .tm-dot.tm-villa { cursor: default; }
+#first .fc-travel .tm-hit { fill: transparent; }
+#first .fc-travel .tm-pt { fill: var(--ink-faint); transition: fill .3s, opacity .3s; }
+#first .fc-travel .tm-ring { fill: none; stroke: var(--gold); stroke-width: 1.2; opacity: 0; transform-box: fill-box; transform-origin: center; }
+#first .fc-travel .tm-dot text { font: 500 11px var(--ui); letter-spacing: .04em; fill: var(--ink); paint-order: stroke; stroke: var(--night); stroke-width: 3px; stroke-linejoin: round; opacity: 0; transition: opacity .3s; pointer-events: none; }
+#first .fc-travel .tm-dim .tm-pt { opacity: .28; }
+#first .fc-travel .tm-sel .tm-pt { fill: var(--gold-hi); }
+#first .fc-travel .tm-it.tm-sel text, #first .fc-travel .tm-uk.tm-named text, #first .fc-travel .tm-close .tm-it text, #first .fc-travel .tm-villa text { opacity: 1; }
+#first .fc-travel .tm-close .tm-it.tm-dim text { opacity: .45; }
+#first .fc-travel .tm-it .tm-pt { fill: var(--ink-soft); }
+#first .fc-travel .tm-it.tm-served .tm-pt { fill: var(--gold); }
+#first .fc-travel .tm-it.tm-served .tm-ring { animation: tm-pulse 2.2s ease-out infinite; }
+#first .fc-travel .tm-villa .tm-pt { fill: var(--gold-hi); }
+#first .fc-travel .tm-villa text { fill: var(--gold-hi); font: 500 12px var(--display); letter-spacing: .02em; }
+#first .fc-travel .tm-villa.tm-arrived .tm-ring { animation: tm-pulse 1.2s ease-out 2; }
+@keyframes tm-pulse { 0% { opacity: .9; transform: scale(.5); } 100% { opacity: 0; transform: scale(2.1); } }
+
 @media (prefers-reduced-motion: reduce) {
   #first .fm-cover-bg, #first .fm-grain { animation: none; }
   #first .fm-cover-top .fm-kicker, #first .fm-for, #first .fm-foot, #first .fm-seal { animation: fm-fade 1s .2s ease both; }
@@ -366,4 +396,6 @@ html.first-on body > :not(#first) { display: none; }
   #first .fc-bg::before { animation: none; }
   #first .fc-opt-more, #first .fc-radio::after { transition: none; }
   #first .fc-q-more, #first .fc-q-sign::before, #first .fc-q-sign::after { transition: none; }
+  #first .fc-travel .tm-ring { animation: none !important; }
+  #first .fc-travel .tm-pt, #first .fc-travel .tm-dot text { transition: none; }
 }
