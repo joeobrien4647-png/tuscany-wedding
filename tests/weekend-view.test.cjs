@@ -16,7 +16,7 @@ test('weekendView: four days in order, each with its picture key, intro and part
     for (const p of d.parts) assert.ok(p.when && p.what);
   }
   assert.equal(v.title, words.weekend.title);
-  for (const k of ['vibe', 'hint', 'swipe', 'back']) assert.equal(v[k], words.weekend[k], k);
+  for (const k of ['vibe', 'hint', 'swipe', 'back', 'open']) assert.equal(v[k], words.weekend[k], k);
 });
 
 test('weekendView: a row appears only when the day has that line', () => {

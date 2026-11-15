@@ -217,6 +217,7 @@
       hint: 'Tap a day',
       swipe: 'Swipe for the next day',
       back: 'Back to the four days',
+      open: 'Open the day',
       labels: { wear: 'Wear', food: 'Food and drink', where: 'Where' },
       days: [
         {

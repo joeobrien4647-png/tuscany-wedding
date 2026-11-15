@@ -63,6 +63,25 @@ test('a day is a real button with its date and name, and the tiles behind go qui
   assert.match(js, /tabIndex = -1/);
 });
 
+test('each tile is labelled with its date, its name and the word for opening the day', () => {
+  assert.match(js, /setAttribute\('aria-label', d\.date \+ ', ' \+ d\.name \+ ', ' \+ v\.open\)/);
+  assert.match(js, /aria-haspopup', 'dialog'/);
+});
+
+test('the band of light has its own trigger class, never the tile arrow class', () => {
+  const css = read('css/first.css');
+  assert.doesNotMatch(js, /band\.classList\.(add|remove)\('wk-go'\)/);
+  assert.match(js, /band\.classList\.add\('wk-band-on'\)/);
+  assert.match(css, /#first \.fc-weekend \.wk-band\.wk-band-on \{[^}]*animation: wk-band/);
+  assert.doesNotMatch(css, /\.wk-band\.wk-go/);
+});
+
+test('mid-swipe the words of the days follow the finger: visible, with no staggered rise', () => {
+  const css = read('css/first.css');
+  assert.match(js, /classList\.add\('wk-follow'\)/);
+  assert.match(css, /#first \.fc-weekend \.wk-follow \.wk-rise \{[^}]*opacity: 1;[^}]*transform: none;[^}]*transition: none/);
+});
+
 test('index.html loads weekend-card before cards', () => {
   const html = read('index.html');
   assert.match(html, /\["core", "words", "store", "sound", "fx", "minute", "reply", "home", "travel-core", "travel-map", "travel-card", "weekend-card", "cards", "app"\]/);

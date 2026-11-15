@@ -35,7 +35,7 @@
     const labels = isObject(wk.labels) ? wk.labels : {};
     const days = Array.isArray(wk.days) ? wk.days : [];
     return {
-      title: text(wk.title), vibe: text(wk.vibe), hint: text(wk.hint), swipe: text(wk.swipe), back: text(wk.back),
+      title: text(wk.title), vibe: text(wk.vibe), hint: text(wk.hint), swipe: text(wk.swipe), back: text(wk.back), open: text(wk.open),
       days: KEYS.map((key, i) => {
         const d = isObject(days[i]) ? days[i] : {};
         return { key, img: key, date: text(d.date), name: text(d.name), intro: text(d.intro), parts: partsOf(d), rows: rowsOf(d, labels) };
@@ -63,7 +63,7 @@
   }
 
   // ---------- the screen ----------
-  const OPEN_MS = 620, BAND_MS = 1200;
+  const OPEN_MS = 620, BAND_MS = 1200, SETTLE_MS = 1000;
   const svg = inner => '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' + inner + '</svg>';
   const ICON = {
     wear: svg('<path d="M8 4l4 3 4-3 4 3-2 4-2-1v10H8V10l-2 1-2-4z"/>'),
@@ -152,7 +152,7 @@
     const grid = el('div', 'fc-days');
     const tiles = v.days.map((d, i) => {
       const t = card.rise(button('fc-day', null, () => openDay(i)));
-      t.setAttribute('aria-label', d.date + ', ' + d.name);
+      t.setAttribute('aria-label', d.date + ', ' + d.name + ', ' + v.open);
       t.setAttribute('aria-haspopup', 'dialog');
       t.appendChild(picture('fc-day-img', d.img));
       t.appendChild(icon('wk-go', 'go'));
@@ -204,7 +204,7 @@
 
     const lights = air ? makeLights(air) : null;
     const timers = new Set();
-    let idx = 0, open = false, moved = false, drag = null, moving = null;
+    let idx = 0, open = false, moved = false, drag = null, moving = null, following = null;
     const later = (fn, ms) => { const t = setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); return t; };
     // One grow or shrink at a time: a new one cancels the end of the last.
     const afterMove = fn => { clearTimeout(moving); timers.delete(moving); moving = later(fn, OPEN_MS); };
@@ -288,16 +288,19 @@
       if (!lights) return;
       if (open && card.live() && !document.hidden) lights.start(v.days[idx].key); else lights.stop();
     }
-    function go(i) {
+    // fromDrag: the words already followed the finger, so they stay shown until the days settle; a mark or key
+    // brings back the staggered rise.
+    function go(i, fromDrag) {
+      if (!fromDrag) stopFollow();
       const next = clamp(i, 0, count - 1);
       if (next !== idx) {
         moved = true;
         swipe.classList.add('wk-gone');
         if (!still) {
-          band.classList.remove('wk-go');
+          band.classList.remove('wk-band-on');
           void band.offsetWidth;
-          band.classList.add('wk-go');
-          later(() => band.classList.remove('wk-go'), BAND_MS);
+          band.classList.add('wk-band-on');
+          later(() => band.classList.remove('wk-band-on'), BAND_MS);
         }
         if (S) S.pop(0.3);
         haptic(6);
@@ -319,6 +322,11 @@
       set('--wk-rad', 20);
     }
     function clipFull() { ['--wk-t', '--wk-r', '--wk-b', '--wk-l', '--wk-rad'].forEach(k => day.style.setProperty(k, '0px')); }
+    function stopFollow() {
+      clearTimeout(following);
+      timers.delete(following);
+      day.classList.remove('wk-follow');
+    }
     function quietTiles(on) {
       tilesView.inert = on;
       if (on) tilesView.setAttribute('aria-hidden', 'true'); else tilesView.removeAttribute('aria-hidden');
@@ -330,6 +338,7 @@
       idx = clamp(i, 0, count - 1);
       open = true;
       day.classList.remove('wk-snap', 'wk-moving');
+      stopFollow();
       day.hidden = false;
       swipe.classList.toggle('wk-gone', moved);
       place(idx);
@@ -397,6 +406,8 @@
       if (!drag.on) {
         if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
         drag.on = true;
+        stopFollow();
+        day.classList.add('wk-follow');
         day.classList.remove('wk-snap');
         try { day.setPointerCapture(e.pointerId); } catch (err) { /* no capture */ }
       }
@@ -406,8 +417,8 @@
       const d = drag;
       drag = null;
       if (!d || !d.on || !open) return;
-      if (e.type === 'pointercancel') return go(idx);
-      go(settle(idx, e.clientX - d.x, d.w, root.performance.now() - d.t, count));
+      go(e.type === 'pointercancel' ? idx : settle(idx, e.clientX - d.x, d.w, root.performance.now() - d.t, count), true);
+      following = later(() => day.classList.remove('wk-follow'), SETTLE_MS);
     }
     day.addEventListener('pointerup', drop);
     day.addEventListener('pointercancel', drop);
