@@ -40,6 +40,22 @@ test('the eight images are in images/first and stay small', () => {
   assert.ok(total < 900 * 1024, 'images total ' + total);
 });
 
+function webpSize(buf) {
+  const kind = buf.toString('ascii', 12, 16);
+  if (kind === 'VP8 ') return [buf.readUInt16LE(26) & 0x3fff, buf.readUInt16LE(28) & 0x3fff];
+  if (kind === 'VP8X') return [buf.readUIntLE(24, 3) + 1, buf.readUIntLE(27, 3) + 1];
+  throw new Error('unexpected webp chunk ' + kind);
+}
+
+test('the four day pictures are portrait, one per day, and light enough for a phone', () => {
+  for (const n of ['fri', 'sat', 'sun', 'mon']) {
+    const buf = fs.readFileSync(path.join(__dirname, '..', 'images', 'first', n + '.webp'));
+    assert.ok(buf.length < 115 * 1024, n + ' is ' + buf.length);
+    assert.ok(buf.length > 60 * 1024, n + ' looks like the old small photo');
+    assert.deepEqual(webpSize(buf), [720, 1080], n + ' size');
+  }
+});
+
 test('the minute uses the drive video with its poster, and the sound uses the music', () => {
   const js = read('js/first/minute.js');
   assert.match(js, /video\/drive-hero-720\.mp4/);
