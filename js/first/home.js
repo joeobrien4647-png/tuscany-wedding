@@ -1,5 +1,5 @@
 // The home screen: the one calm screen a guest lives on after saying yes. A big countdown to the wedding, a small one to
-// the next envelope, the six envelopes (all sealed in phase 1) and the dock of five, with Questions, the sound toggle
+// the next envelope, the six envelopes (all sealed in phase 1) and the dock of four, with Questions, the sound toggle
 // and a way to watch the invitation again. Ported from the first-minute prototype; every word is set with textContent.
 // show({ root, ctx }) draws it and ticks once a second; refresh() reads the household again (also when the page is
 // visible again) and leaves for the can't-come screen if the answer is now no. Cards open through cards.open when it exists;

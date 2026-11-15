@@ -197,3 +197,12 @@ test('the glow is gold, and a still ring under reduced motion', () => {
   const reduced = css.slice(css.lastIndexOf('prefers-reduced-motion'));
   assert.match(reduced, /\.fh-dk\.fh-glow \.fh-ico \{ animation: none; \}/);
 });
+
+test('the dock has one column for each of its buttons, so they sit evenly', () => {
+  const keys = read('js/first/home.js').match(/const DOCK_KEYS = \[([^\]]*)\]/);
+  assert.ok(keys, 'DOCK_KEYS is in home.js');
+  const count = keys[1].split(',').filter(s => s.trim()).length;
+  const cols = read('css/first.css').match(/#first \.fh-dock \{[^}]*grid-template-columns: repeat\((\d+),/);
+  assert.ok(cols, 'the dock sets its columns with repeat()');
+  assert.equal(Number(cols[1]), count);
+});
