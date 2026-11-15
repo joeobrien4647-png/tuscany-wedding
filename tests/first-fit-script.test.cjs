@@ -149,3 +149,8 @@ test('the phone-fit script registers every Weekend flow it defines, and gives it
   assert.match(py, /DAY_CLIPS_OK = \[\s*'\.wk-day',\s+#\s*\S/, '.wk-day is named without a reason');
   assert.match(py, /BLEED_OK = \[[^\]]*'\.wk-pic',\s+#\s*\S/s, '.wk-pic is named without a reason in BLEED_OK');
 });
+
+test('the phone-fit server keeps connections open, so four browsers reloading every file do not exhaust it', () => {
+  const py = source();
+  assert.match(py, /class Quiet\(http\.server\.SimpleHTTPRequestHandler\):\s+protocol_version = 'HTTP\/1\.1'\s+#\s*\S/, 'the handler does not ask for keep-alive, or gives no reason');
+});

@@ -260,6 +260,8 @@ class Server(http.server.ThreadingHTTPServer):
 
 
 class Quiet(http.server.SimpleHTTPRequestHandler):
+    protocol_version = 'HTTP/1.1'   # keep-alive: with no-store every load refetches every file, and a new connection per file made the server drop one now and then
+
     def log_message(self, *args):
         pass
 
