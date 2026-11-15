@@ -91,3 +91,24 @@ test('nothing from the old Wear card is lost', () => {
   const text = JSON.stringify(wk.weekendView(words));
   for (const s of ['Come as you are', 'ties optional', 'Swimwear', 'gravel and grass', 'after dark']) assert.ok(text.includes(s), s);
 });
+
+test('weekendView: a day with no name is left out, the others keep their own picture key', () => {
+  const v = wk.weekendView(withDay(FIXTURE, 1, { name: '   ' }));
+  assert.deepEqual(v.days.map(d => d.key), ['fri', 'sun', 'mon']);
+  assert.deepEqual(v.days.map(d => d.img), ['fri', 'sun', 'mon']);
+  assert.deepEqual(wk.weekendView(withDay(FIXTURE, 0, { name: undefined })).days.map(d => d.key), ['sat', 'sun', 'mon']);
+});
+
+test('dayLabel: built from the parts that exist, never a stray comma', () => {
+  assert.equal(wk.dayLabel({ date: 'Friday 28 May', name: 'Arrivals' }), 'Friday 28 May, Arrivals');
+  assert.equal(wk.dayLabel({ date: '', name: 'Arrivals' }), 'Arrivals');
+  assert.equal(wk.dayLabel({ date: 'Friday 28 May', name: '' }), 'Friday 28 May');
+  assert.equal(wk.dayLabel({ date: 'Friday 28 May', name: 'Arrivals' }, 'Open it'), 'Friday 28 May, Arrivals, Open it');
+  assert.equal(wk.dayLabel({ date: '', name: 'Arrivals' }, 'Open it'), 'Arrivals, Open it');
+  assert.equal(wk.dayLabel({ date: '', name: 'Arrivals' }, ''), 'Arrivals');
+});
+
+test('pictureFallback: a day picture that used srcset retries the small file once, nothing else retries', () => {
+  assert.equal(wk.pictureFallback('sat', true), 'images/first/sat.webp');
+  assert.equal(wk.pictureFallback('sat', false), null);
+});

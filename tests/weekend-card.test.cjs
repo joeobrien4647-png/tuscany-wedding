@@ -64,7 +64,7 @@ test('a day is a real button with its date and name, and the tiles behind go qui
 });
 
 test('each tile is labelled with its date, its name and the word for opening the day', () => {
-  assert.match(js, /setAttribute\('aria-label', d\.date \+ ', ' \+ d\.name \+ ', ' \+ v\.open\)/);
+  assert.match(js, /setAttribute\('aria-label', dayLabel\(d, v\.open\)\)/);
   assert.match(js, /aria-haspopup', 'dialog'/);
 });
 
@@ -157,4 +157,18 @@ test('day pictures are fetched only when wanted: on opening a day or moving to o
   assert.match(body('openDay').split('function closeDay(')[0], /want\(idx\)/);
   assert.match(body('go').split('function clipTo(')[0], /want\(idx\)/);
   assert.match(js, /\.decoding = 'async'/);
+});
+
+test('the lights canvas is sized again on resize and rotate, and the listeners go when the card closes', () => {
+  assert.match(js, /root\.addEventListener\('resize', onResize\)/);
+  assert.match(js, /root\.addEventListener\('orientationchange', onResize\)/);
+  assert.match(js, /root\.removeEventListener\('resize', onResize\)/);
+  assert.match(js, /root\.removeEventListener\('orientationchange', onResize\)/);
+  assert.match(js, /lights\.refit\(\)/);
+});
+
+test('a new primary pointerdown replaces a drag whose pointer is gone', () => {
+  assert.match(js, /function endLostDrag\(\)/);
+  assert.ok(!/\(drag && drag\.on\)/.test(js), 'a live drag no longer blocks a new primary pointerdown');
+  assert.match(js, /!e\.isPrimary/);
 });

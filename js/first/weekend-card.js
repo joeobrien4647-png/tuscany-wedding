@@ -39,8 +39,13 @@
       days: KEYS.map((key, i) => {
         const d = isObject(days[i]) ? days[i] : {};
         return { key, img: key, date: text(d.date), name: text(d.name), intro: text(d.intro), parts: partsOf(d), rows: rowsOf(d, labels) };
-      })
+      }).filter(d => d.name)
     };
+  }
+
+  // A day's spoken label from the parts it has: no stray comma when the date or the name is missing.
+  function dayLabel(d, open) {
+    return [d.date, d.name, open].filter(Boolean).join(', ');
   }
 
   // ---------- the pictures ----------
@@ -49,6 +54,11 @@
   function pictureFiles(key) {
     const small = 'images/first/' + key + '.webp', large = 'images/first/' + key + '-lg.webp';
     return { src: small, srcset: small + ' 720w, ' + large + ' 1024w', sizes: '116vw' };
+  }
+
+  // Where a failed day picture goes next: if it was using srcset, the 720 file, once. Anything else gives up.
+  function pictureFallback(key, usedSrcset) {
+    return usedSrcset ? pictureFiles(key).src : null;
   }
 
   // The days whose pictures to fetch with day `idx` in view: that day first, then the ones either side.
@@ -152,7 +162,9 @@
       last = root.performance.now();
       raf = root.requestAnimationFrame(frame);
     }
-    return { start, stop };
+    // The screen changed size or turned: size the canvas again, keeping the lights where they are.
+    function refit() { if (look && g) fit(); }
+    return { start, stop, refit };
   }
 
   function build(card) {
@@ -167,12 +179,12 @@
     const grid = el('div', 'fc-days');
     const tiles = v.days.map((d, i) => {
       const t = card.rise(button('fc-day', null, () => openDay(i)));
-      t.setAttribute('aria-label', d.date + ', ' + d.name + ', ' + v.open);
+      t.setAttribute('aria-label', dayLabel(d, v.open));
       t.setAttribute('aria-haspopup', 'dialog');
       t.appendChild(picture('fc-day-img', d.img));
       t.appendChild(icon('wk-go', 'go'));
       const cap = el('span', 'fc-day-cap');
-      cap.appendChild(el('span', 'fc-grp-k', d.date));
+      if (d.date) cap.appendChild(el('span', 'fc-grp-k', d.date));
       cap.appendChild(el('span', 'fc-day-t', d.name));
       t.appendChild(cap);
       grid.appendChild(t);
@@ -209,7 +221,7 @@
     const marks = el('div', 'wk-marks');
     const dots = v.days.map((d, i) => {
       const m = button('wk-mark', null, () => go(i));
-      m.setAttribute('aria-label', d.date + ', ' + d.name);
+      m.setAttribute('aria-label', dayLabel(d));
       m.appendChild(el('i'));
       marks.appendChild(m);
       return m;
@@ -229,7 +241,15 @@
       const img = el('img', cls);
       img.alt = '';
       img.decoding = 'async';
-      img.addEventListener('error', () => { img.hidden = true; });
+      let retried = false;
+      img.addEventListener('error', () => {
+        const next = retried || !forDay ? null : pictureFallback(key, !!img.getAttribute('srcset'));
+        retried = true;
+        if (!next) { img.hidden = true; return; }
+        img.removeAttribute('srcset');
+        img.removeAttribute('sizes');
+        img.src = next;
+      });
       if (!forDay) {
         img.loading = 'lazy';
         img.src = pictureFiles(key).src;
@@ -260,7 +280,7 @@
       const box = el('article', 'wk-page');
       const items = [];
       const add = e => { e.classList.add('wk-rise'); e.style.setProperty('--i', String(items.length)); items.push(e); box.appendChild(e); return e; };
-      add(el('p', 'wk-date', d.date));
+      if (d.date) add(el('p', 'wk-date', d.date));
       const head = add(el('h3', 'wk-name', d.name));
       head.id = 'wk-h-' + d.key;
       head.tabIndex = -1;
@@ -425,8 +445,17 @@
       else if (e.key === 'ArrowLeft') { e.preventDefault(); go(idx - 1); }
     }
     const onVisible = () => lightsOn();
+    let resizeT = null;
+    const onResize = () => {
+      if (!lights || !open) return;
+      clearTimeout(resizeT);
+      timers.delete(resizeT);
+      resizeT = later(() => lights.refit(), 120);
+    };
     document.addEventListener('keydown', onKey);
     document.addEventListener('visibilitychange', onVisible);
+    root.addEventListener('resize', onResize);
+    root.addEventListener('orientationchange', onResize);
     card.onClose(() => {
       open = false;
       if (lights) lights.stop();
@@ -434,12 +463,25 @@
       timers.clear();
       document.removeEventListener('keydown', onKey);
       document.removeEventListener('visibilitychange', onVisible);
+      root.removeEventListener('resize', onResize);
+      root.removeEventListener('orientationchange', onResize);
     });
 
     // Swipe between days: the words and the picture follow the finger. One pointer drives a drag: only the primary
-    // one starts it, and another finger or a stray pointer can neither start a second nor take it over.
+    // one starts it, and another finger or a stray pointer can neither start a second nor take it over. A new primary
+    // pointerdown means the old pointer is gone (its pointerup was lost), so it replaces a drag that is still on.
+    function endLostDrag() {
+      if (!drag) return;
+      const wasOn = drag.on;
+      drag = null;
+      if (wasOn && open) {
+        go(idx, true);
+        following = later(() => day.classList.remove('wk-follow'), SETTLE_MS);
+      }
+    }
     day.addEventListener('pointerdown', e => {
-      if (!open || !e.isPrimary || (drag && drag.on) || (e.target.closest && e.target.closest('button'))) return;
+      if (!open || !e.isPrimary || (e.target.closest && e.target.closest('button'))) return;
+      endLostDrag();
       drag = { id: e.pointerId, x: e.clientX, y: e.clientY, t: root.performance.now(), w: day.clientWidth || 1, on: false };
     });
     day.addEventListener('pointermove', e => {
@@ -468,7 +510,7 @@
     day.addEventListener('pointercancel', drop);
   }
 
-  const api = { weekendView, settle, along, pictureFiles, wanted, build };
+  const api = { weekendView, dayLabel, settle, along, pictureFiles, pictureFallback, wanted, build };
   root.sjFirst = Object.assign(root.sjFirst || {}, { weekendCard: api });
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
