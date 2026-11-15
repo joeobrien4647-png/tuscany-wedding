@@ -5,7 +5,7 @@ const path = require('node:path');
 const { words } = require('../js/first/words.js');
 const read = name => fs.readFileSync(path.join(__dirname, '..', name), 'utf8');
 
-// Task 9: the four information cards (Travel, Weekend, Questions).
+// Task 9: the three information cards (Travel, Weekend, Questions).
 const cards = () => require('../js/first/cards.js');
 const ONE = { token: 'tCardsOne000001aa', display: 'Robin Ash', people: ['Robin Ash'] };
 const TWO = { token: 'tCardsTwo000002bb', display: 'Kit and Sam', people: ['Kit Moss', 'Sam Lee'] };
@@ -68,15 +68,15 @@ test('questions: one entry open at a time, and opening one closes the others', (
   assert.match(toggle[2], /=== openKey/);
 });
 
-test('the four cards have no form field; text goes through textContent', () => {
+test('the three information cards have no form field; text goes through textContent', () => {
   const js = read('js/first/cards.js');
   const part = js.slice(js.indexOf('// ---------- the Travel card'), js.lastIndexOf('const api = {'));
-  assert.ok(part.length > 500, 'the four cards are in cards.js');
+  assert.ok(part.length > 500, 'the three information cards are in cards.js');
   assert.doesNotMatch(part, /el\('(input|textarea|select|form)'|createElement\('(input|textarea|select|form)'|<input|<textarea|<select|<form/);
   assert.doesNotMatch(part, /innerHTML/);
 });
 
-test('the four cards are styled under their own keys; no dvh or svh; no dashes, amounts or console', () => {
+test('the three information cards are styled under their own keys; no dvh or svh; no dashes, amounts or console', () => {
   const css = read('css/first.css');
   for (const k of ['travel', 'weekend', 'questions']) assert.match(css, new RegExp('#first \\.fc-' + k + ' '), k);
   assert.doesNotMatch(css, /dvh|svh/);
