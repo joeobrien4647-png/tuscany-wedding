@@ -5,11 +5,13 @@ const path = require('node:path');
 const { words } = require('../js/first/words.js');
 const read = name => fs.readFileSync(path.join(__dirname, '..', name), 'utf8');
 
-// Task 9: the four information cards (Travel, Wear, Weekend, Questions).
+// Task 9: the four information cards (Travel, Weekend, Questions).
 const cards = () => require('../js/first/cards.js');
 const ONE = { token: 'tCardsOne000001aa', display: 'Robin Ash', people: ['Robin Ash'] };
 const TWO = { token: 'tCardsTwo000002bb', display: 'Kit and Sam', people: ['Kit Moss', 'Sam Lee'] };
 const allText = o => JSON.stringify(o);
+const YES_ONE = { reply: { answer: 'yes', coming: [true] } };
+const YES_TWO = { reply: { answer: 'yes', coming: [true, true] } };
 const DASHES = new RegExp('[\\u2014\\u00b7]');
 
 test('travel: no staying-longer list (the published site has none) and no times or amounts in its words', () => {
@@ -18,46 +20,42 @@ test('travel: no staying-longer list (the published site has none) and no times 
   assert.doesNotMatch(allText(words.travel), /flight time|\b\d{1,2}:\d\d\b|£/i);
 });
 
-test('wear: the five lines in order, Saturday, shoes, layer, Friday, Sunday, and nothing else', () => {
-  const v = cards().wearView(words);
-  assert.deepEqual(v.lines, [
-    { k: 'Saturday', v: 'Dressed up for a warm evening outdoors, ties optional, colour encouraged' },
-    { k: null, v: 'Shoes that cope with gravel and grass' },
-    { k: null, v: 'A layer for after dark' },
-    { k: 'Friday', v: 'Come as you are' },
-    { k: 'Sunday', v: 'Swimwear and BBQ clothes' }
-  ]);
-});
-
-test('weekend: four day cards in order with date, name, line and image, and no times', () => {
-  const v = cards().weekendView(words);
-  assert.deepEqual(v.days.map(d => d.date), ['Fri 28 May', 'Sat 29 May', 'Sun 30 May', 'Mon 31 May']);
-  assert.deepEqual(v.days.map(d => d.img), ['fri', 'sat', 'sun', 'mon']);
-  v.days.forEach((d, i) => {
-    assert.equal(d.name, words.weekend.days[i].name);
-    assert.equal(d.line, words.weekend.days[i].line);
-    assert.ok(fs.existsSync(path.join(__dirname, '..', 'images', 'first', d.img + '.webp')), d.img);
-  });
-  assert.doesNotMatch(allText(v.days.map(d => [d.name, d.line])), /\b\d{1,2}[:.]\d\d\b|\b\d{1,2} ?(am|pm)\b/i);
-});
-
-test('questions: gifts, reaching Joe and Sophie, and bringing someone only for a single-name invitation', () => {
+test('questions: six in order for one person, five for a couple, and bringing someone is always last', () => {
   const c = cards();
-  assert.deepEqual(c.questionsView(ONE, words).map(e => e.key), ['gifts', 'reach', 'bring']);
-  assert.deepEqual(c.questionsView(TWO, words).map(e => e.key), ['gifts', 'reach']);
+  assert.deepEqual(c.questionsView(ONE, YES_ONE, words).map(e => e.key), ['gifts', 'reach', 'food', 'cost', 'weather', 'bring']);
+  assert.deepEqual(c.questionsView(TWO, YES_TWO, words).map(e => e.key), ['gifts', 'reach', 'food', 'cost', 'weather']);
   for (const bad of [null, undefined, {}, { people: [] }, { people: 'Robin' }])
-    assert.deepEqual(c.questionsView(bad, words).map(e => e.key), ['gifts', 'reach'], JSON.stringify(bad));
-  const e = c.questionsView(ONE, words);
-  assert.equal(e[2].q, words.questions.bring.q);
-  assert.equal(e[2].a, words.questions.bring.a);
-  assert.match(e[2].a, /ask Joe or Sophie directly/);
+    assert.deepEqual(c.questionsView(bad, null, words).map(e => e.key), ['gifts', 'reach', 'food', 'cost', 'weather'], JSON.stringify(bad));
+  const e = c.questionsView(ONE, YES_ONE, words);
+  assert.equal(e[5].q, words.questions.bring.q);
+  assert.deepEqual(e[5].lines, [].concat(words.questions.bring.a));
+  assert.match(e[5].lines.join(' '), /ask Joe or Sophie directly/);
+});
+
+test('questions: the cost answer shows the share through shareLine and never a bank detail or a date', () => {
+  const c = cards();
+  const cost = c.questionsView(TWO, YES_TWO, words).find(e => e.key === 'cost');
+  assert.ok(cost.lines.some(l => l.includes('\u00a3150 each')));
+  assert.ok(!cost.lines.join(' ').includes('{share}'));
+  assert.doesNotMatch(cost.lines.join(' '), /sort code|account|iban|transfer|\b\d{1,2} (jan|feb|mar|apr|may)/i);
+  assert.ok(!JSON.stringify(words.questions).includes('\u00a3'));
+  const one = c.questionsView(ONE, YES_ONE, words).find(e => e.key === 'cost');
+  assert.ok(one.lines.some(l => l.includes('\u00a3150') && !l.includes('each')));
+});
+
+test('questions: every answer keeps to three lines of 44 characters', () => {
+  for (const e of cards().questionsView(ONE, YES_ONE, words)) {
+    assert.ok(e.lines.length >= 1 && e.lines.length <= 3, e.key);
+    for (const l of e.lines) assert.ok(l.length <= 44, e.key + ': ' + l);
+  }
 });
 
 test('questions: nothing invents a gift policy, a channel or a time', () => {
   const q = JSON.stringify(words.questions);
   assert.doesNotMatch(q, /whatsapp|email|phone|registry|cash|money|voucher|nothing needed/i);
-  assert.match(words.questions.reach.a, /Message Joe or Sophie/);
+  assert.match([].concat(words.questions.reach.a).join(' '), /Message Joe or Sophie/);
   assert.match(words.questions.gifts.a, /follow/);
+  assert.match([].concat(words.questions.food.a).join(' '), /Message Joe or Sophie/);
 });
 
 test('questions: one entry open at a time, and opening one closes the others', () => {
@@ -70,13 +68,11 @@ test('questions: one entry open at a time, and opening one closes the others', (
   assert.match(toggle[2], /=== openKey/);
 });
 
-test('the four cards have no form field; Weekend images are lazy and decorative; text goes through textContent', () => {
+test('the four cards have no form field; text goes through textContent', () => {
   const js = read('js/first/cards.js');
   const part = js.slice(js.indexOf('// ---------- the Travel card'), js.lastIndexOf('const api = {'));
   assert.ok(part.length > 500, 'the four cards are in cards.js');
   assert.doesNotMatch(part, /el\('(input|textarea|select|form)'|createElement\('(input|textarea|select|form)'|<input|<textarea|<select|<form/);
-  assert.match(part, /loading = 'lazy'/);
-  assert.match(part, /alt = ''/);
   assert.doesNotMatch(part, /innerHTML/);
 });
 

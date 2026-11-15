@@ -37,7 +37,7 @@ test('dockStates: travel is done only when this phone has a stamped ticket', () 
   assert.equal(core.dockStates(yes, false).travel, 'plain');
   assert.equal(core.dockStates(yes).travel, 'plain');
   assert.equal(core.dockStates(yes, 'yes').travel, 'plain');
-  assert.deepEqual(Object.keys(core.dockStates(yes, true)), ['reply', 'stay', 'travel', 'wear', 'weekend']);
+  assert.deepEqual(Object.keys(core.dockStates(yes, true)), ['reply', 'stay', 'travel', 'weekend']);
   assert.equal(core.dockStates(yes, true).stay, core.dockStates(yes).stay);
 });
 test('the home screen ticks Travel from the phone copy', () => {

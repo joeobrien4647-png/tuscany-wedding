@@ -100,8 +100,8 @@ test('H12: each question button controls its answer panel', () => {
   assert.match(js, /moreIn\.id = /);
 });
 
-test('H13: no unused swipe line', () => {
-  assert.equal(words.weekend.swipe, undefined);
+test('H13: the swipe line is read by the Weekend view, so it is in the words', () => {
+  assert.equal(words.weekend.swipe, 'Swipe for the next day');
 });
 
 test('H14: a sealed envelope past its date says it is nearly ready, not the old date', () => {

@@ -85,7 +85,7 @@
       photosStamp: 'June'
     },
     dock: {
-      labels: ['Reply', 'Stay', 'Travel', 'Wear', 'Weekend'],
+      labels: ['Reply', 'Stay', 'Travel', 'Weekend'],
       stay: { plain: 'Stay', choose: 'Choose stay', villa: 'La Conca', own: 'Own place' },
       states: { plain: 'Ready to read', glow: 'Something to do', done: 'Done' },
       label: 'Plan your trip'
@@ -209,28 +209,51 @@
       price: { from: 'from about {price}', checked: 'checked {date}', live: 'See live prices' },
       load: { wait: 'Unfolding the map', failed: 'Could not load the map', retry: 'Try again' }
     },
-    wear: {
-      title: 'What to wear',
-      friday: { k: 'Friday', v: 'Come as you are' },
-      saturday: { k: 'Saturday', v: 'Dressed up for a warm evening outdoors, ties optional, colour encouraged' },
-      sunday: { k: 'Sunday', v: 'Swimwear and BBQ clothes' },
-      shoes: 'Shoes that cope with gravel and grass',
-      layer: 'A layer for after dark'
-    },
+    // The Weekend screen: four days, each with a short intro, the parts of the day and a few lines. All placeholders.
+    // A day's wear, bring, food and where are optional: a line that is not there is not shown.
     weekend: {
       title: 'The weekend',
+      vibe: 'Drinks flowing all weekend',
+      hint: 'Tap a day',
+      swipe: 'Swipe for the next day',
+      back: 'Back to the four days',
+      labels: { wear: 'Wear', food: 'Food and drink', where: 'Where' },
       days: [
-        { date: 'Fri 28 May', name: 'Pizza night', line: 'Arrive and settle in' },
-        { date: 'Sat 29 May', name: 'The wedding', line: 'Dressed up, outdoors, long evening' },
-        { date: 'Sun 30 May', name: 'Pool day & BBQ', line: 'Swimwear and good food' },
-        { date: 'Mon 31 May', name: 'Breakfast and goodbyes', line: 'One last breakfast together' }
+        {
+          date: 'Fri 28 May', name: 'Pizza night', intro: 'Bags down, drink in hand, pizza on the table',
+          parts: [{ when: 'Afternoon', what: 'Arrive and settle in' }, { when: 'Evening', what: 'Pizza night' }],
+          wear: 'Come as you are', food: 'Pizza'
+        },
+        {
+          date: 'Sat 29 May', name: 'The wedding', intro: 'The big one: dressed up, outdoors and on late',
+          parts: [{ when: 'Afternoon', what: 'The wedding' }, { when: 'Evening', what: 'A long evening outdoors' }],
+          wear: 'Dressed up for a warm evening outdoors, ties optional, colour encouraged',
+          bring: ['Shoes for gravel and grass', 'A layer for after dark']
+        },
+        {
+          date: 'Sun 30 May', name: 'Pool day & BBQ', intro: 'A slow start, the pool all day, cold drinks and a BBQ',
+          parts: [{ when: 'All day', what: 'Pool day and a BBQ' }],
+          wear: 'Swimwear and BBQ clothes', food: 'A BBQ'
+        },
+        {
+          date: 'Mon 31 May', name: 'Breakfast and goodbyes', intro: 'One more coffee together before the road home',
+          parts: [{ when: 'Morning', what: 'One last breakfast together' }],
+          food: 'Breakfast'
+        }
       ]
     },
+    // Each answer is a string or a short list of lines (at most three, at most 44 characters each).
     questions: {
       title: 'Questions',
       gifts: { q: 'Gifts?', a: 'Details will follow' },
-      reach: { q: 'How do I reach you?', a: 'Message Joe or Sophie directly, the way you normally would' },
-      bring: { q: 'Can I bring someone?', a: 'Plus-ones are very limited, please ask Joe or Sophie directly' }
+      reach: { q: 'How do I reach you?', a: ['Message Joe or Sophie directly', 'The way you normally would'] },
+      food: { q: 'Food needs?', a: ['Allergies or a diet we should know about?', 'Message Joe or Sophie'] },
+      cost: {
+        q: 'What does it cost?',
+        a: ['At La Conca your share is {share}', 'That covers your bed, meals and drinks', 'Your own place: nothing to pay us']
+      },
+      weather: { q: 'Weather and packing?', a: ['Bring swimwear and a layer for the evening', 'More on the weather nearer the time'] },
+      bring: { q: 'Can I bring someone?', a: ['Plus-ones are very limited', 'Please ask Joe or Sophie directly'] }
     },
     wait: {
       line: 'One moment'

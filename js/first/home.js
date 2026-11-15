@@ -7,8 +7,8 @@
 (function (root) {
   'use strict';
   const TOAST_MS = 2300, COUNT_UP_MS = 1300;
-  const DOCK_KEYS = ['reply', 'stay', 'travel', 'wear', 'weekend'];
-  const DOCK_ICONS = ['reply', 'stay', 'drive', 'wear', 'weekend'];
+  const DOCK_KEYS = ['reply', 'stay', 'travel', 'weekend'];
+  const DOCK_ICONS = ['reply', 'stay', 'drive', 'weekend'];
 
   // core.js loads first on the page; under Node tests it is required here.
   const core = root.sjFirst && root.sjFirst.LOCKS ? root.sjFirst
@@ -33,7 +33,7 @@
     });
   }
 
-  // The five dock items: plain, glowing (something to do) or done. Only the reply and the stay choice change them.
+  // The four dock items: plain, glowing (something to do) or done. Only the reply and the stay choice change them.
   function dockItems(household, w, travelStamped) {
     const states = core.dockStates(household, travelStamped);
     return DOCK_KEYS.map((key, i) => {
@@ -82,7 +82,6 @@
     reply: svg('<rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M4 7l8 6 8-6"/>'),
     stay: svg('<path d="M4 11l8-6 8 6v9H4z"/><path d="M10 20v-5h4v5"/>'),
     drive: svg('<path d="M12 21s-6-5.4-6-10.6a6 6 0 0 1 12 0C18 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.2"/>'),
-    wear: svg('<path d="M12 8.5a2 2 0 1 0-2-2"/><path d="M12 8.5v1.6l8.2 5.6a1.2 1.2 0 0 1-.7 2.2H4.5a1.2 1.2 0 0 1-.7-2.2L12 10.1"/>'),
     weekend: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>'),
     lock: svg('<rect x="5" y="11" width="14" height="9.5" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', 16),
     soundOn: svg('<path d="M4 9.5h3.6L12.5 5.5v13l-4.9-4H4z"/><path d="M16 9a4.2 4.2 0 0 1 0 6M18.6 6.4a7.8 7.8 0 0 1 0 11.2"/>'),

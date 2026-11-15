@@ -93,7 +93,7 @@
     return {
       reply: replyOf(household) ? 'done' : 'glow',
       stay: choice === 'villa' || choice === 'own' ? 'done' : stayIsOpen(household) ? 'glow' : 'plain',
-      travel: travelStamped === true ? 'done' : 'plain', wear: 'plain', weekend: 'plain'
+      travel: travelStamped === true ? 'done' : 'plain', weekend: 'plain'
     };
   }
 

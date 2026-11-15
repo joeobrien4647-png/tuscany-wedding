@@ -28,15 +28,16 @@ test('every word passes the copy rules, with no amount or stray placeholder', ()
 });
 
 test('required sections exist', () => {
-  for (const k of ['cover', 'minute', 'ask', 'yes', 'no', 'closed', 'nolink', 'home', 'dock', 'stay', 'travel', 'wear', 'weekend', 'questions', 'errors'])
+  for (const k of ['cover', 'minute', 'ask', 'yes', 'no', 'closed', 'nolink', 'home', 'dock', 'stay', 'travel', 'weekend', 'questions', 'errors'])
     assert.ok(words[k] && typeof words[k] === 'object', k);
 });
 
 test('weekend days, dock labels and stay dock states', () => {
   assert.deepEqual(words.weekend.days.map(d => d.name), ['Pizza night', 'The wedding', 'Pool day & BBQ', 'Breakfast and goodbyes']);
   assert.deepEqual(words.weekend.days.map(d => d.date), ['Fri 28 May', 'Sat 29 May', 'Sun 30 May', 'Mon 31 May']);
-  for (const d of words.weekend.days) assert.ok(d.line);
-  assert.deepEqual(words.dock.labels, ['Reply', 'Stay', 'Travel', 'Wear', 'Weekend']);
+  for (const d of words.weekend.days) assert.equal(d.line, undefined);
+  assert.equal(words.wear, undefined);
+  assert.deepEqual(words.dock.labels, ['Reply', 'Stay', 'Travel', 'Weekend']);
   assert.deepEqual(words.dock.stay, { plain: 'Stay', choose: 'Choose stay', villa: 'La Conca', own: 'Own place' });
 });
 
@@ -88,4 +89,17 @@ test('the Getting there words never promise a transfer and say routes can change
   assert.doesNotMatch(all, /transfer|minibus|shuttle|we.ll (collect|pick)/i);
   assert.match(words.travel.route.usually, /usually/i);
   assert.match(words.travel.route.check, /check before you book/i);
+});
+
+test('the Questions card has six questions, each with at most three short lines', () => {
+  const q = words.questions;
+  const keys = Object.keys(q).filter(k => k !== 'title');
+  assert.deepEqual(keys, ['gifts', 'reach', 'food', 'cost', 'weather', 'bring']);
+  for (const k of keys) {
+    const lines = [].concat(q[k].a);
+    assert.ok(q[k].q && lines.length >= 1 && lines.length <= 3, k);
+    for (const l of lines) assert.ok(l.length <= 44, k + ': ' + l);
+  }
+  assert.equal([].concat(q.cost.a).filter(l => l.includes('{share}')).length, 1);
+  assert.doesNotMatch(JSON.stringify(q), /\d/);
 });

@@ -1,11 +1,11 @@
 // The dock's cards: one full-screen card at a time over the home screen, in the look of the prototype's letters, with a
 // close control. The frame is shared: it opens a card as a dialog, moves focus into it, makes the screen behind inert,
 // closes on Escape or the close control and gives focus back to the control that opened it. Each card's content is its
-// own entry in CARDS (Reply and Stay here; Travel, Wear, Weekend and Questions are added the same way). Every word and
+// own entry in CARDS (Reply and Stay here; Travel, Weekend and Questions are added the same way). Every word and
 // name is set with textContent. open(key, ctx, { root, from }) opens a built card, anything else does nothing; close().
 (function (root) {
   'use strict';
-  const CARD_KEYS = ['reply', 'stay', 'travel', 'wear', 'weekend', 'questions'];
+  const CARD_KEYS = ['reply', 'stay', 'travel', 'weekend', 'questions'];
   const STAY_KEYS = ['villa', 'own', 'later'];
 
   // core.js loads first on the page; under Node tests it is required here.
@@ -61,22 +61,15 @@
     };
   }
 
-  // ---------- Travel, Wear, Weekend and Questions: what the cards show ----------
-  const copyRow = r => ({ k: r.k, v: r.v });
-  // Saturday first, then the two things to bring, then the other days (the design's order).
-  const wearView = w => ({
-    lines: [copyRow(w.wear.saturday), { k: null, v: w.wear.shoes }, { k: null, v: w.wear.layer },
-      copyRow(w.wear.friday), copyRow(w.wear.sunday)]
-  });
-  const DAY_IMAGES = ['fri', 'sat', 'sun', 'mon'];
-  const weekendView = w => ({
-    days: w.weekend.days.map((d, i) => ({ date: d.date, name: d.name, line: d.line, img: DAY_IMAGES[i] }))
-  });
-  // Bringing someone is asked only by guests invited alone.
-  function questionsView(invite, w) {
+  // ---------- Questions: what the card shows ----------
+  const linesOf = a => [].concat(a).filter(l => typeof l === 'string' && l.trim());
+  // Bringing someone is asked only by guests invited alone, and is always the last question. Every line goes through
+  // shareLine, so the share reaches the cost answer from one place.
+  function questionsView(invite, household, w) {
     const people = invite && Array.isArray(invite.people) ? invite.people : [];
-    const keys = people.length === 1 ? ['gifts', 'reach', 'bring'] : ['gifts', 'reach'];
-    return keys.map(key => ({ key, q: w.questions[key].q, a: w.questions[key].a }));
+    const keys = ['gifts', 'reach', 'food', 'cost', 'weather'].concat(people.length === 1 ? ['bring'] : []);
+    const count = core.comingCount(household);
+    return keys.map(key => ({ key, q: w.questions[key].q, lines: linesOf(w.questions[key].a).map(l => core.shareLine(l, count)) }));
   }
 
   // "Not you?": forget the invitation on this phone and load the page again, never with the token.
@@ -409,47 +402,11 @@
   // Getting there is its own screen: js/first/travel-card.js.
   CARDS.travel = { build: card => root.sjFirst.travelCard.build(card) };
 
-  // A line of a letter: a small gold label over the words.
-  function row(card, k, v) {
-    const r = card.el('div', 'fc-row');
-    if (k) r.appendChild(card.el('span', 'fc-row-k', k));
-    r.appendChild(card.el('span', 'fc-row-v', v));
-    return r;
-  }
-
-  // ---------- the Wear card ----------
-  CARDS.wear = {
-    build(card) {
-      card.heading(card.w.wear.title);
-      const list = card.rise(card.el('div', 'fc-rows'));
-      wearView(card.w).lines.forEach(l => list.appendChild(row(card, l.k, l.v)));
-      card.body.appendChild(list);
-    }
-  };
-
   // ---------- the Weekend card ----------
-  // Four day cards in a 2 x 2 grid (the prototype's rail would scroll sideways; nothing scrolls here).
+  // Until the Weekend screen is built, the card shows its title only.
   CARDS.weekend = {
     build(card) {
       card.heading(card.w.weekend.title);
-      const grid = card.el('div', 'fc-days');
-      weekendView(card.w).days.forEach(d => {
-        const day = card.rise(card.el('div', 'fc-day'));
-        const img = card.el('img', 'fc-day-img');
-        img.src = 'images/first/' + d.img + '.webp';
-        img.alt = '';
-        img.loading = 'lazy';
-        img.decoding = 'async';
-        img.setAttribute('aria-hidden', 'true');
-        day.appendChild(img);
-        const cap = card.el('div', 'fc-day-cap');
-        cap.appendChild(card.el('span', 'fc-grp-k', d.date));
-        cap.appendChild(card.el('span', 'fc-day-t', d.name));
-        cap.appendChild(card.el('span', 'fc-day-l', d.line));
-        day.appendChild(cap);
-        grid.appendChild(day);
-      });
-      card.body.appendChild(grid);
     }
   };
 
@@ -461,7 +418,7 @@
       card.heading(card.w.questions.title);
       const list = card.el('div', 'fc-qs');
       let openKey = null;
-      const items = questionsView(card.ctx.invite, card.w).map(e => {
+      const items = questionsView(card.ctx.invite, card.ctx.household, card.w).map(e => {
         const box = card.rise(card.el('div', 'fc-q'));
         const head = card.button('fc-q-head', null, () => toggle(e.key));
         head.setAttribute('aria-expanded', 'false');
@@ -472,7 +429,7 @@
         box.appendChild(head);
         const more = card.el('div', 'fc-q-more');
         const moreIn = card.el('div', 'fc-q-more-in');
-        moreIn.appendChild(card.el('p', 'fc-q-a', e.a));
+        e.lines.forEach(line => moreIn.appendChild(card.el('p', 'fc-q-a', line)));
         moreIn.id = 'fc-q-' + e.key;
         head.setAttribute('aria-controls', moreIn.id);
         more.appendChild(moreIn);
@@ -496,7 +453,7 @@
   };
 
   const api = { CARD_KEYS, stayView, confirmLabel, saveStayChoice, replyView, notYou,
-    wearView, weekendView, questionsView,
+    questionsView,
     cards: { open, close, openKey: () => (current ? current.key : null), built: () => Object.keys(CARDS) } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

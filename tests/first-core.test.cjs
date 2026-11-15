@@ -46,7 +46,8 @@ test('dock', () => {
   assert.equal(dockStates({}, now).reply, 'glow');
   assert.equal(dockStates({}, now).stay, 'plain');
   assert.equal(dockStates({ reply: yes }, now).travel, 'plain');
-  assert.equal(dockStates({ reply: yes }, now).wear, 'plain');
+  assert.equal(dockStates({ reply: yes }, now).wear, undefined);
+  assert.deepEqual(Object.keys(dockStates({ reply: yes }, now)), ['reply', 'stay', 'travel', 'weekend']);
   assert.equal(dockStates({ reply: yes }, now).weekend, 'plain');
   assert.equal(canChangeStay({ stay: { choice: 'own' } }, REPLIES_CLOSE_MS), false);
   assert.equal(canChangeStay({ stay: { choice: 'own' } }, REPLIES_CLOSE_MS - 1), true);

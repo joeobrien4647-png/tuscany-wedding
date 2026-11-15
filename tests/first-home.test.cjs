@@ -50,12 +50,12 @@ test('a sealed envelope tap shows the toast and never opens a card', () => {
   assert.doesNotMatch(tap[1], /cards|openCard/);
 });
 
-test('five dock buttons from words.dock.labels, with states from dockStates and the stay label', () => {
+test('four dock buttons from words.dock.labels, with states from dockStates and the stay label', () => {
   const h = home();
   const plain = h.dockItems(YES, words);
-  assert.deepEqual(plain.map(d => d.key), ['reply', 'stay', 'travel', 'wear', 'weekend']);
-  assert.deepEqual(plain.map(d => d.state), ['done', 'glow', 'plain', 'plain', 'plain']);
-  assert.deepEqual(plain.map(d => d.label), ['Reply', 'Choose stay', 'Travel', 'Wear', 'Weekend']);
+  assert.deepEqual(plain.map(d => d.key), ['reply', 'stay', 'travel', 'weekend']);
+  assert.deepEqual(plain.map(d => d.state), ['done', 'glow', 'plain', 'plain']);
+  assert.deepEqual(plain.map(d => d.label), ['Reply', 'Choose stay', 'Travel', 'Weekend']);
   const later = h.dockItems(stay('later'), words);
   assert.equal(later[1].state, 'glow');
   assert.equal(later[1].label, 'Choose stay');
