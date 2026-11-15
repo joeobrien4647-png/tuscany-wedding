@@ -46,7 +46,8 @@ SPARE = {'key': 'Spare pair', 'token': 'fitcheck-spare-pair-0004', 'display': 'J
 
 DEVICES = [
     {'name': 'iPhone 13', 'engine': 'webkit', 'preset': 'iPhone 13'},
-    {'name': 'Pixel 7', 'engine': 'chromium', 'preset': 'Pixel 7'},
+    # touch: Playwright can send this setup real finger events (Chromium only, through CDP).
+    {'name': 'Pixel 7', 'engine': 'chromium', 'preset': 'Pixel 7', 'touch': True},
     {'name': '375x600 WebKit', 'engine': 'webkit', 'viewport': {'width': 375, 'height': 600}},
     {'name': '375x600 Chromium', 'engine': 'chromium', 'viewport': {'width': 375, 'height': 600}},
 ]
@@ -150,6 +151,7 @@ MEASURE_JS = r"""async ({ required, strictVertical, overlayOk, bleedOk, driftOk,
   if (!first) return out;
   // With a card open the home screen behind it is inert and covered, so only the card is measured; a Weekend day open
   // over its tiles covers them the same way, so only the day is.
+  // The frame's close control sits outside .wk-day, so it is not measured on day stops; it is measured on the tiles and on every other card.
   const scope = first.querySelector('.wk-day:not([hidden])') || first.querySelector('.fc') || first;
   const seen = new Set(), say = (key, msg) => { if (!seen.has(key)) { seen.add(key); out.cut.push(msg); } };
   const clips = el => { const s = getComputedStyle(el); return s.overflowX !== 'visible' || s.overflowY !== 'visible'; };
@@ -245,6 +247,10 @@ WEEKEND_WORDS_JS = r"""() => sjFirst.words.weekend.days.map(d => [d.date, d.name
 LIVE_DAY_JS = "() => { const p = document.querySelector('#first .wk-live'); return p ? p.textContent : ''; }"
 DOCK_JS = "() => Array.from(document.querySelectorAll('#first .fh-dk')).map(b => [b.className.replace('fh-dk ', ''), b.textContent])"
 OPT_JS = "() => Array.from(document.querySelectorAll('#first .fc-opt.fc-on .fc-opt-title')).map(e => e.textContent)"
+# The dock's first button's left margin and its last button's right margin, inside the dock.
+DOCK_EVEN_JS = r"""() => { const d = document.querySelector('#first .fh-dock').getBoundingClientRect();
+  const b = Array.from(document.querySelectorAll('#first .fh-dk')).map(e => e.getBoundingClientRect());
+  return [b[0].left - d.left, d.right - b[b.length - 1].right]; }"""
 
 
 # ---------- the server and the fixtures ----------
@@ -376,6 +382,13 @@ class Flow:
         found = await self.page.evaluate(MEASURE_JS, {'required': required, 'strictVertical': self.device['engine'] == 'webkit',
                                                        'overlayOk': OVERLAY_TEXT_OK, 'bleedOk': BLEED_OK, 'driftOk': DRIFT_OK,
                                                        'scrollOk': SCROLL_OK, 'srOk': SR_ONLY_OK, 'mapOk': MAP_OK, 'dayOk': DAY_CLIPS_OK})
+        await self.record(name, found)
+
+    async def verdict(self, name, problems):
+        """A stop judged by the flow's own geometry checks (a screen that scrolls on purpose), not by the shared measure."""
+        await self.record(name, {'doc': 0, 'card': 0, 'cut': problems, 'missing': []})
+
+    async def record(self, name, found):
         new_errors = self.errors[self.seen_errors:]
         self.seen_errors = len(self.errors)
         if self.shots:
@@ -478,7 +491,7 @@ async def flow_full_minute(f, guest):
 
 
 async def flow_cards(f, guest):
-    """Home, then each of the six cards, and each Stay option."""
+    """Home, then each of the five cards, and each Stay option."""
     p = f.page
     await with_seen_home(f, guest, replied(guest))
     await f.stop('home-replied', HOME)
@@ -894,6 +907,27 @@ FULLEST_DAY = r"""() => { const d = sjFirst.words.weekend.days[1], filler = (n, 
   d.bring = [filler(30, 'one'), filler(30, 'two')];
   d.food = filler(60, 'and a little more of it, so it wraps');
   d.where = filler(40, 'and a little more of it'); }"""
+# Longer than anything the words should hold: the day page must then scroll from its top, never cut its first lines off.
+OVERFULL_DAY = r"""() => { const d = sjFirst.words.weekend.days[1], filler = n => ('Sample words for a day longer than any the card is meant to hold, ' +
+  'so that it has to scroll inside itself and still show its first line and its last one ').repeat(3).slice(0, n).trim();
+  d.parts = [0, 1, 2].map(() => ({ when: filler(60), what: filler(120) }));
+  d.intro = filler(220); d.wear = filler(260); d.bring = [filler(60), filler(60)]; d.food = filler(220); d.where = filler(160); }"""
+# The day in view: its first line's top against the page's top padding edge, and how far it can scroll.
+TOP_SAFE_JS = r"""() => { const pg = document.querySelector('#first .wk-live'), top = pg.firstElementChild, end = pg.lastElementChild;
+  const r = pg.getBoundingClientRect(), s = getComputedStyle(pg);
+  return { first: top.getBoundingClientRect().top, edge: r.top + parseFloat(s.paddingTop), over: pg.scrollHeight - pg.clientHeight,
+    last: end.getBoundingClientRect().bottom, bottom: r.bottom }; }"""
+# Focus is still on the open day (its heading, a mark), never on <body> or on a page that went inert.
+FOCUS_ON_DAY_JS = "() => { const a = document.activeElement, day = document.querySelector('#first .wk-day'); return !!(day && a && day.contains(a) && !a.closest('[inert]')); }"
+CLOSE_LABEL_JS = "() => document.querySelector('#first .fc-close').getAttribute('aria-label')"
+# Each element is painted, not just present: with every layer made hit-testable for a moment, the topmost thing at
+# its centre is the element itself or inside it (a picture or gradient drawn over it would be hit instead).
+PAINTED_JS = r"""(sels) => { const s = document.createElement('style'); s.textContent = '#first, #first * { pointer-events: auto !important; }';
+  document.head.appendChild(s);
+  try { return sels.map(sel => { const e = document.querySelector('#first ' + sel); if (!e) return sel + ' not found';
+    const r = e.getBoundingClientRect(), hit = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+    return hit && e.contains(hit) ? '' : sel + ' is not painted: ' + (hit ? hit.tagName.toLowerCase() + '.' + String(hit.className).split(' ')[0] : 'nothing') + ' is on top';
+  }).filter(Boolean); } finally { s.remove(); } }"""
 DAY_KEYS = ['fri', 'sat', 'sun', 'mon']
 DAY_STOPS = ['weekend-fri', 'weekend-sat', 'weekend-sun', 'weekend-mon']
 
@@ -909,6 +943,21 @@ async def open_day(f, i):
     await f.page.click('#first .fc-day >> nth=%d' % i)
     await f.page.wait_for_selector('#first .wk-day:not([hidden]) .wk-live', state='attached')
     await f.page.wait_for_timeout(300)
+    label, back = await f.page.evaluate(CLOSE_LABEL_JS), await f.page.evaluate('() => sjFirst.words.weekend.back')
+    f.expect(label == back, 'with a day open the close control is named %r, not %r' % (label, back))
+
+
+async def touch_swipe(f, x0, y0, x1, y1, steps=8):
+    """A real finger through CDP touch events, so the browser's own touch-action and scrolling rules apply."""
+    cdp = await f.context.new_cdp_session(f.page)
+    try:
+        await cdp.send('Input.dispatchTouchEvent', {'type': 'touchStart', 'touchPoints': [{'x': x0, 'y': y0, 'id': 1}]})
+        for i in range(1, steps + 1):
+            await cdp.send('Input.dispatchTouchEvent', {'type': 'touchMove', 'touchPoints': [{'x': x0 + (x1 - x0) * i / steps, 'y': y0 + (y1 - y0) * i / steps, 'id': 1}]})
+            await f.page.wait_for_timeout(16)
+        await cdp.send('Input.dispatchTouchEvent', {'type': 'touchEnd', 'touchPoints': []})
+    finally:
+        await cdp.detach()
 
 
 async def expect_words(f, i):
@@ -930,6 +979,8 @@ async def back_to_tiles(f, how):
     await p.wait_for_timeout(300)
     f.expect(await p.locator('#first .fc').count() == 1, 'closing a day also closed the card')
     f.expect(await p.is_visible('#first .fc-day >> nth=0'), 'the four tiles did not come back')
+    label, close = await p.evaluate(CLOSE_LABEL_JS), await p.evaluate('() => sjFirst.words.home.close')
+    f.expect(label == close, 'back at the tiles the close control is named %r, not %r' % (label, close))
 
 
 async def flow_weekend(f, guest):
@@ -946,17 +997,33 @@ async def flow_weekend(f, guest):
     await open_day(f, 0)
     box = await p.locator('#first .wk-day').bounding_box()
     x, y = box['x'] + box['width'] * 0.85, box['y'] + box['height'] * 0.4
-    await p.mouse.move(x, y)
-    await p.mouse.down()
-    await p.mouse.move(x - box['width'] * 0.4, y + 4, steps=8)
-    await p.mouse.up()
-    await p.wait_for_timeout(1400)
+    left = x - box['width'] * 0.6
+    if f.device.get('touch'):
+        # A finger: left to Saturday, left again to Sunday, then right back to Saturday.
+        for x0, x1, day in ((x, left, 1), (x, left, 2), (left, x, 1)):
+            await touch_swipe(f, x0, y, x1, y + 4)
+            await p.wait_for_timeout(1400)
+            f.expect(await p.get_attribute('#first .wk-mark >> nth=%d' % day, 'aria-current') == 'true', 'a finger swipe did not move to %s' % DAY_KEYS[day])
+    else:
+        # Playwright cannot send touch events to WebKit, and the 375 x 600 Chromium setup has no touch screen: a mouse drag.
+        await p.mouse.move(x, y)
+        await p.mouse.down()
+        await p.mouse.move(left, y + 4, steps=8)
+        await p.mouse.up()
+        await p.wait_for_timeout(1400)
     f.expect(await p.get_attribute('#first .wk-mark >> nth=1', 'aria-current') == 'true', 'a swipe left did not move to Saturday')
-    await f.stop('weekend-after-swipe', CARD_DAY)
+    f.expect(await p.evaluate(FOCUS_ON_DAY_JS), 'after a swipe, focus is not on the day in view')
+    await f.stop('weekend-after-finger-swipe' if f.device.get('touch') else 'weekend-after-swipe', CARD_DAY)
     await expect_words(f, 1)
     await p.click('#first .wk-mark >> nth=3')
     await p.wait_for_timeout(1400)
     f.expect(await p.get_attribute('#first .wk-mark >> nth=3', 'aria-current') == 'true', 'a tap on the last mark did not move to Monday')
+    await p.keyboard.press('ArrowLeft')
+    await p.wait_for_timeout(1400)
+    f.expect(await p.get_attribute('#first .wk-mark >> nth=2', 'aria-current') == 'true', 'the left arrow key did not move to Sunday')
+    f.expect(await p.evaluate(FOCUS_ON_DAY_JS), 'after an arrow key, focus is not on the day in view')
+    await p.keyboard.press('ArrowRight')
+    await p.wait_for_timeout(1400)
     await f.stop('weekend-after-mark', CARD_DAY)
     await expect_words(f, 3)
     await back_to_tiles(f, 'close')
@@ -964,6 +1031,8 @@ async def flow_weekend(f, guest):
     await close_card(f)
     f.expect(len(await p.evaluate(DOCK_JS)) == 4, 'the home screen does not have four buttons')
     await f.stop('home-four-buttons', HOME)
+    left, right = await p.evaluate(DOCK_EVEN_JS)
+    f.expect(abs(left - right) <= 2, 'the four buttons do not fill the dock evenly: %.0f px spare on the left, %.0f px on the right' % (left, right))
 
 
 async def flow_weekend_fullest(f, guest):
@@ -977,17 +1046,61 @@ async def flow_weekend_fullest(f, guest):
     await f.stop('weekend-fullest-day', CARD_DAY + ['.wk-live .wk-intro', '.wk-live .wk-row', '.wk-live .wk-tag'])
     f.expect(await p.evaluate("() => { const e = document.querySelector('#first .wk-live'); return e.scrollHeight <= e.clientHeight + 1; }"),
              'the fullest day needs its page to scroll')
+    g = await p.evaluate(TOP_SAFE_JS)
+    f.expect(g['first'] >= g['edge'] - 0.5, 'the fullest day starts above its top padding edge: %.1f < %.1f' % (g['first'], g['edge']))
+
+
+async def flow_weekend_overfull(f, guest):
+    """Saturday longer than the worst case: the page scrolls, starting at its top, and its last line can be reached."""
+    p = f.page
+    await with_seen_home(f, guest, replied(guest))
+    await p.evaluate(OVERFULL_DAY)
+    await open_dock(f, 3)
+    await open_day(f, 1)
+    await p.wait_for_timeout(1600)
+    g, problems = await p.evaluate(TOP_SAFE_JS), []
+    if g['over'] <= 1:
+        problems.append('the over-full day does not scroll (it is %d px taller than its page)' % g['over'])
+    if g['first'] < g['edge'] - 0.5 or g['first'] < 0:
+        problems.append('the over-full day starts above its top padding edge: first line at %.1f, edge at %.1f' % (g['first'], g['edge']))
+    await p.evaluate("() => { const e = document.querySelector('#first .wk-live'); e.scrollTop = e.scrollHeight; }")
+    await p.wait_for_timeout(300)
+    g = await p.evaluate(TOP_SAFE_JS)
+    if g['last'] > g['bottom'] + 0.5:
+        problems.append('scrolled to the end, the over-full day still hides its last line: %.1f below a page ending at %.1f' % (g['last'], g['bottom']))
+    await f.verdict('weekend-overfull-day', problems)
+
+
+async def flow_weekend_still(f, guest):
+    """Reduce Motion on: the tiles' title, line and hint are painted, not just present, and a day still opens."""
+    p = f.page
+    await p.emulate_media(reduced_motion='reduce')
+    await open_weekend(f, guest)
+    await f.stop('weekend-still-tiles', CARD_WEEKEND + ['.wk-vibe', '.wk-hint'])
+    for problem in await p.evaluate(PAINTED_JS, ['.fc-t', '.wk-vibe', '.wk-hint']):
+        f.expect(False, 'with Reduce Motion on, ' + problem)
+    await open_day(f, 0)
+    await f.stop('weekend-still-day', CARD_DAY)
+    await back_to_tiles(f, 'close')
 
 
 async def flow_weekend_no_pictures(f, guest):
-    """Every picture refused (an empty answer, so no console error): a day still shows all its words, readable."""
+    """Every picture refused (an empty answer, so no console error): a day still shows all its words, readable.
+    One of its lines has no part-of-day tag, which the words allow."""
     p = f.page
     await p.route('**/images/first/*.webp', lambda route: route.fulfill(status=200, content_type='image/webp', body=b''))
-    await open_weekend(f, guest)
+    await with_seen_home(f, guest, replied(guest))
+    await p.evaluate("() => { const d = sjFirst.words.weekend.days[1]; d.parts = d.parts.map((x, i) => (i === d.parts.length - 1 ? { what: x.what } : x)); }")
+    await open_dock(f, 3)
+    await p.wait_for_selector('#first .fc-day', state='visible')
     await open_day(f, 1)
     await p.wait_for_timeout(600)
     await expect_words(f, 1)
-    await f.stop('weekend-no-pictures', CARD_DAY)
+    f.expect(await p.locator('#first .wk-live .wk-part').count() == await p.evaluate('() => sjFirst.words.weekend.days[1].parts.length'),
+             'a line with no part-of-day tag was left out')
+    await f.stop('weekend-no-pictures', CARD_DAY + ['.wk-live .wk-intro', '.wk-live .wk-row', '.wk-live .wk-tag'])
+    f.expect(await p.evaluate("() => { const all = Array.from(document.querySelectorAll('#first .wk-pic-img')); return all.length === 4 && all.every(i => i.hidden); }"),
+             'the pictures did not fail: a day picture is still shown')
 
 
 PER_INVITE = [('first-visit', flow_first_visit), ('cards', flow_cards), ('travel', flow_travel), ('cant-come', flow_cant_come), ('closed', flow_closed),
@@ -999,7 +1112,8 @@ PER_DEVICE = [('no-link', flow_no_link, None), ('full-minute', flow_full_minute,
               ('stay-save', flow_stay_save, 'spare'), ('busy-guard', flow_busy_guard, 'spare'),
               ('travel-ways', flow_travel_ways, 1), ('travel-failures', flow_travel_failures, 'spare'),
               ('travel-no-map', flow_travel_no_map, 'spare'),
-              ('weekend-fullest', flow_weekend_fullest, 'spare'), ('weekend-no-pictures', flow_weekend_no_pictures, 'spare')]
+              ('weekend-fullest', flow_weekend_fullest, 'spare'), ('weekend-no-pictures', flow_weekend_no_pictures, 'spare'),
+              ('weekend-overfull', flow_weekend_overfull, 'spare'), ('weekend-still', flow_weekend_still, 1)]
 
 
 def plan(invites, spare, only=''):
