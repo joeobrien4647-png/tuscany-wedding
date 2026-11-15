@@ -139,3 +139,13 @@ test('the phone-fit script walks the Weekend screen and the four-button home, an
   assert.ok(!py.includes('CARD_WEAR'), 'CARD_WEAR is still there');
   assert.match(py, /DRIFT_OK = \[[^\]]*'\.wk-pic',\s+#/s, 'the drifting picture layer is named with its reason');
 });
+test('the phone-fit script registers every Weekend flow it defines, and gives its two Weekend exceptions a reason', () => {
+  const py = source();
+  const defined = [...py.matchAll(/^async def (flow_weekend\w*)\(/gm)].map(m => m[1]).sort();
+  assert.deepEqual(defined, ['flow_weekend', 'flow_weekend_fullest', 'flow_weekend_no_pictures', 'flow_weekend_overfull', 'flow_weekend_still']);
+  const registered = py.slice(py.indexOf('PER_INVITE = ['), py.indexOf('def plan('));
+  assert.ok(registered.includes('PER_DEVICE = ['), 'the two tables were not found');
+  for (const name of defined) assert.match(registered, new RegExp(', ' + name + '[,)]'), name + ' is defined but not registered in PER_INVITE or PER_DEVICE');
+  assert.match(py, /DAY_CLIPS_OK = \[\s*'\.wk-day',\s+#\s*\S/, '.wk-day is named without a reason');
+  assert.match(py, /BLEED_OK = \[[^\]]*'\.wk-pic',\s+#\s*\S/s, '.wk-pic is named without a reason in BLEED_OK');
+});

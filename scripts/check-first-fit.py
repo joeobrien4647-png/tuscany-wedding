@@ -916,7 +916,8 @@ OVERFULL_DAY = r"""() => { const d = sjFirst.words.weekend.days[1], filler = n =
 TOP_SAFE_JS = r"""() => { const pg = document.querySelector('#first .wk-live'), top = pg.firstElementChild, end = pg.lastElementChild;
   const r = pg.getBoundingClientRect(), s = getComputedStyle(pg);
   return { first: top.getBoundingClientRect().top, edge: r.top + parseFloat(s.paddingTop), over: pg.scrollHeight - pg.clientHeight,
-    last: end.getBoundingClientRect().bottom, bottom: r.bottom }; }"""
+    last: end.getBoundingClientRect().bottom, bottom: r.bottom,
+    marks: (document.querySelector('#first .wk-marks') || { getBoundingClientRect: () => ({ top: r.bottom }) }).getBoundingClientRect().top }; }"""
 # Focus is still on the open day (its heading, a mark), never on <body> or on a page that went inert.
 FOCUS_ON_DAY_JS = "() => { const a = document.activeElement, day = document.querySelector('#first .wk-day'); return !!(day && a && day.contains(a) && !a.closest('[inert]')); }"
 CLOSE_LABEL_JS = "() => document.querySelector('#first .fc-close').getAttribute('aria-label')"
@@ -933,6 +934,10 @@ DAY_STOPS = ['weekend-fri', 'weekend-sat', 'weekend-sun', 'weekend-mon']
 DAY_PICTURE_LOADED_JS = r"""async i => { const img = document.querySelectorAll('#first .wk-pic-img')[i]; if (!img) return false;
   for (let n = 0; n < 40 && !(img.complete && img.naturalWidth > 0); n++) await new Promise(r => setTimeout(r, 100));
   return img.complete && img.naturalWidth > 0; }"""
+
+
+# Which file the browser chose for a day's picture, and how dense the screen is: dense screens get the large one.
+DAY_PICTURE_SRC_JS = "i => [document.querySelectorAll('#first .wk-pic-img')[i].currentSrc, devicePixelRatio]"
 
 
 async def open_weekend(f, guest):
@@ -998,6 +1003,9 @@ async def flow_weekend(f, guest):
     for i in range(len(DAY_STOPS)):
         await open_day(f, i)
         f.expect(await p.evaluate(DAY_PICTURE_LOADED_JS, i), 'the picture of day %s has not loaded' % DAY_KEYS[i])
+        src, ratio = await p.evaluate(DAY_PICTURE_SRC_JS, i)
+        want = '-lg.webp' if ratio >= 2 else '/%s.webp' % DAY_KEYS[i]
+        f.expect(src.endswith(want), 'day %s picture is %s on a screen with %sx pixels; it should end %s' % (DAY_KEYS[i], src.rsplit('/', 1)[-1], ratio, want))
         await f.stop(DAY_STOPS[i], CARD_DAY)
         await expect_words(f, i)
         await back_to_tiles(f, 'close' if i % 2 else 'escape')
@@ -1031,11 +1039,14 @@ async def flow_weekend(f, guest):
     f.expect(await p.evaluate(FOCUS_ON_DAY_JS), 'after an arrow key, focus is not on the day in view')
     await p.keyboard.press('ArrowRight')
     await p.wait_for_timeout(1400)
+    f.expect(await p.get_attribute('#first .wk-mark >> nth=3', 'aria-current') == 'true', 'the right arrow key did not move to Monday')
     await f.stop('weekend-after-mark', CARD_DAY)
     await expect_words(f, 3)
     await back_to_tiles(f, 'close')
     await f.stop('weekend-back-to-tiles', CARD_WEEKEND)
-    await close_card(f)
+    await p.click('#first .fc-close')
+    await p.wait_for_timeout(450)
+    f.expect(await p.locator('#first .fc').count() == 0, 'the close control did not close the card from the tiles')
     f.expect(len(await p.evaluate(DOCK_JS)) == 4, 'the home screen does not have four buttons')
     await f.stop('home-four-buttons', HOME)
     left, right = await p.evaluate(DOCK_EVEN_JS)
@@ -1073,8 +1084,8 @@ async def flow_weekend_overfull(f, guest):
     await p.evaluate("() => { const e = document.querySelector('#first .wk-live'); e.scrollTop = e.scrollHeight; }")
     await p.wait_for_timeout(300)
     g = await p.evaluate(TOP_SAFE_JS)
-    if g['last'] > g['bottom'] + 0.5:
-        problems.append('scrolled to the end, the over-full day still hides its last line: %.1f below a page ending at %.1f' % (g['last'], g['bottom']))
+    if g['last'] > g['marks'] + 0.5:
+        problems.append('scrolled to the end, the over-full day ends under the marks: it ends at %.1f, the marks start at %.1f' % (g['last'], g['marks']))
     await f.verdict('weekend-overfull-day', problems)
 
 
