@@ -1,6 +1,6 @@
 # The invitation: going live
 
-The new invitation is built on the `first-minute` branch and ships switched off. Nothing below has been run. Do the sections in order. Sections marked **Joe only** change the live database or the live site and must not be done by anyone else.
+The new invitation is built on the `first-minute` branch and ships switched off. Sections 1 to 4 were done on 11 Nov 2026, and section 4a's rules and push on 14 Nov 2026; what is still to do is marked in 4a and 4b. Do the sections in order. Sections marked **Joe only** change the live database or the live site and must not be done by anyone else.
 
 The order matters. The code goes live first with the switch off, so guests see no change, and only then is it tried for real on two phones. The switch is flipped last.
 
@@ -49,7 +49,7 @@ Check: open the site as a guest would. It should look and behave exactly as it d
 
 This is the first time it will have been seen or heard on a real phone. Things to look for: nothing cut off, nothing that scrolls, the music starts after the first tap and the sound button works, the video plays, the countdown is right.
 
-Optional, on a computer with Python and Playwright installed and a network connection: `python scripts/check-first-fit.py` runs every screen on four phone setups and stops with an error if anything is cut off. It takes about twelve minutes.
+Optional here, required after writing the words (section 5): on a computer with Python and Playwright installed and a network connection, `python scripts/check-first-fit.py` runs every screen on four phone setups and stops with an error if anything is cut off. It takes about twelve minutes.
 
 ## 4a. The Getting there card
 
@@ -57,7 +57,7 @@ Built on the `getting-there` branch, on top of sections 1 to 4, which were done 
 
 What it adds: a guest builds their trip on a map, fills a ticket and stamps it. A stamped ticket is saved at `travel/<their key>/<ticket number>`, where a personal link can write but never read. Only a signed-in admin can read it, so guests cannot see each other's plans. The phone that stamped a ticket keeps its own copy and shows it again; another phone starts empty.
 
-**Publish the rules (Joe only).** The branch adds one block, `travel`, to `firebase.rules.json`, beside `household`. Nothing else in the file changes.
+**Publish the rules (Joe only).** Done on 14 Nov 2026. The steps are kept as a record of what was done. The branch adds one block, `travel`, to `firebase.rules.json`, beside `household`. Nothing else in the file changes.
 
 1. Firebase console, Realtime Database, Rules tab. Copy what is live now into a file you keep (your way back).
 2. Compare the live rules with `firebase.rules.json` on `main`. They should match what you published on 11 Nov. If they differ, stop and work out why first.
@@ -68,7 +68,7 @@ What it adds: a guest builds their trip on a map, fills a ticket and stamps it. 
 
 Not yet proven: the rules have only been checked for shape by the tests. That they accept a real stamp is proven by the two-phone test below, and by nothing before it. Until the rules are published, stamping on the live site fails with "Could not stamp it" and nothing is lost.
 
-**Push with the switch still off (Joe only).** Merge `getting-there` into `main` and push, as in section 3. The site should look exactly as before.
+**Push with the switch still off (Joe only).** Done on 14 Nov 2026 (commit 14e8514). Merge `getting-there` into `main` and push, as in section 3. The site should look exactly as before.
 
 **Try it on two phones.**
 
@@ -84,17 +84,48 @@ Not yet proven: the rules have only been checked for shape by the tests. That th
 
 Not in yet: prices on the routes. The "See live prices" link works now and opens Google Flights for the chosen route and days. Prices shown on the card come in January, and need a SerpApi account and key that only Joe can create.
 
+## 4b. The four cards pass
+
+The Weekend screen (four day tiles, each day opening full screen), the four-button home screen and the Questions changes are on the branch `cards-pass`. They are not on `main` yet. They go to `main`, with the switch still off, only when Joe says so. Then try them on Joe's phone and Sophie's phone, with `&first=1&test=1` on your own household's link:
+
+1. Open Weekend and a day. Swipe between the days with a finger, both ways, on both phones.
+2. Tap the marks at the foot of a day: each one jumps to its day.
+3. Press the close control on an open day: it goes back to the four days. Press it again: the card closes.
+4. On the home screen, the four buttons sit evenly across the row.
+5. Open Questions and open every question in turn.
+6. Switch on Reduce Motion (iPhone: Settings, Accessibility, Motion; Android: Settings, Accessibility, Remove animations) and do 1 to 5 again. The Weekend title, the line under it and "Tap a day" must all show.
+7. Turn a phone sideways on an open day and back again.
+8. Look at how sharp the Saturday picture is on a real screen.
+
 ## 5. Write the words
 
 Every guest-facing line is in `js/first/words.js` and every one is a placeholder. Replace them with your own. The home screen has four buttons: Reply, Stay, Travel and Weekend. There is no Wear card; what to wear is a line inside each day of the Weekend card. The Getting there card's lines are under `travel`; its airports, airlines, drive times and tolls are not words, they come from `data/getting-there.json`. Ones that need a decision, not just wording:
 
 - The gifts answer (it says details will follow)
 - The line under "your own place"
-- The weekend lines for each day. They sit per day under `weekend.days`. A day shows no Food and drink, Wear or Where row until it has a line for it, so leave a line out and the row is simply not there. The four day pictures (`images/first/fri.webp`, `sat.webp`, `sun.webp`, `mon.webp`) were made with an image tool from real photos of La Conca and show a mood, not the place. Swap any picture that shows something La Conca will not have.
+- The weekend lines for each day. They sit per day under `weekend.days`. A day shows no Food and drink, Wear or Where row until it has a line for it, so leave a line out and the row is simply not there. The four day pictures (`images/first/fri.webp`, `sat.webp`, `sun.webp`, `mon.webp`) were made with an image tool from real photos of La Conca, so they are true to the place, and each shows the feel of its day. They are not a promise of the exact set-up on the day. Swap any picture that shows something La Conca will not have.
 - "Nearly ready" (shown when an envelope's date has passed but nothing is inside yet) and "Today" (shown on the wedding day)
 - The amount is not in the words file. It is `SHARE_GBP` in `js/first/core.js`. No payment date is shown anywhere yet: the line says to send your share in the spring. Add a date only once you know when the balance is due to the villa.
 
+Needs Joe, for the Weekend and Questions words:
+
+- The part-of-day tags on each day (Afternoon, Evening, All day, Morning) are guesses. Confirm or change them.
+- A line may have no tag at all: leave out `when` and only the words show.
+- At most three parts a day. A fourth is not shown.
+- Monday has no Wear line, by choice.
+- Three answers are new: food needs, what it costs (it uses `{share}`, which becomes the amount) and the weather and packing (no numbers until they come from a real source).
+
 Then run `node --test tests/*.test.cjs`. One test checks the words for the house rules (no long dashes, no dot separators, no full stop on a short line) and will name any line that breaks them.
+
+Then run the fit check, `python scripts/check-first-fit.py`. This step is required, not optional: nothing in the node tests limits how long a Weekend line is, and only the fit check shows a day that no longer fits a phone. It takes about twelve minutes and should end with PASS on 788 stops.
+
+Some tests pin today's placeholder lines on purpose. When the real words go in they fail, and each needs its expected line updated:
+
+- `tests/first-words.test.cjs`: the four day names and dates, `weekend.open` ("Open the day"), the dock labels and the Stay button's states, the photos envelope's "June", no digit anywhere in Questions, "usually" and "check before you book" in the Travel route lines.
+- `tests/first-fixwave-c.test.cjs` (H13): `weekend.swipe` ("Swipe for the next day").
+- `tests/first-cards-info.test.cjs`: "ask Joe or Sophie directly" in the bring answer, "Message Joe or Sophie" in the reach and food answers, "follow" in the gifts answer, and the share showing as "£150 each" in the cost answer.
+- `tests/first-cards.test.cjs`: "Joe or Sophie" in the Reply card's closed line.
+- `tests/weekend-view.test.cjs` ("nothing from the old Wear card is lost"): "Come as you are", "ties optional", "Swimwear", "gravel and grass" and "after dark".
 
 ## 6. Flip the switch
 
