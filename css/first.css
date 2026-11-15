@@ -292,6 +292,8 @@ html.first-on body > :not(#first) { display: none; }
 #first .fc-q-more-in { overflow: hidden; min-height: 0; visibility: hidden; transition: visibility 0s .4s; }
 #first .fc-q.fc-on .fc-q-more-in { visibility: visible; transition: none; }
 #first .fc-q-a { margin: 0 16px; padding: 12px 0 15px; border-top: 1px solid var(--line); font: 400 15px/1.45 var(--ui); color: var(--ink-soft); }
+/* the lines of one answer read as one answer: the rule sits only between the question and its answer */
+#first .fc-q-a + .fc-q-a { padding-top: 0; border-top: 0; }
 
 /* short phones: the Weekend and Questions cards fit with every day shown and the longest answer open */
 @media (max-height: 640px) {
