@@ -227,3 +227,25 @@ test('card styles live inside #first, with a no-scroll short-phone rule', () => 
   const reduced = css.slice(css.lastIndexOf('prefers-reduced-motion'));
   assert.match(reduced, /\.fc-/);
 });
+
+test('userClose: a card can turn the close control into a step back, once per press', () => {
+  const c = cards();
+  const calls = [];
+  assert.equal(c.userClose({ guard: () => { calls.push(1); return true; } }), false);
+  assert.equal(calls.length, 1);
+  assert.equal(c.userClose({ guard: () => false }), true);
+  assert.equal(c.userClose({ guard: null }), true);
+  assert.equal(c.userClose({}), true);
+  assert.equal(c.userClose(null), true);
+  assert.equal(c.userClose({ guard: () => { throw new Error('x'); } }), true);
+});
+
+test('the close control and Escape go through userClose; closing by code does not', () => {
+  const js = read('js/first/cards.js');
+  assert.match(js, /button\('fm-round fc-close', null, \(\) => \{ if \(userClose\(r\)\) close\(\); \}\)/);
+  assert.match(js, /e\.key === 'Escape'\) \{ e\.preventDefault\(\); if \(userClose\(r\)\) close\(\); return; \}/);
+  assert.match(js, /beforeClose\(fn\) \{ if \(typeof fn === 'function'\) r\.guard = fn; \}/);
+  assert.match(js, /card\.beforeClose\(fn\)/);
+  const body = js.slice(js.indexOf('function close(opts)'), js.indexOf('// Escape closes'));
+  assert.doesNotMatch(body, /userClose|guard/);
+});

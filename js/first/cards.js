@@ -112,6 +112,8 @@
   //   card.rise(e)     marks e to rise in, in order card.close(opts)  closes it ({ quiet: true }: no sound, no focus back)
   //   card.live()      false once the card is gone  card.saved()  closes it and repaints the home screen's dock
   //   card.host        the #first element          card.onClose(fn)  runs fn when the card closes
+  //   card.beforeClose(fn)  runs fn when the guest presses the close control or Escape; return true to keep the card open
+  //                    (a step back inside the card). Not asked when code closes the card.
   // The card's background and anything else it needs is styled under #first .fc-<key>.
   const CARDS = {};
   let current = null, listening = false;
@@ -145,18 +147,19 @@
     inner.appendChild(h);
     inner.appendChild(body);
     card.appendChild(inner);
-    const shut = button('fm-round fc-close', null, () => close());
+    const shut = button('fm-round fc-close', null, () => { if (userClose(r)) close(); });
     shut.innerHTML = ICON.close;
     shut.setAttribute('aria-label', w.home.close);
     card.appendChild(shut);
 
-    const r = { key, box, host, opener: o.from || document.activeElement, behind: [], closers: [] };
+    const r = { key, box, host, opener: o.from || document.activeElement, behind: [], closers: [], guard: null };
     const api = {
       body, ctx, w, first, host, el, button,
       heading(title, kick) { h.textContent = title; kicker.textContent = kick || ''; kicker.hidden = !kick; },
       rise(e) { e.classList.add('fc-rise'); return e; },
       live: () => current === r,
       onClose(fn) { if (typeof fn === 'function') r.closers.push(fn); },
+      beforeClose(fn) { if (typeof fn === 'function') r.guard = fn; },
       close: opts2 => { if (current === r) close(opts2); },
       saved() {
         if (current === r) close();
@@ -180,6 +183,12 @@
     return true;
   }
 
+  // The guest's close control and Escape ask the card first. true: close it. A guard that throws never traps the guest.
+  function userClose(r) {
+    if (!r || typeof r.guard !== 'function') return true;
+    try { return r.guard() !== true; } catch (e) { return true; }
+  }
+
   function close(opts) {
     const r = current, o = opts || {}, first = root.sjFirst || {};
     current = null;
@@ -199,7 +208,7 @@
   function onKey(e) {
     const r = current;
     if (!r) return;
-    if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+    if (e.key === 'Escape') { e.preventDefault(); if (userClose(r)) close(); return; }
     if (e.key !== 'Tab') return;
     const list = Array.from(r.box.querySelectorAll(FOCUSABLE)).filter(x => x.getClientRects().length);
     if (!list.length) return;
@@ -452,7 +461,7 @@
     }
   };
 
-  const api = { CARD_KEYS, stayView, confirmLabel, saveStayChoice, replyView, notYou,
+  const api = { CARD_KEYS, userClose, stayView, confirmLabel, saveStayChoice, replyView, notYou,
     questionsView,
     cards: { open, close, openKey: () => (current ? current.key : null), built: () => Object.keys(CARDS) } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
