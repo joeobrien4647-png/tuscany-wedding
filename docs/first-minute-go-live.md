@@ -53,7 +53,7 @@ Optional, on a computer with Python and Playwright installed and a network conne
 
 ## 4a. The Getting there card
 
-Built on the `getting-there` branch, on top of sections 1 to 4, which were done on 11 Nov 2026. Nothing in this section has been run. The card sits behind the same switch, so guests see nothing until section 6.
+Built on the `getting-there` branch, on top of sections 1 to 4, which were done on 11 Nov 2026. The Getting there work was pushed to `main` on 14 Nov 2026 (commit 14e8514) with the switch off, and the Firebase rules with the `travel` block were published the same day. Still to do: the two-phone test on the live site, and clearing the test tickets afterwards. The card sits behind the same switch, so guests see nothing until section 6.
 
 What it adds: a guest builds their trip on a map, fills a ticket and stamps it. A stamped ticket is saved at `travel/<their key>/<ticket number>`, where a personal link can write but never read. Only a signed-in admin can read it, so guests cannot see each other's plans. The phone that stamped a ticket keeps its own copy and shows it again; another phone starts empty.
 
@@ -86,11 +86,11 @@ Not in yet: prices on the routes. The "See live prices" link works now and opens
 
 ## 5. Write the words
 
-Every guest-facing line is in `js/first/words.js` and every one is a placeholder. Replace them with your own. The Getting there card's lines are under `travel`; its airports, airlines, drive times and tolls are not words, they come from `data/getting-there.json`. Ones that need a decision, not just wording:
+Every guest-facing line is in `js/first/words.js` and every one is a placeholder. Replace them with your own. The home screen has four buttons: Reply, Stay, Travel and Weekend. There is no Wear card; what to wear is a line inside each day of the Weekend card. The Getting there card's lines are under `travel`; its airports, airlines, drive times and tolls are not words, they come from `data/getting-there.json`. Ones that need a decision, not just wording:
 
 - The gifts answer (it says details will follow)
 - The line under "your own place"
-- The weekend lines for each day
+- The weekend lines for each day. They sit per day under `weekend.days`. A day shows no Food and drink, Wear or Where row until it has a line for it, so leave a line out and the row is simply not there. The four day pictures (`images/first/fri.webp`, `sat.webp`, `sun.webp`, `mon.webp`) were made with an image tool from real photos of La Conca and show a mood, not the place. Swap any picture that shows something La Conca will not have.
 - "Nearly ready" (shown when an envelope's date has passed but nothing is inside yet) and "Today" (shown on the wedding day)
 - The amount is not in the words file. It is `SHARE_GBP` in `js/first/core.js`. No payment date is shown anywhere yet: the line says to send your share in the spring. Add a date only once you know when the balance is due to the villa.
 

@@ -75,8 +75,9 @@ CARD_STAY = CARD + ['.fc-opt-head', '.fc-opt.fc-on .fc-opt-body', '.fc-go']
 CARD_STAY_FIXED = CARD + ['.fc-opt-head']   # the confirm button is dimmed on purpose once the choice is fixed
 # The Getting there card: the ticket and its four boxes, the tray's heading, and the map once it has stopped moving.
 CARD_TRAVEL = CARD + ['.tc-ticket', '.tc-f', '.tc-h', '.tm-svg.tm-still']
-CARD_WEAR = CARD + ['.fc-row']
 CARD_WEEKEND = CARD + ['.fc-day']
+# An open day: the day in view, its marks, and whichever lines this day has (the other three days wait out of sight).
+CARD_DAY = CARD + ['.wk-live .wk-date', '.wk-live .wk-name', '.wk-live .wk-part', '.wk-mark']
 CARD_QUESTIONS = CARD + ['.fc-q-head']
 TOAST = ['.fh-toast', '.fh-env']
 
@@ -87,9 +88,13 @@ OVERLAY_TEXT_OK = [
 DRIFT_OK = [
     '.fm-stage',     # the film and photo layers behind the minute drift for up to 8 s
     '.fc-bg',        # the picture behind an open card drifts for 6 s
+    '.wk-pic',       # the Weekend day's picture drifts forever on purpose; it holds no text or controls
 ]
 SCROLL_OK = [
     '.tc-opts',      # the Getting there tray's list scrolls inside itself (the approved design's one exception); never sideways
+]
+DAY_CLIPS_OK = [
+    '.wk-day',       # clips on purpose: its pictures are bigger than the screen and its four pages sit side by side; each page and picture is measured on its own
 ]
 SR_ONLY_OK = [
     '.tc-sr',        # the tray's heading while the compare button takes its place: kept for screen readers, not shown
@@ -99,11 +104,12 @@ MAP_OK = [
 ]
 BLEED_OK = [
     '.fm-stage',     # the full-bleed film and photo layers are scaled past the screen edges so they never show a gap
+    '.wk-pic',       # the Weekend day's picture is wider and taller than the screen so its drift never shows a gap
     '.fm-defs',      # the 0 x 0 svg that only holds the seal's gradients and clip paths
 ]
 
 # One in-page function: wait for the required elements to be visible and still, then measure the screen.
-MEASURE_JS = r"""async ({ required, strictVertical, overlayOk, bleedOk, driftOk, scrollOk, srOk, mapOk }) => {
+MEASURE_JS = r"""async ({ required, strictVertical, overlayOk, bleedOk, driftOk, scrollOk, srOk, mapOk, dayOk }) => {
   const first = document.getElementById('first'), de = document.documentElement, vw = innerWidth, vh = innerHeight;
   const out = { missing: [], doc: 0, card: 0, cut: [] };
   const opacity = el => { let o = 1; for (let a = el; a && a !== de; a = a.parentElement) o *= parseFloat(getComputedStyle(a).opacity); return o; };
@@ -142,8 +148,9 @@ MEASURE_JS = r"""async ({ required, strictVertical, overlayOk, bleedOk, driftOk,
   const card = first && first.querySelector('.fc-card');
   if (card) out.card = Math.max(card.scrollWidth - card.clientWidth - 1, 0) + Math.max(card.scrollHeight - card.clientHeight - 1, 0);
   if (!first) return out;
-  // With a card open the home screen behind it is inert and covered, so only the card is measured.
-  const scope = first.querySelector('.fc') || first;
+  // With a card open the home screen behind it is inert and covered, so only the card is measured; a Weekend day open
+  // over its tiles covers them the same way, so only the day is.
+  const scope = first.querySelector('.wk-day:not([hidden])') || first.querySelector('.fc') || first;
   const seen = new Set(), say = (key, msg) => { if (!seen.has(key)) { seen.add(key); out.cut.push(msg); } };
   const clips = el => { const s = getComputedStyle(el); return s.overflowX !== 'visible' || s.overflowY !== 'visible'; };
   const label = el => el.tagName.toLowerCase() + '.' + String((el.className && el.className.baseVal !== undefined ? el.className.baseVal : el.className) || '').split(' ')[0];
@@ -184,7 +191,7 @@ MEASURE_JS = r"""async ({ required, strictVertical, overlayOk, bleedOk, driftOk,
     else if (sideways(el)) say(el, 'text spills sideways from ' + label(el) + ' ' + short);
     else if (!clips(el) && tallerThanBox(el)) say(el, 'text taller than its box ' + label(el) + ' ' + short);
     for (let a = el; a && a !== first.parentElement; a = a.parentElement)
-      if (clips(a) && a.clientWidth > 0 && (a.scrollWidth > a.clientWidth + 1 || (!scrollOk.some(s => a.matches(s)) && a.scrollHeight > a.clientHeight + 1))) say(a, 'clipping box overflows ' + label(a) + ' ' + short);
+      if (clips(a) && a.clientWidth > 0 && (!dayOk.some(s => a.matches(s)) && (a.scrollWidth > a.clientWidth + 1 || (!scrollOk.some(s => a.matches(s)) && a.scrollHeight > a.clientHeight + 1)))) say(a, 'clipping box overflows ' + label(a) + ' ' + short);
     const range = document.createRange(); range.selectNodeContents(n);
     const box = !el.closest('svg') && clipBox(el), bounds = box && box.getBoundingClientRect();
     for (const whole of range.getClientRects()) {
@@ -233,6 +240,9 @@ MEASURE_JS = r"""async ({ required, strictVertical, overlayOk, bleedOk, driftOk,
 INK_JS = r"""() => { const c = document.querySelector('#first .fm-fx'); if (!c || !c.width) return -1;
   const d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data; let n = 0;
   for (let i = 3; i < d.length; i += 64) if (d[i] > 0) n++; return n; }"""
+WEEKEND_WORDS_JS = r"""() => sjFirst.words.weekend.days.map(d => [d.date, d.name, d.intro].concat(
+  (d.parts || []).reduce((all, p) => all.concat([p.when, p.what]), []), [d.wear], d.bring || [], [d.food, d.where]).filter(Boolean))"""
+LIVE_DAY_JS = "() => { const p = document.querySelector('#first .wk-live'); return p ? p.textContent : ''; }"
 DOCK_JS = "() => Array.from(document.querySelectorAll('#first .fh-dk')).map(b => [b.className.replace('fh-dk ', ''), b.textContent])"
 OPT_JS = "() => Array.from(document.querySelectorAll('#first .fc-opt.fc-on .fc-opt-title')).map(e => e.textContent)"
 
@@ -365,7 +375,7 @@ class Flow:
         """Wait until every required element is visible and still, then measure the whole screen."""
         found = await self.page.evaluate(MEASURE_JS, {'required': required, 'strictVertical': self.device['engine'] == 'webkit',
                                                        'overlayOk': OVERLAY_TEXT_OK, 'bleedOk': BLEED_OK, 'driftOk': DRIFT_OK,
-                                                       'scrollOk': SCROLL_OK, 'srOk': SR_ONLY_OK, 'mapOk': MAP_OK})
+                                                       'scrollOk': SCROLL_OK, 'srOk': SR_ONLY_OK, 'mapOk': MAP_OK, 'dayOk': DAY_CLIPS_OK})
         new_errors = self.errors[self.seen_errors:]
         self.seen_errors = len(self.errors)
         if self.shots:
@@ -484,7 +494,7 @@ async def flow_cards(f, guest):
     await p.wait_for_selector('#first .fc', state='detached')
     await p.wait_for_timeout(500)
     await f.stop('home-after-stay', HOME)
-    for nth, name, required in ((2, 'travel', CARD_TRAVEL + ['.tc-chip']), (3, 'wear', CARD_WEAR), (4, 'weekend', CARD_WEEKEND)):
+    for nth, name, required in ((2, 'travel', CARD_TRAVEL + ['.tc-chip']), (3, 'weekend', CARD_WEEKEND)):
         await open_dock(f, nth)
         if nth == 2:
             await map_still(f.page)
@@ -876,14 +886,120 @@ async def flow_travel_failures(f, guest):
     await f.stop('travel-stamp-retried', CARD_TRAVEL + ['.tc-ticket.tc-stamped', '.tc-ghost'])
 
 
+# ---------- the Weekend card ----------
+FULLEST_DAY = r"""() => { const d = sjFirst.words.weekend.days[1], filler = (n, tail) => ('Sample words for the longest day of the weekend ' + tail).slice(0, n).trim();
+  d.parts = [0, 1, 2].map(i => ({ when: filler(30, 'one'), what: filler(30, 'two') }));
+  d.intro = filler(60, 'and a little more of it, so it wraps');
+  d.wear = filler(80, 'and a little more of it, so that it wraps onto a second line');
+  d.bring = [filler(30, 'one'), filler(30, 'two')];
+  d.food = filler(60, 'and a little more of it, so it wraps');
+  d.where = filler(40, 'and a little more of it'); }"""
+DAY_KEYS = ['fri', 'sat', 'sun', 'mon']
+DAY_STOPS = ['weekend-fri', 'weekend-sat', 'weekend-sun', 'weekend-mon']
+
+
+async def open_weekend(f, guest):
+    await with_seen_home(f, guest, replied(guest))
+    await open_dock(f, 3)
+    await f.page.wait_for_selector('#first .fc-day', state='visible')
+
+
+async def open_day(f, i):
+    """Tap a tile and wait for its day to fill the card."""
+    await f.page.click('#first .fc-day >> nth=%d' % i)
+    await f.page.wait_for_selector('#first .wk-day:not([hidden]) .wk-live', state='attached')
+    await f.page.wait_for_timeout(300)
+
+
+async def expect_words(f, i):
+    """Every word the day has (from the words file) is on the day in view."""
+    shown = await f.page.evaluate(LIVE_DAY_JS)
+    wanted = (await f.page.evaluate(WEEKEND_WORDS_JS))[i]
+    gone = [w for w in wanted if w not in shown]
+    f.expect(not gone, 'day %s is missing words: %s' % (DAY_KEYS[i], gone))
+
+
+async def back_to_tiles(f, how):
+    """The close control or Escape from an open day goes back to the four tiles, not out of the card."""
+    p = f.page
+    if how == 'close':
+        await p.click('#first .fc-close')
+    else:
+        await p.keyboard.press('Escape')
+    await p.wait_for_selector('#first .wk-day', state='hidden')
+    await p.wait_for_timeout(300)
+    f.expect(await p.locator('#first .fc').count() == 1, 'closing a day also closed the card')
+    f.expect(await p.is_visible('#first .fc-day >> nth=0'), 'the four tiles did not come back')
+
+
+async def flow_weekend(f, guest):
+    """Tiles, each day from its tile, a swipe, a mark, the close control and Escape, then the four-button home."""
+    p = f.page
+    await open_weekend(f, guest)
+    await f.stop('weekend-tiles', CARD_WEEKEND)
+    f.expect(await p.locator('#first .fc-day').count() == 4, 'the Weekend card does not show four tiles')
+    for i in range(len(DAY_STOPS)):
+        await open_day(f, i)
+        await f.stop(DAY_STOPS[i], CARD_DAY)
+        await expect_words(f, i)
+        await back_to_tiles(f, 'close' if i % 2 else 'escape')
+    await open_day(f, 0)
+    box = await p.locator('#first .wk-day').bounding_box()
+    x, y = box['x'] + box['width'] * 0.85, box['y'] + box['height'] * 0.4
+    await p.mouse.move(x, y)
+    await p.mouse.down()
+    await p.mouse.move(x - box['width'] * 0.4, y + 4, steps=8)
+    await p.mouse.up()
+    await p.wait_for_timeout(1400)
+    f.expect(await p.get_attribute('#first .wk-mark >> nth=1', 'aria-current') == 'true', 'a swipe left did not move to Saturday')
+    await f.stop('weekend-after-swipe', CARD_DAY)
+    await expect_words(f, 1)
+    await p.click('#first .wk-mark >> nth=3')
+    await p.wait_for_timeout(1400)
+    f.expect(await p.get_attribute('#first .wk-mark >> nth=3', 'aria-current') == 'true', 'a tap on the last mark did not move to Monday')
+    await f.stop('weekend-after-mark', CARD_DAY)
+    await expect_words(f, 3)
+    await back_to_tiles(f, 'close')
+    await f.stop('weekend-back-to-tiles', CARD_WEEKEND)
+    await close_card(f)
+    f.expect(len(await p.evaluate(DOCK_JS)) == 4, 'the home screen does not have four buttons')
+    await f.stop('home-four-buttons', HOME)
+
+
+async def flow_weekend_fullest(f, guest):
+    """Saturday with the most the card allows: three parts, a long intro, both tags, food and drink, and where."""
+    p = f.page
+    await with_seen_home(f, guest, replied(guest))
+    await p.evaluate(FULLEST_DAY)
+    await open_dock(f, 3)
+    await open_day(f, 1)
+    await expect_words(f, 1)
+    await f.stop('weekend-fullest-day', CARD_DAY + ['.wk-live .wk-intro', '.wk-live .wk-row', '.wk-live .wk-tag'])
+    f.expect(await p.evaluate("() => { const e = document.querySelector('#first .wk-live'); return e.scrollHeight <= e.clientHeight + 1; }"),
+             'the fullest day needs its page to scroll')
+
+
+async def flow_weekend_no_pictures(f, guest):
+    """Every picture refused (an empty answer, so no console error): a day still shows all its words, readable."""
+    p = f.page
+    await p.route('**/images/first/*.webp', lambda route: route.fulfill(status=200, content_type='image/webp', body=b''))
+    await open_weekend(f, guest)
+    await open_day(f, 1)
+    await p.wait_for_timeout(600)
+    await expect_words(f, 1)
+    await f.stop('weekend-no-pictures', CARD_DAY)
+
+
 PER_INVITE = [('first-visit', flow_first_visit), ('cards', flow_cards), ('travel', flow_travel), ('cant-come', flow_cant_come), ('closed', flow_closed),
-              ('closed-replied', flow_closed_replied), ('second-visit', flow_second_visit)]
+              ('closed-replied', flow_closed_replied), ('second-visit', flow_second_visit),
+              ('weekend', flow_weekend)]
 # (name, flow, which guest): an index into INVITES, 'spare', or None for the first invitation.
 PER_DEVICE = [('no-link', flow_no_link, None), ('full-minute', flow_full_minute, 2), ('wedding-day', flow_wedding_day, 1),
               ('sealed-envelope', flow_sealed_envelope, 1), ('reply-save', flow_reply_save, 'spare'),
               ('stay-save', flow_stay_save, 'spare'), ('busy-guard', flow_busy_guard, 'spare'),
               ('travel-ways', flow_travel_ways, 1), ('travel-failures', flow_travel_failures, 'spare'),
-              ('travel-no-map', flow_travel_no_map, 'spare')]
+              ('travel-no-map', flow_travel_no_map, 'spare'),
+              ('weekend-fullest', flow_weekend_fullest, 'spare'), ('weekend-no-pictures', flow_weekend_no_pictures, 'spare')]
 
 
 def plan(invites, spare, only=''):

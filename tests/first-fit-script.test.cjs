@@ -128,3 +128,14 @@ test('the phone-fit script covers a missing map script and going back from a cha
   for (const stop of ['travel-map-missing', 'travel-changing']) assert.ok(py.includes("'" + stop + "'"), stop);
   assert.match(py, /flow_travel_no_map/);
 });
+
+test('the phone-fit script walks the Weekend screen and the four-button home, and no longer the Wear card', () => {
+  const py = source();
+  for (const stop of ['weekend-tiles', 'weekend-fri', 'weekend-sat', 'weekend-sun', 'weekend-mon', 'weekend-after-swipe', 'weekend-back-to-tiles',
+    'weekend-fullest-day', 'weekend-no-pictures', 'home-four-buttons'])
+    assert.ok(py.includes("'" + stop + "'"), stop);
+  assert.match(py, /\('weekend', flow_weekend\)/);
+  assert.ok(!py.includes('card-wear'), 'the Wear card stop is still there');
+  assert.ok(!py.includes('CARD_WEAR'), 'CARD_WEAR is still there');
+  assert.match(py, /DRIFT_OK = \[[^\]]*'\.wk-pic',\s+#/s, 'the drifting picture layer is named with its reason');
+});
