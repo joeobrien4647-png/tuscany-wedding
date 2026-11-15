@@ -66,7 +66,7 @@ What it adds: a guest builds their trip on a map, fills a ticket and stamps it. 
 5. Check a household with no yes cannot stamp: in the Rules Playground, a set at `/travel/<a key with no reply>/0` with no sign-in should be denied.
 6. Two more that should be denied, using a key that has replied yes: a read of `/travel/<that key>/0`, and a set at `/travel/<that key>/8` (there are only eight tickets, 0 to 7).
 
-Not yet proven: the rules have only been checked for shape by the tests. That they accept a real stamp is proven by the two-phone test below, and by nothing before it. Until the rules are published, stamping on the live site fails with "Could not stamp it" and nothing is lost.
+Not yet proven: the rules have only been checked for shape by the tests. That they accept a real stamp is proven by the two-phone test below, and by nothing before it. The rules were published on 14 November 2026.
 
 **Push with the switch still off (Joe only).** Done on 14 Nov 2026 (commit 14e8514). Merge `getting-there` into `main` and push, as in section 3. The site should look exactly as before.
 
@@ -86,7 +86,7 @@ Not in yet: prices on the routes. The "See live prices" link works now and opens
 
 ## 4b. The four cards pass
 
-The Weekend screen (four day tiles, each day opening full screen), the four-button home screen and the Questions changes are on the branch `cards-pass`. They are not on `main` yet. They go to `main`, with the switch still off, only when Joe says so. Then try them on Joe's phone and Sophie's phone, with `&first=1&test=1` on your own household's link:
+The Weekend screen (four day tiles, each day opening full screen), the four-button home screen and the Questions changes went to `main` on 15 November 2026 (commit 275b420), with the switch still off. The two-phone list below is still to do. The sharper day pictures and a round of small fixes came after that push and are on `cards-pass` until Joe says to push them. Try them on Joe's phone and Sophie's phone, with `&first=1&test=1` on your own household's link:
 
 1. Open Weekend and a day. Swipe between the days with a finger, both ways, on both phones.
 2. Tap the marks at the foot of a day: each one jumps to its day.
