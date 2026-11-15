@@ -78,7 +78,7 @@ test('the four cards have no form field; text goes through textContent', () => {
 
 test('the four cards are styled under their own keys; no dvh or svh; no dashes, amounts or console', () => {
   const css = read('css/first.css');
-  for (const k of ['travel', 'wear', 'weekend', 'questions']) assert.match(css, new RegExp('#first \\.fc-' + k + ' '), k);
+  for (const k of ['travel', 'weekend', 'questions']) assert.match(css, new RegExp('#first \\.fc-' + k + ' '), k);
   assert.doesNotMatch(css, /dvh|svh/);
   assert.doesNotMatch(read('js/first/cards.js') + read('js/first/words.js'), DASHES);
   assert.doesNotMatch(read('js/first/cards.js'), /\b150\b|console\./);

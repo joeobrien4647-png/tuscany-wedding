@@ -274,27 +274,8 @@ html.first-on body > :not(#first) { display: none; }
 #first .fc-go-wrap { display: grid; margin-top: 2px; }
 #first .fc-go { width: 100%; }
 
-/* ==== Task 9: Travel, Wear, Weekend and Questions ==== */
-#first .fc-wear .fc-bg::before { background-image: url(../images/first/sat.webp); }
-#first .fc-weekend .fc-bg::before { background-image: url(../images/first/night.webp); }
+/* ==== Task 9: Travel and Questions ==== */
 #first .fc-questions .fc-bg::before { background-image: url(../images/first/night-blur.webp); }
-
-/* the letter's lines: a small gold label over the words */
-#first .fc-rows { display: grid; }
-#first .fc-row { display: grid; gap: 4px; padding: 13px 0; border-top: 1px solid var(--line); }
-#first .fc-row:last-child { border-bottom: 1px solid var(--line); }
-#first .fc-row-k { font: 500 12px/1.3 var(--ui); letter-spacing: .22em; text-transform: uppercase; color: var(--gold); }
-#first .fc-row-v { font: italic 400 19px/1.3 var(--display); color: var(--ink); overflow-wrap: anywhere; }
-
-/* Weekend: four day cards, two by two */
-#first .fc-days { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
-#first .fc-day { position: relative; height: clamp(150px, 26vh, 230px); min-width: 0; border-radius: 20px; overflow: hidden; background: var(--night-2); border: 1px solid var(--line); }
-#first .fc-day-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-#first .fc-day::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; background: linear-gradient(180deg, rgba(5, 6, 12, 0) 0%, rgba(5, 6, 12, .12) 22%, rgba(5, 6, 12, .62) 36%, rgba(5, 6, 12, .86) 62%, rgba(5, 6, 12, .96) 100%); }
-#first .fc-day-cap { position: absolute; z-index: 1; left: 12px; right: 12px; bottom: 12px; display: grid; gap: 3px; min-width: 0; text-shadow: 0 1px 2px rgba(0, 0, 0, .95), 0 2px 14px rgba(0, 0, 0, .9); }
-#first .fc-day-cap .fc-grp-k { font-size: 11px; color: var(--gold-hi); letter-spacing: .2em; }
-#first .fc-day-t { font: italic 500 20px/1.1 var(--display); color: var(--ink); overflow-wrap: anywhere; }
-#first .fc-day-l { font: 400 12px/1.3 var(--ui); color: var(--ink); overflow-wrap: anywhere; }
 
 /* Questions: one answer open at a time */
 #first .fc-qs { display: grid; gap: 9px; }
@@ -314,11 +295,7 @@ html.first-on body > :not(#first) { display: none; }
 
 /* short phones: the Weekend and Questions cards fit with every day shown and the longest answer open */
 @media (max-height: 640px) {
-  #first .fc-weekend .fc-t, #first .fc-questions .fc-t, #first .fc-travel .fc-t, #first .fc-wear .fc-t { font-size: clamp(34px, 10vw, 44px); }
-  #first .fc-row { padding: 10px 0; }
-  #first .fc-row-v { font-size: 18px; }
-  #first .fc-day { height: 140px; }
-  #first .fc-day-t { font-size: 18px; }
+  #first .fc-weekend .fc-t, #first .fc-questions .fc-t, #first .fc-travel .fc-t { font-size: clamp(34px, 10vw, 44px); }
   #first .fc-q-head { padding: 12px 14px; min-height: 48px; }
   #first .fc-q-t { font-size: 19px; }
 }
@@ -465,6 +442,88 @@ html.first-on body > :not(#first) { display: none; }
 #first .fc-travel .tm-villa.tm-arrived .tm-ring { animation: tm-pulse 1.2s ease-out 2; }
 @keyframes tm-pulse { 0% { opacity: .9; transform: scale(.5); } 100% { opacity: 0; transform: scale(2.1); } }
 
+/* ==== The Weekend: four tiles, and a day that opens full screen (js/first/weekend-card.js) ====
+   The day covers the whole card under the frame's close control. Nothing scrolls; the words sit at the foot. */
+#first .fc-weekend .fc-bg::before { background-image: url(../images/first/night.webp); }
+#first .fc-weekend .fc-inner { position: static; }
+#first .fc-weekend .wk-tiles { display: grid; gap: 12px; }
+#first .fc-weekend .wk-vibe { margin-top: -4px; font: italic 400 19px/1.25 var(--display); color: var(--gold-hi); text-shadow: 0 1px 12px rgba(0, 0, 0, .8); overflow-wrap: anywhere; }
+#first .fc-weekend .wk-hint { font: 400 13px/1.4 var(--ui); color: var(--ink-faint); text-align: center; }
+#first .fc-days { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+#first .fc-day { position: relative; display: block; width: 100%; height: clamp(150px, 26vh, 230px); min-width: 0; border-radius: 20px; overflow: hidden; background: var(--night-2); border: 1px solid var(--line); text-align: left; touch-action: manipulation; transition: transform .25s var(--ease); }
+#first .fc-day:active { transform: scale(.97); }
+#first .fc-day-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+#first .fc-day::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; background: linear-gradient(180deg, rgba(5, 6, 12, 0) 0%, rgba(5, 6, 12, .12) 22%, rgba(5, 6, 12, .62) 36%, rgba(5, 6, 12, .86) 62%, rgba(5, 6, 12, .96) 100%); }
+#first .fc-day-cap { position: absolute; z-index: 1; left: 12px; right: 12px; bottom: 12px; display: grid; gap: 3px; min-width: 0; text-shadow: 0 1px 2px rgba(0, 0, 0, .95), 0 2px 14px rgba(0, 0, 0, .9); }
+#first .fc-day-cap .fc-grp-k { font-size: 11px; color: var(--gold-hi); letter-spacing: .2em; }
+#first .fc-day-t { font: italic 500 20px/1.1 var(--display); color: var(--ink); overflow-wrap: anywhere; }
+#first .fc-weekend .wk-go { position: absolute; z-index: 1; top: 10px; right: 10px; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--glass); border: 1px solid var(--line); color: var(--gold-hi); }
+#first .fc-weekend .wk-go svg { width: 16px; height: 16px; }
+
+/* one day: the pictures, the lights, the band of light, the shade, then the days side by side */
+#first .fc-weekend .wk-day { position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; z-index: 20; overflow: hidden; background: var(--night); clip-path: inset(var(--wk-t, 0px) var(--wk-r, 0px) var(--wk-b, 0px) var(--wk-l, 0px) round var(--wk-rad, 0px)); touch-action: pan-y; }
+#first .fc-weekend .wk-day.wk-moving { transition: clip-path .6s var(--ease); }
+#first .fc-weekend .wk-pic { position: absolute; top: -2%; right: -8%; bottom: -2%; left: -8%; overflow: hidden; opacity: 0; will-change: opacity, transform; }
+#first .fc-weekend .wk-pic-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+#first .fc-weekend .wk-pic.wk-on .wk-pic-img { animation: wk-drift 18s ease-in-out infinite alternate; }
+@keyframes wk-drift { from { transform: scale(1) translate3d(0, 0, 0); } to { transform: scale(1.09) translate3d(-1.5%, -1.2%, 0); } }
+#first .fc-weekend .wk-day.wk-snap .wk-pic { transition: opacity 1.1s ease, transform 1.2s var(--ease); }
+#first .fc-weekend .wk-air { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: screen; }
+#first .fc-weekend .wk-band { position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; pointer-events: none; opacity: 0; background: linear-gradient(100deg, transparent 30%, rgba(243, 218, 156, .28) 50%, transparent 70%); background-size: 260% 100%; }
+#first .fc-weekend .wk-band.wk-go { animation: wk-band 1.2s ease both; }
+@keyframes wk-band { 0% { opacity: 0; background-position: 120% 0; } 30% { opacity: 1; } 100% { opacity: 0; background-position: -60% 0; } }
+#first .fc-weekend .wk-shade { position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(8, 10, 18, .55) 0%, rgba(8, 10, 18, .12) 14%, rgba(8, 10, 18, .3) 26%, rgba(8, 10, 18, .72) 44%, rgba(8, 10, 18, .94) 64%); }
+#first .fc-weekend .wk-swipe { position: absolute; z-index: 3; top: calc(var(--top) + 27px); left: max(20px, env(safe-area-inset-left, 0px)); font: 400 13px/1.3 var(--ui); letter-spacing: .06em; color: var(--ink-soft); text-shadow: 0 0 12px rgba(0, 0, 0, .95); pointer-events: none; transition: opacity .4s; }
+#first .fc-weekend .wk-swipe.wk-gone { opacity: 0; }
+#first .fc-weekend .wk-track { position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; display: flex; will-change: transform; }
+#first .fc-weekend .wk-day.wk-snap .wk-track { transition: transform .95s var(--ease); }
+#first .fc-weekend .wk-page {
+  flex: 0 0 100%; min-width: 0; height: 100%; display: grid; align-content: end; gap: 10px;
+  padding-top: calc(var(--top) + 64px); padding-bottom: calc(var(--bottom) + 46px);
+  padding-left: max(20px, env(safe-area-inset-left, 0px), calc(50% - 260px)); padding-right: max(20px, env(safe-area-inset-right, 0px), calc(50% - 260px));
+  overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
+}
+#first .fc-weekend .wk-page::-webkit-scrollbar { display: none; }
+#first .fc-weekend .wk-date { font: 600 12px/1.3 var(--ui); letter-spacing: .28em; text-transform: uppercase; color: var(--gold-hi); text-shadow: 0 0 14px rgba(0, 0, 0, .95), 0 1px 3px rgba(0, 0, 0, .9); }
+#first .fc-weekend .wk-name { margin: 0; font: 500 clamp(36px, 10.5vw, 56px)/1 var(--display); letter-spacing: -.01em; color: var(--ink); text-wrap: balance; overflow-wrap: anywhere; outline: none; text-shadow: 0 2px 18px rgba(0, 0, 0, .7); }
+#first .fc-weekend .wk-intro { font: italic 400 19px/1.25 var(--display); color: var(--ink); text-wrap: balance; overflow-wrap: anywhere; text-shadow: 0 1px 12px rgba(0, 0, 0, .8); }
+#first .fc-weekend .wk-parts { list-style: none; padding: 0; display: grid; }
+#first .fc-weekend .wk-part { position: relative; display: grid; grid-template-columns: 14px minmax(0, 1fr); column-gap: 10px; padding: 4px 0; }
+#first .fc-weekend .wk-part::before { content: ""; position: relative; z-index: 1; grid-row: 1; grid-column: 1; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--gold); align-self: center; justify-self: center; background: var(--night); transition: background .4s, box-shadow .4s; transition-delay: calc(500ms + var(--j, 0) * 220ms); }
+#first .fc-weekend .wk-live .wk-part::before { background: var(--gold-hi); box-shadow: 0 0 12px rgba(243, 218, 156, .7); }
+#first .fc-weekend .wk-part:not(:last-child)::after { content: ""; position: absolute; left: 6.5px; top: 11px; height: 100%; width: 1px; background: var(--line-gold); }
+#first .fc-weekend .wk-when { grid-column: 2; font: 600 11px/1.3 var(--ui); letter-spacing: .18em; text-transform: uppercase; color: var(--gold); overflow-wrap: anywhere; }
+#first .fc-weekend .wk-what { grid-column: 2; font: italic 400 19px/1.2 var(--display); color: var(--ink); overflow-wrap: anywhere; }
+#first .fc-weekend .wk-rows { display: grid; border-top: 1px solid var(--line); }
+#first .fc-weekend .wk-row { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; align-items: start; padding: 9px 0; border-bottom: 1px solid var(--line); }
+#first .fc-weekend .wk-ico { display: grid; margin-top: 2px; color: var(--gold); }
+#first .fc-weekend .wk-row-t { display: grid; gap: 1px; min-width: 0; }
+#first .fc-weekend .wk-k { font: 600 10.5px/1.3 var(--ui); letter-spacing: .2em; text-transform: uppercase; color: var(--gold); }
+#first .fc-weekend .wk-v { font: 400 15px/1.4 var(--ui); color: var(--ink); overflow-wrap: anywhere; }
+#first .fc-weekend .wk-tags { display: flex; flex-wrap: wrap; margin: 3px -3px -3px; }
+#first .fc-weekend .wk-tag { margin: 3px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line-gold); font: 400 13px/1.3 var(--ui); color: var(--gold-hi); }
+#first .fc-weekend .wk-rise { opacity: 0; transform: translateY(14px); }
+#first .fc-weekend .wk-live .wk-rise { opacity: 1; transform: none; transition: opacity .6s ease, transform .7s var(--ease); transition-delay: calc(120ms + var(--i, 0) * 90ms); }
+#first .fc-weekend .wk-marks { position: absolute; z-index: 4; left: 0; right: 0; bottom: calc(var(--bottom) + 10px); display: flex; justify-content: center; align-items: center; }
+#first .fc-weekend .wk-mark { width: 44px; height: 30px; display: grid; place-items: center; }
+#first .fc-weekend .wk-mark i { display: block; width: 6px; height: 6px; border-radius: 3px; background: var(--ink-faint); transition: width .4s var(--ease), background .3s; }
+#first .fc-weekend .wk-mark[aria-current="true"] i { width: 22px; background: var(--gold); }
+@media (max-height: 640px) {
+  #first .fc-day { height: 140px; }
+  #first .fc-day-t { font-size: 18px; }
+  #first .fc-weekend .wk-page { gap: 8px; padding-top: calc(var(--top) + 58px); padding-bottom: calc(var(--bottom) + 40px); }
+  #first .fc-weekend .wk-name { font-size: clamp(32px, 9.6vw, 44px); }
+  #first .fc-weekend .wk-intro { font-size: 17px; }
+  #first .fc-weekend .wk-part { padding: 3px 0; }
+  #first .fc-weekend .wk-part:not(:last-child)::after { top: 10px; }
+  #first .fc-weekend .wk-what { font-size: 17px; }
+  #first .fc-weekend .wk-row { padding: 6px 0; }
+  #first .fc-weekend .wk-v { font-size: 14px; line-height: 1.35; }
+  #first .fc-weekend .wk-tag { padding: 2px 9px; }
+  #first .fc-weekend .wk-marks { bottom: calc(var(--bottom) + 6px); }
+  #first .fc-weekend .wk-mark { height: 28px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #first .fm-cover-bg, #first .fm-grain { animation: none; }
   #first .fm-cover-top .fm-kicker, #first .fm-for, #first .fm-foot, #first .fm-seal { animation: fm-fade 1s .2s ease both; }
@@ -486,4 +545,8 @@ html.first-on body > :not(#first) { display: none; }
   #first .fc-travel .tm-pt, #first .fc-travel .tm-dot text { transition: none; }
   #first .fc-travel .tc-slam, #first .fc-travel .tc-slam .tc-stamp, #first .fc-travel .tc-cta.tc-busy { animation: none; }
   #first .fc-travel .tc-f, #first .fc-travel .tc-chip, #first .fc-travel .tc-row { transition: none; }
+  #first .fc-weekend .wk-air { display: none; }
+  #first .fc-weekend .wk-pic.wk-on .wk-pic-img, #first .fc-weekend .wk-band.wk-go { animation: none; }
+  #first .fc-weekend .wk-day.wk-moving, #first .fc-weekend .wk-day.wk-snap .wk-pic, #first .fc-weekend .wk-day.wk-snap .wk-track, #first .fc-weekend .wk-live .wk-rise, #first .fc-weekend .wk-part::before, #first .fc-weekend .wk-mark i, #first .fc-weekend .wk-swipe, #first .fc-day { transition: none; }
+  #first .fc-weekend .wk-rise, #first .fc-day:active { transform: none; }
 }

@@ -412,12 +412,8 @@
   CARDS.travel = { build: card => root.sjFirst.travelCard.build(card) };
 
   // ---------- the Weekend card ----------
-  // Until the Weekend screen is built, the card shows its title only.
-  CARDS.weekend = {
-    build(card) {
-      card.heading(card.w.weekend.title);
-    }
-  };
+  // Four day tiles and a day that opens full screen: js/first/weekend-card.js.
+  CARDS.weekend = { build: card => root.sjFirst.weekendCard.build(card) };
 
   // ---------- the Questions card ----------
   // A short list of questions; one answer open at a time, opening one closes the others.
