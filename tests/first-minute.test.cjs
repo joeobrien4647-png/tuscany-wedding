@@ -56,6 +56,16 @@ test('the four day pictures are portrait, one per day, and light enough for a ph
   }
 });
 
+test('each day has a larger 1024 x 1536 picture beside its phone one, for sharp screens', () => {
+  for (const n of ['fri', 'sat', 'sun', 'mon']) {
+    const file = path.join(__dirname, '..', 'images', 'first', n + '-lg.webp');
+    assert.ok(fs.existsSync(file), n + '-lg exists');
+    const buf = fs.readFileSync(file);
+    assert.ok(buf.length <= 260 * 1024, n + '-lg is ' + buf.length);
+    assert.deepEqual(webpSize(buf), [1024, 1536], n + '-lg size');
+  }
+});
+
 test('the minute uses the drive video with its poster, and the sound uses the music', () => {
   const js = read('js/first/minute.js');
   assert.match(js, /video\/drive-hero-720\.mp4/);

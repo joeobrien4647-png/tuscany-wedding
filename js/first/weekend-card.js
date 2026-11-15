@@ -43,6 +43,20 @@
     };
   }
 
+  // ---------- the pictures ----------
+  // A tile uses the 720 picture alone. The open day offers both: its layer is the day's width plus 8% off each side
+  // (116%), so on a wide, dense screen the browser picks the 1024 one.
+  function pictureFiles(key) {
+    const small = 'images/first/' + key + '.webp', large = 'images/first/' + key + '-lg.webp';
+    return { src: small, srcset: small + ' 720w, ' + large + ' 1024w', sizes: '116vw' };
+  }
+
+  // The days whose pictures to fetch with day `idx` in view: that day first, then the ones either side.
+  function wanted(idx, count) {
+    const at = clamp(idx, 0, count - 1);
+    return [at, at - 1, at + 1].filter(i => i >= 0 && i < count);
+  }
+
   // ---------- the swipe ----------
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
   const FAR = 0.22, FAST = 0.45, PAST_END = 1 / 3;
@@ -147,6 +161,7 @@
     card.heading(v.title);
 
     // The four tiles, with the weekend's one line above them and the hint below.
+    const dayFiles = new Map();
     const tilesView = el('div', 'wk-tiles');
     if (v.vibe) tilesView.appendChild(card.rise(el('p', 'wk-vibe', v.vibe)));
     const grid = el('div', 'fc-days');
@@ -172,7 +187,7 @@
     day.setAttribute('role', 'dialog');
     const pics = v.days.map(d => {
       const p = el('div', 'wk-pic');
-      p.appendChild(picture('wk-pic-img', d.img));
+      p.appendChild(picture('wk-pic-img', d.img, true));
       day.appendChild(p);
       return p;
     });
@@ -209,15 +224,32 @@
     // One grow or shrink at a time: a new one cancels the end of the last.
     const afterMove = fn => { clearTimeout(moving); timers.delete(moving); moving = later(fn, OPEN_MS); };
 
-    function picture(cls, key) {
+    // A tile's picture loads lazily. A day's picture is asked for only by want(): it holds its addresses until then.
+    function picture(cls, key, forDay) {
       const img = el('img', cls);
       img.alt = '';
-      img.loading = 'lazy';
       img.decoding = 'async';
       img.addEventListener('error', () => { img.hidden = true; });
-      img.src = 'images/first/' + key + '.webp';
+      if (!forDay) {
+        img.loading = 'lazy';
+        img.src = pictureFiles(key).src;
+        return img;
+      }
+      const set = pictureFiles(key);
+      img.sizes = set.sizes;
+      dayFiles.set(img, set);
       return img;
     }
+    // Ask for day i's picture, once.
+    function fetchDay(i) {
+      const img = pics[i].firstChild, set = dayFiles.get(img);
+      if (!set) return;
+      dayFiles.delete(img);
+      img.srcset = set.srcset;
+      img.src = set.src;
+    }
+    // The day in view and the days either side, so a swipe or a mark finds the next picture ready.
+    function want(i) { wanted(i, count).forEach(fetchDay); }
     function icon(cls, name) {
       const s = el('span', cls);
       s.setAttribute('aria-hidden', 'true');
@@ -312,6 +344,7 @@
       idx = next;
       day.classList.add('wk-snap');
       place(idx);
+      want(idx);
       mark();
       if (refocus) focus(pages[idx].head);
     }
@@ -347,6 +380,7 @@
       day.hidden = false;
       swipe.classList.toggle('wk-gone', moved || idx === count - 1);
       place(idx);
+      want(idx);
       if (!still) {
         clipTo(tiles[idx]);
         void day.offsetWidth;
@@ -434,7 +468,7 @@
     day.addEventListener('pointercancel', drop);
   }
 
-  const api = { weekendView, settle, along, build };
+  const api = { weekendView, settle, along, pictureFiles, wanted, build };
   root.sjFirst = Object.assign(root.sjFirst || {}, { weekendCard: api });
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

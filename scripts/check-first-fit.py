@@ -930,6 +930,9 @@ PAINTED_JS = r"""(sels) => { const s = document.createElement('style'); s.textCo
   }).filter(Boolean); } finally { s.remove(); } }"""
 DAY_KEYS = ['fri', 'sat', 'sun', 'mon']
 DAY_STOPS = ['weekend-fri', 'weekend-sat', 'weekend-sun', 'weekend-mon']
+DAY_PICTURE_LOADED_JS = r"""async i => { const img = document.querySelectorAll('#first .wk-pic-img')[i]; if (!img) return false;
+  for (let n = 0; n < 40 && !(img.complete && img.naturalWidth > 0); n++) await new Promise(r => setTimeout(r, 100));
+  return img.complete && img.naturalWidth > 0; }"""
 
 
 async def open_weekend(f, guest):
@@ -986,11 +989,15 @@ async def back_to_tiles(f, how):
 async def flow_weekend(f, guest):
     """Tiles, each day from its tile, a swipe, a mark, the close control and Escape, then the four-button home."""
     p = f.page
+    large = []
+    p.on('request', lambda r: large.append(r.url) if '-lg.webp' in r.url else None)
     await open_weekend(f, guest)
     await f.stop('weekend-tiles', CARD_WEEKEND)
     f.expect(await p.locator('#first .fc-day').count() == 4, 'the Weekend card does not show four tiles')
+    f.expect(not large, 'the card asked for the large day pictures before any day was opened: %s' % large)
     for i in range(len(DAY_STOPS)):
         await open_day(f, i)
+        f.expect(await p.evaluate(DAY_PICTURE_LOADED_JS, i), 'the picture of day %s has not loaded' % DAY_KEYS[i])
         await f.stop(DAY_STOPS[i], CARD_DAY)
         await expect_words(f, i)
         await back_to_tiles(f, 'close' if i % 2 else 'escape')
@@ -1099,8 +1106,8 @@ async def flow_weekend_no_pictures(f, guest):
     f.expect(await p.locator('#first .wk-live .wk-part').count() == await p.evaluate('() => sjFirst.words.weekend.days[1].parts.length'),
              'a line with no part-of-day tag was left out')
     await f.stop('weekend-no-pictures', CARD_DAY + ['.wk-live .wk-intro', '.wk-live .wk-row', '.wk-live .wk-tag'])
-    f.expect(await p.evaluate("() => { const all = Array.from(document.querySelectorAll('#first .wk-pic-img')); return all.length === 4 && all.every(i => i.hidden); }"),
-             'the pictures did not fail: a day picture is still shown')
+    f.expect(await p.evaluate("() => { const all = Array.from(document.querySelectorAll('#first .wk-pic-img')); return all.length === 4 && all.slice(0, 3).every(i => i.hidden) && !all[3].getAttribute('src'); }"),
+             'the pictures did not fail: a day picture asked for (Saturday and its neighbours) is still shown, or Monday was asked for early')
 
 
 PER_INVITE = [('first-visit', flow_first_visit), ('cards', flow_cards), ('travel', flow_travel), ('cant-come', flow_cant_come), ('closed', flow_closed),

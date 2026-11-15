@@ -132,3 +132,29 @@ test('a second day change inside the band\'s time clears the first band timer', 
   const go = js.slice(js.indexOf('function go('), js.indexOf('function clipTo('));
   assert.match(go, /clearTimeout\(bandT\)/);
 });
+
+test('wanted: the open day first, then the days either side, never past the ends', () => {
+  assert.deepEqual(wk.wanted(0, 4), [0, 1]);
+  assert.deepEqual(wk.wanted(1, 4), [1, 0, 2]);
+  assert.deepEqual(wk.wanted(2, 4), [2, 1, 3]);
+  assert.deepEqual(wk.wanted(3, 4), [3, 2]);
+  assert.deepEqual(wk.wanted(0, 1), [0]);
+  assert.deepEqual(wk.wanted(9, 4), [3, 2]);
+});
+
+test('the day picture offers both files by width and says how wide its layer is; the tile picture offers one', () => {
+  const set = wk.pictureFiles('sat');
+  assert.equal(set.src, 'images/first/sat.webp');
+  assert.equal(set.srcset, 'images/first/sat.webp 720w, images/first/sat-lg.webp 1024w');
+  assert.equal(set.sizes, '116vw');   // .wk-pic is the day's width plus 8% off each side
+  assert.match(js, /fc-day-img', d\.img\)/, 'tiles ask for the one small picture');
+  assert.equal((js.match(/\.srcset = /g) || []).length, 1, 'only the day picture sets a srcset');
+  assert.match(js, /wk-pic-img', d\.img, true\)/);
+});
+
+test('day pictures are fetched only when wanted: on opening a day or moving to one, and its neighbours', () => {
+  const body = name => js.slice(js.indexOf('function ' + name + '('));
+  assert.match(body('openDay').split('function closeDay(')[0], /want\(idx\)/);
+  assert.match(body('go').split('function clipTo(')[0], /want\(idx\)/);
+  assert.match(js, /\.decoding = 'async'/);
+});
