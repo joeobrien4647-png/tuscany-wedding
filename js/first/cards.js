@@ -114,6 +114,7 @@
   //   card.host        the #first element          card.onClose(fn)  runs fn when the card closes
   //   card.beforeClose(fn)  runs fn when the guest presses the close control or Escape; return true to keep the card open
   //                    (a step back inside the card). Not asked when code closes the card.
+  //   card.closeLabel(text)  names the close control while it steps back; with nothing, it is the frame's own name again
   // The card's background and anything else it needs is styled under #first .fc-<key>.
   const CARDS = {};
   let current = null, listening = false;
@@ -160,6 +161,7 @@
       live: () => current === r,
       onClose(fn) { if (typeof fn === 'function') r.closers.push(fn); },
       beforeClose(fn) { if (typeof fn === 'function') r.guard = fn; },
+      closeLabel(text) { shut.setAttribute('aria-label', text || w.home.close); },
       close: opts2 => { if (current === r) close(opts2); },
       saved() {
         if (current === r) close();

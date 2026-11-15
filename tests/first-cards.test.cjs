@@ -249,3 +249,43 @@ test('the close control and Escape go through userClose; closing by code does no
   const body = js.slice(js.indexOf('function close(opts)'), js.indexOf('// Escape closes'));
   assert.doesNotMatch(body, /userClose|guard/);
 });
+
+// A small stand-in for the page, enough for the frame to open a card in Node.
+function fakeDom() {
+  const make = tag => ({
+    tagName: String(tag).toUpperCase(), className: '', children: [], attrs: {}, parentNode: null, hidden: false, isConnected: true,
+    style: { setProperty() {} }, classList: { add() {}, remove() {}, toggle() {} },
+    setAttribute(k, v) { this.attrs[k] = String(v); }, getAttribute(k) { return k in this.attrs ? this.attrs[k] : null; },
+    removeAttribute(k) { delete this.attrs[k]; },
+    appendChild(c) { c.parentNode = this; this.children.push(c); return c; },
+    removeChild(c) { this.children = this.children.filter(x => x !== c); c.parentNode = null; return c; },
+    addEventListener() {}, querySelectorAll() { return []; }, focus() {}
+  });
+  const find = (e, cls) => (String(e.className).split(' ').includes(cls) ? e : e.children.map(x => find(x, cls)).find(Boolean) || null);
+  return { make, find, document: { createElement: make, activeElement: null, addEventListener() {}, getElementById() { return null; } } };
+}
+
+test('closeLabel: a card names its close control for a step back; with nothing it is the frame\'s own label again', () => {
+  const c = cards(), dom = fakeDom(), first = globalThis.sjFirst;
+  const before = { document: globalThis.document, words: first.words, weekendCard: first.weekendCard };
+  let built = null;
+  globalThis.document = dom.document;
+  first.words = words;
+  first.weekendCard = { build: card => { built = card; } };
+  try {
+    const host = dom.make('div');
+    assert.equal(c.cards.open('weekend', { invite: ONE, household: yes([true]), now: () => NOV }, { root: host }), true);
+    const shut = dom.find(host, 'fc-close');
+    assert.ok(shut && built && typeof built.closeLabel === 'function');
+    assert.equal(shut.getAttribute('aria-label'), words.home.close);
+    built.closeLabel(words.weekend.back);
+    assert.equal(shut.getAttribute('aria-label'), words.weekend.back);
+    built.closeLabel();
+    assert.equal(shut.getAttribute('aria-label'), words.home.close);
+    c.cards.close({ quiet: true });
+  } finally {
+    if (before.document === undefined) delete globalThis.document; else globalThis.document = before.document;
+    first.words = before.words;
+    first.weekendCard = before.weekendCard;
+  }
+});

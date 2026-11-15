@@ -100,3 +100,35 @@ test('the weekend styles sit before the last reduced-motion block, which switche
   assert.match(tail, /#first \.fc-weekend \.wk-day[^{]*\{[^}]*transition: none/);
   assert.doesNotMatch(css, /\.fc-wear/);
 });
+
+test('while a day is open the close control says it steps back to the four days; at the tiles it is the frame\'s again', () => {
+  const openDay = js.slice(js.indexOf('function openDay('), js.indexOf('function closeDay('));
+  const closeDay = js.slice(js.indexOf('function closeDay('), js.indexOf('card.beforeClose('));
+  assert.match(openDay, /card\.closeLabel\(v\.back\)/);
+  assert.match(closeDay, /card\.closeLabel\(\)/);
+  assert.doesNotMatch(js, /fc-close/, 'the Weekend card never reaches into the frame for its close control');
+});
+
+test('a day change moves focus to the new day\'s heading when focus was on the old page or nowhere', () => {
+  const go = js.slice(js.indexOf('function go('), js.indexOf('function clipTo('));
+  assert.match(go, /document\.activeElement/);
+  assert.match(go, /focus\(pages\[idx\]\.head\)/);
+});
+
+test('a finger swipe reaches the code: the day page lets sideways pans through, and only one pointer drives a drag', () => {
+  const css = read('css/first.css');
+  assert.match(css, /#first \.fc-weekend \.wk-page \{[^}]*touch-action: pan-y/);
+  assert.match(js, /e\.isPrimary/);
+  assert.match(js, /e\.pointerId !== drag\.id/);
+});
+
+test('the swipe hint never shows on the last day, and stops short of the close control', () => {
+  const css = read('css/first.css');
+  assert.match(js, /swipe\.classList\.toggle\('wk-gone', moved \|\| idx === count - 1\)/);
+  assert.match(css, /#first \.fc-weekend \.wk-swipe \{[^}]*right: /);
+});
+
+test('a second day change inside the band\'s time clears the first band timer', () => {
+  const go = js.slice(js.indexOf('function go('), js.indexOf('function clipTo('));
+  assert.match(go, /clearTimeout\(bandT\)/);
+});

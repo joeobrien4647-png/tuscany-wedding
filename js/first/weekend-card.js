@@ -15,12 +15,12 @@
 
   // ---------- the rules: what each of the four days shows ----------
   // A day's picture is named by its position (fri, sat, sun, mon). A line that is missing, empty or not text is left
-  // out, never shown empty.
+  // out, never shown empty. A part of the day may have no part-of-day tag; it is kept, without one.
   function partsOf(day) {
     return (Array.isArray(day.parts) ? day.parts : [])
       .filter(isObject)
       .map(p => ({ when: text(p.when), what: text(p.what) }))
-      .filter(p => p.when && p.what)
+      .filter(p => p.what)
       .slice(0, MAX_PARTS);
   }
 
@@ -204,7 +204,7 @@
 
     const lights = air ? makeLights(air) : null;
     const timers = new Set();
-    let idx = 0, open = false, moved = false, drag = null, moving = null, following = null;
+    let idx = 0, open = false, moved = false, drag = null, moving = null, following = null, bandT = null;
     const later = (fn, ms) => { const t = setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); return t; };
     // One grow or shrink at a time: a new one cancels the end of the last.
     const afterMove = fn => { clearTimeout(moving); timers.delete(moving); moving = later(fn, OPEN_MS); };
@@ -238,7 +238,7 @@
         d.parts.forEach((p, j) => {
           const li = el('li', 'wk-part');
           li.style.setProperty('--j', String(j));
-          li.appendChild(el('span', 'wk-when', p.when));
+          if (p.when) li.appendChild(el('span', 'wk-when', p.when));
           li.appendChild(el('span', 'wk-what', p.what));
           list.appendChild(li);
         });
@@ -289,10 +289,12 @@
       if (open && card.live() && !document.hidden) lights.start(v.days[idx].key); else lights.stop();
     }
     // fromDrag: the words already followed the finger, so they stay shown until the days settle; a mark or key
-    // brings back the staggered rise.
+    // brings back the staggered rise. The old page goes inert, so focus that was on it (or nowhere) moves to the new
+    // day's heading.
     function go(i, fromDrag) {
       if (!fromDrag) stopFollow();
-      const next = clamp(i, 0, count - 1);
+      const next = clamp(i, 0, count - 1), a = document.activeElement;
+      const refocus = open && next !== idx && (!a || a === document.body || pages[idx].box.contains(a));
       if (next !== idx) {
         moved = true;
         swipe.classList.add('wk-gone');
@@ -300,7 +302,9 @@
           band.classList.remove('wk-band-on');
           void band.offsetWidth;
           band.classList.add('wk-band-on');
-          later(() => band.classList.remove('wk-band-on'), BAND_MS);
+          clearTimeout(bandT);
+          timers.delete(bandT);
+          bandT = later(() => band.classList.remove('wk-band-on'), BAND_MS);
         }
         if (S) S.pop(0.3);
         haptic(6);
@@ -309,6 +313,7 @@
       day.classList.add('wk-snap');
       place(idx);
       mark();
+      if (refocus) focus(pages[idx].head);
     }
 
     // The day grows out of its tile and shrinks back into it: a clip from the tile's box to the whole card.
@@ -340,7 +345,7 @@
       day.classList.remove('wk-snap', 'wk-moving');
       stopFollow();
       day.hidden = false;
-      swipe.classList.toggle('wk-gone', moved);
+      swipe.classList.toggle('wk-gone', moved || idx === count - 1);
       place(idx);
       if (!still) {
         clipTo(tiles[idx]);
@@ -350,6 +355,7 @@
       }
       clipFull();
       quietTiles(true);
+      card.closeLabel(v.back);
       mark();
       if (S) S.pop(0.4);
       haptic(8);
@@ -361,6 +367,7 @@
       drag = null;
       mark();
       quietTiles(false);
+      card.closeLabel();
       const tile = tiles[idx];
       const done = () => { day.hidden = true; day.classList.remove('wk-moving', 'wk-snap'); };
       if (still) done();
@@ -395,13 +402,14 @@
       document.removeEventListener('visibilitychange', onVisible);
     });
 
-    // Swipe between days: the words and the picture follow the finger.
+    // Swipe between days: the words and the picture follow the finger. One pointer drives a drag: only the primary
+    // one starts it, and another finger or a stray pointer can neither start a second nor take it over.
     day.addEventListener('pointerdown', e => {
-      if (!open || (e.target.closest && e.target.closest('button'))) return;
-      drag = { x: e.clientX, y: e.clientY, t: root.performance.now(), w: day.clientWidth || 1, on: false };
+      if (!open || !e.isPrimary || (drag && drag.on) || (e.target.closest && e.target.closest('button'))) return;
+      drag = { id: e.pointerId, x: e.clientX, y: e.clientY, t: root.performance.now(), w: day.clientWidth || 1, on: false };
     });
     day.addEventListener('pointermove', e => {
-      if (!drag) return;
+      if (!drag || e.pointerId !== drag.id) return;
       const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
       if (!drag.on) {
         if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
@@ -413,10 +421,12 @@
       }
       place(along(idx, dx, drag.w, count));
     });
+    // A cancel (the browser took the gesture) always ends the drag and puts the day back where it was.
     function drop(e) {
+      if (!drag || e.pointerId !== drag.id) return;
       const d = drag;
       drag = null;
-      if (!d || !d.on || !open) return;
+      if (!d.on || !open) return;
       go(e.type === 'pointercancel' ? idx : settle(idx, e.clientX - d.x, d.w, root.performance.now() - d.t, count), true);
       following = later(() => day.classList.remove('wk-follow'), SETTLE_MS);
     }

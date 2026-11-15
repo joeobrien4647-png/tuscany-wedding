@@ -445,10 +445,14 @@ html.first-on body > :not(#first) { display: none; }
 @keyframes tm-pulse { 0% { opacity: .9; transform: scale(.5); } 100% { opacity: 0; transform: scale(2.1); } }
 
 /* ==== The Weekend: four tiles, and a day that opens full screen (js/first/weekend-card.js) ====
-   The day covers the whole card under the frame's close control. Nothing scrolls; the words sit at the foot. */
+   The day covers the whole card under the frame's close control. The words sit at the foot; a day too full for the
+   screen scrolls inside its own page, from the top. */
 #first .fc-weekend .fc-bg::before { background-image: url(../images/first/night.webp); }
+/* The inner box is static so the day can cover the whole card; the title and the tiles are positioned so they paint
+   above the card's picture, with or without the rise animation (Reduce Motion). */
 #first .fc-weekend .fc-inner { position: static; }
-#first .fc-weekend .wk-tiles { display: grid; gap: 12px; }
+#first .fc-weekend .fc-t { position: relative; }
+#first .fc-weekend .wk-tiles { position: relative; display: grid; gap: 12px; }
 #first .fc-weekend .wk-vibe { margin-top: -4px; font: italic 400 19px/1.25 var(--display); color: var(--gold-hi); text-shadow: 0 1px 12px rgba(0, 0, 0, .8); overflow-wrap: anywhere; }
 #first .fc-weekend .wk-hint { font: 400 13px/1.4 var(--ui); color: var(--ink-faint); text-align: center; }
 #first .fc-days { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
@@ -475,17 +479,21 @@ html.first-on body > :not(#first) { display: none; }
 #first .fc-weekend .wk-band.wk-band-on { animation: wk-band 1.2s ease both; }
 @keyframes wk-band { 0% { opacity: 0; background-position: 120% 0; } 30% { opacity: 1; } 100% { opacity: 0; background-position: -60% 0; } }
 #first .fc-weekend .wk-shade { position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(8, 10, 18, .55) 0%, rgba(8, 10, 18, .12) 14%, rgba(8, 10, 18, .3) 26%, rgba(8, 10, 18, .72) 44%, rgba(8, 10, 18, .94) 64%); }
-#first .fc-weekend .wk-swipe { position: absolute; z-index: 3; top: calc(var(--top) + 27px); left: max(20px, env(safe-area-inset-left, 0px)); font: 400 13px/1.3 var(--ui); letter-spacing: .06em; color: var(--ink-soft); text-shadow: 0 0 12px rgba(0, 0, 0, .95); pointer-events: none; transition: opacity .4s; }
+#first .fc-weekend .wk-swipe { position: absolute; z-index: 3; top: calc(var(--top) + 27px); left: max(20px, env(safe-area-inset-left, 0px)); right: calc(max(14px, env(safe-area-inset-right, 0px)) + 56px); overflow-wrap: anywhere; font: 400 13px/1.3 var(--ui); letter-spacing: .06em; color: var(--ink-soft); text-shadow: 0 0 12px rgba(0, 0, 0, .95); pointer-events: none; transition: opacity .4s; }
 #first .fc-weekend .wk-swipe.wk-gone { opacity: 0; }
 #first .fc-weekend .wk-track { position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; display: flex; will-change: transform; }
 #first .fc-weekend .wk-day.wk-snap .wk-track { transition: transform .95s var(--ease); }
+/* The page is its own scroll box (the browser asks it, not the day, whether a pan is a scroll), so it lets sideways
+   pans through to the swipe. An empty first row takes the spare height: the words sit at the foot when they fit and
+   start at the top and scroll when they do not. The top padding plus that row's gap is the space under the close control. */
 #first .fc-weekend .wk-page {
-  flex: 0 0 100%; min-width: 0; height: 100%; display: grid; align-content: end; gap: 10px;
-  padding-top: calc(var(--top) + 64px); padding-bottom: calc(var(--bottom) + 46px);
+  flex: 0 0 100%; min-width: 0; height: 100%; display: grid; grid-template-rows: minmax(0, 1fr); gap: 10px; touch-action: pan-y;
+  padding-top: calc(var(--top) + 54px); padding-bottom: calc(var(--bottom) + 46px);
   padding-left: max(20px, env(safe-area-inset-left, 0px), calc(50% - 260px)); padding-right: max(20px, env(safe-area-inset-right, 0px), calc(50% - 260px));
   overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
 }
 #first .fc-weekend .wk-page::-webkit-scrollbar { display: none; }
+#first .fc-weekend .wk-page::before { content: ""; }
 #first .fc-weekend .wk-date { font: 600 12px/1.3 var(--ui); letter-spacing: .28em; text-transform: uppercase; color: var(--gold-hi); text-shadow: 0 0 14px rgba(0, 0, 0, .95), 0 1px 3px rgba(0, 0, 0, .9); }
 #first .fc-weekend .wk-name { margin: 0; font: 500 clamp(36px, 10.5vw, 56px)/1 var(--display); letter-spacing: -.01em; color: var(--ink); text-wrap: balance; overflow-wrap: anywhere; outline: none; text-shadow: 0 2px 18px rgba(0, 0, 0, .7); }
 #first .fc-weekend .wk-intro { font: italic 400 19px/1.25 var(--display); color: var(--ink); text-wrap: balance; overflow-wrap: anywhere; text-shadow: 0 1px 12px rgba(0, 0, 0, .8); }
@@ -514,7 +522,7 @@ html.first-on body > :not(#first) { display: none; }
 @media (max-height: 640px) {
   #first .fc-day { height: 140px; }
   #first .fc-day-t { font-size: 18px; }
-  #first .fc-weekend .wk-page { gap: 8px; padding-top: calc(var(--top) + 58px); padding-bottom: calc(var(--bottom) + 40px); }
+  #first .fc-weekend .wk-page { gap: 8px; padding-top: calc(var(--top) + 50px); padding-bottom: calc(var(--bottom) + 40px); }
   #first .fc-weekend .wk-name { font-size: clamp(32px, 9.6vw, 44px); }
   #first .fc-weekend .wk-intro { font-size: 17px; }
   #first .fc-weekend .wk-part { padding: 3px 0; }
