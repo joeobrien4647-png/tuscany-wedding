@@ -104,7 +104,55 @@
     return { line, action, label: action ? w.food[action] : null, closed: open ? null : w.food.closed };
   }
 
-  const api = { PICKS, NOTE_MAX, MAX_PEOPLE, cleanFood, foodScreens, namesShown, sameName, togglePick, startDraft,
+  // What Joe and Sophie see, not guest words.
+  const PICK_LABELS = { vegetarian: 'Vegetarian', vegan: 'Vegan', pescatarian: 'Pescatarian', glutenfree: 'Gluten free', dairyfree: 'Dairy free',
+    nuts: 'Nut allergy', shellfish: 'Shellfish allergy', nopork: 'No pork', noalcohol: 'No alcohol', none: 'Nothing needed' };
+  const pickLabels = picks => (Array.isArray(picks) ? picks : []).filter(k => has(PICK_LABELS, k)).map(k => PICK_LABELS[k]).join(', ');
+
+  // One row per household that has said yes, one person per person coming, in invitation order. A saved entry counts
+  // as theirs only when the name at that place still matches; otherwise savedAs says who it was saved for.
+  function foodRows(welcome, household) {
+    if (!isObject(welcome) || !isObject(household)) return [];
+    const rows = Object.keys(welcome).filter(token => isObject(welcome[token]) && saidYes(household[token])).map(token => {
+      const w = welcome[token], h = household[token];
+      const saved = (cleanFood(h.food) || { people: [] }).people;
+      const people = foodScreens(w.people, h.reply.coming).map(s => {
+        const entry = saved.find(e => e.i === s.i);
+        const mine = !!entry && sameName(entry.name, s.name);
+        return { i: s.i, name: s.name, picks: mine ? entry.picks : [], note: mine ? entry.note : '', answered: mine, savedAs: entry && !mine ? entry.name : null };
+      });
+      return { token, display: typeof w.display === 'string' ? w.display : '', people };
+    });
+    return rows.sort((a, b) => a.display.toLowerCase().localeCompare(b.display.toLowerCase()) || (a.token < b.token ? -1 : 1));
+  }
+
+  // What to tell the caterer: who has a need, a count per pick, and who is still to be asked.
+  function catererList(rows) {
+    const all = [];
+    (Array.isArray(rows) ? rows : []).forEach(r => (r && Array.isArray(r.people) ? r.people : []).forEach(p => all.push({ display: r.display, p })));
+    const needs = all.filter(({ p }) => p.answered && (p.note || p.picks.some(k => k !== 'none')))
+      .map(({ display, p }) => ({ name: p.name, display, picks: p.picks, note: p.note, i: p.i }))
+      .sort((a, b) => a.display.toLowerCase().localeCompare(b.display.toLowerCase()) || a.i - b.i)
+      .map(({ i, ...need }) => need);
+    const counts = PICKS.map(key => ({ key, label: PICK_LABELS[key], n: all.filter(({ p }) => p.answered && p.picks.indexOf(key) >= 0).length })).filter(c => c.n > 0);
+    return { needs, counts, coming: all.length, notAnswered: all.filter(({ p }) => !p.answered).length, mismatched: all.filter(({ p }) => p.savedAs !== null).length };
+  }
+
+  function catererText(list) {
+    const l = list || { needs: [], counts: [], coming: 0, notAnswered: 0, mismatched: 0 };
+    const lines = ['Food needs'];
+    l.needs.forEach(n => {
+      const who = sameName(n.name, n.display) ? n.name : n.name + ' (' + n.display + ')';
+      const labels = pickLabels(n.picks), note = n.note ? 'Note: ' + n.note : '';
+      lines.push(who + ': ' + [labels, note].filter(Boolean).join('. '));
+    });
+    if (l.counts.length) lines.push('Totals: ' + l.counts.map(c => c.label + ' ' + c.n).join(', '));
+    lines.push(l.notAnswered + ' of ' + l.coming + ' coming have not answered yet');
+    if (l.mismatched) lines.push(l.mismatched + ' saved for a name that has since changed: check the dashboard');
+    return lines.join('\n');
+  }
+
+  const api = { PICKS, PICK_LABELS, foodRows, catererList, catererText, pickLabels, NOTE_MAX, MAX_PEOPLE, cleanFood, foodScreens, namesShown, sameName, togglePick, startDraft,
     foodToSave, foodStatus, canSaveFood, shouldOfferFood, foodCardLine };
   root.sjFirst = root.sjFirst || {};
   root.sjFirst.food = api;

@@ -254,8 +254,8 @@
   function adminSteps(action, opts) {
     const o = isObj(opts) ? opts : {};
     if (action === 'yes') return [{ path: 'reply', value: adminReply('yes', o.peopleCount) }];
-    if (action === 'no') return [{ path: 'stay', value: null }, { path: 'reply', value: adminReply('no', o.peopleCount) }];
-    if (action === 'clear') return [{ path: 'stay', value: null }, { path: 'reply', value: null }];
+    if (action === 'no') return [{ path: 'stay', value: null }, { path: 'food', value: null }, { path: 'reply', value: adminReply('no', o.peopleCount) }];
+    if (action === 'clear') return [{ path: 'stay', value: null }, { path: 'food', value: null }, { path: 'reply', value: null }];
     if (action === 'stay') { const v = adminStay(o.choice); return v ? [{ path: 'stay', value: v }] : []; }
     if (action === 'toggle') {
       if (!Array.isArray(o.coming)) return [];
@@ -266,6 +266,7 @@
   }
 
   const describeStep = (st) => (st.path === 'stay' ? (st.value === null ? 'removed the stay choice' : 'saved the stay choice')
+    : st.path === 'food' ? 'removed the food needs'
     : (st.value === null ? 'cleared the reply' : 'saved the reply'));
 
   // what to tell the admin when step number `done` (0-based) failed

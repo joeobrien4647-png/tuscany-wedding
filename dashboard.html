@@ -18,6 +18,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="js/first/core.js"></script>
   <script src="js/first/travel-core.js"></script>
+  <script src="js/first/food-core.js"></script>
   <script>
     firebase.initializeApp({
       apiKey: "AIzaSyAbEpCIPFFqiuElH0DK1dkkl7JBbNyZTc8",
@@ -2674,6 +2675,9 @@
       const travelRows = ready ? sjFirst.travelRows(welcome, travel, household) : [];
       const ticketsOf = token => (travelRows.find(x => x.token === token) || { tickets: [] }).tickets;
       const arrivalList = sjFirst.arrivals(travelRows);
+      const foodList = ready ? sjFirst.food.foodRows(welcome, household) : [];
+      const foodOf = token => (foodList.find(x => x.token === token) || { people: [] }).people;
+      const caterer = sjFirst.food.catererList(foodList);
       const when = at => new Date(at).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
       const people = r => r.people.length;
       // one leaf per step, in order; a later failure says what did and did not happen
@@ -2694,7 +2698,7 @@
       const toggleComing = (r, i) => run(r, "toggle", { coming: r.coming, index: i });
       const putStay = (r, choice) => run(r, "stay", { choice });
       const clearReply = r => {
-        if (!window.confirm("Clear the reply and the stay choice for " + r.display + "? They can answer again.")) return;
+        if (!window.confirm("Clear the reply, the stay choice and the food needs for " + r.display + "? They can answer again.")) return;
         run(r, "clear");
       };
       const pill = (on, color) => ({ ...bS, background: on ? color : P.stoneP, color: on ? "#fff" : P.txtM });
@@ -2760,6 +2764,15 @@
                     {tk.at !== null && <span style={{ fontSize: 11, color: P.txtL }}>stamped {when(tk.at)}</span>}
                   </div>
                 ))}
+                {yes && foodOf(r.token).map(p => (
+                  <div key={p.i} data-food-person style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "baseline", marginTop: 6 }}>
+                    <span style={small}>Food</span>
+                    <span style={{ fontSize: 12, color: P.txt, fontWeight: 700 }}>{p.name}</span>
+                    {p.answered ? <span style={{ fontSize: 12, color: P.txt }}>{[sjFirst.food.pickLabels(p.picks), p.note].filter(Boolean).join(". ")}</span>
+                      : <span style={{ fontSize: 12, color: P.txtL }}>Not answered</span>}
+                    {p.savedAs !== null && <span style={{ fontSize: 12, color: P.red }}>Saved for {p.savedAs}, check with them</span>}
+                  </div>
+                ))}
               </div>
             );
           })}
@@ -2772,6 +2785,25 @@
                   <span style={{ fontWeight: 700 }}>{sjFirst.arrivalDay(a.arrive)}, {a.to}</span>: {a.households.join(", ")}
                 </div>
               ))}
+            </div>
+          )}
+          {ready && caterer.coming > 0 && (
+            <div data-food-list style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid " + P.stoneL }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "baseline" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: P.txt }}>Food needs</div>
+                <button onClick={() => navigator.clipboard && navigator.clipboard.writeText(sjFirst.food.catererText(caterer))} style={{ ...bS, background: P.stoneP, color: P.txtM }}>Copy as text</button>
+              </div>
+              <div style={{ fontSize: 11, color: P.txtL, margin: "2px 0 6px" }}>Read only. A guest who answers by message: open their own link and add it there.</div>
+              {caterer.needs.length === 0 && <div style={{ fontSize: 12, color: P.txtL }}>No needs given yet</div>}
+              {caterer.needs.map(n => (
+                <div key={n.display + n.name} style={{ fontSize: 12, color: P.txt, padding: "3px 0" }}>
+                  <span style={{ fontWeight: 700 }}>{n.name}</span>{!sjFirst.food.sameName(n.name, n.display) && " (" + n.display + ")"}
+                  {": " + [sjFirst.food.pickLabels(n.picks), n.note && "Note: " + n.note].filter(Boolean).join(". ")}
+                </div>
+              ))}
+              {caterer.counts.length > 0 && <div style={{ fontSize: 12, color: P.txtM, marginTop: 4 }}>Totals: {caterer.counts.map(c => c.label + " " + c.n).join(", ")}</div>}
+              <div style={{ fontSize: 12, color: P.txtM }}>{caterer.notAnswered} of {caterer.coming} coming have not answered yet</div>
+              {caterer.mismatched > 0 && <div style={{ fontSize: 12, color: P.red }}>{caterer.mismatched} saved for a name that has since changed. Check the people marked above.</div>}
             </div>
           )}
         </div>

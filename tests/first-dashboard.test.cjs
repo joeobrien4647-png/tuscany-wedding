@@ -130,16 +130,16 @@ test('adminStay: exact payload, null for anything else', () => {
   assert.equal(adminStay(undefined), null);
 });
 
-test('adminSteps: ordered single leaves, stay removed before reply is touched', () => {
+test('adminSteps: ordered single leaves, stay and food removed before reply is touched', () => {
   assert.deepEqual(adminSteps('yes', { peopleCount: 2 }), [{ path: 'reply', value: { answer: 'yes', coming: [true, true], at: SV } }]);
   assert.deepEqual(adminSteps('no', { peopleCount: 2 }), [
-    { path: 'stay', value: null }, { path: 'reply', value: { answer: 'no', coming: [false, false], at: SV } }]);
-  assert.deepEqual(adminSteps('clear', { peopleCount: 2 }), [{ path: 'stay', value: null }, { path: 'reply', value: null }]);
+    { path: 'stay', value: null }, { path: 'food', value: null }, { path: 'reply', value: { answer: 'no', coming: [false, false], at: SV } }]);
+  assert.deepEqual(adminSteps('clear', { peopleCount: 2 }), [{ path: 'stay', value: null }, { path: 'food', value: null }, { path: 'reply', value: null }]);
   assert.deepEqual(adminSteps('stay', { choice: 'own' }), [{ path: 'stay', value: { choice: 'own', at: SV } }]);
   assert.deepEqual(adminSteps('toggle', { coming: [true, false], index: 1 }), [{ path: 'reply', value: { answer: 'yes', coming: [true, true], at: SV } }]);
   for (const action of ['yes', 'no', 'clear', 'stay', 'toggle']) {
     const steps = adminSteps(action, { peopleCount: 2, choice: 'villa', coming: [true, true], index: 0 });
-    assert.ok(steps.length >= 1 && steps.every((st) => st.path === 'stay' || st.path === 'reply'), action);
+    assert.ok(steps.length >= 1 && steps.every((st) => st.path === 'stay' || st.path === 'food' || st.path === 'reply'), action);
   }
   for (const action of ['no', 'clear']) {
     const paths = adminSteps(action, { peopleCount: 1 }).map((st) => st.path);
@@ -159,8 +159,8 @@ test('adminSteps: malformed input plans nothing', () => {
 
 test('adminFailureMessage: says what did and did not happen', () => {
   const steps = adminSteps('clear', { peopleCount: 1 });
-  assert.equal(adminFailureMessage(steps, 1, 'denied'), 'Could not finish that. Done: removed the stay choice. Not done: cleared the reply. Check this row. (denied)');
-  assert.equal(adminFailureMessage(steps, 0, ''), 'Could not finish that. Nothing was changed. Not done: removed the stay choice, cleared the reply. Check this row.');
+  assert.equal(adminFailureMessage(steps, 1, 'denied'), 'Could not finish that. Done: removed the stay choice. Not done: removed the food needs, cleared the reply. Check this row. (denied)');
+  assert.equal(adminFailureMessage(steps, 0, ''), 'Could not finish that. Nothing was changed. Not done: removed the stay choice, removed the food needs, cleared the reply. Check this row.');
   assert.equal(adminFailureMessage(adminSteps('stay', { choice: 'own' }), 0, 'denied'), 'Could not save that (denied)');
   assert.equal(adminFailureMessage(null, 0), 'Could not save that');
 });
