@@ -154,3 +154,10 @@ test('the phone-fit server keeps connections open, so four browsers reloading ev
   const py = source();
   assert.match(py, /class Quiet\(http\.server\.SimpleHTTPRequestHandler\):\s+protocol_version = 'HTTP\/1\.1'\s+#\s*\S/, 'the handler does not ask for keep-alive, or gives no reason');
 });
+
+test('the phone-fit script checks the food step on every setup', () => {
+  const py = source();
+  for (const name of ['food-one', 'food-couple', 'food-fullest', 'food-eight', 'food-closed', 'food-save']) assert.ok(py.includes("'" + name + "'"), name);
+  assert.ok(py.includes("'fitcheck-eight-house-0005'"));
+  assert.equal((py.match(/'people': \[([^\]]*)\]/g) || []).some(p => p.split(',').length === 8), true, 'an eight-person household');
+});

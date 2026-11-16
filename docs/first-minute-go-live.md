@@ -97,6 +97,42 @@ The Weekend screen (four day tiles, each day opening full screen), the four-butt
 7. Turn a phone sideways on an open day and back again.
 8. Look at how sharp the Saturday picture is on a real screen.
 
+## 4c. Food needs and the link preview
+
+This work is on the branch `food-and-preview`, not on `main`. It goes to `main`, with the switch still off, only when Joe says so.
+
+What it adds:
+
+- The food step after a yes: one person per screen, quick picks, a short note, and skip any time. The Reply card opens by itself a moment after the fireworks and offers it, and later it is the "Add food needs" or "Change food needs" button on the Reply card.
+- The count line on the Reply card ("Food needs given for 1 of 2") and, after the cut-off, a read-only view of what was given.
+- A read-only food list on the dashboard, with a button to copy it as text for the caterer.
+- The Questions food answer, which now points at the reply.
+- The link preview picture, which is in the repo and not switched on.
+
+**Publish the rules (Joe only, needs his yes).** The branch adds one block, `food`, inside `household` in `firebase.rules.json`. Until it is published, a guest's Done shows the save error, so publish before the two-phone test. Claude can do it from this computer with the Firebase tool, saving a copy of the live rules first, as was done for the travel rules on 14 November 2026. To do it yourself instead:
+
+1. Firebase console, Realtime Database, Rules tab. Copy what is live now into a file you keep.
+2. Compare the live rules with `firebase.rules.json` on `main`. If they differ, stop and work out why.
+3. Paste the branch's file and publish.
+4. In the Rules Playground, with no sign-in: a set at `/household/<a key with no reply>/food` is denied; a set at `/household/<a yes key>/food` with a pick called `steak` is denied; a delete of `/household/<a key with no reply>/food` is denied.
+
+A household that has said yes may remove its own food needs (the rule allows it). The dashboard's Clear and Can't come rely on that: each removes a household's food needs along with its stay choice. The dashboard's food list has not been seen running yet, because nobody could sign in during the build. Check it once the rules are published.
+
+Two phones (`&first=1&test=1` on your own household's link):
+
+1. Reply yes and see the food step offered after the fireworks. Close it and see the count line on the Reply card.
+2. Add food needs for each of you. Open Change on the other phone and see them.
+3. Change one, press Done, and check the dashboard row and the caterer list.
+4. Tap Nothing for me and see the other picks go off.
+5. Try a note of 80 characters.
+6. Turn on Reduce Motion and do it again.
+
+The words Joe needs to write are under `food` in `js/first/words.js` (the title, the hint, the ten picks, the note label and placeholder, the count line, the buttons and the closed line), and the Questions food answer. To trim or add picks, change `PICKS` in `js/first/food-core.js` and the rule's list in `firebase.rules.json` together (a test checks they match), then publish the rules again.
+
+At go-live (section 6): change the `og:image` address in `index.html` to `https://sophieandjoe2027.com/images/first/share-preview.jpg`. There is no separate Twitter image tag; the Twitter card uses `og:image`. Update the one test that pins the old address, `tests/share-preview.test.cjs`. To check it: WhatsApp keeps a preview per address, so send yourself a personal link you have never sent before and look at the picture. Facebook's Sharing Debugger shows it too. To make the picture again: `PYTHONIOENCODING=utf-8 python scripts/make-share-preview.py`.
+
+The phone-fit check now walks the food step on all four setups (one, two and eight people, the fullest screen, after the cut-off, and a failed save). The last full run ended with PASS on 872 stops.
+
 ## 5. Write the words
 
 Every guest-facing line is in `js/first/words.js` and every one is a placeholder. Replace them with your own. The home screen has four buttons: Reply, Stay, Travel and Weekend. There is no Wear card; what to wear is a line inside each day of the Weekend card. The Getting there card's lines are under `travel`; its airports, airlines, drive times and tolls are not words, they come from `data/getting-there.json`. Ones that need a decision, not just wording:
@@ -117,13 +153,14 @@ Needs Joe, for the Weekend and Questions words:
 
 Then run `node --test tests/*.test.cjs`. One test checks the words for the house rules (no long dashes, no dot separators, no full stop on a short line) and will name any line that breaks them.
 
-Then run the fit check, `python scripts/check-first-fit.py`. This step is required, not optional: nothing in the node tests limits how long a Weekend line is, and only the fit check shows a day that no longer fits a phone. It takes about twelve minutes and should end with PASS on 788 stops.
+Then run the fit check, `python scripts/check-first-fit.py`. This step is required, not optional: nothing in the node tests limits how long a Weekend line is, and only the fit check shows a day that no longer fits a phone. It takes about twelve minutes and should end with PASS on 872 stops.
 
 Some tests pin today's placeholder lines on purpose. When the real words go in they fail, and each needs its expected line updated:
 
 - `tests/first-words.test.cjs`: the four day names and dates, `weekend.open` ("Open the day"), the dock labels and the Stay button's states, the photos envelope's "June", no digit anywhere in Questions, "usually" and "check before you book" in the Travel route lines.
+- `tests/first-words.test.cjs` also pins `words.food.picks.none` ("Nothing for me"), and `tests/food-card.test.cjs` pins the count-line words ("Food needs given for", "No food needs given yet").
 - `tests/first-fixwave-c.test.cjs` (H13): `weekend.swipe` ("Swipe for the next day").
-- `tests/first-cards-info.test.cjs`: "ask Joe or Sophie directly" in the bring answer, "Message Joe or Sophie" in the reach and food answers, "follow" in the gifts answer, and the share showing as "£150 each" in the cost answer.
+- `tests/first-cards-info.test.cjs`: "ask Joe or Sophie directly" in the bring answer, "Message Joe or Sophie" in the reach answer, "reply" (and not "message") in the food answer, "follow" in the gifts answer, and the share showing as "£150 each" in the cost answer.
 - `tests/first-cards.test.cjs`: "Joe or Sophie" in the Reply card's closed line.
 - `tests/weekend-view.test.cjs` ("nothing from the old Wear card is lost"): "Come as you are", "ties optional", "Swimwear", "gravel and grass" and "after dark".
 
@@ -149,4 +186,4 @@ Push sections 5 to 7 together. Open one real link without `&first=1` to confirm 
 
 ## What this does not include
 
-Food needs, the song request and the paid mark (phase 2; travel days are now part of the Getting there card), prices on the Getting there routes (January), and what is inside each sealed envelope (phase 3). The envelopes show their opening dates and stay sealed until those are built.
+The song request and the paid mark (phase 2; travel days are now part of the Getting there card), prices on the Getting there routes (January), and what is inside each sealed envelope (phase 3). The envelopes show their opening dates and stay sealed until those are built.

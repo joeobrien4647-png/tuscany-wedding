@@ -271,7 +271,7 @@
       title: 'Questions',
       gifts: { q: 'Gifts?', a: 'Details will follow' },
       reach: { q: 'How do I reach you?', a: ['Message Joe or Sophie directly', 'The way you normally would'] },
-      food: { q: 'Food needs?', a: ['Allergies or a diet we should know about?', 'Message Joe or Sophie'] },
+      food: { q: 'Food needs?', a: ['Allergies or a diet we should know about?', 'Add them in your reply, person by person'] },
       cost: {
         q: 'What does it cost?',
         a: ['At La Conca your share is {share}', 'That covers your bed, meals and drinks', 'Your own place: nothing to pay us']

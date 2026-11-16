@@ -43,6 +43,9 @@ INVITES = [
 ]
 # A pair used only by the save-failure and busy-guard checks.
 SPARE = {'key': 'Spare pair', 'token': 'fitcheck-spare-pair-0004', 'display': 'Jo & Kit', 'lines': ['Jo & Kit'], 'people': ['Jo', 'Kit']}
+# A big household used only by the food step's eight-person checks.
+EIGHT = {'key': 'The Big House', 'token': 'fitcheck-eight-house-0005', 'display': 'The Big House', 'lines': ['The Big House'],
+         'people': ['Ana', 'Ben', 'Cal', 'Dee', 'Eli', 'Fay', 'Gus', 'Hal']}
 
 DEVICES = [
     {'name': 'iPhone 13', 'engine': 'webkit', 'preset': 'iPhone 13'},
@@ -70,7 +73,7 @@ HOME = ['.fh-name', '.fh-count-n', '.fh-count-l', '.fh-env', '.fh-dk', '.fh-link
 HOME_AFTER_DAY = ['.fh-name', '.fh-env', '.fh-dk', '.fh-link']
 HOME_WEDDING = ['.fh-name', '.fh-today', '.fh-env', '.fh-dk', '.fh-link']
 CARD = ['.fc-t', '.fc-close']
-CARD_REPLY = CARD + ['.fc-change', '.fc-notyou']
+CARD_REPLY = CARD + ['.fc-change', '.fc-notyou', '.fc-food', '.fc-food-go']
 CARD_REPLY_CLOSED = CARD + ['.fc-notyou']
 CARD_STAY = CARD + ['.fc-opt-head', '.fc-opt.fc-on .fc-opt-body', '.fc-go']
 CARD_STAY_FIXED = CARD + ['.fc-opt-head']   # the confirm button is dimmed on purpose once the choice is fixed
@@ -80,6 +83,10 @@ CARD_WEEKEND = CARD + ['.fc-day']
 # An open day: the day in view, its marks, and whichever lines this day has (the other three days wait out of sight).
 CARD_DAY = CARD + ['.wk-live .wk-date', '.wk-live .wk-name', '.wk-live .wk-part', '.wk-mark']
 CARD_QUESTIONS = CARD + ['.fc-q-head']
+# The food step: ten picks and the note on every screen; Next until the last screen, then Done. Read only has no note box.
+FOOD = CARD + ['.ff-pick', '.ff-note', '.ff-done']
+FOOD_NEXT = CARD + ['.ff-pick', '.ff-note', '.ff-next']
+FOOD_READ = CARD + ['.ff-pick.ff-on']   # the picks not given are dimmed on purpose (disabled); the pressed ones stay bright
 TOAST = ['.fh-toast', '.fh-env']
 
 # Deliberate exceptions, named so nothing is loosened globally. Each has its reason.
@@ -321,10 +328,12 @@ class Fixtures:
         self.files, self.dirs = [], []
 
 
-def replied(guest, stay=None):
+def replied(guest, stay=None, food=None):
     record = {'reply': {'answer': 'yes', 'coming': [True] * len(guest['people']), 'at': 1790000000000}}
     if stay:
         record['stay'] = {'choice': stay, 'at': 1790000000001}
+    if food:
+        record['food'] = food
     return record
 
 
@@ -474,6 +483,9 @@ async def flow_first_visit(f, guest):
     f.expect(await p.evaluate(INK_JS) > 0, 'no fireworks after yes')
     await f.stop('yes', YES)
     await see_home(p)
+    await p.wait_for_selector('#first .fc-card', state='visible')
+    await f.stop('food-offer', CARD_REPLY)
+    await close_card(f)
     await f.stop('home', HOME)
 
 
@@ -698,6 +710,8 @@ async def flow_busy_guard(f, guest):
     await p.wait_for_selector('#first .fr-yes', state='visible')
     f.expect(await p.evaluate('() => window.__writes') == 1, 'a double tap on yes sent %s reply writes' % await p.evaluate('() => window.__writes'))
     await see_home(p)
+    await p.wait_for_selector('#first .fc-card', state='visible')
+    await close_card(f)
     await open_dock(f, 1)
     await p.evaluate(SLOW_FALSE % ('saveStay', 'true'))
     await p.evaluate("() => { const b = document.querySelector('#first .fc-go'); b.click(); b.click(); }")
@@ -1123,6 +1137,212 @@ async def flow_weekend_no_pictures(f, guest):
              'the pictures did not fail: a day picture asked for (Saturday and its neighbours) is still shown, or Monday was asked for early')
 
 
+# ---------- the food step in the Reply card ----------
+PICK_AT = {'vegetarian': 0, 'vegan': 1, 'pescatarian': 2, 'glutenfree': 3, 'dairyfree': 4, 'nuts': 5, 'shellfish': 6, 'nopork': 7, 'noalcohol': 8, 'none': 9}
+PRESSED_JS = "() => Array.from(document.querySelectorAll('#first .ff-pick')).map((b, i) => (b.getAttribute('aria-pressed') === 'true' && b.classList.contains('ff-on') ? i : -1)).filter(i => i >= 0)"
+# Ten picks and a note typed into the input: the same on every screen, so the fullest note is 80 characters.
+LONG_NOTE = ('Allergic to sesame, pine nuts and celery, so please keep them well away from my plate. ' * 2)[:80]
+
+
+def food_given(guest, entries):
+    """What a household's food looks like in the database: entries are (place, [picks], note)."""
+    people = {}
+    for i, picks, note in entries:
+        person = {'name': guest['people'][i]}
+        if picks:
+            person['picks'] = {k: True for k in picks}
+        if note:
+            person['note'] = note
+        people[str(i)] = person
+    return {'at': 1790000000002, 'people': people}
+
+
+async def tap_picks(f, *keys):
+    for key in keys:
+        await f.page.click('#first .ff-pick >> nth=%d' % PICK_AT[key])
+        await f.page.wait_for_timeout(120)
+
+
+async def pressed_now(f):
+    return await f.page.evaluate(PRESSED_JS)
+
+
+async def open_food(f, guest, record, now=NOW):
+    """Home, the Reply card, then the card's food button (add, change or see)."""
+    await with_seen_home(f, guest, record, now)
+    await open_dock(f, 0)
+    await start_food(f)
+
+
+async def start_food(f):
+    await f.page.click('#first .fc-food-go')
+    await f.page.wait_for_selector('#first .ff-pick', state='visible')
+    await f.page.wait_for_timeout(300)
+
+
+async def next_screen(f):
+    await f.page.click('#first .ff-next')
+    await f.page.wait_for_timeout(250)
+
+
+async def see_heading(f, expected, step=None):
+    p = f.page
+    f.expect(await p.inner_text('#fc-h') == expected, 'the food screen heading is %r, not %r' % (await p.inner_text('#fc-h'), expected))
+    if step is None:
+        f.expect(await p.locator('#first .ff-step').count() == 0, 'a household of one shows a step line')
+    else:
+        f.expect(await p.locator('#first .ff-step').count() == 1 and await p.is_visible('#first .ff-step') and await p.inner_text('#first .ff-step') == step,
+                 'the step line is not %r' % step)
+
+
+async def food_line(f, expected):
+    await f.page.wait_for_selector('#first .fc-food', state='visible')
+    f.expect(await f.page.inner_text('#first .fc-food') == expected, 'the count line reads %r, not %r' % (await f.page.inner_text('#first .fc-food'), expected))
+
+
+async def flow_food_one(f, guest):
+    """A household of one: the heading is the food title, no step line; two picks and a note save; the count line follows."""
+    p = f.page
+    await open_food(f, guest, replied(guest))
+    await see_heading(f, await p.evaluate('() => sjFirst.words.food.title'))
+    await f.stop('food-one', FOOD)
+    await tap_picks(f, 'vegan', 'nuts')
+    f.expect(await pressed_now(f) == [PICK_AT['vegan'], PICK_AT['nuts']], 'Vegan and Nut allergy are not both pressed: %s' % await pressed_now(f))
+    await p.fill('#first .ff-note input', 'No peanuts please')
+    await p.click('#first .ff-done')
+    await p.wait_for_selector('#first .ff', state='detached')
+    await p.wait_for_timeout(300)
+    await food_line(f, 'Food needs given for 1 of 1')
+    await f.stop('food-one-saved', CARD_REPLY)
+    record = await p.evaluate("() => sjFirst.store.load(%s)" % json.dumps(guest['token']))
+    entry = (((record or {}).get('food') or {}).get('people') or [{}])[0]
+    f.expect(entry.get('picks') == ['vegan', 'nuts'] and entry.get('note') == 'No peanuts please', 'the food was not kept: %s' % record)
+
+
+async def flow_food_couple(f, guest):
+    """Two people coming: screen 1 of 2 then 2 of 2; Nothing for me switches off a pick tapped first; then a partner's change shows."""
+    p = f.page
+    await open_food(f, guest, replied(guest))
+    await see_heading(f, guest['people'][0], '1 of 2')
+    await f.stop('food-couple-1', FOOD_NEXT)
+    await tap_picks(f, 'nuts')
+    await next_screen(f)
+    await see_heading(f, guest['people'][1], '2 of 2')
+    await f.stop('food-couple-2', FOOD)
+    await tap_picks(f, 'vegan')
+    await tap_picks(f, 'none')
+    f.expect(await pressed_now(f) == [PICK_AT['none']], 'Nothing for me did not switch off the pick tapped first: %s' % await pressed_now(f))
+    await p.click('#first .ff-done')
+    await p.wait_for_selector('#first .ff', state='detached')
+    await p.wait_for_timeout(300)
+    await food_line(f, 'Food needs given for 2 of 2')
+    await f.stop('food-couple-saved', CARD_REPLY)
+    # The partner's phone: this page is loaded again with both entries, then Sam's entry is changed behind its back.
+    f.fixtures.household(guest['token'], replied(guest, food=food_given(guest, [(0, ['nuts'], ''), (1, ['none'], '')])))
+    await p.goto(f.url(guest['token']))
+    await see_home(p)
+    await open_dock(f, 0)
+    f.fixtures.household(guest['token'], replied(guest, food=food_given(guest, [(0, ['nuts'], ''), (1, ['glutenfree'], '')])))
+    await start_food(f)
+    await next_screen(f)
+    f.expect(await pressed_now(f) == [PICK_AT['glutenfree']], "Change did not show the partner's pick on screen 2: %s" % await pressed_now(f))
+    await f.stop('food-couple-changed', FOOD)
+
+
+async def flow_food_fullest(f, guest):
+    """The long names, every pick but Nothing for me on, an 80 character note: neither the card nor the document scrolls."""
+    p = f.page
+    await open_food(f, guest, replied(guest))
+    await tap_picks(f, *[k for k in PICK_AT if k != 'none'])
+    await p.fill('#first .ff-note input', LONG_NOTE)
+    f.expect(len(await p.input_value('#first .ff-note input')) == 80, 'the note is not 80 characters')
+    await f.stop('food-fullest-1', FOOD_NEXT)
+    await next_screen(f)
+    await see_heading(f, guest['people'][1], '2 of 2')
+    await tap_picks(f, *[k for k in PICK_AT if k != 'none'])
+    await p.fill('#first .ff-note input', LONG_NOTE)
+    await f.stop('food-fullest', FOOD)
+    f.expect(await p.evaluate("() => { const c = document.querySelector('#first .fc-card'); return c.scrollHeight <= c.clientHeight + 1; }"),
+             'the fullest food screen makes its card scroll')
+    f.expect(await p.evaluate("() => document.documentElement.scrollHeight <= innerHeight + 1"), 'the fullest food screen makes the page scroll')
+
+
+async def flow_food_eight(f, guest):
+    """Eight people coming: the Reply card with eight names and the food line, then eight screens, each Nothing for me."""
+    p = f.page
+    await with_seen_home(f, guest, replied(guest))
+    await open_dock(f, 0)
+    f.expect(await p.locator('#first .fc-names.fc-many li').count() == 8, 'the Reply card does not list eight names in two columns')
+    await f.stop('card-reply-eight', CARD_REPLY + ['.fc-names li'])
+    await start_food(f)
+    for n in range(1, 9):
+        await see_heading(f, guest['people'][n - 1], '%d of 8' % n)
+        await tap_picks(f, 'none')
+        f.expect(await pressed_now(f) == [PICK_AT['none']], 'Nothing for me is not the only pick on screen %d' % n)
+        if n == 1:
+            await f.stop('food-eight-1', FOOD_NEXT)
+        if n == 8:
+            await f.stop('food-eight-8', FOOD)
+        if n < 8:
+            await next_screen(f)
+    await p.click('#first .ff-done')
+    await p.wait_for_selector('#first .ff', state='detached')
+    await p.wait_for_timeout(300)
+    await food_line(f, 'Food needs given for 8 of 8')
+    await f.stop('card-reply-eight-saved', CARD_REPLY + ['.fc-names li'])
+
+
+async def flow_food_closed(f, guest):
+    """After the cut-off: the count line, the closed line and See; the screens are read only."""
+    p = f.page
+    given = food_given(guest, [(0, ['vegan'], 'Oat milk in coffee'), (1, ['nuts', 'shellfish'], '')])
+    await with_seen_home(f, guest, replied(guest, food=given), AFTER_CLOSE)
+    await open_dock(f, 0)
+    await food_line(f, 'Food needs given for 2 of 2')
+    f.expect(await p.inner_text('#first .fc-food-go') == 'See food needs', 'the button is not See food needs')
+    f.expect(await p.is_visible('#first .fc-food-closed'), 'no closed line after the cut-off')
+    await f.stop('food-closed-card', CARD_REPLY_CLOSED + ['.fc-food', '.fc-food-go', '.fc-food-closed'])
+    await start_food(f)
+    f.expect(await p.locator('#first .ff-pick').count() == 10 and await p.locator('#first .ff-pick:not([disabled])').count() == 0, 'a pick can still be pressed after the cut-off, or a pick is missing')
+    f.expect(await p.evaluate("() => Array.from(document.querySelectorAll('#first .ff-pick')).every(b => b.getClientRects().length > 0 && parseFloat(getComputedStyle(b).opacity) >= 0.7)"), 'a read only pick is hidden or too faint')
+    f.expect(await p.locator('#first .ff-done').count() == 0 and await p.locator('#first .ff input').count() == 0,
+             'the read only screen has Done or a box to type in')
+    await f.stop('food-closed-read', FOOD_READ + ['.ff-note-t'])
+    await next_screen(f)
+    f.expect(await pressed_now(f) == [PICK_AT['nuts'], PICK_AT['shellfish']], 'the read only screen 2 does not show what was given: %s' % await pressed_now(f))
+    await f.stop('food-closed-read-last', FOOD_READ + ['.ff-closed', '.ff-leave'])
+
+
+async def flow_food_save(f, guest):
+    """A failed food save tells the guest and keeps the picks; a double tap sends one write; Try again works."""
+    p = f.page
+    await open_food(f, guest, replied(guest))
+    await tap_picks(f, 'vegan')
+    await next_screen(f)
+    await tap_picks(f, 'nuts')
+    await p.evaluate("() => { window.__real = sjFirst.store.saveFood; }")
+    await p.evaluate(SLOW_FALSE % ('saveFood', 'false'))
+    await p.click('#first .ff-done')
+    await p.evaluate("() => { document.querySelector('#first .ff-done').click(); document.querySelector('#first .ff-done').click(); }")
+    await p.wait_for_timeout(150)
+    f.expect(await p.is_visible('#first .ff-saving'), 'no saving line while the food saves')
+    await f.stop('food-saving', CARD + ['.ff-note', '.ff-saving'])
+    await p.wait_for_selector('#first .ff-err', state='visible')
+    await p.wait_for_timeout(700)
+    f.expect(await p.evaluate('() => window.__writes') == 1, 'a double tap sent more than one food write')
+    f.expect(await pressed_now(f) == [PICK_AT['nuts']], 'the pick was lost after a failed save: %s' % await pressed_now(f))
+    f.expect(await p.inner_text('#first .ff-done') == TRY_AGAIN, 'Done did not turn into Try again')
+    record = await p.evaluate("() => sjFirst.store.load(%s)" % json.dumps(guest['token']))
+    f.expect('food' not in (record or {}), 'food was recorded after a failed save: %s' % record)
+    await f.stop('food-save-failed', FOOD + ['.ff-err'])
+    await p.evaluate("() => { sjFirst.store.saveFood = window.__real; }")
+    await p.click('#first .ff-done')
+    await p.wait_for_selector('#first .ff', state='detached')
+    await p.wait_for_timeout(300)
+    await food_line(f, 'Food needs given for 2 of 2')
+    await f.stop('food-save-retried', CARD_REPLY)
+
+
 PER_INVITE = [('first-visit', flow_first_visit), ('cards', flow_cards), ('travel', flow_travel), ('cant-come', flow_cant_come), ('closed', flow_closed),
               ('closed-replied', flow_closed_replied), ('second-visit', flow_second_visit),
               ('weekend', flow_weekend)]
@@ -1133,14 +1353,16 @@ PER_DEVICE = [('no-link', flow_no_link, None), ('full-minute', flow_full_minute,
               ('travel-ways', flow_travel_ways, 1), ('travel-failures', flow_travel_failures, 'spare'),
               ('travel-no-map', flow_travel_no_map, 'spare'),
               ('weekend-fullest', flow_weekend_fullest, 'spare'), ('weekend-no-pictures', flow_weekend_no_pictures, 'spare'),
-              ('weekend-overfull', flow_weekend_overfull, 'spare'), ('weekend-still', flow_weekend_still, 1)]
+              ('weekend-overfull', flow_weekend_overfull, 'spare'), ('weekend-still', flow_weekend_still, 1),
+              ('food-one', flow_food_one, 0), ('food-couple', flow_food_couple, 1), ('food-fullest', flow_food_fullest, 2),
+              ('food-eight', flow_food_eight, 'eight'), ('food-closed', flow_food_closed, 1), ('food-save', flow_food_save, 'spare')]
 
 
-def plan(invites, spare, only=''):
+def plan(invites, spare, eight, only=''):
     """The table of stops: every (flow, guest) pair a device runs, optionally only those whose label has `only`."""
     rows = [(guest['key'] + ' / ' + name, fn, guest) for guest in invites for name, fn in PER_INVITE]
     for name, fn, who in PER_DEVICE:
-        guest = spare if who == 'spare' else invites[who] if who is not None else invites[0]
+        guest = spare if who == 'spare' else eight if who == 'eight' else invites[who] if who is not None else invites[0]
         rows.append(('everyone / ' + name, fn, guest))
     return [row for row in rows if only.lower() in row[0].lower()]
 
@@ -1149,19 +1371,19 @@ def guests_for(index, run_id):
     """Each device and each run gets its own copy of every token, so nothing is ever shared or deleted by another run."""
     def own(guest):
         return dict(guest, token='%s-%s-d%d' % (guest['token'], run_id, index))
-    return [own(g) for g in INVITES], own(SPARE)
+    return [own(g) for g in INVITES], own(SPARE), own(EIGHT)
 
 
 async def run_device(pw, index, base, fixtures, args, run_id):
     device, results, failures = DEVICES[index], [], []
-    invites, spare = guests_for(index, run_id)
-    for guest in invites + [spare]:
+    invites, spare, eight = guests_for(index, run_id)
+    for guest in invites + [spare, eight]:
         fixtures.invite(guest)
     browser = await getattr(pw, device['engine']).launch()
     try:
         options = dict(pw.devices[device['preset']]) if 'preset' in device else {'viewport': device['viewport']}
         options.pop('default_browser_type', None)
-        for label, fn, guest in plan(invites, spare, args.flow or ''):
+        for label, fn, guest in plan(invites, spare, eight, args.flow or ''):
             f = Flow(browser, device, label, base, args.shots, results, args.inject_css or '', args.block_fonts)
             f.fixtures = fixtures
             try:
