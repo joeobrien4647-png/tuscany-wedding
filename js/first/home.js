@@ -3,10 +3,11 @@
 // and a way to watch the invitation again. Ported from the first-minute prototype; every word is set with textContent.
 // show({ root, ctx }) draws it and ticks once a second; refresh() reads the household again (also when the page is
 // visible again) and leaves for the can't-come screen if the answer is now no. Cards open through cards.open when it exists;
-// repaint() paints the dock again after a card has saved, without a read.
+// repaint() paints the dock again after a card has saved, without a read. show({ open: key }) opens that card once home
+// has landed (the Reply card, offering the food step after a saved yes).
 (function (root) {
   'use strict';
-  const TOAST_MS = 2300, COUNT_UP_MS = 1300;
+  const TOAST_MS = 2300, COUNT_UP_MS = 1300, OPEN_AFTER_MS = 500;
   const DOCK_KEYS = ['reply', 'stay', 'travel', 'weekend'];
   const DOCK_ICONS = ['reply', 'stay', 'drive', 'weekend'];
 
@@ -320,6 +321,13 @@
     envButtons.forEach((e, i) => rise(e, 300 + i * 70, 650));
     [dock, foot].forEach((e, i) => rise(e, 380 + i * 90));
     root.setTimeout(() => { if (live()) { try { h.focus({ preventScroll: true }); } catch (e) { /* not focusable yet */ } } }, 350);
+    // A card asked for by the screen before (only 'reply'): opened after the rise, only if home is still the screen.
+    if (o.open) {
+      root.setTimeout(() => {
+        const cards = first.cards;
+        if (live() && cards && typeof cards.open === 'function') cards.open(o.open, ctx, { root: host, from: dockButtons[DOCK_KEYS.indexOf(o.open)] });
+      }, OPEN_AFTER_MS);
+    }
     listen();
   }
 

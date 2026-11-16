@@ -139,6 +139,9 @@ test('reply card: who is coming by name; a single guest sees no list', () => {
   assert.equal(v.title, words.yes.title);
   assert.equal(v.kicker, words.ask.replied);
   assert.equal(v.comingLabel, words.replyCard.coming);
+  assert.equal(v.food.line, words.food.lineNone);
+  assert.equal(v.food.action, 'add');
+  assert.equal(c.replyView(TWO, { reply: { answer: 'no', coming: [false, false], at: 1 } }, NOV, words).food.action, null);
 });
 
 test('reply card: change only while replies are open, then a line to message Joe or Sophie', () => {

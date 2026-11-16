@@ -84,7 +84,7 @@ test('mid-swipe the words of the days follow the finger: visible, with no stagge
 
 test('index.html loads weekend-card before cards', () => {
   const html = read('index.html');
-  assert.match(html, /\["core", "food-core", "words", "store", "sound", "fx", "minute", "reply", "home", "travel-core", "travel-map", "travel-card", "weekend-card", "cards", "app"\]/);
+  assert.match(html, /\["core", "food-core", "words", "store", "sound", "fx", "minute", "reply", "home", "travel-core", "travel-map", "travel-card", "weekend-card", "food-card", "cards", "app"\]/);
   assert.match(html, /data-first-enabled="false"/);
 });
 

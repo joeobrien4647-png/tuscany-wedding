@@ -94,8 +94,18 @@
     return s.given < s.coming;
   }
 
+  // The Reply card's food line and its one button: add or change while replies are open, see after (when some were
+  // given), with the closed line after the cut-off. Nothing at all for a household that has not said yes.
+  function foodCardLine(household, people, nowMs, w) {
+    if (!saidYes(household)) return { line: null, action: null, label: null, closed: null };
+    const s = foodStatus(household, people), open = canSaveFood(household, nowMs);
+    const line = s.given ? core.fill(w.food.line, { n: s.given, total: s.coming }) : w.food.lineNone;
+    const action = open ? (s.given ? 'change' : 'add') : (s.given ? 'see' : null);
+    return { line, action, label: action ? w.food[action] : null, closed: open ? null : w.food.closed };
+  }
+
   const api = { PICKS, NOTE_MAX, MAX_PEOPLE, cleanFood, foodScreens, namesShown, sameName, togglePick, startDraft,
-    foodToSave, foodStatus, canSaveFood, shouldOfferFood };
+    foodToSave, foodStatus, canSaveFood, shouldOfferFood, foodCardLine };
   root.sjFirst = root.sjFirst || {};
   root.sjFirst.food = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

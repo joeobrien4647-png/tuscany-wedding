@@ -1,6 +1,6 @@
 // Every line here is a placeholder for Joe and Sophie to rewrite.
-// Keep lines short and plain. Placeholders: {n}, {names}, {date}, {share}, and on the Getting there card {from}, {to},
-// {drive}, {km}, {price}. No amounts or payment dates in this file.
+// Keep lines short and plain. Placeholders: {n}, {names}, {date}, {share}, {total} (the food step), and on the Getting
+// there card {from}, {to}, {drive}, {km}, {price}. No amounts or payment dates in this file.
 (function (root) {
   'use strict';
   const SPRING = 'Send your share in the spring';
@@ -124,6 +124,29 @@
     replyCard: {
       coming: 'Coming',
       closed: 'To change your reply, please message Joe or Sophie'
+    },
+    // The food step in the Reply card: one screen per person coming. Each pick label fits two per row on a small phone.
+    food: {
+      title: 'Any food needs?',
+      hint: 'Tap all that apply',
+      step: '{n} of {total}',
+      picks: {
+        vegetarian: 'Vegetarian', vegan: 'Vegan', pescatarian: 'Pescatarian', glutenfree: 'Gluten free', dairyfree: 'Dairy free',
+        nuts: 'Nut allergy', shellfish: 'Shellfish allergy', nopork: 'No pork', noalcohol: 'No alcohol', none: 'Nothing for me'
+      },
+      note: 'Anything else?',
+      notePlaceholder: 'A short note for the kitchen',
+      next: 'Next',
+      back: 'Back',
+      done: 'Done',
+      saving: 'Saving your food needs',
+      line: 'Food needs given for {n} of {total}',
+      lineNone: 'No food needs given yet',
+      add: 'Add food needs',
+      change: 'Change food needs',
+      see: 'See food needs',
+      leave: 'Back to your reply',
+      closed: 'To change food needs, please message Joe or Sophie'
     },
     // The Getting there card. Airports, airlines, drive times and tolls are not here: they come from the data file.
     travel: {

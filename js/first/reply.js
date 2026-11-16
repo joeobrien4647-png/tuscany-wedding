@@ -83,9 +83,15 @@
     const after = (ms, fn) => { r.timers.push(root.setTimeout(() => { if (live()) fn(); }, ms)); };
     const again = mode => show(Object.assign({}, o, { mode, backTo: null }));
     const open = () => first.repliesOpen(ctx.now());
+    // Only the yes screen sets offerFood: home then opens the Reply card, offering the food step, when someone coming
+    // has not given theirs yet. The already-replied screen and Back never offer.
+    let offerFood = false;
     function goHome() {
       const home = first.home;
-      if (home && typeof home.show === 'function') { clear(); home.show({ root: o.root, ctx }); }
+      if (!(home && typeof home.show === 'function')) return;
+      const offer = offerFood && !!(first.food && first.food.shouldOfferFood(ctx.household, people, ctx.now()));
+      clear();
+      home.show(offer ? { root: o.root, ctx, open: 'reply' } : { root: o.root, ctx });
     }
     function screen(cls) {
       const s = el('section', 'fm-screen ' + cls);
@@ -126,6 +132,7 @@
     if (mode === 'change') return changeAnswer();
     if (mode === 'yes') {
       centre(null, w.yes.title, w.yes.line).classList.add('fr-yes');
+      offerFood = true;
       after(reduced() ? HOME_AFTER_REDUCED_MS : HOME_AFTER_MS, goHome);
       return;
     }

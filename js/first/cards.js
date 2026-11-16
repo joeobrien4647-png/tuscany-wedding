@@ -11,6 +11,8 @@
   // core.js loads first on the page; under Node tests it is required here.
   const core = root.sjFirst && root.sjFirst.LOCKS ? root.sjFirst
     : typeof require === 'function' ? require('./core.js') : {};
+  // food-core.js loads before this file on the page; under Node tests it is required when first needed.
+  const foodRules = () => (root.sjFirst && root.sjFirst.food) || (typeof require === 'function' ? require('./food-core.js') : null);
 
   // ---------- Stay: what the card shows ----------
   const confirmLabel = (key, w) => w.stay.confirm[key];
@@ -46,6 +48,7 @@
 
   // ---------- Reply: what the card shows ----------
   // Who is coming by name, only when the invitation has more than one person; change only while replies are open.
+  // The food line and its button come from foodCardLine.
   function replyView(invite, household, nowMs, w) {
     const reply = (household && household.reply) || null;
     const people = invite && Array.isArray(invite.people) ? invite.people : [];
@@ -57,7 +60,8 @@
       comingLabel: w.replyCard.coming, coming,
       canChange: open,
       until: open ? core.fill(w.no.until, { date: core.ukDate(core.REPLIES_CLOSE_MS - 1) }) : null,
-      closed: open ? null : w.replyCard.closed
+      closed: open ? null : w.replyCard.closed,
+      food: foodRules().foodCardLine(household, people, nowMs, w)
     };
   }
 
@@ -229,28 +233,56 @@
   CARDS.reply = {
     build(card) {
       const { ctx, w, first } = card;
-      const v = replyView(ctx.invite, ctx.household, ctx.now(), w);
-      card.heading(v.title, v.kicker);
-      if (v.coming.length) {
-        const grp = card.rise(card.el('div', 'fc-grp'));
-        grp.appendChild(card.el('span', 'fc-grp-k', v.comingLabel));
-        const list = card.el('ul', 'fc-names');
-        v.coming.forEach(name => {
-          const li = card.el('li');
-          li.innerHTML = ICON.tick;
-          li.appendChild(card.el('span', null, name));
-          list.appendChild(li);
+      // The card's main view, painted again when the food step steps back (with the fresh count). Returns the food button.
+      function paint() {
+        const body = card.body;
+        while (body.firstChild) body.removeChild(body.firstChild);
+        const v = replyView(ctx.invite, ctx.household, ctx.now(), w);
+        card.heading(v.title, v.kicker);
+        if (v.coming.length) {
+          const grp = card.rise(card.el('div', 'fc-grp'));
+          grp.appendChild(card.el('span', 'fc-grp-k', v.comingLabel));
+          const list = card.el('ul', 'fc-names' + (v.coming.length > 3 ? ' fc-many' : ''));
+          v.coming.forEach(name => {
+            const li = card.el('li');
+            li.innerHTML = ICON.tick;
+            li.appendChild(card.el('span', null, name));
+            list.appendChild(li);
+          });
+          grp.appendChild(list);
+          body.appendChild(grp);
+        }
+        const f = v.food;
+        let go = null;
+        if (f.line) body.appendChild(card.rise(card.el('p', 'fc-p fc-food', f.line)));
+        if (f.action) {
+          const look = f.action === 'add' ? 'fr-btn fr-gold fc-food-go' : 'fr-btn fr-ghost fc-food-go';
+          go = body.appendChild(card.rise(card.button(look, f.label, () => foodStep(f.action === 'see' ? 'read' : 'edit'))));
+        }
+        if (f.closed) body.appendChild(card.rise(card.el('p', 'fc-p fc-food-closed', f.closed)));
+        if (v.canChange) {
+          body.appendChild(card.rise(card.el('p', 'fc-p', v.until)));
+          body.appendChild(card.rise(card.button('fr-btn fr-ghost fc-change', w.ask.change, change)));
+        } else {
+          body.appendChild(card.rise(card.el('p', 'fc-p', v.closed)));
+        }
+        body.appendChild(card.rise(card.button('fr-link fc-notyou', w.home.notYou, () => notYou(root.sjInvite, root.location))));
+        return go;
+      }
+      paint();
+
+      // The food step takes the card's body (js/first/food-card.js); stepping back paints the main view again.
+      function foodStep(mode) {
+        first.foodCard.show(card, {
+          mode,
+          onExit(saved) {
+            if (!card.live()) return;
+            const go = paint();
+            if (saved && first.home && typeof first.home.repaint === 'function') first.home.repaint();
+            focus(go || document.getElementById('fc-h'));
+          }
         });
-        grp.appendChild(list);
-        card.body.appendChild(grp);
       }
-      if (v.canChange) {
-        card.body.appendChild(card.rise(card.el('p', 'fc-p', v.until)));
-        card.body.appendChild(card.rise(card.button('fr-btn fr-ghost fc-change', w.ask.change, change)));
-      } else {
-        card.body.appendChild(card.rise(card.el('p', 'fc-p', v.closed)));
-      }
-      card.body.appendChild(card.rise(card.button('fr-link fc-notyou', w.home.notYou, () => notYou(root.sjInvite, root.location))));
 
       // Through the reply's own change flow: it reads the household again, then asks; a yes lands home, a no can't-come.
       function change() {

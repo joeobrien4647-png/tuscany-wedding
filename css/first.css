@@ -237,6 +237,30 @@ html.first-on body > :not(#first) { display: none; }
 #first .fc-names li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line); font: italic 400 22px/1.2 var(--display); color: var(--ink); overflow-wrap: anywhere; }
 #first .fc-names li:last-child { border-bottom: 1px solid var(--line); }
 #first .fc-names svg { color: var(--gold); }
+/* a big household: two columns of names in smaller type, so eight names, the food line and the controls still fit */
+#first .fc-names.fc-many { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; }
+#first .fc-names.fc-many li { grid-template-columns: 14px minmax(0, 1fr); gap: 6px; padding: 5px 0; border-top: 0; border-bottom: 1px solid var(--line); font-size: 17px; }
+#first .fc-names.fc-many svg { width: 12px; height: 12px; }
+
+/* Reply: the food line and its button, and the food step (js/first/food-card.js), one person per screen */
+#first .fc-reply .fc-food { color: var(--ink); }
+#first .fc-reply .fc-food-go { width: 100%; }
+#first .fc-reply:has(.ff) .fc-inner { gap: 10px; }
+#first .fc-reply:has(.ff) .fc-t { font-size: clamp(28px, 8.4vw, 44px); line-height: 1.04; }
+#first .fc-reply .ff { display: grid; gap: 8px; }
+#first .fc-reply .ff-top { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; align-items: baseline; }
+#first .fc-reply .ff-step, #first .fc-reply .ff-hint { font: 400 14px/1.3 var(--ui); color: var(--ink-soft); }
+#first .fc-reply .ff-step { grid-column: 2; color: var(--gold-hi); letter-spacing: .04em; }
+#first .fc-reply .ff-picks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+#first .fc-reply .ff-pick { min-height: 44px; padding: 6px 10px; font-size: 14px; letter-spacing: .01em; }
+#first .fc-reply .ff-pick.ff-on { border-color: var(--gold); color: var(--gold-hi); background: rgba(220, 183, 109, .14); box-shadow: 0 0 0 1px var(--gold); }
+#first .fc-reply .ff-pick.ff-on[disabled] { opacity: 1; }
+#first .fc-reply .ff-note { display: grid; gap: 4px; }
+#first .fc-reply .ff-note input { width: 100%; min-height: 44px; padding: 10px 14px; border-radius: 14px; border: 1px solid var(--line); background: rgba(245, 236, 220, .05); color: var(--ink); font-family: var(--ui); font-size: 16px; line-height: 1.2; }
+#first .fc-reply .ff-note input::placeholder { color: var(--ink-faint); }
+#first .fc-reply .ff-note input:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 2px; }
+#first .fc-reply .ff-note-t { font: 400 15px/1.4 var(--ui); color: var(--ink); overflow-wrap: anywhere; }
+#first .fc-reply .ff-nav { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 10px; }
 
 /* Stay: the prototype's stay screen (villa photo above, three options that open, one confirm) */
 #first .fc-stay .fc-bg { bottom: auto; height: 54%; background: none; -webkit-mask-image: linear-gradient(180deg, #000 22%, transparent 96%); mask-image: linear-gradient(180deg, #000 22%, transparent 96%); }

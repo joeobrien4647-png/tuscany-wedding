@@ -23,12 +23,12 @@ test('every word passes the copy rules, with no amount or stray placeholder', ()
     assert.deepEqual(copyProblems(s), [], path);
     assert.ok(!s.includes('£') && !s.includes('150'), path + ' has an amount');
     assert.ok(s.trim() === s && s.length > 0, path + ' is empty or padded');
-    for (const m of s.match(/\{[^}]*\}/g) || []) assert.ok(['{n}', '{names}', '{date}', '{share}', '{from}', '{to}', '{drive}', '{km}', '{price}'].includes(m), path + ' uses ' + m);
+    for (const m of s.match(/\{[^}]*\}/g) || []) assert.ok(['{n}', '{names}', '{date}', '{share}', '{from}', '{to}', '{drive}', '{km}', '{price}', '{total}'].includes(m), path + ' uses ' + m);
   }
 });
 
 test('required sections exist', () => {
-  for (const k of ['cover', 'minute', 'ask', 'yes', 'no', 'closed', 'nolink', 'home', 'dock', 'stay', 'travel', 'weekend', 'questions', 'errors'])
+  for (const k of ['cover', 'minute', 'ask', 'yes', 'no', 'closed', 'nolink', 'home', 'dock', 'stay', 'travel', 'weekend', 'questions', 'food', 'errors'])
     assert.ok(words[k] && typeof words[k] === 'object', k);
 });
 
@@ -91,6 +91,15 @@ test('the Getting there words never promise a transfer and say routes can change
   assert.doesNotMatch(all, /transfer|minibus|shuttle|we.ll (collect|pick)/i);
   assert.match(words.travel.route.usually, /usually/i);
   assert.match(words.travel.route.check, /check before you book/i);
+});
+
+test('the food step has a label for every pick, in the order of PICKS, each short enough for two per row', () => {
+  const { PICKS } = require('../js/first/food-core.js');
+  assert.deepEqual(Object.keys(words.food.picks), PICKS);
+  assert.equal(words.food.picks.none, 'Nothing for me');
+  for (const [k, label] of Object.entries(words.food.picks)) assert.ok(label.length <= 18, k + ': ' + label);
+  assert.ok(words.food.step.includes('{n}') && words.food.step.includes('{total}'));
+  assert.ok(words.food.line.includes('{n}') && words.food.line.includes('{total}'));
 });
 
 test('the Questions card has six questions, each with at most three short lines', () => {
