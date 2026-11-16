@@ -86,7 +86,7 @@ Not in yet: prices on the routes. The "See live prices" link works now and opens
 
 ## 4b. The four cards pass
 
-The Weekend screen (four day tiles, each day opening full screen), the four-button home screen and the Questions changes went to `main` on 15 November 2026 (commit 275b420), with the switch still off. The two-phone list below is still to do. The sharper day pictures and a round of small fixes came after that push and are on `cards-pass` until Joe says to push them. Try them on Joe's phone and Sophie's phone, with `&first=1&test=1` on your own household's link:
+The Weekend screen (four day tiles, each day opening full screen), the four-button home screen and the Questions changes went to `main` on 15 November 2026 (commit 275b420), with the switch still off. The two-phone list below is still to do. The sharper day pictures and a round of small fixes followed on 16 November 2026, also with the switch off. Try them on Joe's phone and Sophie's phone, with `&first=1&test=1` on your own household's link:
 
 1. Open Weekend and a day. Swipe between the days with a finger, both ways, on both phones.
 2. Tap the marks at the foot of a day: each one jumps to its day.
