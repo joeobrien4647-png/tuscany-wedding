@@ -249,12 +249,13 @@
     return choice === 'villa' || choice === 'own' || choice === 'later' ? { choice, at: SERVER_TIME } : null;
   }
 
-  // ordered single-leaf steps: path is 'stay' or 'reply', value null means remove.
-  // Stay is always removed before reply is touched, so a stay never outlives its yes.
+  // ordered single-leaf steps: path is 'stay', 'food' or 'reply', value null means remove.
+  // Stay is always removed before reply is touched, so a stay never outlives its yes. Only Clear removes food:
+  // Can't come keeps it (every reader ignores food without a yes), so setting the answer back to yes brings it back.
   function adminSteps(action, opts) {
     const o = isObj(opts) ? opts : {};
     if (action === 'yes') return [{ path: 'reply', value: adminReply('yes', o.peopleCount) }];
-    if (action === 'no') return [{ path: 'stay', value: null }, { path: 'food', value: null }, { path: 'reply', value: adminReply('no', o.peopleCount) }];
+    if (action === 'no') return [{ path: 'stay', value: null }, { path: 'reply', value: adminReply('no', o.peopleCount) }];
     if (action === 'clear') return [{ path: 'stay', value: null }, { path: 'food', value: null }, { path: 'reply', value: null }];
     if (action === 'stay') { const v = adminStay(o.choice); return v ? [{ path: 'stay', value: v }] : []; }
     if (action === 'toggle') {

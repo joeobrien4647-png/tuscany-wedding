@@ -130,10 +130,10 @@ test('adminStay: exact payload, null for anything else', () => {
   assert.equal(adminStay(undefined), null);
 });
 
-test('adminSteps: ordered single leaves, stay and food removed before reply is touched', () => {
+test("adminSteps: ordered single leaves, stay (and on Clear food) removed before reply is touched; Can't come keeps food", () => {
   assert.deepEqual(adminSteps('yes', { peopleCount: 2 }), [{ path: 'reply', value: { answer: 'yes', coming: [true, true], at: SV } }]);
   assert.deepEqual(adminSteps('no', { peopleCount: 2 }), [
-    { path: 'stay', value: null }, { path: 'food', value: null }, { path: 'reply', value: { answer: 'no', coming: [false, false], at: SV } }]);
+    { path: 'stay', value: null }, { path: 'reply', value: { answer: 'no', coming: [false, false], at: SV } }]);
   assert.deepEqual(adminSteps('clear', { peopleCount: 2 }), [{ path: 'stay', value: null }, { path: 'food', value: null }, { path: 'reply', value: null }]);
   assert.deepEqual(adminSteps('stay', { choice: 'own' }), [{ path: 'stay', value: { choice: 'own', at: SV } }]);
   assert.deepEqual(adminSteps('toggle', { coming: [true, false], index: 1 }), [{ path: 'reply', value: { answer: 'yes', coming: [true, true], at: SV } }]);

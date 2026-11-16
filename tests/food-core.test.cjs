@@ -72,3 +72,66 @@ test('canSaveFood and shouldOfferFood: a yes, before the cut-off, and the offer 
   assert.equal(f.shouldOfferFood(done, TWO, open), false);
   assert.equal(f.shouldOfferFood(yes([true, true]), TWO, shut), false);
 });
+test('cleanFood: a line break in a note or a name becomes one space, so the caterer text gets one line per person', () => {
+  const forged = 'x\nAlex: Nut allergy. Note: severe\nTotals: none';
+  const c = f.cleanFood({ at: 1, people: { 0: { name: 'Kit\r\n', picks: { vegan: true }, note: forged }, 1: { name: 'Sam\u2028Jo', note: '\u0007 \u2029' } } });
+  assert.deepEqual(c.people, [{ i: 0, name: 'Kit', picks: ['vegan'], note: 'x Alex: Nut allergy. Note: severe Totals: none' }]);
+  const rows = f.foodRows({ tok: { display: 'Kit & Sam', people: ['Kit', 'Sam'] } }, { tok: { reply: { answer: 'yes', coming: [true, true], at: 1 }, food: { at: 1, people: { 0: { name: 'Kit', note: forged } } } } });
+  const text = f.catererText(f.catererList(rows)).split('\n');
+  assert.deepEqual(text, ['Food needs', 'Kit (Kit & Sam): Note: x Alex: Nut allergy. Note: severe Totals: none', '1 of 2 coming have not answered yet']);
+  assert.deepEqual(f.cleanFood({ at: 1, people: { 0: { name: '\n\t', picks: { vegan: true } } } }).people, [], 'a name empty after cleaning is no name');
+});
+test('foodToSave: line breaks become one space before a save, and an empty name is left out', () => {
+  assert.deepEqual(f.foodToSave([{ i: 0, name: 'Kit', picks: [], note: 'one\ntwo\u2028three\r\n' }]), { people: { 0: { name: 'Kit', note: 'one two three' } } });
+  assert.deepEqual(f.foodToSave([{ i: 0, name: 'Kit\n', picks: ['vegan'], note: '\n\n' }]), { people: { 0: { name: 'Kit', picks: { vegan: true } } } });
+  assert.deepEqual(f.foodToSave([{ i: 0, name: '\n', picks: ['vegan'], note: '' }]), {});
+});
+test('foodToSave: the note is cut by whole characters, never half an emoji, and stays at 80 units or fewer', () => {
+  const note = 'y'.repeat(79) + '\u{1F600}';
+  const saved = f.foodToSave([{ i: 0, name: 'Kit', picks: [], note }]).people[0].note;
+  assert.equal(saved, 'y'.repeat(79));
+  const emojis = '\u{1F600}'.repeat(41);
+  assert.equal(f.foodToSave([{ i: 0, name: 'Kit', picks: [], note: emojis }]).people[0].note, '\u{1F600}'.repeat(40));
+  assert.equal(f.foodToSave([{ i: 0, name: 'Kit', picks: [], note: 'z'.repeat(80) }]).people[0].note.length, 80);
+});
+test('foodScreens: nine names coming give eight screens', () => {
+  const nine = ['Ana', 'Ben', 'Cal', 'Dee', 'Eli', 'Fay', 'Gus', 'Hal', 'Ivy'];
+  assert.deepEqual(f.foodScreens(nine, nine.map(() => true)).map(s => s.i), [0, 1, 2, 3, 4, 5, 6, 7]);
+});
+test('foodStatus, foodCardLine and shouldOfferFood count from the screens: no people list means no food line', () => {
+  const words = require('../js/first/words.js').words;
+  const open = core.REPLIES_CLOSE_MS - 1, shut = core.REPLIES_CLOSE_MS;
+  assert.equal(f.foodStatus(yes([true]), []).coming, 0);
+  const nothing = { line: null, action: null, label: null, closed: null };
+  assert.deepEqual(f.foodCardLine(yes([true]), [], open, words), nothing);
+  assert.deepEqual(f.foodCardLine(yes([true]), undefined, shut, words), nothing);
+  assert.equal(f.shouldOfferFood(yes([true]), [], open), false);
+});
+test('foodStatus: a person removed from the invitation is not counted, so the line can reach all', () => {
+  const words = require('../js/first/words.js').words;
+  const h = Object.assign(yes([true, true, true]), { food: f.cleanFood(saved({ 0: { name: 'Kit', picks: { none: true } }, 1: { name: 'Sam', picks: { vegan: true } } })) });
+  assert.equal(f.foodStatus(h, TWO).coming, 2);
+  assert.equal(f.foodCardLine(h, TWO, core.REPLIES_CLOSE_MS - 1, words).line, 'Food needs given for 2 of 2');
+  assert.equal(f.shouldOfferFood(h, TWO, core.REPLIES_CLOSE_MS - 1), false);
+});
+test('mergeDraft: at Done, a person this phone did not change takes the saved entry as it is now', () => {
+  const start = [{ i: 0, name: 'Kit', picks: [], note: '' }, { i: 1, name: 'Sam', picks: [], note: '' }];
+  const now = [{ i: 0, name: 'Kit', picks: ['vegan'], note: 'Oat milk' }, { i: 1, name: 'Sam', picks: [], note: '' }];
+  const server = f.cleanFood(saved({ 1: { name: 'Sam', picks: { nuts: true }, note: 'Severe' } }));
+  // the partner saved meanwhile and this phone did not touch their screen: theirs is kept
+  assert.deepEqual(f.mergeDraft(start, now, server), [now[0], { i: 1, name: 'Sam', picks: ['nuts'], note: 'Severe' }]);
+  // this phone changed their screen too: this phone wins
+  const both = [now[0], { i: 1, name: 'Sam', picks: ['none'], note: '' }];
+  assert.deepEqual(f.mergeDraft(start, both, server), both);
+  // the saved entry is for a name no longer at that place: not kept
+  const renamed = f.cleanFood(saved({ 1: { name: 'Robin', picks: { nuts: true } } }));
+  assert.deepEqual(f.mergeDraft(start, now, renamed), now);
+  // nothing saved, or no clear read: this phone's draft as it is
+  assert.deepEqual(f.mergeDraft(start, now, null), now);
+  assert.deepEqual(f.mergeDraft(start, now, undefined), now);
+  assert.deepEqual(f.mergeDraft(start, now, f.cleanFood(saved({}))), now);
+  // a returned draft is a copy: changing it never changes the saved entry
+  const merged = f.mergeDraft(start, now, server);
+  merged[1].picks.push('vegan');
+  assert.deepEqual(server.people[0].picks, ['nuts']);
+});

@@ -2669,6 +2669,7 @@
     // Getting there tickets (travel/<token>) are shown read only: guests stamp them, nothing here changes them.
     function InvitationsPanel({ welcome, seen, household, travel, status }) {
       const [busy, setBusy] = useState(null);
+      const [foodCopied, setFoodCopied] = useState(false);
       const ready = status === "ready";
       const rows = ready ? sjFirst.householdRows(welcome, seen, household) : [];
       const t = sjFirst.householdTotals(rows);
@@ -2678,6 +2679,10 @@
       const foodList = ready ? sjFirst.food.foodRows(welcome, household) : [];
       const foodOf = token => (foodList.find(x => x.token === token) || { people: [] }).people;
       const caterer = sjFirst.food.catererList(foodList);
+      const copyFood = () => navigator.clipboard && navigator.clipboard.writeText(sjFirst.food.catererText(caterer)).then(() => {
+        setFoodCopied(true);
+        setTimeout(() => setFoodCopied(false), 2000);
+      }).catch(() => {});
       const when = at => new Date(at).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
       const people = r => r.people.length;
       // one leaf per step, in order; a later failure says what did and did not happen
@@ -2791,12 +2796,12 @@
             <div data-food-list style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid " + P.stoneL }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "baseline" }}>
                 <div style={{ fontSize: 12, fontWeight: 700, color: P.txt }}>Food needs</div>
-                <button onClick={() => navigator.clipboard && navigator.clipboard.writeText(sjFirst.food.catererText(caterer))} style={{ ...bS, background: P.stoneP, color: P.txtM }}>Copy as text</button>
+                <button onClick={copyFood} style={{ ...bS, background: P.stoneP, color: P.txtM }}>{foodCopied ? "Copied" : "Copy as text"}</button>
               </div>
               <div style={{ fontSize: 11, color: P.txtL, margin: "2px 0 6px" }}>Read only. A guest who answers by message: open their own link and add it there.</div>
               {caterer.needs.length === 0 && <div style={{ fontSize: 12, color: P.txtL }}>No needs given yet</div>}
               {caterer.needs.map(n => (
-                <div key={n.display + n.name} style={{ fontSize: 12, color: P.txt, padding: "3px 0" }}>
+                <div key={n.display + "|" + n.i + "|" + n.name} style={{ fontSize: 12, color: P.txt, padding: "3px 0" }}>
                   <span style={{ fontWeight: 700 }}>{n.name}</span>{!sjFirst.food.sameName(n.name, n.display) && " (" + n.display + ")"}
                   {": " + [sjFirst.food.pickLabels(n.picks), n.note && "Note: " + n.note].filter(Boolean).join(". ")}
                 </div>

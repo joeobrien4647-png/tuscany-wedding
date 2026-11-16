@@ -78,7 +78,7 @@ test('catererList: needs by name, a count per pick, not answered and mismatched'
   assert.deepEqual(l.needs.map(n => n.name), ['Kit', 'Sam']);   // Alex said nothing for me: answered, no need
   assert.deepEqual(l.counts, [{ key: 'vegan', label: 'Vegan', n: 1 }, { key: 'nuts', label: 'Nut allergy', n: 1 }, { key: 'none', label: 'Nothing needed', n: 1 }]);
   assert.equal(l.coming, 5); assert.equal(l.notAnswered, 2); assert.equal(l.mismatched, 0);
-  assert.deepEqual(l.needs[1], { name: 'Sam', display: 'Kit & Sam', picks: ['nuts'], note: 'No coriander' });
+  assert.deepEqual(l.needs[1], { name: 'Sam', display: 'Kit & Sam', picks: ['nuts'], note: 'No coriander', i: 1 });
 });
 const NOTE_ONLY = { tokAlex: { reply: yes([true]), food: { at: 1, people: { 0: { name: 'Alex', note: 'Hates olives' } } } }, tokKitSam: HOUSEHOLD.tokKitSam };
 test('catererList: a note on its own is a need, a mismatch counts as not answered', () => {
@@ -121,13 +121,12 @@ test('dashboard.html loads food-core after the travel rules and builds the list 
   assert.match(html, /Saved for \{p\.savedAs\}, check with them/);
   assert.doesNotMatch(html, /dangerouslySetInnerHTML/);
 });
-test('the dashboard never sets food: it only removes it, where it already removes stay', () => {
-  // every household removal of stay (no, clear) also removes food, in the same action, before the reply changes
-  for (const action of ['no', 'clear']) {
-    const steps = adminSteps(action, { peopleCount: 2 });
-    assert.deepEqual(steps.map(s => s.path).slice(0, 3), ['stay', 'food', 'reply'], action);
-    assert.equal(steps[1].value, null, action + ': a delete only');
-  }
+test("the dashboard never sets food: only Clear removes it, and Can't come leaves it", () => {
+  // Clear removes food in the same action, before the reply changes; a mis-click on Can't come costs no food needs
+  const clear = adminSteps('clear', { peopleCount: 2 });
+  assert.deepEqual(clear.map(s => s.path), ['stay', 'food', 'reply']);
+  assert.equal(clear[1].value, null, 'clear: a delete only');
+  assert.deepEqual(adminSteps('no', { peopleCount: 2 }).map(s => s.path), ['stay', 'reply']);
   // no action writes a value to food, and the panel writes only what adminSteps plans
   for (const action of ['yes', 'no', 'clear', 'stay', 'toggle']) {
     const steps = adminSteps(action, { peopleCount: 2, choice: 'villa', coming: [true, true], index: 0 });
@@ -139,4 +138,20 @@ test('the dashboard never sets food: it only removes it, where it already remove
   assert.ok(!/["'`]food["'`]/.test(panel), 'no path named food is written by hand');
   assert.ok(!/household\/["'`]?[^\n]*food/.test(panel), 'no database path to food in the panel');
   assert.match(read('js/first/core.js'), /\{ path: 'stay', value: null \}, \{ path: 'food', value: null \}, \{ path: 'reply'/);
+});
+test('foodRows: the people list is cleaned the way the phone cleans it, so places agree', () => {
+  const welcome = { tokGap: { display: 'Kit & Sam', lines: ['x'], people: ['Kit', '  ', null, '  Sam   Lee ', 'x'.repeat(90)] } };
+  const household = { tokGap: { reply: yes([true, true, false]), food: { at: 1, people: { 1: { name: 'Sam Lee', picks: { vegan: true } } } } } };
+  const rows = food.foodRows(welcome, household);
+  assert.deepEqual(rows[0].people.map(p => [p.i, p.name, p.answered]), [[0, 'Kit', false], [1, 'Sam Lee', true]]);
+  const nine = { tokNine: { display: 'Nine', lines: ['x'], people: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'] } };
+  assert.equal(food.foodRows(nine, { tokNine: { reply: yes([true, true, true, true, true, true, true, true]) } })[0].people.length, 8);
+  assert.equal(food.catererList(food.foodRows(welcome, household)).coming, 2);
+});
+test('the caterer list keys each need by its place, and Copy as text says when it worked', () => {
+  const html = read('dashboard.html');
+  const list = html.slice(html.indexOf('data-food-list'), html.indexOf('function SiteTab'));
+  assert.match(list, /key=\{[^}]*n\.i/);
+  assert.match(list, /foodCopied \? "Copied" : "Copy as text"/);
+  assert.deepEqual(food.catererList(food.foodRows(WELCOME, HOUSEHOLD)).needs.map(n => n.i), [0, 1]);
 });

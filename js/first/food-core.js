@@ -16,6 +16,14 @@
   const has = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
   const inPicksOrder = list => PICKS.filter(k => list.indexOf(k) >= 0);
   const sameName = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+  // A line break or other control character in a name or note becomes one space, so a copied list keeps one line per person.
+  const oneLine = s => String(s).replace(/[\u0000-\u001f\u007f\u2028\u2029]+/g, ' ').trim();
+  // Cut by whole characters (never half an emoji), at most max UTF-16 units, as the database counts.
+  function cut(s, max) {
+    let out = '';
+    for (const ch of s) { if (out.length + ch.length > max) break; out += ch; }
+    return out;
+  }
 
   // A saved entry may come back as an array with null holes or as an object keyed '0' to '7'.
   function placesOf(raw) {
@@ -27,10 +35,12 @@
   }
   function cleanPerson(i, p) {
     if (!isObject(p) || typeof p.name !== 'string' || !p.name.length || p.name.length > 80) return null;
+    const name = oneLine(p.name);
+    if (!name) return null;
     let picks = isObject(p.picks) ? PICKS.filter(k => has(p.picks, k) && p.picks[k] === true) : [];
     if (picks.length > 1) picks = picks.filter(k => k !== 'none');   // a need beats "nothing"
-    const note = typeof p.note === 'string' && p.note.length <= NOTE_MAX ? p.note : '';
-    return picks.length || note ? { i, name: p.name, picks, note } : null;
+    const note = typeof p.note === 'string' && p.note.length <= NOTE_MAX ? oneLine(p.note) : '';
+    return picks.length || note ? { i, name, picks, note } : null;
   }
   function cleanFood(raw) {
     if (!isObject(raw) || typeof raw.at !== 'number') return null;
@@ -68,9 +78,9 @@
     const people = {};
     let any = false;
     draft.forEach(d => {
-      const note = String(d.note || '').trim().slice(0, NOTE_MAX), picks = inPicksOrder(d.picks || []);
-      if (!picks.length && !note) return;
-      const person = { name: d.name };
+      const name = oneLine(d.name || ''), note = cut(oneLine(d.note || ''), NOTE_MAX).trim(), picks = inPicksOrder(d.picks || []);
+      if (!name || (!picks.length && !note)) return;
+      const person = { name };
       if (picks.length) person.picks = picks.reduce((o, k) => { o[k] = true; return o; }, {});
       if (note) person.note = note;
       people[d.i] = person;
@@ -79,13 +89,26 @@
     return any ? { people } : {};
   }
 
+  // At Done: a person this phone did not change since the step began takes the entry saved now (a partner may have
+  // saved theirs meanwhile), when it is still for the name at that place. A person this phone changed is sent as it is.
+  const sameEntry = (a, b) => inPicksOrder(a.picks || []).join() === inPicksOrder(b.picks || []).join() && oneLine(a.note || '') === oneLine(b.note || '');
+  function mergeDraft(draftAtStart, draftNow, serverFood) {
+    const saved = serverFood && Array.isArray(serverFood.people) ? serverFood.people : [];
+    return draftNow.map(d => {
+      const was = (draftAtStart || []).find(s => s.i === d.i);
+      const entry = was && sameEntry(was, d) ? saved.find(e => e.i === d.i && sameName(e.name, d.name)) : null;
+      return entry ? { i: d.i, name: d.name, picks: entry.picks.slice(), note: entry.note } : { i: d.i, name: d.name, picks: d.picks.slice(), note: d.note };
+    });
+  }
+
   const replyOf = household => (household && household.reply) || null;
   const saidYes = household => !!replyOf(household) && replyOf(household).answer === 'yes';
   function foodStatus(household, people) {
-    const coming = saidYes(household) && Array.isArray(household.reply.coming) ? household.reply.coming : [];
+    // Counted from the screens, as the step and the dashboard count: a person with no name to show is not asked.
+    const screens = foodScreens(people, saidYes(household) ? household.reply.coming : null);
     const food = household && household.food, saved = food && Array.isArray(food.people) ? food.people : [];
-    const entries = saved.filter(e => coming[e.i] === true && typeof (people || [])[e.i] === 'string' && sameName(e.name, people[e.i]));
-    return { coming: coming.filter(c => c === true).length, given: entries.length, entries };
+    const entries = saved.filter(e => screens.some(s => s.i === e.i && sameName(e.name, s.name)));
+    return { coming: screens.length, given: entries.length, entries };
   }
   const canSaveFood = (household, nowMs) => saidYes(household) && core.repliesOpen(nowMs);
   function shouldOfferFood(household, people, nowMs) {
@@ -95,10 +118,12 @@
   }
 
   // The Reply card's food line and its one button: add or change while replies are open, see after (when some were
-  // given), with the closed line after the cut-off. Nothing at all for a household that has not said yes.
+  // given), with the closed line after the cut-off. Nothing at all for a household that has not said yes, or with
+  // nobody coming to ask (no names on the invitation).
   function foodCardLine(household, people, nowMs, w) {
-    if (!saidYes(household)) return { line: null, action: null, label: null, closed: null };
-    const s = foodStatus(household, people), open = canSaveFood(household, nowMs);
+    const s = foodStatus(household, people);
+    if (!s.coming) return { line: null, action: null, label: null, closed: null };
+    const open = canSaveFood(household, nowMs);
     const line = s.given ? core.fill(w.food.line, { n: s.given, total: s.coming }) : w.food.lineNone;
     const action = open ? (s.given ? 'change' : 'add') : (s.given ? 'see' : null);
     return { line, action, label: action ? w.food[action] : null, closed: open ? null : w.food.closed };
@@ -109,6 +134,12 @@
     nuts: 'Nut allergy', shellfish: 'Shellfish allergy', nopork: 'No pork', noalcohol: 'No alcohol', none: 'Nothing needed' };
   const pickLabels = picks => (Array.isArray(picks) ? picks : []).filter(k => has(PICK_LABELS, k)).map(k => PICK_LABELS[k]).join(', ');
 
+  // The people list as the phone cleans it (js/invite.js names()), so places here are the places the phone saved.
+  function invitePeople(v) {
+    if (!Array.isArray(v)) return [];
+    return v.filter(n => typeof n === 'string' && n.trim()).map(n => n.replace(/\s+/g, ' ').trim().slice(0, 80)).slice(0, MAX_PEOPLE);
+  }
+
   // One row per household that has said yes, one person per person coming, in invitation order. A saved entry counts
   // as theirs only when the name at that place still matches; otherwise savedAs says who it was saved for.
   function foodRows(welcome, household) {
@@ -116,7 +147,7 @@
     const rows = Object.keys(welcome).filter(token => isObject(welcome[token]) && saidYes(household[token])).map(token => {
       const w = welcome[token], h = household[token];
       const saved = (cleanFood(h.food) || { people: [] }).people;
-      const people = foodScreens(w.people, h.reply.coming).map(s => {
+      const people = foodScreens(invitePeople(w.people), h.reply.coming).map(s => {
         const entry = saved.find(e => e.i === s.i);
         const mine = !!entry && sameName(entry.name, s.name);
         return { i: s.i, name: s.name, picks: mine ? entry.picks : [], note: mine ? entry.note : '', answered: mine, savedAs: entry && !mine ? entry.name : null };
@@ -132,8 +163,7 @@
     (Array.isArray(rows) ? rows : []).forEach(r => (r && Array.isArray(r.people) ? r.people : []).forEach(p => all.push({ display: r.display, p })));
     const needs = all.filter(({ p }) => p.answered && (p.note || p.picks.some(k => k !== 'none')))
       .map(({ display, p }) => ({ name: p.name, display, picks: p.picks, note: p.note, i: p.i }))
-      .sort((a, b) => a.display.toLowerCase().localeCompare(b.display.toLowerCase()) || a.i - b.i)
-      .map(({ i, ...need }) => need);
+      .sort((a, b) => a.display.toLowerCase().localeCompare(b.display.toLowerCase()) || a.i - b.i);
     const counts = PICKS.map(key => ({ key, label: PICK_LABELS[key], n: all.filter(({ p }) => p.answered && p.picks.indexOf(key) >= 0).length })).filter(c => c.n > 0);
     return { needs, counts, coming: all.length, notAnswered: all.filter(({ p }) => !p.answered).length, mismatched: all.filter(({ p }) => p.savedAs !== null).length };
   }
@@ -153,7 +183,7 @@
   }
 
   const api = { PICKS, PICK_LABELS, foodRows, catererList, catererText, pickLabels, NOTE_MAX, MAX_PEOPLE, cleanFood, foodScreens, namesShown, sameName, togglePick, startDraft,
-    foodToSave, foodStatus, canSaveFood, shouldOfferFood, foodCardLine };
+    foodToSave, mergeDraft, foodStatus, canSaveFood, shouldOfferFood, foodCardLine };
   root.sjFirst = root.sjFirst || {};
   root.sjFirst.food = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
