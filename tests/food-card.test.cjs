@@ -81,3 +81,16 @@ test('food styles live inside #first under the Reply card, and the names list go
 test('index.html loads food-card before cards', () => {
   assert.match(read('index.html'), /\["core", "food-core", "words", "store", "sound", "fx", "minute", "reply", "home", "travel-core", "travel-map", "travel-card", "weekend-card", "food-card", "cards", "app"\]/);
 });
+test('the smaller step heading hangs on a class the step sets, not on :has()', () => {
+  const css = read('css/first.css');
+  assert.doesNotMatch(css, /:has\(/);
+  assert.match(css, /#first \.fc-reply \.fc-inner\.ff-open \{[^}]*gap: 10px/);
+  assert.match(css, /#first \.fc-reply \.ff-open \.fc-t \{[^}]*font-size:/);
+  assert.match(js, /classList\.add\('ff-open'\)/);
+  assert.match(js, /classList\.remove\('ff-open'\)/);
+});
+test('home opens the asked-for card only when no other card is open', () => {
+  const home = read('js/first/home.js');
+  const block = home.slice(home.indexOf('if (o.open)'), home.indexOf('listen();', home.indexOf('if (o.open)')));
+  assert.match(block, /openKey\(\)/);
+});

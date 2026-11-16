@@ -1,8 +1,9 @@
 // The food step inside the Reply card: one screen per person coming, each with ten picks that toggle, a short note and
-// Back, Next or Done. Edit mode reads the household again first (a partner may have saved theirs meanwhile), then
-// saves the whole entry at once. Read mode (after the cut-off) shows what was given, with nothing to change. While the
-// step is open the card's close control and Escape step back to the Reply card, saving nothing. Every word is set with
-// textContent; the note lives only in the input's value and the save. Loads after food-core.js, words.js and store.js;
+// Back, Next or Done. Edit mode reads the household again first and again on Done (a partner may have saved theirs
+// meanwhile: a person this phone did not change keeps what is saved now), then saves the whole entry at once. A read
+// that finds no yes any more leaves the step and the card, and home refreshes. Read mode (after the cut-off) shows
+// what was given, with nothing to change. While the step is open the card's close control and Escape step back to
+// the Reply card, saving nothing. Every word is set with textContent; the note lives only in the input's value and the save. Loads after food-core.js, words.js and store.js;
 // cards.js hands its `card` to show(card, { mode: 'edit' | 'read', onExit: saved => ... }).
 (function (root) {
   'use strict';
@@ -28,8 +29,13 @@
     const people = ctx.invite && Array.isArray(ctx.invite.people) ? ctx.invite.people : [];
     const token = (ctx.invite && ctx.invite.token) || '';
     const edit = o.mode !== 'read';
-    let draft = [], busy = false, failed = false, exited = false, view = null;
+    let draft = [], start = [], busy = false, failed = false, exited = false, view = null;
     const live = () => !exited && card.live();
+    const copy = list => list.map(d => ({ i: d.i, name: d.name, picks: d.picks.slice(), note: d.note }));
+    const saysYes = h => !!(h && h.reply && h.reply.answer === 'yes');
+    // The card's inner box is marked while the step is open (a smaller heading), and unmarked when it steps back.
+    const inner = card.body.parentNode;
+    if (inner) inner.classList.add('ff-open');
 
     // The close control and Escape step back to the card; a tap while saving is ignored.
     card.beforeClose(() => { if (!busy) exit(false); return true; });
@@ -38,9 +44,16 @@
     function exit(saved) {
       if (exited) return;
       exited = true;
+      if (inner) inner.classList.remove('ff-open');
       card.beforeClose(() => false);
       card.closeLabel();
       if (typeof o.onExit === 'function') o.onExit(saved);
+    }
+    // A fresh read with no record, or no longer a yes: leave the step and the card; home reads again and decides.
+    function leaveForHome() {
+      card.close();
+      exit(false);
+      if (first.home && typeof first.home.refresh === 'function') first.home.refresh();
     }
     function empty() { while (card.body.firstChild) card.body.removeChild(card.body.firstChild); }
     const heading = () => root.document.getElementById('fc-h');
@@ -51,6 +64,7 @@
         const h = ctx.household, reply = h && h.reply;
         const coming = reply && reply.answer === 'yes' && Array.isArray(reply.coming) ? reply.coming : [];
         draft = food.startDraft(h && h.food, food.foodScreens(people, coming));
+        start = copy(draft);
       } else {
         draft = food.foodStatus(ctx.household, people).entries.map(e => ({ i: e.i, name: e.name, picks: e.picks.slice(), note: e.note }));
       }
@@ -175,12 +189,15 @@
       Promise.resolve(store.load(token)).then(h => h, () => undefined).then(function (household) {
         if (!live()) return;
         if (household === undefined) { begin(); return; }
+        if (!saysYes(household)) { leaveForHome(); return; }
         ctx.household = household;
         begin();
       });
     }
 
-    // Done: the cut-off is checked when pressed; one save at a time; the household changes only after a true.
+    // Done: the cut-off is checked when pressed; one save at a time; the household is read again and merged (an
+    // unclear read sends what this phone has); the household changes only after a true. Anything that throws counts
+    // as a failed save, and busy is always reset.
     function done() {
       if (busy) return;
       if (!food.canSaveFood(ctx.household, ctx.now())) {
@@ -190,24 +207,43 @@
       }
       view.err.hidden = true;
       view.closed.hidden = true;
-      setBusy(true);
-      const saved = draft.map(d => ({ i: d.i, name: d.name, picks: d.picks.slice(), note: d.note }));
-      Promise.resolve(store.saveFood(token, saved)).then(ok => ok === true, () => false).then(function (ok) {
-        const here = live();
-        if (here) setBusy(false); else busy = false;
-        if (!ok) {
-          if (!here) return;
-          failed = true;
-          view.err.hidden = false;
-          if (view.doneBtn) view.doneBtn.textContent = w.errors.retry;
-          return;
-        }
-        ctx.household = Object.assign({}, ctx.household, { food: food.cleanFood(Object.assign(food.foodToSave(saved), { at: ctx.now() })) });
+      busy = true;
+      let pending;
+      try {
+        setBusy(true);
+        const mine = copy(draft);
+        pending = new Promise(resolve => resolve(store.load(token))).then(h => h, () => undefined).then(function (household) {
+          if (household !== undefined && !saysYes(household)) return 'gone';
+          const saved = household === undefined ? mine : food.mergeDraft(start, mine, household.food);
+          return Promise.resolve(store.saveFood(token, saved)).then(ok => ok === true, () => false).then(function (ok) {
+            if (!ok) return false;
+            const base = household === undefined ? ctx.household : household;
+            ctx.household = Object.assign({}, base, { food: food.cleanFood(Object.assign(food.foodToSave(saved), { at: ctx.now() })) });
+            return true;
+          });
+        });
+      } catch (e) {
+        pending = Promise.resolve(false);
+      }
+      pending.then(r => r, () => false).then(finish);
+    }
+    function finish(result) {
+      const here = live();
+      busy = false;
+      if (here) { try { setBusy(false); } catch (e) { busy = false; } }
+      if (result === 'gone') { if (here) leaveForHome(); return; }
+      if (result !== true) {
         if (!here) return;
-        if (S) S.pop();
-        haptic(14);
-        exit(true);
-      });
+        failed = true;
+        view.err.hidden = false;
+        if (view.doneBtn) view.doneBtn.textContent = w.errors.retry;
+        focus(view.doneBtn);
+        return;
+      }
+      if (!here) return;
+      if (S) S.pop();
+      haptic(14);
+      exit(true);
     }
   }
 

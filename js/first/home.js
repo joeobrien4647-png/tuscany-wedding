@@ -321,11 +321,12 @@
     envButtons.forEach((e, i) => rise(e, 300 + i * 70, 650));
     [dock, foot].forEach((e, i) => rise(e, 380 + i * 90));
     root.setTimeout(() => { if (live()) { try { h.focus({ preventScroll: true }); } catch (e) { /* not focusable yet */ } } }, 350);
-    // A card asked for by the screen before (only 'reply'): opened after the rise, only if home is still the screen.
+    // A card asked for by the screen before (only 'reply'): opened after the rise, only if home is still the screen
+    // and no card is open (one the guest opened meanwhile is never replaced).
     if (o.open) {
       root.setTimeout(() => {
         const cards = first.cards;
-        if (live() && cards && typeof cards.open === 'function') cards.open(o.open, ctx, { root: host, from: dockButtons[DOCK_KEYS.indexOf(o.open)] });
+        if (live() && cards && typeof cards.open === 'function' && !(typeof cards.openKey === 'function' && cards.openKey())) cards.open(o.open, ctx, { root: host, from: dockButtons[DOCK_KEYS.indexOf(o.open)] });
       }, OPEN_AFTER_MS);
     }
     listen();
