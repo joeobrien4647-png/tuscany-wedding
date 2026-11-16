@@ -33,5 +33,13 @@ test('the page still points at the save-the-date picture until the switch flips'
 test('the preview script is in the repo, makes the picture from the villa photo, and names no local folder', () => {
   const py = read('scripts/make-share-preview.py');
   for (const s of ['villa.webp', 'share-preview.jpg', 'Italianno', 'Bodoni Moda', 'Jost', '250', '560']) assert.ok(py.includes(s), s);
-  assert.doesNotMatch(py, /[A-Za-z]:[\/]|Users[\/]|dev-scratch/);
+  assert.doesNotMatch(py, /(?<![A-Za-z])[A-Za-z]:[\\/]|Users[\\/]|dev-scratch/);
+  assert.ok(py.includes("FONTS_URL = 'https://fonts.googleapis.com/css2?"), 'the Google Fonts address is written in one piece');
+});
+
+test('the preview script names the last quality it really tried when the picture stays too big', () => {
+  const py = read('scripts/make-share-preview.py');
+  const fn = py.slice(py.indexOf('async def save_small_enough'), py.indexOf('\n\n\n', py.indexOf('async def save_small_enough')));
+  assert.match(fn, /tried = quality/);
+  assert.match(fn, /even at quality %d' % \(MAX_BYTES, tried\)/);
 });

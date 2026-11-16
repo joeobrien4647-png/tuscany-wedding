@@ -48,7 +48,7 @@
     if (!isObject(s) || CHOICES.indexOf(s.choice) < 0 || typeof s.at !== 'number') return null;
     return { choice: s.choice, at: s.at };
   }
-  // food-core.js loads after this file on the page, so it is looked up when first needed.
+  // food-core.js loads before this file on the page; under Node tests it is required when first needed.
   function foodRules() {
     return (root.sjFirst && root.sjFirst.food) || (typeof require === 'function' ? require('./food-core.js') : null);
   }

@@ -101,8 +101,8 @@ test('rules: food is written or removed only by a yes household, before the cut-
   assert.match(food.at['.validate'], /== now/);
   assert.equal(food.$other['.validate'], false);
   const person = food.people.$i;
-  assert.match(food.people['.validate'], /hasChildren()/);
-  assert.match(person.picks['.validate'], /hasChildren()/);
+  assert.match(food.people['.validate'], /hasChildren\(\)/);
+  assert.match(person.picks['.validate'], /hasChildren\(\)/);
   assert.match(person['.validate'], /\$i\.matches\(\/\^\[0-7\]\$\/\)/);
   assert.match(person.name['.validate'], /isString\(\).*<= 80/);
   assert.match(person.note['.validate'], /isString\(\).*<= 80/);

@@ -38,7 +38,7 @@ PAGE = """<!doctype html><html><head><meta charset="utf-8">
 <div class="words"><p class="names">Sophie <span class="amp">&amp;</span> Joe</p><div class="rule"></div><p class="place">Tuscany</p><p class="date">Saturday 29 May 2027</p></div>
 </body></html>"""
 
-FONTS_URL = 'https' + '://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400..700&family=Italianno&family=Jost:wght@300..600&display=swap'
+FONTS_URL = 'https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400..700&family=Italianno&family=Jost:wght@300..600&display=swap'
 AMP_LEFT_EM, AMP_RIGHT_EM = "-.01", ".25"
 
 
@@ -84,14 +84,15 @@ async def render(page, folder):
 
 
 async def save_small_enough(page):
-    quality = QUALITY_START
+    quality, tried = QUALITY_START, None
     while quality >= QUALITY_FLOOR:
+        tried = quality
         data = await page.screenshot(type='jpeg', quality=quality)
         if len(data) <= MAX_BYTES:
             OUT.write_bytes(data)
             return quality, len(data)
         quality -= QUALITY_STEP
-    fail('the picture is over %d bytes even at quality %d' % (MAX_BYTES, QUALITY_FLOOR + QUALITY_STEP))
+    fail('the picture is over %d bytes even at quality %d' % (MAX_BYTES, tried))
 
 
 async def main():
