@@ -65,6 +65,21 @@
           "at": { ".validate": "newData.val() == now" },
           "$other": { ".validate": false }
         },
+        "food": {
+          ".write": "now < 1803859200000 && root.child('household').child($token).child('reply').child('answer').val() === 'yes'",
+          ".validate": "newData.hasChildren(['at'])",
+          "at": { ".validate": "newData.val() == now" },
+          "people": {
+            "$i": {
+              ".validate": "$i.matches(/^[0-7]$/) && newData.hasChildren(['name']) && (newData.hasChild('picks') || newData.hasChild('note'))",
+              "name": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80" },
+              "picks": { "$pick": { ".validate": "newData.val() === true && $pick.matches(/^(vegetarian|vegan|pescatarian|glutenfree|dairyfree|nuts|shellfish|nopork|noalcohol|none)$/)" } },
+              "note": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80" },
+              "$other": { ".validate": false }
+            }
+          },
+          "$other": { ".validate": false }
+        },
         "$other": { ".validate": false }
       }
     },

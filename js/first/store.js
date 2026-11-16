@@ -48,13 +48,19 @@
     if (!isObject(s) || CHOICES.indexOf(s.choice) < 0 || typeof s.at !== 'number') return null;
     return { choice: s.choice, at: s.at };
   }
-  // Keeps only the shared shape: { reply?: { answer, coming, at }, stay?: { choice, at } }, or null when neither is valid.
+  // food-core.js loads after this file on the page, so it is looked up when first needed.
+  function foodRules() {
+    return (root.sjFirst && root.sjFirst.food) || (typeof require === 'function' ? require('./food-core.js') : null);
+  }
+  // Keeps only the shared shape: { reply?: { answer, coming, at }, stay?: { choice, at }, food?: Food }, or null when none is valid.
   function clean(raw) {
     if (!isObject(raw)) return null;
     const out = {}, reply = cleanReply(raw.reply), stay = cleanStay(raw.stay);
+    const rules = raw.food === undefined ? null : foodRules(), food = rules ? rules.cleanFood(raw.food) : null;
     if (reply) out.reply = reply;
     if (stay) out.stay = stay;
-    return reply || stay ? out : null;
+    if (food) out.food = food;
+    return reply || stay || food ? out : null;
   }
 
   // fetch with a timeout. Resolves the Response, or undefined when there was no response in time or at all.
@@ -112,6 +118,13 @@
     return put(token, 'stay', { choice });
   }
 
+  // A whole food entry is saved at once. An empty one (nobody filled in) is a valid save: it clears the household's food.
+  function saveFood(token, draft) {
+    const rules = foodRules();
+    if (!rules || !Array.isArray(draft)) return Promise.resolve(false);
+    return put(token, 'food', rules.foodToSave(draft));
+  }
+
   // ---------- Getting there tickets ----------
   // travel-core.js loads after this file on the page, so it is looked up when first needed.
   function travelRules() {
@@ -163,7 +176,7 @@
   function seenMinute() { try { return localStorage.getItem(SEEN_KEY) === '1'; } catch (e) { return false; } }
   function markSeen() { try { localStorage.setItem(SEEN_KEY, '1'); } catch (e) {} }
 
-  const api = { load, saveReply, saveStay, saveTicket, removeTicket, travelCopy, seenMinute, markSeen, clean };
+  const api = { load, saveReply, saveStay, saveFood, saveTicket, removeTicket, travelCopy, seenMinute, markSeen, clean };
   root.sjFirst = root.sjFirst || {};
   root.sjFirst.store = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
