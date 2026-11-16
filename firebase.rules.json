@@ -70,10 +70,11 @@
           ".validate": "newData.hasChildren(['at'])",
           "at": { ".validate": "newData.val() == now" },
           "people": {
+            ".validate": "newData.hasChildren()",
             "$i": {
               ".validate": "$i.matches(/^[0-7]$/) && newData.hasChildren(['name']) && (newData.hasChild('picks') || newData.hasChild('note'))",
               "name": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80" },
-              "picks": { "$pick": { ".validate": "newData.val() === true && $pick.matches(/^(vegetarian|vegan|pescatarian|glutenfree|dairyfree|nuts|shellfish|nopork|noalcohol|none)$/)" } },
+              "picks": { ".validate": "newData.hasChildren()", "$pick": { ".validate": "newData.val() === true && $pick.matches(/^(vegetarian|vegan|pescatarian|glutenfree|dairyfree|nuts|shellfish|nopork|noalcohol|none)$/)" } },
               "note": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80" },
               "$other": { ".validate": false }
             }
