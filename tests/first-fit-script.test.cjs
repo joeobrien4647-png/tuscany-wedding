@@ -161,3 +161,16 @@ test('the phone-fit script checks the food step on every setup', () => {
   assert.ok(py.includes("'fitcheck-eight-house-0005'"));
   assert.equal((py.match(/'people': \[([^\]]*)\]/g) || []).some(p => p.split(',').length === 8), true, 'an eight-person household');
 });
+
+test('the phone-fit script checks a three-person household, both phones at once, leaving mid-step and the cut-off passing', () => {
+  const py = source();
+  for (const name of ['food-three', 'food-both-phones', 'food-leave', 'food-cutoff-open']) assert.ok(py.includes("'" + name + "'"), name);
+  for (const stop of ['card-reply-three', 'card-reply-three-given', 'card-reply-three-closed', 'card-reply-three-closed-given', 'food-both-phones-saved', 'food-left', 'food-cutoff-passed'])
+    assert.ok(py.includes("'" + stop + "'"), stop);
+  assert.ok(py.includes("'fitcheck-three-house-0006'"));
+  assert.equal((py.match(/'people': \[([^\]]*)\]/g) || []).some(p => p.split(',').length === 3), true, 'a three-person household');
+  const registered = py.slice(py.indexOf('PER_INVITE = ['), py.indexOf('def plan('));
+  for (const fn of ['flow_food_three', 'flow_food_both_phones', 'flow_food_leave', 'flow_food_cutoff_open']) assert.match(registered, new RegExp(', ' + fn + ', '), fn);
+  assert.doesNotMatch(py, /PICK_AT = \{/, 'the picks are hard-coded instead of read from sjFirst.food.PICKS');
+  assert.match(py, /sjFirst\.food\.PICKS/);
+});
