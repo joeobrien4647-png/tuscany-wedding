@@ -116,7 +116,7 @@ What it adds:
 3. Paste the branch's file and publish.
 4. In the Rules Playground, with no sign-in: a set at `/household/<a key with no reply>/food` is denied; a set at `/household/<a yes key>/food` with a pick called `steak` is denied; a delete of `/household/<a key with no reply>/food` is denied.
 
-A household that has said yes may remove its own food needs (the rule allows it). The dashboard's Clear and Can't come rely on that: each removes a household's food needs along with its stay choice. The dashboard's food list has not been seen running yet, because nobody could sign in during the build. Check it once the rules are published.
+A household that has said yes may remove its own food needs before the cut-off (the rule allows it). The dashboard's Clear and Can't come remove a household's food needs along with its stay choice. They write as the signed-in admin, so the food rule does not limit them. The dashboard's food list has not been seen running yet, because nobody could sign in during the build. Check it once the rules are published.
 
 Two phones (`&first=1&test=1` on your own household's link):
 
