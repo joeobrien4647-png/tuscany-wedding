@@ -49,7 +49,7 @@ Check: open the site as a guest would. It should look and behave exactly as it d
 
 This is the first time it will have been seen or heard on a real phone. Things to look for: nothing cut off, nothing that scrolls, the music starts after the first tap and the sound button works, the video plays, the countdown is right.
 
-Optional here, required after writing the words (section 5): on a computer with Python and Playwright installed and a network connection, `python scripts/check-first-fit.py` runs every screen on four phone setups and stops with an error if anything is cut off. It takes about twelve minutes.
+Optional here, required after writing the words (section 5): on a computer with Python and Playwright installed and a network connection, `python scripts/check-first-fit.py` runs every screen on four phone setups and stops with an error if anything is cut off. It takes about fifteen minutes.
 
 ## 4a. The Getting there card
 
@@ -109,29 +109,44 @@ What it adds:
 - The Questions food answer, which now points at the reply.
 - The link preview picture, which is in the repo and not switched on.
 
-**Publish the rules (Joe only, needs his yes).** The branch adds one block, `food`, inside `household` in `firebase.rules.json`. Until it is published, a guest's Done shows the save error, so publish before the two-phone test. Claude can do it from this computer with the Firebase tool, saving a copy of the live rules first, as was done for the travel rules on 14 November 2026. To do it yourself instead:
+**Publish the rules (needs Joe's yes).** The branch adds one block, `food`, inside `household` in `firebase.rules.json`. Until it is published, a guest's Done shows the save error, so publish before the two-phone test. Claude can do it from this computer with the Firebase tool, saving a copy of the live rules first, as was done for the travel rules on 14 November 2026. To do it yourself instead:
 
 1. Firebase console, Realtime Database, Rules tab. Copy what is live now into a file you keep.
-2. Compare the live rules with `firebase.rules.json` on `main`. If they differ, stop and work out why.
+2. Compare the live rules with `firebase.rules.json` on `main`. Once this branch is on `main`, the two differ by exactly the `food` block until the rules are published: that one difference is expected. If they differ in anything else, stop and work out why.
 3. Paste the branch's file and publish.
-4. In the Rules Playground, with no sign-in: a set at `/household/<a key with no reply>/food` is denied; a set at `/household/<a yes key>/food` with a pick called `steak` is denied; a delete of `/household/<a key with no reply>/food` is denied.
 
-A household that has said yes may remove its own food needs before the cut-off (the rule allows it). The dashboard's Clear and Can't come remove a household's food needs along with its stay choice. They write as the signed-in admin, so the food rule does not limit them. The dashboard's food list has not been seen running yet, because nobody could sign in during the build. Check it once the rules are published.
+**Check the rules after publishing.** Claude checks with real requests to the database, with no sign-in, against a test household that has said yes (Joe's own, during his two-phone test):
+
+- a proper save of food needs is accepted, and is then removed again;
+- the same save with a pick called `steak` is refused;
+- a save for a household with no yes reply is refused;
+- reading `/household` as a whole, with no sign-in, is refused.
+
+Joe's fallback is the Rules Playground, with no sign-in: a set at `/household/<a key with no reply>/food` is denied, and a set at `/household/<a yes key>/food` with a pick called `steak` is denied. The Playground cannot prove that a proper save is accepted, so it does not replace the check above.
+
+A household that has said yes may remove its own food needs before the cut-off (the rule allows it). On the dashboard, Clear removes a household's food needs along with its reply and stay choice, and asks first. Can't come does not remove them: every list ignores food needs from a household that has not said yes, and if the answer is set back to yes, that household's food needs come back. The dashboard writes as the signed-in admin, so the food rule does not limit it. The dashboard's food list has not been seen running yet, because nobody could sign in during the build. Check it once the rules are published.
+
+"Saved for X, check with them" on the dashboard: food needs are kept by each person's place on the invitation and their name. Editing or reordering the names on an invitation un-matches that person's food needs. Either the guest gives them again, or the name goes back as it was.
+
+To add food needs for a guest who answers by message, open their own link with `&test=1` added, so it is not recorded as that guest opening their invitation.
 
 Two phones (`&first=1&test=1` on your own household's link):
 
-1. Reply yes and see the food step offered after the fireworks. Close it and see the count line on the Reply card.
+1. Reply yes and watch the Reply card open by itself after the fireworks, offering the food step. Say if it comes too soon. Close it and see the count line on the Reply card.
 2. Add food needs for each of you. Open Change on the other phone and see them.
 3. Change one, press Done, and check the dashboard row and the caterer list.
 4. Tap Nothing for me and see the other picks go off.
-5. Try a note of 80 characters.
-6. Turn on Reduce Motion and do it again.
+5. Try a note of 80 characters. Type a note with the keyboard up, and check the screen settles and Done can be reached.
+6. Press Done in flight mode and see Try again.
+7. Open the step on both phones at once, each of you fill in your own, press Done on one and then the other, and check both show on the dashboard.
+8. Press Clear on the dashboard for your own household and see the food needs go.
+9. Turn on Reduce Motion and do it again.
 
 The words Joe needs to write are under `food` in `js/first/words.js` (the title, the hint, the ten picks, the note label and placeholder, the count line, the buttons and the closed line), and the Questions food answer. To trim or add picks, change `PICKS` in `js/first/food-core.js` and the rule's list in `firebase.rules.json` together (a test checks they match), then publish the rules again.
 
 At go-live (section 6): change the `og:image` address in `index.html` to `https://sophieandjoe2027.com/images/first/share-preview.jpg`. There is no separate Twitter image tag; the Twitter card uses `og:image`. Update the one test that pins the old address, `tests/share-preview.test.cjs`. To check it: WhatsApp keeps a preview per address, so send yourself a personal link you have never sent before and look at the picture. Facebook's Sharing Debugger shows it too. To make the picture again: `PYTHONIOENCODING=utf-8 python scripts/make-share-preview.py`.
 
-The phone-fit check now walks the food step on all four setups (one, two and eight people, the fullest screen, after the cut-off, and a failed save). The last full run ended with PASS on 872 stops.
+The phone-fit check now walks the food step on all four setups (one, two, three and eight people, the fullest screen, after the cut-off, a failed save, both phones in the step at once, leaving mid-step, and the cut-off passing while the step is open). The last full run took 15 minutes (881 seconds) and ended with PASS on 904 stops.
 
 ## 5. Write the words
 
@@ -153,7 +168,7 @@ Needs Joe, for the Weekend and Questions words:
 
 Then run `node --test tests/*.test.cjs`. One test checks the words for the house rules (no long dashes, no dot separators, no full stop on a short line) and will name any line that breaks them.
 
-Then run the fit check, `python scripts/check-first-fit.py`. This step is required, not optional: nothing in the node tests limits how long a Weekend line is, and only the fit check shows a day that no longer fits a phone. It takes about twelve minutes and should end with PASS on 872 stops.
+Then run the fit check, `python scripts/check-first-fit.py`. This step is required, not optional: nothing in the node tests limits how long a Weekend line is, and only the fit check shows a day that no longer fits a phone. It takes about fifteen minutes and should end with PASS on 904 stops.
 
 Some tests pin today's placeholder lines on purpose. When the real words go in they fail, and each needs its expected line updated:
 
@@ -167,6 +182,8 @@ Some tests pin today's placeholder lines on purpose. When the real words go in t
 ## 6. Flip the switch
 
 In `index.html` set `data-first-enabled="true"`. Three tests pin the exact tag (`first-switch`, `ported-features`, `storybook-scenes`) and will fail until they are updated to match: that is expected, and it is a one-line change in each.
+
+Once the food and preview branch is on `main`, in the same change: set the `og:image` address in `index.html` to `https://sophieandjoe2027.com/images/first/share-preview.jpg` and update `tests/share-preview.test.cjs`, which pins the old address. Section 4c says how to check the preview.
 
 ## 7. Retire the old pages
 
