@@ -120,9 +120,12 @@ test('mergeDraft: at Done, a person this phone did not change takes the saved en
   const server = f.cleanFood(saved({ 1: { name: 'Sam', picks: { nuts: true }, note: 'Severe' } }));
   // the partner saved meanwhile and this phone did not touch their screen: theirs is kept
   assert.deepEqual(f.mergeDraft(start, now, server), [now[0], { i: 1, name: 'Sam', picks: ['nuts'], note: 'Severe' }]);
-  // this phone changed their screen too: this phone wins
-  const both = [now[0], { i: 1, name: 'Sam', picks: ['none'], note: '' }];
-  assert.deepEqual(f.mergeDraft(start, both, server), both);
+  // this phone changed their screen too: what it changed is sent, what it never touched stays as saved
+  const both = [now[0], { i: 1, name: 'Sam', picks: ['vegan'], note: 'Mild' }];
+  assert.deepEqual(f.mergeDraft(start, both, server), [now[0], { i: 1, name: 'Sam', picks: ['vegan', 'nuts'], note: 'Mild' }]);
+  // "nothing for me" pressed here never wipes a need this phone had not seen: a need beats "nothing"
+  const nothing = [now[0], { i: 1, name: 'Sam', picks: ['none'], note: '' }];
+  assert.deepEqual(f.mergeDraft(start, nothing, server), [now[0], { i: 1, name: 'Sam', picks: ['nuts'], note: 'Severe' }]);
   // the saved entry is for a name no longer at that place: not kept
   const renamed = f.cleanFood(saved({ 1: { name: 'Robin', picks: { nuts: true } } }));
   assert.deepEqual(f.mergeDraft(start, now, renamed), now);
@@ -134,4 +137,35 @@ test('mergeDraft: at Done, a person this phone did not change takes the saved en
   const merged = f.mergeDraft(start, now, server);
   merged[1].picks.push('vegan');
   assert.deepEqual(server.people[0].picks, ['nuts']);
+});
+test('mergeDraft: a pick or note the partner removed meanwhile stays removed, unless this phone changed that very thing', () => {
+  // this phone opened the step while Kit's entry was saved, so its draft began as a copy of it
+  const start = [{ i: 0, name: 'Kit', picks: ['vegan'], note: 'Oat milk' }, { i: 1, name: 'Sam', picks: [], note: '' }];
+  const kit = (picks, note) => [{ i: 0, name: 'Kit', picks, note }, { i: 1, name: 'Sam', picks: [], note: '' }];
+  const server = people => f.cleanFood(Object.assign({ at: 9 }, people ? { people } : {}));
+  const untouched = kit(['vegan'], 'Oat milk');
+  // the partner removed the pick and the note; this phone changed nothing: the stale draft is not sent back
+  assert.deepEqual(f.mergeDraft(start, untouched, server()), kit([], ''));
+  assert.deepEqual(f.mergeDraft(start, untouched, null), kit([], ''), 'a clear read with no food saved at all');
+  assert.deepEqual(f.mergeDraft(start, untouched, server({ 0: { name: 'Robin', picks: { vegan: true } } })), kit([], ''), 'saved for another name');
+  // only the pick removed there, or only the note
+  assert.deepEqual(f.mergeDraft(start, untouched, server({ 0: { name: 'Kit', note: 'Oat milk' } })), kit([], 'Oat milk'));
+  assert.deepEqual(f.mergeDraft(start, untouched, server({ 0: { name: 'Kit', picks: { vegan: true } } })), kit(['vegan'], ''));
+  // this phone added a pick: it is kept, and the removed pick and note stay removed
+  assert.deepEqual(f.mergeDraft(start, kit(['vegan', 'nuts'], 'Oat milk'), server()), kit(['nuts'], ''));
+  // this phone retyped the note: it is kept, and the removed pick stays removed
+  assert.deepEqual(f.mergeDraft(start, kit(['vegan'], 'No coriander'), server()), kit([], 'No coriander'));
+  // a space typed and nothing else is no change to the note
+  assert.deepEqual(f.mergeDraft(start, kit(['vegan'], 'Oat milk '), server()), kit([], ''));
+  // this phone removed something the partner left alone: removed
+  const same = server({ 0: { name: 'Kit', picks: { vegan: true }, note: 'Oat milk' } });
+  assert.deepEqual(f.mergeDraft(start, kit([], ''), same), kit([], ''));
+  // both phones changed the same thing: this phone's is sent
+  const theirs = server({ 0: { name: 'Kit', picks: { vegan: true, nuts: true }, note: 'Soya milk' } });
+  assert.deepEqual(f.mergeDraft(start, kit(['vegan', 'nuts'], 'No coriander'), theirs), kit(['vegan', 'nuts'], 'No coriander'));
+  // the partner switched to "nothing for me": taken as it is
+  assert.deepEqual(f.mergeDraft(start, untouched, server({ 0: { name: 'Kit', picks: { none: true } } })), kit(['none'], ''));
+  // the drafts handed in are never changed
+  assert.deepEqual(start[0], { i: 0, name: 'Kit', picks: ['vegan'], note: 'Oat milk' });
+  assert.deepEqual(untouched[0], { i: 0, name: 'Kit', picks: ['vegan'], note: 'Oat milk' });
 });

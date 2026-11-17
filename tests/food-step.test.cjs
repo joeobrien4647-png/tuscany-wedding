@@ -106,6 +106,50 @@ test('Done with an unclear read sends what this phone has; a person this phone c
   } finally { s.restore(); }
 });
 
+// Two phones, one household. This phone opened the step while Kit's pick and note were saved; the partner's phone
+// then took both away and pressed Done, which leaves the household's food with nobody in it.
+const kitSaved = () => Object.assign(yes([true, true]), { food: food.cleanFood({ at: 3, people: { 0: { name: 'Kit', picks: { vegan: true }, note: 'Oat milk' } } }) });
+const kitRemoved = () => Object.assign(yes([true, true]), { food: food.cleanFood({ at: 9 }) });
+
+test('Done on a phone that changed nothing keeps a removal the partner saved meanwhile: the stale draft is not sent back', async () => {
+  const s = setup({ household: kitSaved(), loads: [kitSaved(), kitRemoved()] });
+  try {
+    await settle();
+    assert.equal(s.dom.all(s.body, 'ff-on').length, 1, 'the draft began as a copy of the save');
+    s.tap('ff-next');
+    s.done().click();
+    await settle(); await settle();
+    assert.deepEqual(s.log.saves, [[{ i: 0, name: 'Kit', picks: [], note: '' }, { i: 1, name: 'Sam', picks: [], note: '' }]]);
+    assert.deepEqual(s.log.exits, [true]);
+    assert.equal(food.foodStatus(s.ctx.household, TWO).given, 0, 'this phone now shows the removal');
+    assert.deepEqual(food.startDraft(s.ctx.household.food, food.foodScreens(TWO, [true, true]))[0], { i: 0, name: 'Kit', picks: [], note: '' });
+  } finally { s.restore(); }
+});
+
+test('Done keeps what this phone really changed, next to a removal the partner saved meanwhile', async () => {
+  // a change to the other person
+  let s = setup({ household: kitSaved(), loads: [kitSaved(), kitRemoved()] });
+  try {
+    await settle();
+    s.tap('ff-next');
+    s.pick('nuts');
+    s.done().click();
+    await settle(); await settle();
+    assert.deepEqual(s.log.saves, [[{ i: 0, name: 'Kit', picks: [], note: '' }, { i: 1, name: 'Sam', picks: ['nuts'], note: '' }]]);
+    assert.deepEqual(food.foodStatus(s.ctx.household, TWO).entries, [{ i: 1, name: 'Sam', picks: ['nuts'], note: '' }]);
+  } finally { s.restore(); }
+  // a change to the same person: the pick added here is kept, the pick and note removed there stay removed
+  s = setup({ household: kitSaved(), loads: [kitSaved(), kitRemoved()] });
+  try {
+    await settle();
+    s.pick('nuts');
+    s.tap('ff-next');
+    s.done().click();
+    await settle(); await settle();
+    assert.deepEqual(s.log.saves, [[{ i: 0, name: 'Kit', picks: ['nuts'], note: '' }, { i: 1, name: 'Sam', picks: [], note: '' }]]);
+  } finally { s.restore(); }
+});
+
 test('a failed save puts focus back on Try again; anything that throws counts as a failed save and never leaves the step busy', async () => {
   let n = 0;
   const s = setup({ loads: [yes([true]), yes([true]), yes([true])], people: ['Alex'], household: yes([true]),

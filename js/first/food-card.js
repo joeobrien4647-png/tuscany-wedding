@@ -1,6 +1,6 @@
 // The food step inside the Reply card: one screen per person coming, each with ten picks that toggle, a short note and
 // Back, Next or Done. Edit mode reads the household again first and again on Done (a partner may have saved theirs
-// meanwhile: a person this phone did not change keeps what is saved now), then saves the whole entry at once. A read
+// meanwhile: only what this phone changed is sent over what is saved now), then saves the whole entry at once. A read
 // that finds no yes any more leaves the step and the card, and home refreshes. Read mode (after the cut-off) shows
 // what was given, with nothing to change. While the step is open the card's close control and Escape step back to
 // the Reply card, saving nothing. Every word is set with textContent; the note lives only in the input's value and the save. Loads after food-core.js, words.js and store.js;

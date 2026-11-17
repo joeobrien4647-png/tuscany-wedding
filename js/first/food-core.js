@@ -89,15 +89,21 @@
     return any ? { people } : {};
   }
 
-  // At Done: a person this phone did not change since the step began takes the entry saved now (a partner may have
-  // saved theirs meanwhile), when it is still for the name at that place. A person this phone changed is sent as it is.
-  const sameEntry = (a, b) => inPicksOrder(a.picks || []).join() === inPicksOrder(b.picks || []).join() && oneLine(a.note || '') === oneLine(b.note || '');
+  // At Done: each pick and the note are sent as this phone has them only where this phone changed them since the
+  // step began. Everything else is sent as it is saved now, for the name at that place (a partner may have saved
+  // meanwhile), and saved now with nothing there means removed: a draft copied from an older save never brings back
+  // what the partner took away. A need beats "nothing". A person the step did not begin with is sent as it is.
+  const hasPick = (list, k) => Array.isArray(list) && list.indexOf(k) >= 0;
   function mergeDraft(draftAtStart, draftNow, serverFood) {
     const saved = serverFood && Array.isArray(serverFood.people) ? serverFood.people : [];
     return draftNow.map(d => {
       const was = (draftAtStart || []).find(s => s.i === d.i);
-      const entry = was && sameEntry(was, d) ? saved.find(e => e.i === d.i && sameName(e.name, d.name)) : null;
-      return entry ? { i: d.i, name: d.name, picks: entry.picks.slice(), note: entry.note } : { i: d.i, name: d.name, picks: d.picks.slice(), note: d.note };
+      if (!was) return { i: d.i, name: d.name, picks: d.picks.slice(), note: d.note };
+      const entry = saved.find(e => e.i === d.i && sameName(e.name, d.name)) || { picks: [], note: '' };
+      let picks = PICKS.filter(k => hasPick(hasPick(d.picks, k) !== hasPick(was.picks, k) ? d.picks : entry.picks, k));
+      if (picks.length > 1) picks = picks.filter(k => k !== 'none');
+      const note = oneLine(d.note || '') !== oneLine(was.note || '') ? d.note : entry.note;
+      return { i: d.i, name: d.name, picks, note };
     });
   }
 
