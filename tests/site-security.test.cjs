@@ -22,3 +22,17 @@ test('the homepage Firebase config names the auth domain Google sign-in needs', 
   const config = read('index.html').match(/firebase\.initializeApp\(\{([\s\S]*?)\}\);/)[1];
   assert.match(config, /authDomain: "tuscany-wedding\.firebaseapp\.com"/);
 });
+
+test('every script loaded from another host is pinned to an exact version and hash-checked', () => {
+  const pages = fs.readdirSync(root).filter(file => file.endsWith('.html'));
+  let found = 0;
+  for (const page of pages) {
+    for (const tag of read(page).match(/<script\b[^>]*\bsrc="(?:https?:)?\/\/[^"]+"[^>]*>/g) || []) {
+      found += 1;
+      assert.match(tag, /src="https:\/\/[^"]*\d+\.\d+\.\d+\/[^"]+"/, `${page}: ${tag}`);
+      assert.match(tag, /integrity="sha384-[A-Za-z0-9+/]{64}"/, `${page}: ${tag}`);
+      assert.match(tag, /crossorigin="anonymous"/, `${page}: ${tag}`);
+    }
+  }
+  assert.ok(found >= 6);
+});
