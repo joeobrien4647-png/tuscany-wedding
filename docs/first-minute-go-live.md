@@ -96,6 +96,9 @@ The Weekend screen (four day tiles, each day opening full screen), the four-butt
 6. Switch on Reduce Motion (iPhone: Settings, Accessibility, Motion; Android: Settings, Accessibility, Remove animations) and do 1 to 5 again. The Weekend title, the line under it and "Tap a day" must all show.
 7. Turn a phone sideways on an open day and back again.
 8. Look at how sharp the Saturday picture is on a real screen.
+9. Open each day and wait a moment: the picture starts to move (Friday the toast, Saturday the light and falling petals, Sunday the pool, Monday the goodbye). Swipe to the next day: the last one stops and the new one starts. The words must never wait for the moving picture.
+10. With Reduce Motion on, every day picture stays still. The same with Data Saver on (Android Chrome: Settings, Lite mode or Data Saver). iPhones do not tell a site about Low Data Mode, so an iPhone on Low Data Mode still gets the moving pictures.
+11. On mobile data with a weak signal, open a day: the still picture shows straight away, and the moving one takes over only when it is ready. Each day is about half a megabyte to one megabyte, fetched only when that day is opened.
 
 ## 4c. Food needs and the link preview
 

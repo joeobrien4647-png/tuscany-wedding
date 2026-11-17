@@ -1,7 +1,8 @@
 // The Weekend card: four day tiles, and a day that opens full screen over them with its picture, intro, parts of the
 // day and lines (Wear, Food and drink, Where). Swipe, the marks at the foot or the arrow keys move between days; the
-// card's close control and Escape step back to the tiles. While a day is open its picture drifts and small lights hang
-// in the air; reduced motion turns all of that off. Every word comes from weekendView() and is set with textContent.
+// card's close control and Escape step back to the tiles. While a day is open its picture drifts, small lights hang in
+// the air and a short silent clip of the picture plays over it; reduced motion turns all of that off, and data saving
+// or a slow connection keeps the picture still. Every word comes from weekendView() and is set with textContent.
 // Loads after core.js and words.js; cards.js hands the card frame's `card` to build().
 (function (root) {
   'use strict';
@@ -67,6 +68,35 @@
     return [at, at - 1, at + 1].filter(i => i >= 0 && i < count);
   }
 
+  // ---------- the moving pictures ----------
+  // Each day has a short silent clip of its picture. The still is always there first; the clip is asked for only
+  // for the day in view, after a short wait, and shows over the still once it is playing. Saturday's petals are
+  // drawn by the page over its clip.
+  const CLIP_WAIT_MS = 450;
+  const PETALS = { sat: 16 };
+  const PETAL_COLOURS = ['#fff1e2', '#f7d9bf', '#f2bfa0', '#eda88f', '#fbe6d6'];
+  function clipFile(key) {
+    return 'images/first/' + key + '.mp4';
+  }
+  const petalCount = key => PETALS[key] || 0;
+
+  // Whether this phone gets moving pictures at all: not with reduced motion, data saving or a 2g connection.
+  function mayMove(env) {
+    const e = isObject(env) ? env : {};
+    return !e.still && !e.saveData && e.effectiveType !== '2g' && e.effectiveType !== 'slow-2g';
+  }
+
+  // Whether a day's clip should be playing: only the day in view, with the day open and the page showing.
+  function clipPlays(s) {
+    return isObject(s) && !!(s.moves && s.open && s.live && !s.hidden && s.day === s.idx);
+  }
+
+  // A play that was refused (the phone blocks autoplay) or cannot be decoded gives the clip up for good. One that
+  // was only interrupted by a pause does not.
+  function clipDrops(err) {
+    return !!err && (err.name === 'NotAllowedError' || err.name === 'NotSupportedError');
+  }
+
   // ---------- the swipe ----------
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
   const FAR = 0.22, FAST = 0.45, PAST_END = 1 / 3;
@@ -99,6 +129,10 @@
   function focus(e) { try { e.focus({ preventScroll: true }); } catch (err) { /* not focusable */ } }
   function prefersStill() {
     try { return root.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
+  }
+  // What the phone says about its connection, where it says anything (Safari does not).
+  function net() {
+    try { return root.navigator.connection || {}; } catch (e) { return {}; }
   }
 
   // Lights in the air over the picture: warm points at dusk and night, pale specks by day. One small canvas.
@@ -170,6 +204,7 @@
   function build(card) {
     const el = card.el, button = card.button, S = card.first.sound;
     const v = weekendView(card.w), count = v.days.length, still = prefersStill();
+    const moves = mayMove({ still, saveData: net().saveData === true, effectiveType: net().effectiveType });
     card.heading(v.title);
 
     // The four tiles, with the weekend's one line above them and the hint below.
@@ -231,7 +266,9 @@
 
     const lights = air ? makeLights(air) : null;
     const timers = new Set();
-    let idx = 0, open = false, moved = false, drag = null, moving = null, following = null, bandT = null;
+    // Each day's clip once it is made, or null once it has failed (it is not tried again).
+    const clips = new Map();
+    let idx = 0, open = false, moved = false, drag = null, moving = null, following = null, bandT = null, clipT = null;
     const later = (fn, ms) => { const t = setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); return t; };
     // One grow or shrink at a time: a new one cancels the end of the last.
     const afterMove = fn => { clearTimeout(moving); timers.delete(moving); moving = later(fn, OPEN_MS); };
@@ -270,6 +307,76 @@
     }
     // The day in view and the days either side, so a swipe or a mark finds the next picture ready.
     function want(i) { wanted(i, count).forEach(fetchDay); }
+
+    // The petals over Saturday's clip: each falls on its own timing and sways as it goes. Decoration only.
+    function petals(n) {
+      const box = el('div', 'wk-petals');
+      box.setAttribute('aria-hidden', 'true');
+      for (let k = 0; k < n; k++) {
+        const fall = 6 + (k * 7) % 6, size = 7 + (k * 5) % 9;
+        const p = el('span', 'wk-petal'), leaf = el('i');
+        p.style.left = (4 + (k * 37) % 92) + '%';
+        p.style.animationDuration = fall + 's';
+        p.style.animationDelay = (-(k * 1.9) % fall) + 's';
+        leaf.style.width = size + 'px';
+        leaf.style.height = Math.round(size * 1.25) + 'px';
+        leaf.style.background = PETAL_COLOURS[k % PETAL_COLOURS.length];
+        leaf.style.opacity = k % 3 ? '.92' : '.7';
+        leaf.style.animationDuration = (2.2 + (k % 5) * 0.45) + 's';
+        p.appendChild(leaf);
+        box.appendChild(p);
+      }
+      return box;
+    }
+    // A day's clip sits over its picture, unseen until it is playing. If it fails, the picture is what shows.
+    function makeClip(i) {
+      const c = el('video', 'wk-clip');
+      c.muted = true;
+      c.loop = true;
+      c.playsInline = true;
+      c.preload = 'auto';
+      c.tabIndex = -1;
+      ['muted', 'playsinline', 'disablepictureinpicture'].forEach(a => c.setAttribute(a, ''));
+      c.setAttribute('aria-hidden', 'true');
+      c.addEventListener('playing', () => pics[i].classList.add('wk-clip-on'));
+      c.addEventListener('error', () => dropClip(i));
+      c.src = clipFile(v.days[i].key);
+      pics[i].appendChild(c);
+      const n = petalCount(v.days[i].key);
+      if (n) pics[i].appendChild(petals(n));
+      return c;
+    }
+    function dropClip(i) {
+      const c = clips.get(i);
+      clips.set(i, null);
+      pics[i].classList.remove('wk-clip-on');
+      if (!c) return;
+      try { c.pause(); c.removeAttribute('src'); c.load(); } catch (e) { /* already gone */ }
+      [].slice.call(pics[i].children).filter(k => k !== pics[i].firstChild).forEach(k => k.remove());
+    }
+    // Stop a clip. If its day is no longer the one in view it also goes back to its start, behind the picture.
+    function restClip(i, c) {
+      try { c.pause(); } catch (e) { /* not started */ }
+      if (open && i === idx) return;
+      pics[i].classList.remove('wk-clip-on');
+      try { c.currentTime = 0; } catch (e) { /* nothing loaded yet */ }
+    }
+    const clipState = day => ({ moves, open, live: card.live(), hidden: document.hidden, idx, day });
+    function playClip(i) {
+      if (clips.get(i) === null || !clipPlays(clipState(i))) return;
+      const c = clips.get(i) || makeClip(i);
+      clips.set(i, c);
+      let p = null;
+      try { p = c.play(); } catch (e) { dropClip(i); return; }
+      if (p && p.catch) p.catch(err => { if (clipDrops(err)) dropClip(i); });
+    }
+    // Called whenever the day in view, the open state or the page's visibility changes.
+    function clipsOn() {
+      clearTimeout(clipT);
+      timers.delete(clipT);
+      clips.forEach((c, i) => { if (c && !clipPlays(clipState(i))) restClip(i, c); });
+      if (clipPlays(clipState(idx))) clipT = later(() => playClip(idx), CLIP_WAIT_MS);
+    }
     function icon(cls, name) {
       const s = el('span', cls);
       s.setAttribute('aria-hidden', 'true');
@@ -335,6 +442,7 @@
       dots.forEach((m, i) => m.setAttribute('aria-current', i === idx ? 'true' : 'false'));
       day.setAttribute('aria-labelledby', pages[idx].head.id);
       lightsOn();
+      clipsOn();
     }
     function lightsOn() {
       if (!lights) return;
@@ -444,7 +552,7 @@
       if (e.key === 'ArrowRight') { e.preventDefault(); go(idx + 1); }
       else if (e.key === 'ArrowLeft') { e.preventDefault(); go(idx - 1); }
     }
-    const onVisible = () => lightsOn();
+    const onVisible = () => { lightsOn(); clipsOn(); };
     let resizeT = null;
     const onResize = () => {
       if (!lights || !open) return;
@@ -459,6 +567,7 @@
     card.onClose(() => {
       open = false;
       if (lights) lights.stop();
+      clips.forEach((c, i) => dropClip(i));
       timers.forEach(t => clearTimeout(t));
       timers.clear();
       document.removeEventListener('keydown', onKey);
@@ -510,7 +619,7 @@
     day.addEventListener('pointercancel', drop);
   }
 
-  const api = { weekendView, dayLabel, settle, along, pictureFiles, pictureFallback, wanted, build };
+  const api = { weekendView, dayLabel, settle, along, pictureFiles, pictureFallback, wanted, clipFile, mayMove, clipPlays, clipDrops, petalCount, build };
   root.sjFirst = Object.assign(root.sjFirst || {}, { weekendCard: api });
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
