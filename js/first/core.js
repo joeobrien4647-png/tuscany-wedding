@@ -81,7 +81,7 @@
   }
 
   function shareLine(template, count) {
-    return fill(template, { share: '\u00a3' + SHARE_GBP + (count >= 2 ? ' each' : '') });
+    return fill(template, { share: '\u00a3' + SHARE_GBP + (count >= 2 ? ' per person' : '') });
   }
 
   const canChangeStay = (household, nowMs) =>

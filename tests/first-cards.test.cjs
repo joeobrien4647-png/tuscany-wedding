@@ -64,11 +64,11 @@ test('stay: the share line, spring and the quiet word appear only inside the vil
   assert.doesNotMatch(allText(villa), dates);
 });
 
-test('stay: the share says each for a couple who both come, and not when one comes', () => {
+test('stay: the share says per person for a couple who both come, and not when one comes', () => {
   const both = cards().stayView(yes([true, true]), NOV, words).options[0].share;
   const one = cards().stayView(yes([true, false]), NOV, words).options[0].share;
-  assert.ok(/ each\b/.test(both), both);
-  assert.ok(!/ each\b/.test(one), one);
+  assert.ok(/ per person\b/.test(both), both);
+  assert.ok(!/ per person\b/.test(one), one);
   assert.equal(both, core.shareLine(words.stay.share, 2));
   assert.equal(one, core.shareLine(words.stay.share, 1));
 });

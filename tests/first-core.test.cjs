@@ -27,7 +27,7 @@ test('locks', () => {
 });
 test('share line', () => {
   assert.equal(shareLine('Your share is {share}', 1), 'Your share is £150');
-  assert.equal(shareLine('Your share is {share}', 2), 'Your share is £150 each');
+  assert.equal(shareLine('Your share is {share}', 2), 'Your share is £150 per person');
   assert.equal(shareLine('Your share is {share}', 0), 'Your share is £150');
   assert.equal(comingCount({ reply: { answer: 'yes', coming: [true, false] } }), 1);
   assert.equal(comingCount({ reply: { answer: 'yes', coming: [true, true, true] } }), 3);

@@ -114,7 +114,7 @@
         need: ['Come back and choose']
       },
       confirm: { villa: 'Stay at La Conca', own: 'Book my own place', later: 'Decide later' },
-      share: 'Your share is {share}, the rest is on Joe and Sophie',
+      share: 'We do ask for {share} to cover the cost of accommodation at the villa, but it also includes all food and drink costs for the entirety of your stay',
       spring: SPRING,
       word: 'Have a word with us if you need to',
       fixed: 'Your choice is fixed now, please message Joe or Sophie',

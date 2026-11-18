@@ -35,12 +35,12 @@ test('questions: six in order for one person, five for a couple, and bringing so
 test('questions: the cost answer shows the share through shareLine and never a bank detail or a date', () => {
   const c = cards();
   const cost = c.questionsView(TWO, YES_TWO, words).find(e => e.key === 'cost');
-  assert.ok(cost.lines.some(l => l.includes('\u00a3150 each')));
+  assert.ok(cost.lines.some(l => l.includes('\u00a3150 per person')));
   assert.ok(!cost.lines.join(' ').includes('{share}'));
   assert.doesNotMatch(cost.lines.join(' '), /sort code|account|iban|transfer|\b\d{1,2} (jan|feb|mar|apr|may)/i);
   assert.ok(!JSON.stringify(words.questions).includes('\u00a3'));
   const one = c.questionsView(ONE, YES_ONE, words).find(e => e.key === 'cost');
-  assert.ok(one.lines.some(l => l.includes('\u00a3150') && !l.includes('each')));
+  assert.ok(one.lines.some(l => l.includes('\u00a3150') && !l.includes('per person')));
 });
 
 test('questions: every answer keeps to three lines of 44 characters', () => {
