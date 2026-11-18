@@ -16,7 +16,17 @@ test('dates', () => {
 test('locks', () => {
   assert.deepEqual(LOCKS.map(l => l.key), ['estate', 'room', 'menu', 'table', 'film', 'photos']);
   assert.ok(Object.isFrozen(LOCKS));
-  assert.deepEqual(LOCKS.map(l => l.opensMs), [Date.UTC(2027, 1, 1, 8), Date.UTC(2027, 3, 1, 7), Date.UTC(2027, 4, 1, 7), Date.UTC(2027, 4, 24, 7), Date.UTC(2027, 4, 27, 7), null]);
+  assert.deepEqual(LOCKS.map(l => l.opensMs), [Date.UTC(2027, 1, 1, 8), Date.UTC(2027, 3, 1, 7), Date.UTC(2027, 4, 1, 7), Date.UTC(2027, 4, 1, 7), Date.UTC(2027, 4, 1, 7), null]);
+  // The menu, the table and the film release together: 1 May 2027, 08:00 in the UK.
+  const [menu, table, film] = ['menu', 'table', 'film'].map(k => LOCKS.find(l => l.key === k));
+  assert.equal(ukDate(menu.opensMs), 'Sat 1 May');
+  for (const l of [menu, table, film]) {
+    assert.equal(l.opensMs, menu.opensMs, l.key);
+    assert.equal(lockState(l, menu.opensMs - 1, true), 'sealed', l.key);
+    assert.equal(lockState(l, menu.opensMs, true), 'ready', l.key);
+  }
+  assert.equal(nextLock(menu.opensMs - 1).key, 'menu');
+  assert.equal(nextLock(menu.opensMs), null, 'nothing is left to wait for after 1 May');
   const estate = LOCKS[0];
   assert.equal(lockState(estate, estate.opensMs - 1, true), 'sealed');
   assert.equal(lockState(estate, estate.opensMs, false), 'sealed');

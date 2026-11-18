@@ -94,6 +94,7 @@ test('small countdown names the next envelope, moves on after its time and hides
   assert.equal(h.nextLine(Date.UTC(2027, 1, 1, 5, 58, 50), words), estate + ' ' + core.fill(words.home.nextSoon, { n: '2 h 01 m 10 s' }));
   const after = h.nextLine(Date.UTC(2027, 1, 1, 8, 0, 1), words);
   assert.ok(after.startsWith(room + ' '), after);
+  assert.equal(h.nextLine(Date.UTC(2027, 4, 1, 7, 0, 1), words), null);
   assert.equal(h.nextLine(Date.UTC(2027, 4, 27, 7, 0, 1), words), null);
 });
 

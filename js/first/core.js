@@ -35,8 +35,8 @@
     Object.freeze({ key: 'estate', opensMs: Date.UTC(2027, 1, 1, 8) }),
     Object.freeze({ key: 'room', opensMs: Date.UTC(2027, 3, 1, 7) }),
     Object.freeze({ key: 'menu', opensMs: Date.UTC(2027, 4, 1, 7) }),
-    Object.freeze({ key: 'table', opensMs: Date.UTC(2027, 4, 24, 7) }),
-    Object.freeze({ key: 'film', opensMs: Date.UTC(2027, 4, 27, 7) }),
+    Object.freeze({ key: 'table', opensMs: Date.UTC(2027, 4, 1, 7) }),
+    Object.freeze({ key: 'film', opensMs: Date.UTC(2027, 4, 1, 7) }),
     Object.freeze({ key: 'photos', opensMs: null })
   ]);
 
