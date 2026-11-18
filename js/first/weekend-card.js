@@ -37,6 +37,7 @@
     const days = Array.isArray(wk.days) ? wk.days : [];
     return {
       title: text(wk.title), vibe: text(wk.vibe), hint: text(wk.hint), swipe: text(wk.swipe), back: text(wk.back), open: text(wk.open),
+      see: text(wk.see), unsee: text(wk.unsee),
       days: KEYS.map((key, i) => {
         const d = isObject(days[i]) ? days[i] : {};
         return { key, img: key, date: text(d.date), name: text(d.name), intro: text(d.intro), parts: partsOf(d), rows: rowsOf(d, labels) };
@@ -97,6 +98,9 @@
     return !!err && (err.name === 'NotAllowedError' || err.name === 'NotSupportedError');
   }
 
+  // The picture can be shown clear of the words only while a day is open.
+  const seeNext = (want, open) => want === true && open === true;
+
   // ---------- the swipe ----------
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
   const FAR = 0.22, FAST = 0.45, PAST_END = 1 / 3;
@@ -123,7 +127,8 @@
     wear: svg('<path d="M8 4l4 3 4-3 4 3-2 4-2-1v10H8V10l-2 1-2-4z"/>'),
     food: svg('<path d="M6 3v8a2 2 0 0 0 4 0V3M8 11v10M16 3c-2 2-2 7 0 9v9"/>'),
     where: svg('<path d="M12 21s-6-5.5-6-10a6 6 0 0 1 12 0c0 4.5-6 10-6 10z"/><circle cx="12" cy="11" r="2"/>'),
-    go: svg('<path d="M9 6l6 6-6 6"/>')
+    go: svg('<path d="M9 6l6 6-6 6"/>'),
+    see: svg('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>')
   };
   const haptic = p => { try { if (root.navigator.vibrate) root.navigator.vibrate(p); } catch (e) { /* no haptics */ } };
   function focus(e) { try { e.focus({ preventScroll: true }); } catch (err) { /* not focusable */ } }
@@ -262,13 +267,23 @@
       return m;
     });
     day.appendChild(marks);
+    // The control under the close control: it moves the words and the shade aside so the whole picture shows,
+    // and brings them back. With no words to name it, there is no control.
+    let see = null;
+    if (v.see && v.unsee) {
+      see = button('wk-see', null, () => setClear(!clear));
+      see.appendChild(icon('wk-see-i', 'see'));
+      see.setAttribute('aria-label', v.see);
+      see.setAttribute('aria-pressed', 'false');
+      day.appendChild(see);
+    }
     [tilesView, day].forEach(e => card.body.appendChild(e));
 
     const lights = air ? makeLights(air) : null;
     const timers = new Set();
     // Each day's clip once it is made, or null once it has failed (it is not tried again).
     const clips = new Map();
-    let idx = 0, open = false, moved = false, drag = null, moving = null, following = null, bandT = null, clipT = null;
+    let idx = 0, open = false, moved = false, drag = null, moving = null, following = null, bandT = null, clipT = null, clear = false;
     const later = (fn, ms) => { const t = setTimeout(() => { timers.delete(t); fn(); }, ms); timers.add(t); return t; };
     // One grow or shrink at a time: a new one cancels the end of the last.
     const afterMove = fn => { clearTimeout(moving); timers.delete(moving); moving = later(fn, OPEN_MS); };
@@ -499,10 +514,28 @@
       tiles.forEach(t => { t.disabled = on; });
     }
 
+    // quiet: the code is tidying up (a day opening or closing), so no sound and no buzz.
+    function setClear(on, quiet) {
+      clear = seeNext(on, open);
+      day.classList.toggle('wk-clear', clear);
+      track.inert = clear;
+      if (clear) track.setAttribute('aria-hidden', 'true'); else track.removeAttribute('aria-hidden');
+      if (see) {
+        see.setAttribute('aria-pressed', clear ? 'true' : 'false');
+        see.setAttribute('aria-label', clear ? v.unsee : v.see);
+      }
+      if (open) card.closeLabel(clear ? v.unsee : v.back);
+      if (!quiet) {
+        if (S) S.pop(0.3);
+        haptic(6);
+      }
+    }
+
     function openDay(i) {
       if (open) return;
       idx = clamp(i, 0, count - 1);
       open = true;
+      setClear(false, true);
       day.classList.remove('wk-snap', 'wk-moving');
       stopFollow();
       day.hidden = false;
@@ -527,6 +560,7 @@
       if (!open) return;
       open = false;
       drag = null;
+      setClear(false, true);
       mark();
       quietTiles(false);
       card.closeLabel();
@@ -544,6 +578,7 @@
     // The close control and Escape step back to the tiles while a day is open.
     card.beforeClose(() => {
       if (!open) return false;
+      if (clear) { setClear(false); return true; }
       closeDay();
       return true;
     });
@@ -619,7 +654,7 @@
     day.addEventListener('pointercancel', drop);
   }
 
-  const api = { weekendView, dayLabel, settle, along, pictureFiles, pictureFallback, wanted, clipFile, mayMove, clipPlays, clipDrops, petalCount, build };
+  const api = { weekendView, dayLabel, settle, along, pictureFiles, pictureFallback, wanted, clipFile, mayMove, clipPlays, clipDrops, petalCount, seeNext, build };
   root.sjFirst = Object.assign(root.sjFirst || {}, { weekendCard: api });
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

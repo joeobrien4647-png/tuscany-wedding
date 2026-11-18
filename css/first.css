@@ -516,7 +516,12 @@ html.first-on body > :not(#first) { display: none; }
 #first .fc-weekend .wk-swipe { position: absolute; z-index: 3; top: calc(var(--top) + 27px); left: max(20px, env(safe-area-inset-left, 0px)); right: calc(max(14px, env(safe-area-inset-right, 0px)) + 56px); overflow-wrap: anywhere; font: 400 13px/1.3 var(--ui); letter-spacing: .06em; color: var(--ink-soft); text-shadow: 0 0 12px rgba(0, 0, 0, .95); pointer-events: none; transition: opacity .4s; }
 #first .fc-weekend .wk-swipe.wk-gone { opacity: 0; }
 #first .fc-weekend .wk-track { position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; display: flex; will-change: transform; }
-#first .fc-weekend .wk-day.wk-snap .wk-track { transition: transform .95s var(--ease); }
+#first .fc-weekend .wk-day.wk-snap .wk-track { transition: transform .95s var(--ease), opacity .45s ease; }
+/* The control under the close control: the words and the shade step aside so the whole picture shows. */
+#first .fc-weekend .wk-see { position: absolute; z-index: 4; top: calc(var(--top) + 68px); right: max(14px, env(safe-area-inset-right, 0px)); width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--glass); border: 1px solid var(--line); color: var(--gold-hi); touch-action: manipulation; }
+#first .fc-weekend .wk-see[aria-pressed="true"] { background: var(--gold-hi); border-color: var(--gold-hi); color: var(--night); }
+#first .fc-weekend .wk-shade, #first .fc-weekend .wk-track { transition: opacity .45s ease; }
+#first .fc-weekend .wk-day.wk-clear .wk-shade, #first .fc-weekend .wk-day.wk-clear .wk-track, #first .fc-weekend .wk-day.wk-clear .wk-swipe { opacity: 0; pointer-events: none; }
 /* The page is its own scroll box (the browser asks it, not the day, whether a pan is a scroll), so it lets sideways
    pans through to the swipe. An empty first row takes the spare height: the words sit at the foot when they fit and
    start at the top and scroll when they do not. The top padding plus that row's gap is the space under the close control. */
@@ -592,6 +597,7 @@ html.first-on body > :not(#first) { display: none; }
   #first .fc-travel .tc-f, #first .fc-travel .tc-chip, #first .fc-travel .tc-row { transition: none; }
   #first .fc-weekend .wk-air { display: none; }
   #first .fc-weekend .wk-clip, #first .fc-weekend .wk-petals { display: none; }
+  #first .fc-weekend .wk-shade, #first .fc-weekend .wk-track { transition: none; }
   #first .fc-weekend .wk-pic.wk-on .wk-pic-img, #first .fc-weekend .wk-band.wk-band-on { animation: none; }
   #first .fc-weekend .wk-day.wk-moving, #first .fc-weekend .wk-day.wk-snap .wk-pic, #first .fc-weekend .wk-day.wk-snap .wk-track, #first .fc-weekend .wk-live .wk-rise, #first .fc-weekend .wk-part::before, #first .fc-weekend .wk-mark i, #first .fc-weekend .wk-swipe, #first .fc-day { transition: none; }
   #first .fc-weekend .wk-rise, #first .fc-day:active { transform: none; }

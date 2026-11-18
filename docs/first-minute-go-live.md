@@ -98,7 +98,8 @@ The Weekend screen (four day tiles, each day opening full screen), the four-butt
 8. Look at how sharp the Saturday picture is on a real screen.
 9. Open each day and wait a moment: the picture starts to move (Friday the toast, Saturday the light and falling petals, Sunday the pool, Monday the goodbye). Swipe to the next day: the last one stops and the new one starts. The words must never wait for the moving picture.
 10. With Reduce Motion on, every day picture stays still. The same with Data Saver on (Android Chrome: Settings, Lite mode or Data Saver). iPhones do not tell a site about Low Data Mode, so an iPhone on Low Data Mode still gets the moving pictures.
-11. On mobile data with a weak signal, open a day: the still picture shows straight away, and the moving one takes over only when it is ready. Each day is about half a megabyte to one megabyte, fetched only when that day is opened.
+11. Open a day and press the round control under the close control: the words and the dark shade step aside and the whole picture shows, moving. Press it again, or the close control, and the words come back. Swipe to another day while the picture is clear.
+12. On mobile data with a weak signal, open a day: the still picture shows straight away, and the moving one takes over only when it is ready. Each day is about half a megabyte to one megabyte, fetched only when that day is opened.
 
 ## 4c. Food needs and the link preview
 
