@@ -108,7 +108,7 @@ test('H14: a sealed envelope past its date says it is nearly ready, not the old 
   const h = require('../js/first/home.js');
   const after = Date.UTC(2027, 1, 2, 9);
   const list = h.envelopes(after, words);
-  assert.equal(list[0].toast, words.home.soon);
+  assert.ok(list[0].toast.endsWith(words.home.soon) && !list[0].toast.includes('1 Feb'), list[0].toast);
   assert.ok(list[0].label.includes(words.home.soon), list[0].label);
   assert.equal(list[1].toast, core.fill(words.home.opens, { date: 'Thu 1 Apr' }));
   assert.equal(list[5].toast, core.fill(words.home.opens, { date: 'June' }));

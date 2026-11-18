@@ -23,7 +23,7 @@ test('every word passes the copy rules, with no amount or stray placeholder', ()
     assert.deepEqual(copyProblems(s), [], path);
     assert.ok(!s.includes('£') && !s.includes('150'), path + ' has an amount');
     assert.ok(s.trim() === s && s.length > 0, path + ' is empty or padded');
-    for (const m of s.match(/\{[^}]*\}/g) || []) assert.ok(['{n}', '{names}', '{date}', '{share}', '{from}', '{to}', '{drive}', '{km}', '{price}', '{total}'].includes(m), path + ' uses ' + m);
+    for (const m of s.match(/\{[^}]*\}/g) || []) assert.ok(['{n}', '{names}', '{date}', '{share}', '{from}', '{to}', '{drive}', '{km}', '{price}', '{total}', '{what}', '{when}'].includes(m), path + ' uses ' + m);
   }
 });
 
@@ -50,9 +50,12 @@ test('keys later screens read', () => {
     assert.ok(p.split('.').reduce((o, k) => o && o[k], words), p);
 });
 
-test('envelopes are keyed by lock key and hold only a name', () => {
+test('envelopes are keyed by lock key and hold a name, and what is inside once it is written', () => {
   assert.deepEqual(Object.keys(words.home.envelopes), LOCKS.map(l => l.key));
-  for (const e of Object.values(words.home.envelopes)) assert.deepEqual(Object.keys(e), ['name']);
+  for (const e of Object.values(words.home.envelopes)) {
+    assert.equal(typeof e.name, 'string');
+    assert.ok(Object.keys(e).every(k => k === 'name' || k === 'what'), Object.keys(e).join());
+  }
   assert.equal(words.home.photosStamp, 'June');
 });
 

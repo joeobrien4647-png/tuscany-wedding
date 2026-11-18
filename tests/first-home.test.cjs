@@ -29,11 +29,26 @@ test('six envelopes from LOCKS, each sealed, named and stamped with its date', (
     assert.equal(e.name, words.home.envelopes[lock.key].name);
     const date = lock.opensMs === null ? words.home.photosStamp : core.ukDate(lock.opensMs);
     assert.equal(e.stamp, date);
-    assert.equal(e.toast, core.fill(words.home.opens, { date }));
+    const when = core.fill(words.home.opens, { date }), what = words.home.envelopes[lock.key].what;
+    assert.equal(e.toast, what ? core.fill(words.home.inside, { what, when }) : when);
     assert.ok(e.label.includes(e.name) && e.label.includes(date), e.label);
   });
-  assert.equal(list[0].toast, 'Opens Mon 1 Feb');
+  assert.ok(list[0].toast.startsWith(words.home.envelopes.estate.what) && list[0].toast.endsWith('Opens Mon 1 Feb'), list[0].toast);
   assert.equal(list[5].toast, 'Opens June');
+});
+
+test('each envelope has a slot for what is inside; with words there, its note says it before when it opens', () => {
+  assert.equal(typeof words.home.envelopes.estate.what, 'string');
+  assert.match(words.home.inside, /\{what\}/);
+  assert.match(words.home.inside, /\{when\}/);
+  const w = JSON.parse(JSON.stringify(words));
+  w.home.envelopes.menu.what = 'Sample words';
+  assert.equal(home().envelopes(NOV, w)[2].toast, core.fill(w.home.inside, { what: 'Sample words', when: 'Opens Sat 1 May' }));
+  delete w.home.envelopes.menu.what;
+  assert.equal(home().envelopes(NOV, w)[2].toast, 'Opens Sat 1 May', 'no words there: just the date');
+  const due = home().envelopes(Date.UTC(2027, 1, 2, 12), words)[0];
+  assert.ok(due.toast.startsWith(words.home.envelopes.estate.what) && due.toast.endsWith(words.home.soon), due.toast);
+  assert.ok(!due.label.includes(words.home.envelopes.estate.what), 'the spoken name stays short: the note is announced as it shows');
 });
 
 test('every envelope stays sealed in phase 1, even after its date', () => {

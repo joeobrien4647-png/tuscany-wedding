@@ -66,6 +66,7 @@
       allOpen: 'Everything is open',
       opens: 'Opens {date}',
       soon: 'Nearly ready',
+      inside: '{what}. {when}',
       today: 'Today',
       sealed: 'Sealed until {date}',
       open: 'Open',
@@ -74,8 +75,9 @@
       questions: 'Questions',
       watch: 'Watch the invitation again',
       notYou: 'Not you?',
+      // what (only once Joe writes it): what an envelope holds, said in its tap note before when it opens.
       envelopes: {
-        estate: { name: 'The estate' },
+        estate: { name: 'The estate', what: 'Check out the venue and where you\'ll be staying' },
         room: { name: 'Your room' },
         menu: { name: 'The menu' },
         table: { name: 'Your table' },

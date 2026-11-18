@@ -21,7 +21,7 @@
   // The six envelopes as the screen shows them. In phase 1 none has content, so every one is sealed.
   function envelopes(nowMs, w) {
     return core.LOCKS.map(lock => {
-      const name = w.home.envelopes[lock.key].name;
+      const name = w.home.envelopes[lock.key].name, what = w.home.envelopes[lock.key].what;
       const stamp = lock.opensMs === null ? w.home.photosStamp : core.ukDate(lock.opensMs);
       // Past its date with nothing inside yet: it is nearly ready, never "opens" on a date gone by.
       const due = lock.opensMs !== null && nowMs >= lock.opensMs;
@@ -29,7 +29,9 @@
         key: lock.key, name, stamp,
         state: core.lockState(lock, nowMs, false),
         label: name + ', ' + (due ? w.home.soon : core.fill(w.home.sealed, { date: stamp })),
-        toast: due ? w.home.soon : core.fill(w.home.opens, { date: stamp })
+        // What it holds, when there are words for it, then when it opens (the note is announced as it shows).
+        toast: what ? core.fill(w.home.inside, { what, when: due ? w.home.soon : core.fill(w.home.opens, { date: stamp }) })
+          : due ? w.home.soon : core.fill(w.home.opens, { date: stamp })
       };
     });
   }
