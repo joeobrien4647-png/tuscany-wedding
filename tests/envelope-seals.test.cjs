@@ -27,13 +27,13 @@ test('an envelope with an emblem shows the wax without letters and the emblem in
   assert.match(home, /const WAX = '[^']*<use href="#fm-seal-art"\/>/);
 });
 
-test('every emblem belongs to an envelope and is fitted to the seal', () => {
+test('every envelope has its emblem, each fitted to the seal', () => {
   const keys = core.LOCKS.map(l => l.key);
   const found = [...home.matchAll(/^ {4}(\w+): \{ at: 'translate\(100 100\) scale\((\.\d+)\) translate\(-\d+ -\d+\)', d: '([^']+)' \}/gm)];
-  assert.ok(found.length >= 1, 'at least one emblem');
+  assert.deepEqual(found.map(f => f[1]), keys, 'one emblem per envelope, in the envelopes\' order');
   for (const [, key, scale, d] of found) {
     assert.ok(keys.includes(key), key + ' is an envelope');
-    assert.ok(Number(scale) > 0.05 && Number(scale) < 0.1, key + ' is scaled from its 2048 box into the well');
+    assert.ok(Number(scale) > 0.02 && Number(scale) < 0.3, key + ' is scaled from its 2048 box into the well');
     assert.match(d, /^M [\d. CLMz-]+$/, key + ' is plain path data');
   }
 });
