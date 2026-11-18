@@ -100,6 +100,10 @@
 
   // The picture can be shown clear of the words only while a day is open.
   const seeNext = (want, open) => want === true && open === true;
+  // The words on that control sit in the band under the close control: they show only while the day's first line
+  // starts below the control, with a little air. Both are px from the top of the day.
+  const SEE_AIR = 8;
+  const seeRoom = (firstTop, controlBottom) => Number.isFinite(firstTop) && Number.isFinite(controlBottom) && firstTop >= controlBottom + SEE_AIR;
 
   // ---------- the swipe ----------
   const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
@@ -269,10 +273,14 @@
     day.appendChild(marks);
     // The control under the close control: it moves the words and the shade aside so the whole picture shows,
     // and brings them back. With no words to name it, there is no control.
-    let see = null;
+    let see = null, seeWords = null;
     if (v.see && v.unsee) {
       see = button('wk-see', null, () => setClear(!clear));
       see.appendChild(icon('wk-see-i', 'see'));
+      // The same words on show beside the icon; the label already names the button, so they are not read twice.
+      seeWords = el('span', 'wk-see-t', v.see);
+      seeWords.setAttribute('aria-hidden', 'true');
+      see.appendChild(seeWords);
       see.setAttribute('aria-label', v.see);
       see.setAttribute('aria-pressed', 'false');
       day.appendChild(see);
@@ -489,6 +497,7 @@
       place(idx);
       want(idx);
       mark();
+      fitSee();
       if (refocus) focus(pages[idx].head);
     }
 
@@ -523,12 +532,22 @@
       if (see) {
         see.setAttribute('aria-pressed', clear ? 'true' : 'false');
         see.setAttribute('aria-label', clear ? v.unsee : v.see);
+        seeWords.textContent = clear ? v.unsee : v.see;
       }
       if (open) card.closeLabel(clear ? v.unsee : v.back);
       if (!quiet) {
         if (S) S.pop(0.3);
         haptic(6);
       }
+    }
+
+    // The words beside the icon fold away while the day in view needs their band (a long day on a short screen);
+    // the icon and its spoken name stay. offsetTop is where the line rests, whatever the rise or the page's scroll.
+    // With the picture clear the day's words are gone, so the control's words always show then (see the CSS).
+    function fitSee() {
+      if (!see || !open) return;
+      const first = pages[idx].box.querySelector('.wk-rise');
+      day.classList.toggle('wk-see-short', !!first && !seeRoom(track.offsetTop + first.offsetTop, see.offsetTop + see.offsetHeight));
     }
 
     function openDay(i) {
@@ -552,6 +571,7 @@
       quietTiles(true);
       card.closeLabel(v.back);
       mark();
+      fitSee();
       if (S) S.pop(0.4);
       haptic(8);
       focus(pages[idx].head);
@@ -590,7 +610,9 @@
     const onVisible = () => { lightsOn(); clipsOn(); };
     let resizeT = null;
     const onResize = () => {
-      if (!lights || !open) return;
+      if (!open) return;
+      fitSee();
+      if (!lights) return;
       clearTimeout(resizeT);
       timers.delete(resizeT);
       resizeT = later(() => lights.refit(), 120);
@@ -654,7 +676,7 @@
     day.addEventListener('pointercancel', drop);
   }
 
-  const api = { weekendView, dayLabel, settle, along, pictureFiles, pictureFallback, wanted, clipFile, mayMove, clipPlays, clipDrops, petalCount, seeNext, build };
+  const api = { weekendView, dayLabel, settle, along, pictureFiles, pictureFallback, wanted, clipFile, mayMove, clipPlays, clipDrops, petalCount, seeNext, seeRoom, build };
   root.sjFirst = Object.assign(root.sjFirst || {}, { weekendCard: api });
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

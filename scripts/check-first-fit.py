@@ -85,6 +85,8 @@ CARD_TRAVEL = CARD + ['.tc-ticket', '.tc-f', '.tc-h', '.tm-svg.tm-still']
 CARD_WEEKEND = CARD + ['.fc-day']
 # An open day: the day in view, its marks, and whichever lines this day has (the other three days wait out of sight).
 CARD_DAY = CARD + ['.wk-live .wk-date', '.wk-live .wk-name', '.wk-live .wk-part', '.wk-mark']
+# A real day leaves room for the words on the see-the-picture control beside its icon.
+CARD_DAY_SEE = CARD_DAY + ['.wk-see-t']
 CARD_QUESTIONS = CARD + ['.fc-q-head']
 # The food step: ten picks and the note on every screen; Next until the last screen, then Done. Read only has no note box.
 FOOD = CARD + ['.ff-pick', '.ff-note', '.ff-done']
@@ -1025,10 +1027,22 @@ async def flow_weekend(f, guest):
         src, ratio = await p.evaluate(DAY_PICTURE_SRC_JS, i)
         want = '-lg.webp' if ratio >= 2 else '/%s.webp' % DAY_KEYS[i]
         f.expect(src.endswith(want), 'day %s picture is %s on a screen with %sx pixels; it should end %s' % (DAY_KEYS[i], src.rsplit('/', 1)[-1], ratio, want))
-        await f.stop(DAY_STOPS[i], CARD_DAY)
+        await f.stop(DAY_STOPS[i], CARD_DAY_SEE)
         await expect_words(f, i)
         await back_to_tiles(f, 'close' if i % 2 else 'escape')
     await open_day(f, 0)
+    # The see-the-picture control: a tap moves the words aside and the control names the way back; a second tap returns.
+    see, unsee = await p.evaluate('() => [sjFirst.words.weekend.see, sjFirst.words.weekend.unsee]')
+    f.expect(await p.text_content('#first .wk-see-t') == see, 'the see-the-picture control does not show its words')
+    await p.click('#first .wk-see')
+    await p.wait_for_timeout(900)
+    f.expect(await p.get_attribute('#first .wk-see', 'aria-pressed') == 'true', 'a tap on the see-the-picture control did not clear the picture')
+    f.expect(await p.text_content('#first .wk-see-t') == unsee, 'with the picture clear the control does not show the way back')
+    await f.stop('weekend-picture-clear', CARD + ['.wk-see-t', '.wk-mark'])
+    await p.click('#first .wk-see')
+    await p.wait_for_timeout(900)
+    f.expect(await p.get_attribute('#first .wk-see', 'aria-pressed') == 'false', 'a second tap did not bring the words back')
+    await expect_words(f, 0)
     box = await p.locator('#first .wk-day').bounding_box()
     x, y = box['x'] + box['width'] * 0.85, box['y'] + box['height'] * 0.4
     left = x - box['width'] * 0.6

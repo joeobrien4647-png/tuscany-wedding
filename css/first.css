@@ -518,8 +518,12 @@ html.first-on body > :not(#first) { display: none; }
 #first .fc-weekend .wk-track { position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; display: flex; will-change: transform; }
 #first .fc-weekend .wk-day.wk-snap .wk-track { transition: transform .95s var(--ease), opacity .45s ease; }
 /* The control under the close control: the words and the shade step aside so the whole picture shows. */
-#first .fc-weekend .wk-see { position: absolute; z-index: 4; top: calc(var(--top) + 68px); right: max(14px, env(safe-area-inset-right, 0px)); width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--glass); border: 1px solid var(--line); color: var(--gold-hi); touch-action: manipulation; }
+#first .fc-weekend .wk-see { position: absolute; z-index: 4; top: calc(var(--top) + 68px); right: max(14px, env(safe-area-inset-right, 0px)); min-width: 44px; height: 44px; border-radius: 22px; display: flex; align-items: center; justify-content: center; padding: 0 16px 0 12px; background: var(--glass); border: 1px solid var(--line); color: var(--gold-hi); font: 500 13px/1 var(--ui); letter-spacing: .04em; white-space: nowrap; touch-action: manipulation; }
+#first .fc-weekend .wk-see-t { margin-left: 8px; }
 #first .fc-weekend .wk-see[aria-pressed="true"] { background: var(--gold-hi); border-color: var(--gold-hi); color: var(--night); }
+/* A long day on a short screen needs the band the words sit in: the control is the round icon again. */
+#first .fc-weekend .wk-day.wk-see-short:not(.wk-clear) .wk-see { padding: 0; }
+#first .fc-weekend .wk-day.wk-see-short:not(.wk-clear) .wk-see-t { display: none; }
 #first .fc-weekend .wk-shade, #first .fc-weekend .wk-track { transition: opacity .45s ease; }
 #first .fc-weekend .wk-day.wk-clear .wk-shade, #first .fc-weekend .wk-day.wk-clear .wk-track, #first .fc-weekend .wk-day.wk-clear .wk-swipe { opacity: 0; pointer-events: none; }
 /* The page is its own scroll box (the browser asks it, not the day, whether a pan is a scroll), so it lets sideways

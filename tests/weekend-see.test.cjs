@@ -39,6 +39,39 @@ test('the control is a real button that says which way it goes and whether it is
   assert.match(js, /if \(v\.see && v\.unsee\)/, 'no words, no control');
 });
 
+test('the control shows its words beside the icon, and they change with it', () => {
+  assert.match(js, /el\('span', 'wk-see-t', v\.see\)/, 'the words are on show, not only spoken');
+  assert.match(js, /seeWords\.setAttribute\('aria-hidden', 'true'\)/, 'the button is named once, by its label');
+  assert.match(body('setClear'), /seeWords\.textContent = clear \? v\.unsee : v\.see/);
+});
+
+test('seeRoom: the words beside the icon need the day to start below the control, with a little air', () => {
+  assert.equal(wk.seeRoom(221, 112), true);
+  assert.equal(wk.seeRoom(120, 112), true);
+  assert.equal(wk.seeRoom(119, 112), false);
+  assert.equal(wk.seeRoom(77, 112), false);
+  assert.equal(wk.seeRoom(NaN, 112), false);
+  assert.equal(wk.seeRoom(200, undefined), false);
+});
+
+test('the words fold away only while the day in view needs their room, measured whenever that can change', () => {
+  const fit = body('fitSee');
+  assert.match(fit, /seeRoom\(/);
+  assert.match(fit, /offsetTop/, 'resting positions: the rise and the page scroll do not count');
+  assert.match(fit, /classList\.toggle\('wk-see-short'/);
+  assert.match(body('openDay'), /fitSee\(\)/);
+  assert.match(body('go'), /fitSee\(\)/);
+  const resize = js.slice(js.indexOf('const onResize = '), js.indexOf("root.addEventListener('resize'"));
+  assert.match(resize, /fitSee\(\)/);
+  assert.ok(resize.indexOf('fitSee()') < resize.indexOf('if (!lights)'), 'measured even when there are no lights');
+});
+
+test('folded, the control is the round icon again; with the picture clear its words always show', () => {
+  assert.match(css, /#first \.fc-weekend \.wk-day\.wk-see-short:not\(\.wk-clear\) \.wk-see-t \{[^}]*display: none/);
+  assert.match(css, /#first \.fc-weekend \.wk-day\.wk-see-short:not\(\.wk-clear\) \.wk-see \{[^}]*padding: 0/);
+  assert.match(css, /#first \.fc-weekend \.wk-see \{[^}]*white-space: nowrap/, 'the words never wrap inside the control');
+});
+
 test('while the picture is clear the words are out of reach, and come back with it', () => {
   const set = body('setClear');
   assert.match(set, /track\.inert = clear/);
@@ -70,7 +103,7 @@ test('clear means the shade, the words and the swipe hint fade out; the marks an
   assert.match(off[0], /opacity: 0/);
   assert.match(off[0], /pointer-events: none/);
   assert.doesNotMatch(off[0], /\.wk-marks|\.wk-see/);
-  assert.match(css, /#first \.fc-weekend \.wk-see \{[^}]*width: 44px[^}]*height: 44px/, 'a full-size touch target');
+  assert.match(css, /#first \.fc-weekend \.wk-see \{[^}]*min-width: 44px[^}]*height: 44px/, 'a full-size touch target');
 });
 
 test('the control sits in the weekend section and nothing about it moves under reduced motion', () => {
