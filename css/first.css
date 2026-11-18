@@ -484,7 +484,7 @@ html.first-on body > :not(#first) { display: none; }
 #first .fc-day { position: relative; display: block; width: 100%; height: clamp(150px, 26vh, 230px); min-width: 0; border-radius: 20px; overflow: hidden; background: var(--night-2); border: 1px solid var(--line); text-align: left; touch-action: manipulation; transition: transform .25s var(--ease); }
 #first .fc-day:active { transform: scale(.97); }
 #first .fc-day-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-#first .fc-day::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; background: linear-gradient(180deg, rgba(5, 6, 12, 0) 0%, rgba(5, 6, 12, .12) 22%, rgba(5, 6, 12, .62) 36%, rgba(5, 6, 12, .86) 62%, rgba(5, 6, 12, .96) 100%); }
+#first .fc-day::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; left: 0; inset: 0; background: linear-gradient(180deg, rgba(5, 6, 12, 0) 0%, rgba(5, 6, 12, 0) 40%, rgba(5, 6, 12, .34) 56%, rgba(5, 6, 12, .78) 74%, rgba(5, 6, 12, .96) 100%); }
 #first .fc-day-cap { position: absolute; z-index: 1; left: 12px; right: 12px; bottom: 12px; display: grid; gap: 3px; min-width: 0; text-shadow: 0 1px 2px rgba(0, 0, 0, .95), 0 2px 14px rgba(0, 0, 0, .9); }
 #first .fc-day-cap .fc-grp-k { font-size: 11px; color: var(--gold-hi); letter-spacing: .2em; }
 #first .fc-day-t { font: italic 500 20px/1.1 var(--display); color: var(--ink); overflow-wrap: anywhere; }
@@ -560,6 +560,8 @@ html.first-on body > :not(#first) { display: none; }
 #first .fc-weekend .wk-mark[aria-current="true"] i { width: 22px; background: var(--gold); }
 @media (max-height: 640px) {
   #first .fc-day { height: 140px; }
+  /* shorter tiles: a two-line name starts halfway up, so the shade starts sooner */
+  #first .fc-day::after { background: linear-gradient(180deg, rgba(5, 6, 12, 0) 0%, rgba(5, 6, 12, 0) 20%, rgba(5, 6, 12, .52) 46%, rgba(5, 6, 12, .82) 66%, rgba(5, 6, 12, .96) 100%); }
   #first .fc-day-t { font-size: 18px; }
   #first .fc-weekend .wk-page { gap: 8px; padding-top: calc(var(--top) + 50px); padding-bottom: calc(var(--bottom) + 40px); }
   #first .fc-weekend .wk-name { font-size: clamp(32px, 9.6vw, 44px); }

@@ -133,10 +133,12 @@ test('H16: the own-place sub-line no longer says they join every day', () => {
   assert.ok(words.stay.own.sub.length <= 40, words.stay.own.sub);
 });
 
-test('H2: weekend tiles have a strong scrim, 11px bright-gold dates and a stronger shadow', () => {
+test('H2: weekend tiles have a strong scrim under the caption, a clear picture above it, 11px bright-gold dates and a stronger shadow', () => {
   const css = read('css/first.css');
   const scrim = css.match(/#first \.fc-day::after \{[^}]*\}/)[0];
   assert.match(scrim, /rgba\(5, 6, 12, \.9[5-9]\) 100%/);
+  assert.match(scrim, /rgba\(5, 6, 12, 0\) 40%/, 'the top two fifths of the picture are left clear');
+  assert.match(scrim, /rgba\(5, 6, 12, \.7[0-9]\) 74%/, 'the caption still sits on a dark ground');
   assert.match(css, /#first \.fc-day-cap \.fc-grp-k \{[^}]*font-size: 11px;[^}]*color: var\(--gold-hi\)/);
 });
 
