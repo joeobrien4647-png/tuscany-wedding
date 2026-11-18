@@ -337,6 +337,7 @@ html.first-on body > :not(#first) { display: none; }
   #first .fc-opt-title { font-size: 19px; }
   #first .fc-opt-body { gap: 9px; padding: 10px 0 12px; }
   #first .fc-get li, #first .fc-todo li { font-size: 13px; }
+  #first .fc-share { font-size: 12px; line-height: 1.3; }
   #first .fc-go { min-height: 52px; font-size: 17px; }
 }
 
