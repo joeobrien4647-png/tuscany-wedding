@@ -91,6 +91,19 @@
   // The envelope's flap and its wax seal (the minute's seal art, drawn small).
   const FLAP = '<svg class="fh-flap" viewBox="0 0 100 60" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 0 L50 46 L100 0" fill="rgba(245, 236, 220, .04)" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/></svg>';
   const WAX = '<svg class="fh-wax" viewBox="-20 -20 240 240" aria-hidden="true" focusable="false"><use href="#fm-seal-art"/></svg>';
+  // An envelope with an emblem of what it holds: the seal's wax without the S&J, the emblem pressed in and brushed
+  // with gold so it reads at a glance. Each path sits in its own 2048 box; at moves it into the seal's well.
+  const EMBLEMS = {
+    room: { at: 'translate(100 100) scale(.0881) translate(-1022 -1040)', d: 'M 860.6 500.4 C 865 499.8 874.2 499.5 878.8 499.9 C 1037.8 512.4 1082.7 717.1 971.4 816 C 968.9 827.6 970.3 840.7 979.2 849.6 C 988.9 858.9 1001.7 850.9 1013.2 850.3 C 1030 849 1033.5 865.5 1033.1 879.1 C 1032.4 899 1013.1 904 1001.4 915.2 C 1011.3 926.9 1036.2 949.8 1048.1 961.2 L 1127.7 1037.9 L 1400.6 1302.9 L 1475 1375 C 1487.2 1387 1499.9 1398.7 1511 1411.7 C 1528.7 1432.5 1526.2 1464.2 1508.4 1484.1 C 1498.6 1494.9 1484.8 1501.1 1470.3 1501.4 C 1442.6 1502 1416.8 1470.5 1396.8 1451.5 C 1376.2 1470.8 1351.3 1500.3 1331.1 1521.7 C 1318.1 1535.4 1287 1567.9 1277.2 1581.7 C 1256.3 1560.3 1235.2 1539.1 1213.8 1518.2 C 1220.3 1511.7 1234.8 1493.9 1239.9 1486.3 C 1235.8 1482 1232.8 1479.6 1228.2 1476 C 1219.5 1486.5 1211.3 1495.9 1202.1 1506 C 1186.3 1490.9 1170.2 1473.9 1154.7 1458.2 C 1147.8 1451.4 1140.9 1444.3 1134.1 1437.4 C 1141.8 1426.1 1156.6 1409.4 1165.8 1398.5 C 1173 1406.3 1180.7 1414 1188.2 1421.7 C 1199.3 1408.8 1210.1 1395 1220.8 1381.7 L 1198.9 1361 C 1214.7 1342.6 1231.1 1324.7 1246.8 1306.2 L 1002.4 1066.5 C 977.8 1042.7 951.3 1016 926.2 993.3 C 918 1002.3 911.4 1014.7 903.5 1022.2 C 884.4 1028.6 862.8 1020.3 858 999.7 C 857.4 996.7 859.1 987.1 859.6 983.7 C 861.8 969.7 846.4 960.2 834.5 958.2 C 829.6 957.4 818 957.8 814.9 961.4 C 805 972.8 799.2 983.2 786.4 992.2 C 748.3 1018.5 701.5 1028.8 655.9 1021 C 611.2 1012.8 571.8 986.9 546.7 949.1 C 497.2 876.1 517.9 787.4 590.1 738.7 C 557 712.9 532.1 691.4 535.6 645 C 540.3 580.9 601 518.1 667.5 522.4 C 704.3 524.8 716.6 543 739.1 568.7 L 744.1 562.6 C 776.2 523.7 809.9 505.2 860.6 500.4 z M 820.1 604.4 C 925.5 594.4 1010.2 751.4 882.7 792 C 879.6 793 873.3 793.3 869.9 793.5 C 852.1 794.7 837.6 794.7 823.1 806.6 C 785.4 837.5 823.2 884.9 782.8 914.8 C 762.6 929.7 741.3 934.7 716.5 931.9 C 711.7 930.9 708 929.9 703.3 928.4 C 673.5 918.5 648.9 897.2 634.7 869.2 C 619.8 839.9 621.7 815.3 631.8 784.9 C 658.7 802.1 683.8 806.9 709.4 782.9 C 724.9 786.6 747.1 792.7 762 786.6 C 802.1 770.1 806.8 726.1 794.7 691 C 817.6 659.9 816.3 641.8 799.1 608.7 C 807.2 606.1 811.8 605.3 820.1 604.4 z M 722.1 628.3 C 733 629.1 743.2 633.3 748.6 643.6 C 751.1 648.3 751.5 653.8 749.6 658.9 C 745.3 671.2 730.8 677.3 719.9 682.7 C 731.5 686.1 744.2 689.9 749.4 702.3 C 752 708.6 751.9 715.7 749.1 721.8 C 739.5 743.3 713.9 738.3 704.9 719.6 C 701.6 712.7 700.5 709.5 698.3 702.2 C 694.4 722 691.5 735.9 670 742.2 C 649.5 742.5 644.1 728.8 645.1 710.9 C 653.1 697.1 667.8 691.9 681.7 685.4 C 673.6 685.2 670.2 684.5 662.5 682.8 C 636.5 677.2 633.6 644.6 658.3 634.8 C 664.6 632.2 671.8 632.4 678 635.4 C 688.7 640.5 692.2 649.8 695.9 660 C 701 645 704.5 631.3 722.1 628.3 z' }
+  };
+  const sealFor = key => {
+    const e = EMBLEMS[key];
+    if (!e) return WAX;
+    const id = 'fh-emb-' + key;
+    return '<svg class="fh-wax" viewBox="-20 -20 240 240" aria-hidden="true" focusable="false"><defs><path id="' + id +
+      '" fill-rule="evenodd" transform="' + e.at + '" d="' + e.d + '"/></defs><use href="#fm-seal-wax"/>' +
+      '<use href="#' + id + '" x="1.6" y="1.8" fill="#2a0604" fill-opacity=".75"/><use href="#' + id + '" fill="url(#fm-gild)"/></svg>';
+  };
 
   const reduced = () => !!(root.matchMedia && root.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const haptic = p => { try { if (root.navigator.vibrate) root.navigator.vibrate(p); } catch (e) { /* no haptics */ } };
@@ -203,7 +216,7 @@
     const envButtons = envelopes(ctx.now(), w).map(env => {
       const b = button('fh-env fh-' + env.state, null, () => tapEnvelope(b, env));
       b.setAttribute('aria-label', env.label);
-      b.innerHTML = FLAP + WAX;
+      b.innerHTML = FLAP + sealFor(env.key);
       b.appendChild(el('span', 'fh-env-t', env.name));
       b.appendChild(el('span', 'fh-env-d', env.stamp));
       grid.appendChild(b);
