@@ -98,7 +98,7 @@ The Weekend screen (four day tiles, each day opening full screen), the four-butt
 8. Look at how sharp the Saturday picture is on a real screen.
 9. Open each day and wait a moment: the picture starts to move (Friday the toast, Saturday the light and falling petals, Sunday the pool, Monday the goodbye). Swipe to the next day: the last one stops and the new one starts. The words must never wait for the moving picture.
 10. With Reduce Motion on, every day picture stays still. The same with Data Saver on (Android Chrome: Settings, Lite mode or Data Saver). iPhones do not tell a site about Low Data Mode, so an iPhone on Low Data Mode still gets the moving pictures.
-11. Open a day and press the round control under the close control: the words and the dark shade step aside and the whole picture shows, moving. Press it again, or the close control, and the words come back. Swipe to another day while the picture is clear.
+11. Open a day and press "See the picture" under the close control: the words and the dark shade step aside, the whole picture shows, moving, and the control turns gold and reads "Back to the day". Press it again, or the close control, and the words come back. Swipe to another day while the picture is clear. The control should show its words on every day; it drops to the icon alone only when a day's words are long enough to reach up under it on a small screen.
 12. On mobile data with a weak signal, open a day: the still picture shows straight away, and the moving one takes over only when it is ready. Each day is about half a megabyte to one megabyte, fetched only when that day is opened.
 
 ## 4c. Food needs and the link preview
@@ -152,6 +152,18 @@ At go-live (section 6): change the `og:image` address in `index.html` to `https:
 
 The phone-fit check now walks the food step on all four setups (one, two, three and eight people, the fullest screen, after the cut-off, a failed save, both phones in the step at once, leaving mid-step, and the cut-off passing while the step is open). The last full run took 15 minutes (881 seconds) and ended with PASS on 904 stops.
 
+## 4d. The envelope seals and notes
+
+Pushed to `main` on 18 November 2026 (commit cb9309c), with the switch still off. Each of the six envelopes on the home screen has its own seal: the same red wax, with a gold emblem of what is inside (the estate a farmhouse and a cypress, Your room a key, The menu a fork and an olive sprig, Your table a table and chairs, The film a reel, The photos a camera). Tapping a sealed envelope shows a note at the foot of the screen. The estate's note says what is inside and then when it opens; the other five say only when they open until their lines are written (section 5).
+
+1. Look at the six seals on both phones: each emblem should be clear at a glance, and none blurred or blotchy. Your table has the finest detail; say if it reads as a cog rather than a table.
+2. Tap each envelope: it gives a little shake and its note shows for a few seconds. The estate's reads "Check out the venue and where you'll be staying. Opens Mon 1 Feb"; the others read "Opens" and their date.
+3. On a small phone the estate's note runs to two lines and covers the links at the foot while it shows. Say if that bothers you.
+4. With VoiceOver (iPhone) or TalkBack (Android) on, tap the estate: the note is read out.
+5. The seal on the opening cover still shows S&J, as before.
+
+To change an emblem, replace its path in `EMBLEMS` in `js/first/home.js`.
+
 ## 5. Write the words
 
 Every guest-facing line is in `js/first/words.js` and every one is a placeholder. Replace them with your own. The home screen has four buttons: Reply, Stay, Travel and Weekend. There is no Wear card; what to wear is a line inside each day of the Weekend card. The Getting there card's lines are under `travel`; its airports, airlines, drive times and tolls are not words, they come from `data/getting-there.json`. Ones that need a decision, not just wording:
@@ -160,6 +172,7 @@ Every guest-facing line is in `js/first/words.js` and every one is a placeholder
 - The line under "your own place"
 - The weekend lines for each day. They sit per day under `weekend.days`. A day shows no Food and drink, Wear or Where row until it has a line for it, so leave a line out and the row is simply not there. The four day pictures (`images/first/fri.webp`, `sat.webp`, `sun.webp`, `mon.webp`) were made with an image tool from real photos of La Conca, so they are true to the place, and each shows the feel of its day. They are not a promise of the exact set-up on the day. Swap any picture that shows something La Conca will not have.
 - "Nearly ready" (shown when an envelope's date has passed but nothing is inside yet) and "Today" (shown on the wedding day)
+- What is inside each envelope: `what` under `home.envelopes`, said in that envelope's tap note before when it opens. The estate has your line; Your room, The menu, Your table, The film and The photos have none yet, so their notes say only when they open. An envelope with no line keeps its note as it is.
 - The amount is not in the words file. It is `SHARE_GBP` in `js/first/core.js`. No payment date is shown anywhere yet: the line says to send your share in the spring. Add a date only once you know when the balance is due to the villa.
 
 Needs Joe, for the Weekend and Questions words:
@@ -172,7 +185,7 @@ Needs Joe, for the Weekend and Questions words:
 
 Then run `node --test tests/*.test.cjs`. One test checks the words for the house rules (no long dashes, no dot separators, no full stop on a short line) and will name any line that breaks them.
 
-Then run the fit check, `python scripts/check-first-fit.py`. This step is required, not optional: nothing in the node tests limits how long a Weekend line is, and only the fit check shows a day that no longer fits a phone. It takes about fifteen minutes and should end with PASS on 904 stops.
+Then run the fit check, `python scripts/check-first-fit.py`. This step is required, not optional: nothing in the node tests limits how long a Weekend line is, and only the fit check shows a day that no longer fits a phone. It takes about fifteen minutes and should end with PASS on 916 stops.
 
 Some tests pin today's placeholder lines on purpose. When the real words go in they fail, and each needs its expected line updated:
 
