@@ -58,6 +58,23 @@
   }
 
   // The next envelope by name and how long until it opens, or null after the last dated one.
+  // Remind me: a calendar file of the weekend and the envelopes' opening days, or, on Android, where Google Calendar
+  // cannot read such a file, Google Calendar's own form for the next envelope's day. No envelope left: no link.
+  const SITE = 'https://sophieandjoe2027.com', DATES_FILE = 'tuscany-2027-dates.ics';
+  const UK_DAY = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' });
+  function calendarDay(ms) {
+    const parts = UK_DAY.formatToParts(new Date(ms)), part = t => parts.find(p => p.type === t).value;
+    return part('year') + part('month') + part('day');
+  }
+  function remindHref(nowMs, ua, w) {
+    const lock = core.nextLock(nowMs);
+    if (!lock) return null;
+    if (!/Android/i.test(ua || '')) return DATES_FILE;
+    return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' +
+      encodeURIComponent(core.fill(w.home.remindEvent, { name: w.home.envelopes[lock.key].name })) +
+      '&dates=' + calendarDay(lock.opensMs) + '/' + calendarDay(lock.opensMs + 86400000) + '&details=' + encodeURIComponent(SITE);
+  }
+
   function nextLine(nowMs, w) {
     const lock = core.nextLock(nowMs);
     if (!lock) return null;
@@ -216,6 +233,9 @@
     const nextText = el('span', 'fh-next-t');
     next.appendChild(nextIcon);
     next.appendChild(nextText);
+    const remind = el('a', 'fh-remind', w.home.remind);
+    remind.setAttribute('aria-label', w.home.remindLabel);
+    next.appendChild(remind);
     inner.appendChild(next);
 
     // The envelopes: each sealed one says when it opens.
@@ -316,6 +336,13 @@
       clockEl.textContent = c.clock;
       next.hidden = line === null;
       if (line !== null) nextText.textContent = line;
+      const href = remindHref(now, root.navigator && root.navigator.userAgent, w);
+      remind.hidden = !href;
+      if (href && remind.getAttribute('href') !== href) {
+        remind.setAttribute('href', href);
+        if (href === DATES_FILE) { remind.removeAttribute('target'); remind.removeAttribute('rel'); }
+        else { remind.target = '_blank'; remind.rel = 'noopener'; }
+      }
       return c.days;
     }
     function countUp(to) {
@@ -411,7 +438,7 @@
     document.addEventListener('visibilitychange', () => { if (current && document.visibilityState === 'visible') refresh(); });
   }
 
-  const api = { envelopes, dockItems, bigCount, nextLine, afterRefresh, stayChanged, readFresh, home: { show, refresh, repaint, toast: toastHome, clear } };
+  const api = { envelopes, dockItems, bigCount, nextLine, remindHref, afterRefresh, stayChanged, readFresh, home: { show, refresh, repaint, toast: toastHome, clear } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

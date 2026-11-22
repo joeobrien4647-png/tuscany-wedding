@@ -23,7 +23,7 @@ test('every word passes the copy rules, with no amount or stray placeholder', ()
     assert.deepEqual(copyProblems(s), [], path);
     assert.ok(!s.includes('£') && !s.includes('150'), path + ' has an amount');
     assert.ok(s.trim() === s && s.length > 0, path + ' is empty or padded');
-    for (const m of s.match(/\{[^}]*\}/g) || []) assert.ok(['{n}', '{names}', '{date}', '{share}', '{from}', '{to}', '{drive}', '{km}', '{price}', '{total}', '{what}', '{when}'].includes(m), path + ' uses ' + m);
+    for (const m of s.match(/\{[^}]*\}/g) || []) assert.ok(['{n}', '{names}', '{date}', '{share}', '{from}', '{to}', '{drive}', '{km}', '{price}', '{total}', '{what}', '{when}', '{name}'].includes(m), path + ' uses ' + m);
   }
 });
 
