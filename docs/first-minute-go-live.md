@@ -164,6 +164,16 @@ Pushed to `main` on 18 November 2026 (commit cb9309c), with the switch still off
 
 To change an emblem, replace its path in `EMBLEMS` in `js/first/home.js`.
 
+## 4e. Remind me, and the home screen
+
+Under the countdown, the line naming the next envelope ends with "Remind me". On an iPhone or a computer it opens `tuscany-2027-dates.ics`: the weekend and the three days the envelopes open (1 Feb, 1 Apr, 1 May), each opening with a reminder at 9am. On Android, where Google Calendar cannot read such a file, it opens Google Calendar's own form for the next envelope's day instead. The events link to the plain site address, which finds the guest's invitation in the browser where they first opened their link (the invitation keeps it there after the minute); anywhere else it shows "Please use the link Joe or Sophie sent you".
+
+1. On an iPhone, tap Remind me: the calendar should offer to add four events. Add them and check the dates and the 9am reminders.
+2. On an Android phone, if you have one to hand, tap Remind me: Google Calendar opens on 1 Feb with "The estate opens". Save it.
+3. Tap the link inside one of the added events: it should open your invitation.
+4. Add the invitation to the home screen (iPhone: Share, Add to Home Screen) and open it from there. Say whether it opens your invitation or "Please use the link Joe or Sophie sent you". On an iPhone a home-screen web app can start with its own empty storage; if it shows that line, the icon needs more work before guests are told about it.
+5. Afterwards delete the test events from your calendar.
+
 ## 5. Write the words
 
 Every guest-facing line is in `js/first/words.js` and every one is a placeholder. Replace them with your own. The home screen has four buttons: Reply, Stay, Travel and Weekend. There is no Wear card; what to wear is a line inside each day of the Weekend card. The Getting there card's lines are under `travel`; its airports, airlines, drive times and tolls are not words, they come from `data/getting-there.json`. Ones that need a decision, not just wording:
@@ -172,6 +182,7 @@ Every guest-facing line is in `js/first/words.js` and every one is a placeholder
 - The line under "your own place"
 - The weekend lines for each day. They sit per day under `weekend.days`. A day shows no Food and drink, Wear or Where row until it has a line for it, so leave a line out and the row is simply not there. The four day pictures (`images/first/fri.webp`, `sat.webp`, `sun.webp`, `mon.webp`) were made with an image tool from real photos of La Conca, so they are true to the place, and each shows the feel of its day. They are not a promise of the exact set-up on the day. Swap any picture that shows something La Conca will not have.
 - "Nearly ready" (shown when an envelope's date has passed but nothing is inside yet) and "Today" (shown on the wedding day)
+- "Remind me", its spoken label and the Android event title (`remind`, `remindLabel`, `remindEvent` under `home`), and the event titles in `tuscany-2027-dates.ics`
 - What is inside each envelope: `what` under `home.envelopes`, said in that envelope's tap note before when it opens. The estate has your line; Your room, The menu, Your table, The film and The photos have none yet, so their notes say only when they open. An envelope with no line keeps its note as it is.
 - The amount is not in the words file. It is `SHARE_GBP` in `js/first/core.js`. No payment date is shown anywhere yet: the line says to send your share in the spring. Add a date only once you know when the balance is due to the villa.
 
