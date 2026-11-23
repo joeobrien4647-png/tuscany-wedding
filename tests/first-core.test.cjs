@@ -13,6 +13,11 @@ test('dates', () => {
   assert.deepEqual(countdown(WEDDING_MS, WEDDING_MS - 90061000), { days: 1, hours: 1, minutes: 1, seconds: 1 });
   assert.deepEqual(countdown(WEDDING_MS, WEDDING_MS + 5), { days: 0, hours: 0, minutes: 0, seconds: 0 });
 });
+test('songs close at the end of Sat 15 May 2027 UK', () => {
+  assert.equal(core.SONGS_CLOSE_MS, 1810422000000);
+  assert.equal(core.songsOpen(1810421999999), true);
+  assert.equal(core.songsOpen(1810422000000), false);
+});
 test('locks', () => {
   assert.deepEqual(LOCKS.map(l => l.key), ['estate', 'room', 'menu', 'table', 'film', 'photos']);
   assert.ok(Object.isFrozen(LOCKS));

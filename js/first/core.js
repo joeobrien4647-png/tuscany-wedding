@@ -30,6 +30,7 @@
   // Dates. Times are UTC; UK is GMT until 28 Mar 2027, then BST.
   const WEDDING_MS = Date.UTC(2027, 4, 28, 23); // Sat 29 May 2027, 00:00 UK
   const REPLIES_CLOSE_MS = Date.UTC(2027, 2, 1); // end of Sun 28 Feb 2027
+  const SONGS_CLOSE_MS = Date.UTC(2027, 4, 15, 23); // end of Sat 15 May 2027 UK
   const SHARE_GBP = 150;
   const LOCKS = Object.freeze([
     Object.freeze({ key: 'estate', opensMs: Date.UTC(2027, 1, 1, 8) }),
@@ -41,6 +42,7 @@
   ]);
 
   const repliesOpen = nowMs => nowMs < REPLIES_CLOSE_MS;
+  const songsOpen = nowMs => nowMs < SONGS_CLOSE_MS;
   // The wedding day is the UK calendar day that starts at WEDDING_MS (BST all day, so 24 hours long).
   const weddingDay = nowMs => (nowMs < WEDDING_MS ? 'before' : nowMs < WEDDING_MS + 86400000 ? 'today' : 'after');
 
@@ -281,7 +283,7 @@
       + ' Not done: ' + left.join(', ') + '. Check this row.' + why;
   }
 
-  const api = { shouldShowFirst, isLocalTest, copyProblems, WEDDING_MS, REPLIES_CLOSE_MS, SHARE_GBP, LOCKS, repliesOpen, weddingDay, countdown,
+  const api = { shouldShowFirst, isLocalTest, copyProblems, WEDDING_MS, REPLIES_CLOSE_MS, SONGS_CLOSE_MS, SHARE_GBP, LOCKS, repliesOpen, songsOpen, weddingDay, countdown,
     lockState, nextLock, comingCount, fill, ukDate, shareLine, canChangeStay, dockStates, stayLabel, landing, householdRows, householdTotals,
     travelRows, ticketLine, arrivals, arrivalDay, adminReply, adminToggleComing, adminStay, adminSteps, adminFailureMessage };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
