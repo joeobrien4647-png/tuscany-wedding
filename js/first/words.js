@@ -1,4 +1,4 @@
-// Every line here is a placeholder for Joe and Sophie to rewrite.
+// The guest-facing words. Go-live section 5 lists the lines Joe has written; the rest are placeholders to rewrite.
 // Keep lines short and plain. Placeholders: {n}, {names}, {date}, {share}, {total} (the food step), and on the Getting
 // there card {from}, {to}, {drive}, {km}, {price}. No amounts or payment dates in this file.
 (function (root) {
@@ -56,9 +56,9 @@
       line: 'Please use the link Joe or Sophie sent you'
     },
     home: {
-      kicker: 'Your trip',
-      countdown: 'days to go',
-      countdownOne: 'day to go',
+      kicker: 'Ciao',
+      countdown: 'days till Tuscany',
+      countdownOne: 'day till Tuscany',
       units: { h: 'h', m: 'm', s: 's' },
       nextIn: 'opens in {n} days',
       nextDay: 'opens in 1 day',
@@ -68,7 +68,7 @@
       remindEvent: '{name} opens',
       allOpen: 'Everything is open',
       opens: 'Opens {date}',
-      soon: 'Nearly ready',
+      soon: 'Still in the post',
       seeInside: 'see what\'s inside',
       photosOpens: 'Opens in June',
       today: 'Today',
@@ -79,15 +79,15 @@
       questions: 'Questions',
       watch: 'Watch the invitation again',
       notYou: 'Not you?',
-      // what: what an envelope holds, shown in its info panel. All six are Joe's, as are seeInside and photosOpens
+      // name and what (what an envelope holds, shown in its info panel): all Joe's, as are seeInside and photosOpens
       // above (kept as they were, 23 Nov 2026). The photos stay in June until their date is known.
       envelopes: {
         estate: { name: 'The estate', what: 'Check out the venue and where you\'ll be staying' },
         room: { name: 'Your room', what: 'Where you\'ll crash after the party' },
-        menu: { name: 'The menu', what: 'Check out what\'s on the menu' },
-        table: { name: 'Your table', what: 'Who you\'ll be next to at dinner' },
-        film: { name: 'The film', what: 'The weekend\'s official trailer, popcorn optional' },
-        photos: { name: 'The photos', what: 'Every photo, the good and the blurry' }
+        menu: { name: 'The feast', what: 'Check out what\'s on the menu' },
+        table: { name: 'Your seat', what: 'Who you\'ll be next to at dinner' },
+        film: { name: 'The premiere', what: 'The weekend\'s official trailer, popcorn optional' },
+        photos: { name: 'The snaps', what: 'Every photo, the good and the blurry' }
       },
       photosStamp: 'June'
     },

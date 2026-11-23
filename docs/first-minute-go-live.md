@@ -154,9 +154,9 @@ The phone-fit check now walks the food step on all four setups (one, two, three 
 
 ## 4d. The envelope seals and their panels
 
-Pushed to `main` on 18 November 2026 (commit cb9309c), with the switch still off. Each of the six envelopes on the home screen has its own seal: the same red wax, with a gold emblem of what is inside (the estate a farmhouse and a cypress, Your room a key, The menu a fork and an olive sprig, Your table a table and chairs, The film a reel, The photos a camera). Each envelope also carries a small gold "i" in its top corner (added 23 November 2026). Tapping an envelope gives a little shake, then opens a panel over the dimmed home screen: its seal, its name, what is inside, when it opens, and Remind me for its own day. The photos have no date yet, so their panel has no Remind me. The estate's line is yours; the other five are placeholders until you write your own (section 5).
+Pushed to `main` on 18 November 2026 (commit cb9309c), with the switch still off. Each of the six envelopes on the home screen has its own seal: the same red wax, with a gold emblem of what is inside (the estate a farmhouse and a cypress, Your room a key, The feast a fork and an olive sprig, Your seat a table and chairs, The premiere a reel, The snaps a camera). Each envelope also carries a small gold "i" in its top corner (added 23 November 2026). Tapping an envelope gives a little shake, then opens a panel over the dimmed home screen: its seal, its name, what is inside, when it opens, and Remind me for its own day. The snaps have no date yet, so their panel has no Remind me. All six names and lines are yours (section 5).
 
-1. Look at the six seals on both phones: each emblem should be clear at a glance, and none blurred or blotchy. Your table has the finest detail; say if it reads as a cog rather than a table.
+1. Look at the six seals on both phones: each emblem should be clear at a glance, and none blurred or blotchy. Your seat has the finest detail, a table and chairs; say if it reads as a cog rather than a table.
 2. Tap each envelope: it gives a little shake, then its panel opens. The estate's reads "Check out the venue and where you'll be staying" and "Opens Mon 1 Feb", with Remind me underneath.
 3. Close a panel with the close button, then another with a tap on the dimmed space around it. Each time you land back on the envelope you tapped.
 4. On the Android phone, tap Remind me in the Your room panel: Google Calendar should open on Thu 1 Apr, that envelope's own day.
@@ -197,8 +197,6 @@ Every guest-facing line is in `js/first/words.js`. Most are still placeholders: 
 - The gifts answer (it says details will follow)
 - The line under "your own place"
 - The weekend lines for each day. They sit per day under `weekend.days`. A day shows no Food and drink, Wear or Where row until it has a line for it, so leave a line out and the row is simply not there. The four day pictures (`images/first/fri.webp`, `sat.webp`, `sun.webp`, `mon.webp`) were made with an image tool from real photos of La Conca, so they are true to the place, and each shows the feel of its day. They are not a promise of the exact set-up on the day. Swap any picture that shows something La Conca will not have.
-- "Nearly ready" (shown when an envelope's date has passed but nothing is inside yet) and "Today" (shown on the wedding day)
-- "Remind me", its spoken label and the Android event title (`remind`, `remindLabel`, `remindEvent` under `home`), and the event titles in `tuscany-2027-dates.ics`
 - The Songs card (`songs`): the line under its title is your own words for now ("No guarantees they'll get played on the weekend"); the rest are placeholders, including the credit line under the board (`credit`, see 4f step 8). The dock button is `Songs`, the fifth of `dock.labels`. The badge's alt text (`badge`) repeats the words on Apple's badge, "Listen on Apple Music"; keep it that way.
 - The amount is not in the words file. It is `SHARE_GBP` in `js/first/core.js`. No payment date is shown anywhere yet: the line says to send your share in the spring. Add a date only once you know when the balance is due to the villa.
 
@@ -206,6 +204,8 @@ Written so far (23 Nov 2026):
 
 - All six envelope lines (`what` under `home.envelopes`). The film's line is about your weekend trailer.
 - The envelope panel's "see what's inside" (`seeInside`) and "Opens in June" (`photosOpens`), kept as they were. The photos stay in June (`photosStamp`) until their date is known.
+- The home screen: "Ciao" above the names (`kicker`, also the heading when a link has no name), "days till Tuscany" by the countdown, "Still in the post" for an envelope whose date has passed with nothing inside yet (`soon`), and the envelope names The estate, Your room, The feast, Your seat, The premiere and The snaps. "Today", "Remind me" and every other home label are kept as they were.
+- The calendar file `tuscany-2027-dates.ics`: the weekend is "Sophie & Joe's wedding weekend", and the 1 May event names the feast, your seat and the premiere.
 - The villa share line (`stay.share`), the line under the Weekend title (`weekend.vibe`) and the Songs no-promises line (`songs.promise`).
 
 Needs Joe, for the Weekend and Questions words:

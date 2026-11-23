@@ -752,7 +752,7 @@ async def flow_sealed_envelope(f, guest):
     await see_home(p)
     await open_envelope(f, 0)
     f.expect(await p.locator('#first .fe-remind').count() == 0, 'an envelope past its date offered Remind me')
-    f.expect((await p.text_content('#first .fe-when')).strip() == 'Nearly ready', 'an envelope past its date did not say Nearly ready')
+    f.expect((await p.text_content('#first .fe-when')).strip() == 'Still in the post', 'an envelope past its date did not say Still in the post')
     f.expect(await p.locator('#first .fh').count() == 1, 'left home on a sealed tap')
     await f.stop('envelope-after-date', CARD_ENVELOPE)
 

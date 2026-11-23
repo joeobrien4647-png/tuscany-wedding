@@ -8,7 +8,7 @@ UID:wedding-weekend-2027@sophieandjoe2027.com
 DTSTAMP:20261122T120000Z
 DTSTART;VALUE=DATE:20270528
 DTEND;VALUE=DATE:20270601
-SUMMARY:Sophie & Joe's wedding celebrations
+SUMMARY:Sophie & Joe's wedding weekend
 LOCATION:Agriturismo La Conca\, Sansepolcro\, Italy
 DESCRIPTION:Friday 28 to Monday 31 May. The wedding is Saturday 29 May. Details at https://sophieandjoe2027.com
 URL:https://sophieandjoe2027.com
@@ -49,13 +49,13 @@ UID:envelope-may-2027@sophieandjoe2027.com
 DTSTAMP:20261122T120000Z
 DTSTART;VALUE=DATE:20270501
 DTEND;VALUE=DATE:20270502
-SUMMARY:The menu\, your table and the film open
+SUMMARY:The feast\, your seat and the premiere open
 DESCRIPTION:https://sophieandjoe2027.com
 URL:https://sophieandjoe2027.com
 TRANSP:TRANSPARENT
 BEGIN:VALARM
 ACTION:DISPLAY
-DESCRIPTION:The menu\, your table and the film open
+DESCRIPTION:The feast\, your seat and the premiere open
 TRIGGER:PT9H
 END:VALARM
 END:VEVENT
