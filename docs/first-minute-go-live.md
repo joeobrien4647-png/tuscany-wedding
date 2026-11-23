@@ -152,15 +152,16 @@ At go-live (section 6): change the `og:image` address in `index.html` to `https:
 
 The phone-fit check now walks the food step on all four setups (one, two, three and eight people, the fullest screen, after the cut-off, a failed save, both phones in the step at once, leaving mid-step, and the cut-off passing while the step is open). The last full run took 15 minutes (881 seconds) and ended with PASS on 904 stops.
 
-## 4d. The envelope seals and notes
+## 4d. The envelope seals and their panels
 
-Pushed to `main` on 18 November 2026 (commit cb9309c), with the switch still off. Each of the six envelopes on the home screen has its own seal: the same red wax, with a gold emblem of what is inside (the estate a farmhouse and a cypress, Your room a key, The menu a fork and an olive sprig, Your table a table and chairs, The film a reel, The photos a camera). Tapping a sealed envelope shows a note at the foot of the screen. The estate's note says what is inside and then when it opens; the other five say only when they open until their lines are written (section 5).
+Pushed to `main` on 18 November 2026 (commit cb9309c), with the switch still off. Each of the six envelopes on the home screen has its own seal: the same red wax, with a gold emblem of what is inside (the estate a farmhouse and a cypress, Your room a key, The menu a fork and an olive sprig, Your table a table and chairs, The film a reel, The photos a camera). Each envelope also carries a small gold "i" in its top corner (added 23 November 2026). Tapping an envelope gives a little shake, then opens a panel over the dimmed home screen: its seal, its name, what is inside, when it opens, and Remind me for its own day. The photos have no date yet, so their panel has no Remind me. The estate's line is yours; the other five are placeholders until you write your own (section 5).
 
 1. Look at the six seals on both phones: each emblem should be clear at a glance, and none blurred or blotchy. Your table has the finest detail; say if it reads as a cog rather than a table.
-2. Tap each envelope: it gives a little shake and its note shows for a few seconds. The estate's reads "Check out the venue and where you'll be staying. Opens Mon 1 Feb"; the others read "Opens" and their date.
-3. On a small phone the estate's note runs to two lines and covers the links at the foot while it shows. Say if that bothers you.
-4. With VoiceOver (iPhone) or TalkBack (Android) on, tap the estate: the note is read out.
-5. The seal on the opening cover still shows S&J, as before.
+2. Tap each envelope: it gives a little shake, then its panel opens. The estate's reads "Check out the venue and where you'll be staying" and "Opens Mon 1 Feb", with Remind me underneath.
+3. Close a panel with the close button, then another with a tap on the dimmed space around it. Each time you land back on the envelope you tapped.
+4. On the Android phone, tap Remind me in the Your room panel: Google Calendar should open on Thu 1 Apr, that envelope's own day.
+5. With VoiceOver (iPhone) or TalkBack (Android) on, each envelope is read as its name, when it opens, and "see what's inside"; its panel reads as a dialog.
+6. The seal on the opening cover still shows S&J, as before.
 
 To change an emblem, replace its path in `EMBLEMS` in `js/first/home.js`.
 
@@ -183,7 +184,8 @@ Every guest-facing line is in `js/first/words.js` and every one is a placeholder
 - The weekend lines for each day. They sit per day under `weekend.days`. A day shows no Food and drink, Wear or Where row until it has a line for it, so leave a line out and the row is simply not there. The four day pictures (`images/first/fri.webp`, `sat.webp`, `sun.webp`, `mon.webp`) were made with an image tool from real photos of La Conca, so they are true to the place, and each shows the feel of its day. They are not a promise of the exact set-up on the day. Swap any picture that shows something La Conca will not have.
 - "Nearly ready" (shown when an envelope's date has passed but nothing is inside yet) and "Today" (shown on the wedding day)
 - "Remind me", its spoken label and the Android event title (`remind`, `remindLabel`, `remindEvent` under `home`), and the event titles in `tuscany-2027-dates.ics`
-- What is inside each envelope: `what` under `home.envelopes`, said in that envelope's tap note before when it opens. The estate has your line; Your room, The menu, Your table, The film and The photos have none yet, so their notes say only when they open. An envelope with no line keeps its note as it is.
+- What is inside each envelope: `what` under `home.envelopes`, shown in that envelope's panel. The estate has your line. Your room, The menu, Your table, The film and The photos show placeholders until you write your own: "Which room is yours", "What we'll eat on the day", "Where you're sitting", "A film to watch before the weekend" and "Photos from the weekend".
+- The envelope panel's other words: "see what's inside", read out after each envelope's name (`seeInside`), and "Opens in June" for the photos (`photosOpens`).
 - The amount is not in the words file. It is `SHARE_GBP` in `js/first/core.js`. No payment date is shown anywhere yet: the line says to send your share in the spring. Add a date only once you know when the balance is due to the villa.
 
 Needs Joe, for the Weekend and Questions words:

@@ -72,9 +72,9 @@ YES = ['.fr-title', '.fr-line']
 ANSWERED = ['.fr-title', '.fr-link']
 CLOSED_SCREEN = ['.fr-title', '.fr-line']
 NO_LINK = ['.fr-center .fm-kicker', '.fr-title']
-HOME = ['.fh-name', '.fh-count-n', '.fh-count-l', '.fh-env', '.fh-dk', '.fh-link']
-HOME_AFTER_DAY = ['.fh-name', '.fh-env', '.fh-dk', '.fh-link']
-HOME_WEDDING = ['.fh-name', '.fh-today', '.fh-env', '.fh-dk', '.fh-link']
+HOME = ['.fh-name', '.fh-count-n', '.fh-count-l', '.fh-env', '.fh-env-i', '.fh-dk', '.fh-link']
+HOME_AFTER_DAY = ['.fh-name', '.fh-env', '.fh-env-i', '.fh-dk', '.fh-link']
+HOME_WEDDING = ['.fh-name', '.fh-today', '.fh-env', '.fh-env-i', '.fh-dk', '.fh-link']
 CARD = ['.fc-t', '.fc-close']
 CARD_REPLY = CARD + ['.fc-change', '.fc-notyou', '.fc-food', '.fc-food-go']
 CARD_REPLY_CLOSED = CARD + ['.fc-notyou']
@@ -92,7 +92,7 @@ CARD_QUESTIONS = CARD + ['.fc-q-head']
 FOOD = CARD + ['.ff-pick', '.ff-note', '.ff-done']
 FOOD_NEXT = CARD + ['.ff-pick', '.ff-note', '.ff-next']
 FOOD_READ = CARD + ['.ff-pick.ff-on']   # the picks not given are dimmed on purpose (disabled); the pressed ones stay bright
-TOAST = ['.fh-toast', '.fh-env']
+CARD_ENVELOPE = CARD + ['.fe-seal', '.fe-when']
 
 # Deliberate exceptions, named so nothing is loosened globally. Each has its reason.
 OVERLAY_TEXT_OK = [
@@ -627,20 +627,46 @@ async def flow_wedding_day(f, guest):
     await f.stop('day-after', HOME_AFTER_DAY)
 
 
+async def open_envelope(f, nth):
+    p = f.page
+    await p.click('#first .fh-env >> nth=%d' % nth)
+    await p.wait_for_selector('#first .fc-envelope', state='visible')
+    await p.wait_for_timeout(500)
+    f.expect(await p.locator('#first .fc').count() == 1, 'not exactly one envelope panel')
+
+
+async def envelope_closed(f, nth, how):
+    p = f.page
+    await p.wait_for_timeout(300)
+    f.expect(await p.locator('#first .fc').count() == 0, how + ' did not close the envelope panel')
+    back = "n => document.activeElement === document.querySelectorAll('#first .fh-env')[n]"
+    f.expect(await p.evaluate(back, nth), 'focus did not go back to the envelope after ' + how)
+
+
 async def flow_sealed_envelope(f, guest):
+    """Each sealed envelope opens its info panel; Escape, a tap outside and the close control shut it, focus goes back."""
     p = f.page
     await with_seen_home(f, guest, replied(guest, 'villa'))
-    await p.click('#first .fh-env >> nth=0')
-    await p.wait_for_timeout(400)
-    f.expect(await p.is_visible('#first .fh-toast'), 'no toast on a sealed envelope')
-    await f.stop('sealed-before-date', TOAST)
+    await open_envelope(f, 0)
+    await f.stop('envelope-estate', CARD_ENVELOPE + ['.fe-what', '.fe-remind'])
+    await p.keyboard.press('Escape')
+    await envelope_closed(f, 0, 'Escape')
+    await open_envelope(f, 1)
+    await f.stop('envelope-room', CARD_ENVELOPE + ['.fe-what', '.fe-remind'])
+    await p.mouse.click(8, 8)
+    await envelope_closed(f, 1, 'a tap outside')
+    await open_envelope(f, 5)
+    await f.stop('envelope-photos', CARD_ENVELOPE + ['.fe-what'])
+    f.expect(await p.locator('#first .fe-remind').count() == 0, 'the photos panel offered Remind me with no date')
+    await p.click('#first .fc-close')
+    await envelope_closed(f, 5, 'the close control')
     await p.goto(f.url(guest['token'], ESTATE_DUE))
     await see_home(p)
-    await p.click('#first .fh-env >> nth=0')
-    await p.wait_for_timeout(400)
-    f.expect(await p.is_visible('#first .fh-toast'), 'no toast on an envelope tapped after its date')
+    await open_envelope(f, 0)
+    f.expect(await p.locator('#first .fe-remind').count() == 0, 'an envelope past its date offered Remind me')
+    f.expect((await p.text_content('#first .fe-when')).strip() == 'Nearly ready', 'an envelope past its date did not say Nearly ready')
     f.expect(await p.locator('#first .fh').count() == 1, 'left home on a sealed tap')
-    await f.stop('sealed-after-date', TOAST)
+    await f.stop('envelope-after-date', CARD_ENVELOPE)
 
 
 SLOW_FALSE = "() => { window.__writes = 0; sjFirst.store.%s = () => { window.__writes++; return new Promise(r => setTimeout(() => r(%s), 2500)); }; }"
