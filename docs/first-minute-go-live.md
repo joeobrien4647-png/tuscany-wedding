@@ -14,6 +14,8 @@ Before you start:
 
 The branch adds one block, `household`, to `firebase.rules.json`. Nothing else in the file changes compared with the published site's copy.
 
+The song board adds `songs` and `pub` under `household`, and two top-level blocks, `songOwner` and `board` (section 4f). Publish these rules before the song board code is pushed: until then every song save is refused. They are proven on the local emulator by `scripts/check-song-rules.cjs` (its header has the command).
+
 1. Firebase console, Realtime Database, Rules tab. Copy what is live now into a file you keep (your way back).
 2. Compare the live rules with `firebase.rules.json` on `main`. If they differ, stop and work out why before going on: pasting the branch's file would overwrite the difference.
 3. Paste the branch's `firebase.rules.json` and publish.

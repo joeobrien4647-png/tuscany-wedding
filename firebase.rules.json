@@ -81,7 +81,44 @@
           },
           "$other": { ".validate": false }
         },
+        "songs": {
+          ".write": "now < 1810422000000 && (!newData.exists() || root.child('household').child($token).child('reply').child('answer').val() === 'yes')",
+          ".validate": "newData.hasChildren(['list', 'at'])",
+          "at": { ".validate": "newData.val() == now" },
+          "list": {
+            ".validate": "newData.hasChild('0') && (!newData.hasChild('2') || newData.hasChild('1')) && (!newData.hasChild('1') || newData.child('1/id').val() != newData.child('0/id').val()) && (!newData.hasChild('2') || (newData.child('2/id').val() != newData.child('0/id').val() && newData.child('2/id').val() != newData.child('1/id').val()))",
+            "$i": {
+              ".validate": "$i.matches(/^[0-2]$/) && newData.hasChildren(['id', 'title', 'artist'])",
+              "id": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{1,12}$/) && !root.child('board').child('hidden').child(newData.val()).exists()" },
+              "title": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 200" },
+              "artist": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 200" },
+              "$other": { ".validate": false }
+            }
+          },
+          "$other": { ".validate": false }
+        },
+        "pub": {
+          ".write": "!data.exists() && newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{20}$/) && root.child('songOwner').child(newData.val()).val() === $token"
+        },
         "$other": { ".validate": false }
+      }
+    },
+    "songOwner": {
+      "$pub": {
+        ".write": "!data.exists() && $pub.matches(/^[A-Za-z0-9_-]{20}$/) && newData.isString() && newData.val().matches(/^[A-Za-z0-9_-]{16,64}$/) && root.child('welcome').child(newData.val()).exists()"
+      }
+    },
+    "board": {
+      ".read": true,
+      "picks": {
+        "$pub": {
+          ".write": "root.child('songOwner').child($pub).exists() && root.child('household').child(root.child('songOwner').child($pub).val()).child('pub').val() === $pub && (newData.exists() || !root.child('household').child(root.child('songOwner').child($pub).val()).child('songs').exists())",
+          ".validate": "root.child('songOwner').child($pub).exists() && newData.child('0').val() === root.child('household').child(root.child('songOwner').child($pub).val()).child('songs/list/0/id').val() && newData.child('1').val() === root.child('household').child(root.child('songOwner').child($pub).val()).child('songs/list/1/id').val() && newData.child('2').val() === root.child('household').child(root.child('songOwner').child($pub).val()).child('songs/list/2/id').val()",
+          "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.isString()" }
+        }
+      },
+      "hidden": {
+        "$id": { ".validate": "$id.matches(/^[0-9]{1,12}$/) && newData.val() === true" }
       }
     },
     "travel": {
