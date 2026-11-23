@@ -107,11 +107,11 @@ test('H13: the swipe line is read by the Weekend view, so it is in the words', (
 test('H14: a sealed envelope past its date says it is nearly ready, not the old date', () => {
   const h = require('../js/first/home.js');
   const after = Date.UTC(2027, 1, 2, 9);
-  const list = h.envelopes(after, words);
-  assert.ok(list[0].toast.endsWith(words.home.soon) && !list[0].toast.includes('1 Feb'), list[0].toast);
+  const list = h.envelopes(after, words), info = key => h.envelopeInfo(key, after, '', words);
+  assert.ok(info('estate').when === words.home.soon && !info('estate').when.includes('1 Feb'), info('estate').when);
   assert.ok(list[0].label.includes(words.home.soon), list[0].label);
-  assert.equal(list[1].toast, core.fill(words.home.opens, { date: 'Thu 1 Apr' }));
-  assert.equal(list[5].toast, core.fill(words.home.opens, { date: 'June' }));
+  assert.equal(info('room').when, core.fill(words.home.opens, { date: 'Thu 1 Apr' }));
+  assert.equal(info('photos').when, words.home.photosOpens);
   assert.ok(typeof words.home.soon === 'string' && words.home.soon.length < 24);
 });
 

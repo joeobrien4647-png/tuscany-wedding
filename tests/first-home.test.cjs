@@ -19,7 +19,7 @@ test('home loads in Node without touching the page', () => {
   assert.equal(typeof h.home.clear, 'function');
 });
 
-test('six envelopes from LOCKS, each sealed, named and stamped with its date', () => {
+test('six envelopes from LOCKS, each sealed, named and stamped; the spoken name says what is inside can be seen', () => {
   const list = home().envelopes(NOV, words);
   assert.equal(list.length, 6);
   assert.deepEqual(list.map(e => e.key), core.LOCKS.map(l => l.key));
@@ -29,26 +29,33 @@ test('six envelopes from LOCKS, each sealed, named and stamped with its date', (
     assert.equal(e.name, words.home.envelopes[lock.key].name);
     const date = lock.opensMs === null ? words.home.photosStamp : core.ukDate(lock.opensMs);
     assert.equal(e.stamp, date);
-    const when = core.fill(words.home.opens, { date }), what = words.home.envelopes[lock.key].what;
-    assert.equal(e.toast, what ? core.fill(words.home.inside, { what, when }) : when);
-    assert.ok(e.label.includes(e.name) && e.label.includes(date), e.label);
+    assert.ok(e.label.includes(e.name) && e.label.includes(date) && e.label.endsWith(', ' + words.home.seeInside), e.label);
+    assert.equal(e.toast, undefined, 'no tap note: the panel says what is inside');
   });
-  assert.ok(list[0].toast.startsWith(words.home.envelopes.estate.what) && list[0].toast.endsWith('Opens Mon 1 Feb'), list[0].toast);
-  assert.equal(list[5].toast, 'Opens June');
+  const due = home().envelopes(Date.UTC(2027, 1, 2, 12), words)[0];
+  assert.ok(!due.label.includes(words.home.envelopes.estate.what), 'the spoken name stays short: the panel holds the words');
 });
 
-test('each envelope has a slot for what is inside; with words there, its note says it before when it opens', () => {
-  assert.equal(typeof words.home.envelopes.estate.what, 'string');
-  assert.match(words.home.inside, /\{what\}/);
-  assert.match(words.home.inside, /\{when\}/);
-  const w = JSON.parse(JSON.stringify(words));
-  w.home.envelopes.menu.what = 'Sample words';
-  assert.equal(home().envelopes(NOV, w)[2].toast, core.fill(w.home.inside, { what: 'Sample words', when: 'Opens Sat 1 May' }));
-  delete w.home.envelopes.menu.what;
-  assert.equal(home().envelopes(NOV, w)[2].toast, 'Opens Sat 1 May', 'no words there: just the date');
-  const due = home().envelopes(Date.UTC(2027, 1, 2, 12), words)[0];
-  assert.ok(due.toast.startsWith(words.home.envelopes.estate.what) && due.toast.endsWith(words.home.soon), due.toast);
-  assert.ok(!due.label.includes(words.home.envelopes.estate.what), 'the spoken name stays short: the note is announced as it shows');
+const IPHONE_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', ANDROID_UA = 'Mozilla/5.0 (Linux; Android 15; Pixel 7)';
+test('envelopeInfo: what each envelope holds, when it opens, and Remind me for its own day', () => {
+  const info = (key, now, ua) => home().envelopeInfo(key, now, ua, words);
+  assert.deepEqual(info('estate', NOV, IPHONE_UA), { key: 'estate', name: 'The estate', what: words.home.envelopes.estate.what, when: 'Opens Mon 1 Feb', remind: 'tuscany-2027-dates.ics' });
+  const room = info('room', NOV, ANDROID_UA);
+  assert.equal(room.when, 'Opens Thu 1 Apr');
+  assert.ok(room.remind.startsWith('https://calendar.google.com/') && room.remind.includes('dates=20270401/20270402'), room.remind);
+  assert.ok(room.remind.includes(encodeURIComponent(core.fill(words.home.remindEvent, { name: 'Your room' }))), room.remind);
+  const photos = info('photos', NOV, IPHONE_UA);
+  assert.deepEqual([photos.when, photos.remind], [words.home.photosOpens, null], 'no date: no reminder');
+  const due = info('estate', Date.UTC(2027, 1, 2, 9), IPHONE_UA);
+  assert.deepEqual([due.when, due.remind], [words.home.soon, null], 'past its date: nearly ready, no reminder');
+  assert.equal(info('castle', NOV, IPHONE_UA), null);
+});
+
+test('every envelope has words for what it holds, and the panel words are in place', () => {
+  core.LOCKS.forEach(l => assert.ok(typeof words.home.envelopes[l.key].what === 'string' && words.home.envelopes[l.key].what.length > 0, l.key));
+  assert.equal(words.home.seeInside, "see what's inside");
+  assert.equal(words.home.photosOpens, 'Opens in June');
+  assert.equal(words.home.inside, undefined, 'the tap note words are gone');
 });
 
 test('every envelope stays sealed in phase 1, even after its date', () => {

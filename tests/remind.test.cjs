@@ -23,6 +23,11 @@ test('Remind me points at the dates file, or on Android at Google Calendar for t
   const april = new URL(home().remindHref(Date.UTC(2027, 1, 2), ANDROID, words));
   assert.equal(april.searchParams.get('dates'), '20270401/20270402', 'after the estate opens, the room is next (BST)');
   assert.equal(home().remindHref(Date.UTC(2027, 4, 2), IPHONE, words), null, 'no envelope left to open: no link');
+  // With an envelope named: that envelope's own day, or nothing when it has no date or its date has passed.
+  assert.ok(new URL(home().remindHref(NOV, ANDROID, words, 'menu')).searchParams.get('dates') === '20270501/20270502');
+  assert.equal(home().remindHref(NOV, IPHONE, words, 'menu'), 'tuscany-2027-dates.ics');
+  assert.equal(home().remindHref(NOV, ANDROID, words, 'photos'), null);
+  assert.equal(home().remindHref(Date.UTC(2027, 1, 2, 9), ANDROID, words, 'estate'), null);
 });
 
 test('the dates file holds the weekend and each opening day, and no personal link', () => {

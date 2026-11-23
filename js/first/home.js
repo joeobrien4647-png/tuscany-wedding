@@ -21,17 +21,15 @@
   // The six envelopes as the screen shows them. In phase 1 none has content, so every one is sealed.
   function envelopes(nowMs, w) {
     return core.LOCKS.map(lock => {
-      const name = w.home.envelopes[lock.key].name, what = w.home.envelopes[lock.key].what;
+      const name = w.home.envelopes[lock.key].name;
       const stamp = lock.opensMs === null ? w.home.photosStamp : core.ukDate(lock.opensMs);
       // Past its date with nothing inside yet: it is nearly ready, never "opens" on a date gone by.
       const due = lock.opensMs !== null && nowMs >= lock.opensMs;
+      // The spoken name stays short; a tap opens the panel that says what it holds (envelopeInfo).
       return {
         key: lock.key, name, stamp,
         state: core.lockState(lock, nowMs, false),
-        label: name + ', ' + (due ? w.home.soon : core.fill(w.home.sealed, { date: stamp })),
-        // What it holds, when there are words for it, then when it opens (the note is announced as it shows).
-        toast: what ? core.fill(w.home.inside, { what, when: due ? w.home.soon : core.fill(w.home.opens, { date: stamp }) })
-          : due ? w.home.soon : core.fill(w.home.opens, { date: stamp })
+        label: name + ', ' + (due ? w.home.soon : core.fill(w.home.sealed, { date: stamp })) + ', ' + w.home.seeInside
       };
     });
   }
@@ -59,20 +57,30 @@
 
   // The next envelope by name and how long until it opens, or null after the last dated one.
   // Remind me: a calendar file of the weekend and the envelopes' opening days, or, on Android, where Google Calendar
-  // cannot read such a file, Google Calendar's own form for the next envelope's day. No envelope left: no link.
+  // cannot read such a file, Google Calendar's own form for the next envelope's day (or, with a key, that envelope's).
+  // No envelope left, or the named one has no date or is past it: no link.
   const SITE = 'https://sophieandjoe2027.com', DATES_FILE = 'tuscany-2027-dates.ics';
   const UK_DAY = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/London', year: 'numeric', month: '2-digit', day: '2-digit' });
   function calendarDay(ms) {
     const parts = UK_DAY.formatToParts(new Date(ms)), part = t => parts.find(p => p.type === t).value;
     return part('year') + part('month') + part('day');
   }
-  function remindHref(nowMs, ua, w) {
-    const lock = core.nextLock(nowMs);
+  function remindHref(nowMs, ua, w, key) {
+    const lock = key ? core.LOCKS.find(l => l.key === key && l.opensMs !== null && l.opensMs > nowMs) || null : core.nextLock(nowMs);
     if (!lock) return null;
     if (!/Android/i.test(ua || '')) return DATES_FILE;
     return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' +
       encodeURIComponent(core.fill(w.home.remindEvent, { name: w.home.envelopes[lock.key].name })) +
       '&dates=' + calendarDay(lock.opensMs) + '/' + calendarDay(lock.opensMs + 86400000) + '&details=' + encodeURIComponent(SITE);
+  }
+
+  // What an envelope's info panel says: its name, what it holds, when it opens, and Remind me for its own day.
+  function envelopeInfo(key, nowMs, ua, w) {
+    const lock = core.LOCKS.find(l => l.key === key), words = lock ? w.home.envelopes[key] : null;
+    if (!words) return null;
+    const when = lock.opensMs === null ? w.home.photosOpens
+      : nowMs >= lock.opensMs ? w.home.soon : core.fill(w.home.opens, { date: core.ukDate(lock.opensMs) });
+    return { key, name: words.name, what: words.what || '', when, remind: remindHref(nowMs, ua, w, key) };
   }
 
   function nextLine(nowMs, w) {
@@ -438,7 +446,7 @@
     document.addEventListener('visibilitychange', () => { if (current && document.visibilityState === 'visible') refresh(); });
   }
 
-  const api = { envelopes, dockItems, bigCount, nextLine, remindHref, afterRefresh, stayChanged, readFresh, home: { show, refresh, repaint, toast: toastHome, clear } };
+  const api = { envelopes, envelopeInfo, dockItems, bigCount, nextLine, remindHref, afterRefresh, stayChanged, readFresh, home: { show, refresh, repaint, toast: toastHome, clear } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

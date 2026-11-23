@@ -69,7 +69,8 @@
       allOpen: 'Everything is open',
       opens: 'Opens {date}',
       soon: 'Nearly ready',
-      inside: '{what}. {when}',
+      seeInside: 'see what\'s inside',
+      photosOpens: 'Opens in June',
       today: 'Today',
       sealed: 'Sealed until {date}',
       open: 'Open',
@@ -78,14 +79,15 @@
       questions: 'Questions',
       watch: 'Watch the invitation again',
       notYou: 'Not you?',
-      // what (only once Joe writes it): what an envelope holds, said in its tap note before when it opens.
+      // what: what an envelope holds, shown in its info panel. The estate's line is Joe's; the other five are
+      // placeholders for him to rewrite.
       envelopes: {
         estate: { name: 'The estate', what: 'Check out the venue and where you\'ll be staying' },
-        room: { name: 'Your room' },
-        menu: { name: 'The menu' },
-        table: { name: 'Your table' },
-        film: { name: 'The film' },
-        photos: { name: 'The photos' }
+        room: { name: 'Your room', what: 'Which room is yours' },
+        menu: { name: 'The menu', what: 'What we\'ll eat on the day' },
+        table: { name: 'Your table', what: 'Where you\'re sitting' },
+        film: { name: 'The film', what: 'A film to watch before the weekend' },
+        photos: { name: 'The photos', what: 'Photos from the weekend' }
       },
       photosStamp: 'June'
     },
