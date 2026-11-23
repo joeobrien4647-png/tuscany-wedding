@@ -15,12 +15,12 @@ const ONE = { token: 'tCardsOne000001aa', display: 'Robin Ash', people: ['Robin 
 const TWO = { token: 'tCardsTwo000002bb', display: 'Kit and Sam', people: ['Kit Moss', 'Sam Lee'] };
 const allText = o => JSON.stringify(o);
 
-test('cards load in Node without touching the page; six keys, open and close', () => {
+test('cards load in Node without touching the page; seven keys, open and close', () => {
   const c = cards();
-  assert.deepEqual(c.CARD_KEYS, ['reply', 'stay', 'travel', 'weekend', 'questions', 'envelope']);
+  assert.deepEqual(c.CARD_KEYS, ['reply', 'stay', 'travel', 'weekend', 'songs', 'questions', 'envelope']);
   assert.equal(typeof c.cards.open, 'function');
   assert.equal(typeof c.cards.close, 'function');
-  assert.deepEqual(c.cards.built().sort(), ['envelope', 'questions', 'reply', 'stay', 'travel', 'weekend']);
+  assert.deepEqual(c.cards.built().sort(), ['envelope', 'questions', 'reply', 'songs', 'stay', 'travel', 'weekend']);
 });
 
 test('open with a key that is not a card at all does nothing', () => {

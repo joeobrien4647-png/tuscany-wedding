@@ -5,7 +5,7 @@
 // name is set with textContent. open(key, ctx, { root, from }) opens a built card, anything else does nothing; close().
 (function (root) {
   'use strict';
-  const CARD_KEYS = ['reply', 'stay', 'travel', 'weekend', 'questions', 'envelope'];
+  const CARD_KEYS = ['reply', 'stay', 'travel', 'weekend', 'songs', 'questions', 'envelope'];
   const STAY_KEYS = ['villa', 'own', 'later'];
 
   // core.js loads first on the page; under Node tests it is required here.
@@ -449,6 +449,10 @@
   // ---------- the Weekend card ----------
   // Four day tiles and a day that opens full screen: js/first/weekend-card.js.
   CARDS.weekend = { build: card => root.sjFirst.weekendCard.build(card) };
+
+  // ---------- the Songs card ----------
+  // A household's own songs, a search of Apple's catalogue and everyone's requests: js/first/songs-card.js.
+  CARDS.songs = { build: card => root.sjFirst.songsCard.build(card) };
 
   // ---------- the envelope info panel ----------
   // Built by home.js, beside the seal art it reuses; card.data is the envelope's key.

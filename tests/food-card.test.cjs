@@ -79,7 +79,7 @@ test('food styles live inside #first under the Reply card, and the names list go
   assert.match(css, /#first \.fc-reply \.ff-note input \{[^}]*font-size: (1[6-9]|[2-9]\d)px/);
 });
 test('index.html loads food-card before cards', () => {
-  assert.match(read('index.html'), /\["core", "food-core", "words", "store", "sound", "fx", "minute", "reply", "home", "travel-core", "travel-map", "travel-card", "weekend-card", "food-card", "cards", "app"\]/);
+  assert.match(read('index.html'), /\["core", "food-core", "words", "store", "sound", "fx", "minute", "reply", "home", "travel-core", "travel-map", "travel-card", "weekend-card", "food-card", "songs-core", "apple", "songs-card", "cards", "app"\]/);
 });
 test('the smaller step heading hangs on a class the step sets, not on :has()', () => {
   const css = read('css/first.css');

@@ -288,6 +288,29 @@
       weather: { q: 'Weather and packing?', a: ['Bring swimwear and a layer for the evening', 'More on the weather nearer the time'] },
       bring: { q: 'Can I bring someone?', a: ['Plus-ones are very limited', 'Please ask Joe or Sophie directly'] }
     },
+    songs: {
+      title: 'Songs',
+      promise: "No guarantees they'll get played on the weekend",
+      yours: 'Your songs',
+      board: "Everyone's requests",
+      search: 'Search for a song or artist',
+      add: 'Add',
+      metoo: 'Me too',
+      mine: 'Yours',
+      remove: 'Remove',
+      play: 'Play a preview of {title}',
+      apple: 'Apple Music',
+      count: '{n} requests',
+      countOne: '1 request',
+      full: 'Remove one to add another',
+      empty: 'No requests yet',
+      none: 'Nothing found',
+      closed: 'Requests are closed',
+      replyFirst: 'Reply first, then add songs',
+      failed: 'Could not load the requests',
+      searchFailed: 'Could not search right now',
+      credit: 'Song previews provided courtesy of iTunes'
+    },
     wait: {
       line: 'One moment'
     },

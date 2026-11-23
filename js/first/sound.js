@@ -8,7 +8,7 @@
   const read = k => { try { return root.localStorage.getItem(k); } catch (e) { return null; } };
   const write = (k, v) => { try { root.localStorage.setItem(k, v); } catch (e) { /* not remembered on this phone */ } };
 
-  let el = null, ac = null, master = null, mg = null, wired = false, wanted = false, noiseBuf = null;
+  let el = null, ac = null, master = null, mg = null, wired = false, wanted = false, ducked = false, noiseBuf = null;
   let isOn = read(KEY) !== 'off';
 
   const saveData = () => { try { return !!(root.navigator.connection && root.navigator.connection.saveData); } catch (e) { return false; } };
@@ -38,6 +38,7 @@
     if (!m) return;
     const c = ctx();
     wanted = true;
+    ducked = false;
     if (c && !wired) {
       try { const src = c.createMediaElementSource(m); mg = c.createGain(); mg.gain.value = 0.0001; src.connect(mg); mg.connect(master); wired = true; } catch (e) { mg = null; }
     }
@@ -48,8 +49,30 @@
   }
   function quiet() {
     wanted = false;
+    ducked = false;
     if (mg && ac) mg.gain.setTargetAtTime(0.0001, ac.currentTime, 0.25);
     root.setTimeout(() => { if (!wanted && el) el.pause(); }, 1400);
+  }
+  // A song preview over the music: duck(true) fades the music out and pauses it once faded (at once without Web Audio);
+  // duck(false) plays it on from where it was and fades it back in, only while the music is wanted.
+  function duck(down) {
+    if (down) {
+      if (ducked) return;
+      ducked = true;
+      if (!el) return;
+      if (mg && ac) {
+        const t = ac.currentTime;
+        mg.gain.cancelScheduledValues(t); mg.gain.setValueAtTime(mg.gain.value, t); mg.gain.setTargetAtTime(0.0001, t, 0.25);
+        root.setTimeout(() => { if (ducked && el) el.pause(); }, 1400);
+      } else el.pause();
+      return;
+    }
+    if (!ducked) return;
+    ducked = false;
+    if (!wanted || !el) return;
+    unlock();
+    play(el);
+    if (mg && ac) { const t = ac.currentTime; mg.gain.cancelScheduledValues(t); mg.gain.setValueAtTime(0.0001, t); mg.gain.exponentialRampToValueAtTime(0.42, t + 1.6); }
   }
   function tone(freq, t0, dur, vol, type) {
     if (!ac) return;
@@ -82,11 +105,11 @@
     document.addEventListener('visibilitychange', () => {
       if (!el) return;
       if (document.hidden) { if (wanted) el.pause(); return; }
-      if (wanted) { unlock(); play(el); }
+      if (wanted && !ducked) { unlock(); play(el); }
     });
   }
 
-  const api = { sound: { prepare, unlock, music, quiet, crack, chime, pop, boom, toggle, on } };
+  const api = { sound: { prepare, unlock, music, quiet, duck, crack, chime, pop, boom, toggle, on } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
