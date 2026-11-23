@@ -115,6 +115,23 @@ test('the phone-fit script walks the Getting there card: every stop the plan nam
   assert.match(py, /flow_travel_ways/);
   assert.match(py, /flow_travel_failures/);
 });
+test('the phone-fit script walks the Songs card, with Apple answered from fixtures and never contacted', () => {
+  const py = source();
+  const registered = py.slice(py.indexOf('PER_INVITE = ['), py.indexOf('def plan('));
+  for (const [name, fn] of [['songs-board', 'flow_songs_board'], ['songs-save', 'flow_songs_save'], ['songs-metoo', 'flow_songs_metoo'],
+    ['songs-closed', 'flow_songs_closed'], ['songs-apple-down', 'flow_songs_apple_down']])
+    assert.ok(registered.includes("('" + name + "', " + fn + ', '), name + ' is not registered');
+  assert.ok(py.includes("APPLE = re.compile(r'itunes" + String.fromCharCode(92) + ".apple" + String.fromCharCode(92) + ".com')"), 'APPLE');
+  assert.ok(py.includes("ART = re.compile(r'mzstatic" + String.fromCharCode(92) + ".com')"), 'ART');
+  assert.ok(py.includes('await self.context.route(APPLE, self.answer_apple)'), 'Apple is answered for every page');
+  assert.ok(py.includes('await self.context.route(ART, self.answer_art)'), 'covers are answered for every page');
+  for (const stop of ['songs-busy', 'songs-busy-end', 'songs-search', 'songs-search-none', 'songs-empty', 'songs-added', 'songs-full',
+    'songs-metoo', 'songs-closed', 'songs-apple-down', 'songs-search-down', 'songs-dock-done'])
+    assert.ok(py.includes("'" + stop + "'"), stop);
+  assert.ok(py.includes("(4, 'songs', CARD_SONGS"), 'the cards walk opens the fifth dock item, card-songs');
+  assert.match(py, /SCROLL_OK = \[[^\]]*'\.sg-scroll',\s+#\s*\S/s, 'the Songs card scroller is named with its reason');
+  assert.ok(py.includes("CARD_SONGS = CARD + ['.sg-promise', '.sg-board']"), 'CARD_SONGS');
+});
 test('the phone-fit script names its three new exceptions and why', () => {
   const py = source();
   assert.match(py, /SCROLL_OK = \[\s*'\.tc-opts',\s+#/);
@@ -129,10 +146,10 @@ test('the phone-fit script covers a missing map script and going back from a cha
   assert.match(py, /flow_travel_no_map/);
 });
 
-test('the phone-fit script walks the Weekend screen and the four-button home, and no longer the Wear card', () => {
+test('the phone-fit script walks the Weekend screen and the five-button home, and no longer the Wear card', () => {
   const py = source();
   for (const stop of ['weekend-tiles', 'weekend-fri', 'weekend-sat', 'weekend-sun', 'weekend-mon', 'weekend-after-swipe', 'weekend-back-to-tiles',
-    'weekend-fullest-day', 'weekend-no-pictures', 'home-four-buttons'])
+    'weekend-fullest-day', 'weekend-no-pictures', 'home-five-buttons'])
     assert.ok(py.includes("'" + stop + "'"), stop);
   assert.match(py, /\('weekend', flow_weekend\)/);
   assert.ok(!py.includes('card-wear'), 'the Wear card stop is still there');

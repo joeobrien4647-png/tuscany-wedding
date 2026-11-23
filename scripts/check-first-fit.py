@@ -14,13 +14,16 @@ A run restricted with --device, --flow, --inject-css or --block-fonts prints PAR
 Needs Python Playwright with Chromium and WebKit installed (imported only when a run starts).
 Fixtures it creates are removed when it ends; their tokens carry a random run id so two runs never share them.
 """
-import argparse, asyncio, atexit, functools, http.server, json, os, re, secrets, socket, sys, threading
+import argparse, asyncio, atexit, base64, functools, http.server, json, os, re, secrets, socket, sys, threading, urllib.parse
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 FIXTURES = os.path.join(ROOT, '.local-test')
 # Both address families of the real database, over http and over websockets.
 REAL_DATABASE = re.compile(r'firebasedatabase\.app|firebaseio\.com', re.I)
 FONT_HOSTS = re.compile(r'fonts\.(googleapis|gstatic)\.com')
+# Apple's catalogue and its covers: answered from the invented catalogue below, so the check never depends on Apple.
+APPLE = re.compile(r'itunes\.apple\.com')
+ART = re.compile(r'mzstatic\.com')
 
 # The clock is fixed so the check gives the same answer on any day (the page reads ?fnow= in local-test mode).
 NOW = 1794744000000                 # Sun 15 Nov 2026, 12:00 UTC
@@ -29,6 +32,7 @@ AFTER_CLOSE = REPLIES_CLOSE_MS + 86400000
 ESTATE_DUE = 1801558800000          # Tue 2 Feb 2027, 09:00 UK, after the estate envelope's date
 WEDDING_DAY = 1811545200000 + 3600000   # Sat 29 May 2027, 01:00 UK
 DAY_AFTER = 1811545200000 + 2 * 86400000
+SONGS_CLOSE_MS = 1810422000000      # Sun 16 May 2027, 00:00 UK: song requests closed (core.SONGS_CLOSE_MS)
 
 # Words the checks look for (they live in js/first/words.js and are placeholders there).
 TRY_AGAIN = 'Try again'
@@ -88,6 +92,7 @@ CARD_DAY = CARD + ['.wk-live .wk-date', '.wk-live .wk-name', '.wk-live .wk-part'
 # A real day leaves room for the words on the see-the-picture control beside its icon.
 CARD_DAY_SEE = CARD_DAY + ['.wk-see-t']
 CARD_QUESTIONS = CARD + ['.fc-q-head']
+CARD_SONGS = CARD + ['.sg-promise', '.sg-board']
 # The food step: ten picks and the note on every screen; Next until the last screen, then Done. Read only has no note box.
 FOOD = CARD + ['.ff-pick', '.ff-note', '.ff-done']
 FOOD_NEXT = CARD + ['.ff-pick', '.ff-note', '.ff-next']
@@ -105,6 +110,7 @@ DRIFT_OK = [
 ]
 SCROLL_OK = [
     '.tc-opts',      # the Getting there tray's list scrolls inside itself (the approved design's one exception); never sideways
+    '.sg-scroll',    # the Songs card's lists scroll inside it: a busy board is taller than any phone; never sideways
 ]
 DAY_CLIPS_OK = [
     '.wk-day',       # clips on purpose: its pictures are bigger than the screen and its four pages sit side by side; each page and picture is measured on its own
@@ -315,9 +321,14 @@ class Fixtures:
         for field in ('display', 'lines', 'people'):
             self._write(os.path.join(FIXTURES, 'welcome', guest['token'], field + '.json'), guest[field])
         self.household(guest['token'], None)
+        self.board(guest['token'], {'picks': {}, 'hidden': {}})
 
     def household(self, token, record):
         self._write(os.path.join(FIXTURES, 'household', token + '.json'), record)
+
+    def board(self, token, board):
+        """The song board this invitation's page reads in local-test mode (one per invitation, never shared)."""
+        self._write(os.path.join(FIXTURES, 'board', token + '.json'), board)
 
     def remove(self):
         for path in self.files:
@@ -333,13 +344,58 @@ class Fixtures:
         self.files, self.dirs = [], []
 
 
-def replied(guest, stay=None, food=None):
+def replied(guest, stay=None, food=None, songs=None, pub=None):
     record = {'reply': {'answer': 'yes', 'coming': [True] * len(guest['people']), 'at': 1790000000000}}
     if stay:
         record['stay'] = {'choice': stay, 'at': 1790000000001}
     if food:
         record['food'] = food
+    if songs:
+        record['songs'] = {'list': songs, 'at': 1790000000002}
+    if pub:
+        record['pub'] = pub
     return record
+
+# ---------- the invented catalogue the Songs card sees (Apple itself is never contacted) ----------
+# Ids from 9100000001. Song 3 has a title of about 120 characters, song 4 no preview and song 5 no artwork.
+# A search for 'nothing' finds nothing; any other term finds songs 1 to 8.
+LONG_TITLE = ('A Very Long Song Title That Keeps On Going Well Past The Point Where Anyone '
+              'Would Stop Reading It, Recorded Live One Night')
+
+
+def apple_song(n):
+    sid = 9100000000 + n
+    song = {'wrapperType': 'track', 'kind': 'song', 'trackId': sid, 'artistName': 'Test Band %d' % n,
+            'trackName': LONG_TITLE if n == 3 else 'Test Song %d' % n, 'collectionName': 'Test Album', 'country': 'GBR',
+            'trackViewUrl': 'https://music.apple.com/gb/album/test/%d?i=%d' % (sid, sid), 'trackExplicitness': 'notExplicit'}
+    if n != 4:
+        song['previewUrl'] = 'https://audio-ssl.itunes.apple.com/itunes-assets/test/%d.m4a' % sid
+    if n != 5:
+        song['artworkUrl100'] = 'https://is1-ssl.mzstatic.com/image/thumb/test/%d/100x100bb.jpg' % sid
+    return song
+
+
+CATALOGUE = {str(9100000000 + n): apple_song(n) for n in range(1, 61)}
+SEARCH_FINDS = [CATALOGUE[str(9100000000 + n)] for n in range(1, 9)]
+COVER_PNG = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==')
+OWN_CODE = 'fitcheck-mine-000001'   # a household's board code; others are fitcheck-board-NNNNN and fitcheck-other-NNNNN
+
+
+def song_entry(n):
+    """A song as a household's own list keeps it."""
+    s = CATALOGUE[str(9100000000 + n)]
+    return {'id': str(s['trackId']), 'title': s['trackName'], 'artist': s['artistName']}
+
+
+def busy_board(own_code, own):
+    """24 other households: the long title wanted by 12, three songs by 6 each (one of them taken down), five by 2 or 3,
+    24 by one each; and this household's own entry. 35 songs show."""
+    picks = {}
+    for c in range(24):
+        picks['fitcheck-board-%05d' % c] = [str(9100000000 + n) for n in (3 if c < 12 else 10 + c % 5, 6 + c % 4, 20 + c)]
+    picks[own_code] = [s['id'] for s in own]
+    return {'picks': picks, 'hidden': {'9100000007': True}}
+
 
 
 # ---------- one flow in one fresh browser context ----------
@@ -348,12 +404,15 @@ class Flow:
         self.browser, self.device, self.label, self.base, self.shots, self.results, self.css = browser, device, label, base, shots, results, css
         self.block_fonts = block_fonts
         self.errors, self.seen_errors, self.fails, self.context = [], 0, [], None
+        self.apple_down = False   # a flow that refuses Apple on purpose: the browser's own reports of it are expected
 
     async def open(self, options):
         self.context = await self.browser.new_context(**options)
         await self.context.route(REAL_DATABASE, self.refuse_database)
         if hasattr(self.context, 'route_web_socket'):
             await self.context.route_web_socket(REAL_DATABASE, self.refuse_socket)
+        await self.context.route(APPLE, self.answer_apple)
+        await self.context.route(ART, self.answer_art)
         if self.block_fonts:
             await self.context.route(FONT_HOSTS, lambda route: route.abort())
         self.page = await self.context.new_page()
@@ -368,6 +427,33 @@ class Flow:
         self.fails.append('asked the real database: ' + route.request.url)
         await route.abort()
 
+    async def apple_privacy(self, request, what):
+        headers = await request.all_headers()
+        for name in ('referer', 'cookie'):
+            if name in headers:
+                self.fails.append('%s was sent a %s: %s' % (what, name, request.url))
+        if 'fitcheck-' in request.url:
+            self.fails.append('%s was sent the invitation token: %s' % (what, request.url))
+
+    async def answer_apple(self, route):
+        """Search and lookup from the invented catalogue; anything else from Apple (a preview) is refused."""
+        await self.apple_privacy(route.request, 'Apple')
+        parts = urllib.parse.urlsplit(route.request.url)
+        query = urllib.parse.parse_qs(parts.query)
+        if parts.hostname == 'itunes.apple.com' and parts.path == '/search':
+            results = [] if query.get('term') == ['nothing'] else SEARCH_FINDS
+        elif parts.hostname == 'itunes.apple.com' and parts.path == '/lookup':
+            results = [CATALOGUE[i] for i in (query.get('id') or [''])[0].split(',') if i in CATALOGUE]
+        else:
+            await route.abort()
+            return
+        await route.fulfill(status=200, content_type='application/json', headers={'Access-Control-Allow-Origin': '*'},
+                            body=json.dumps({'resultCount': len(results), 'results': results}))
+
+    async def answer_art(self, route):
+        await self.apple_privacy(route.request, 'A cover')
+        await route.fulfill(status=200, content_type='image/png', body=COVER_PNG)
+
     async def refuse_socket(self, socket_route):
         self.fails.append('opened a websocket to the real database: ' + socket_route.url)
         await socket_route.close()
@@ -379,6 +465,8 @@ class Flow:
         if FONT_HOSTS.search(where) or FONT_HOSTS.search(message.text):
             return
         if 'Failed to load resource' in message.text and REAL_DATABASE.search(where):
+            return
+        if self.apple_down and (APPLE.search(where) or APPLE.search(message.text)):
             return
         self.errors.append('console: ' + message.text.splitlines()[0] + ' ' + where)
 
@@ -510,7 +598,7 @@ async def flow_full_minute(f, guest):
 
 
 async def flow_cards(f, guest):
-    """Home, then each of the five cards, and each Stay option."""
+    """Home, then each of the six cards, and each Stay option."""
     p = f.page
     await with_seen_home(f, guest, replied(guest))
     await f.stop('home-replied', HOME)
@@ -526,7 +614,7 @@ async def flow_cards(f, guest):
     await p.wait_for_selector('#first .fc', state='detached')
     await p.wait_for_timeout(500)
     await f.stop('home-after-stay', HOME)
-    for nth, name, required in ((2, 'travel', CARD_TRAVEL + ['.tc-chip']), (3, 'weekend', CARD_WEEKEND)):
+    for nth, name, required in ((2, 'travel', CARD_TRAVEL + ['.tc-chip']), (3, 'weekend', CARD_WEEKEND), (4, 'songs', CARD_SONGS + ['.sg-search', '.sg-empty'])):
         await open_dock(f, nth)
         if nth == 2:
             await map_still(f.page)
@@ -1106,10 +1194,10 @@ async def flow_weekend(f, guest):
     await p.click('#first .fc-close')
     await p.wait_for_timeout(450)
     f.expect(await p.locator('#first .fc').count() == 0, 'the close control did not close the card from the tiles')
-    f.expect(len(await p.evaluate(DOCK_JS)) == 4, 'the home screen does not have four buttons')
-    await f.stop('home-four-buttons', HOME)
+    f.expect(len(await p.evaluate(DOCK_JS)) == 5, 'the home screen does not have five buttons')
+    await f.stop('home-five-buttons', HOME)
     left, right = await p.evaluate(DOCK_EVEN_JS)
-    f.expect(abs(left - right) <= 2, 'the four buttons do not fill the dock evenly: %.0f px spare on the left, %.0f px on the right' % (left, right))
+    f.expect(abs(left - right) <= 2, 'the five buttons do not fill the dock evenly: %.0f px spare on the left, %.0f px on the right' % (left, right))
 
 
 async def flow_weekend_fullest(f, guest):
@@ -1506,6 +1594,123 @@ async def flow_food_cutoff_open(f, guest):
     f.expect(await load_food(f, guest) == {}, 'food was recorded after the cut-off')
 
 
+# ---------- the Songs card ----------
+SONGS_WORDS_JS = '() => sjFirst.words.songs'
+
+
+async def open_songs(f):
+    await open_dock(f, 4)
+    await f.page.wait_for_selector('#first .sg-board .sg-row, #first .sg-board .sg-empty, #first .sg-board .sg-failed', state='visible', timeout=8000)
+
+
+async def search(f, term, shows):
+    """Types a search and waits for what it should show (the debounce is 400 ms)."""
+    await f.page.fill('#first .sg-search', term)
+    await f.page.wait_for_selector('#first ' + shows, state='visible', timeout=8000)
+    await f.page.wait_for_timeout(300)
+
+
+async def flow_songs_board(f, guest):
+    """A busy board: the long title most wanted, a song taken down, this household's two songs (one with no preview,
+    one with no artwork). Then a search, and a search that finds nothing."""
+    p = f.page
+    own = [song_entry(4), song_entry(5)]
+    f.fixtures.board(guest['token'], busy_board(OWN_CODE, own))
+    await with_seen_home(f, guest, replied(guest, songs=own, pub=OWN_CODE))
+    await open_songs(f)
+    count = await p.locator('#first .sg-board .sg-row').count()
+    f.expect(count == 35, 'the board shows %d songs, not 35' % count)
+    f.expect(await p.inner_text('#first .sg-board .sg-row >> nth=0 >> .sg-title') == LONG_TITLE, 'the most wanted song is not first')
+    f.expect(await p.inner_text('#first .sg-board .sg-row >> nth=0 >> .sg-n') == '12 requests', 'the most wanted song does not count 12')
+    f.expect(await p.locator('#first .sg-board .sg-title', has_text='Test Song 7').count() == 0, 'a song taken down is on the board')
+    f.expect(await p.locator('#first .sg-board .sg-yours').count() == 2, 'the household\'s two songs are not marked as theirs')
+    await f.stop('songs-busy', CARD_SONGS + ['.sg-mine .sg-row', '.sg-board .sg-row', '.sg-search'])
+    await p.evaluate("() => { const s = document.querySelector('#first .sg-scroll'); s.scrollTop = s.scrollHeight; }")
+    await p.wait_for_timeout(400)
+    await f.stop('songs-busy-end', CARD_SONGS + ['.sg-credit'])
+    await p.evaluate("() => { document.querySelector('#first .sg-scroll').scrollTop = 0; }")
+    await search(f, 'test', '.sg-results .sg-row')
+    f.expect(await p.locator('#first .sg-results .sg-row').count() == 7, 'the search does not show its 7 songs (8 found, 1 taken down)')
+    f.expect(await p.locator('#first .sg-results .sg-add[disabled]').count() == 2, 'the household\'s own songs can be added again')
+    f.expect(await p.locator('#first .sg-results .sg-play').count() == 6, 'the play controls do not follow the previews')
+    await f.stop('songs-search', CARD_SONGS + ['.sg-results .sg-row'])
+    await search(f, 'nothing', '.sg-results .sg-none')
+    await f.stop('songs-search-none', CARD_SONGS + ['.sg-none'])
+
+
+async def flow_songs_save(f, guest):
+    """No songs and an empty board: add one, then two more until full; remove one; close. The dock follows."""
+    p = f.page
+    f.fixtures.board(guest['token'], {'picks': {}, 'hidden': {}})
+    await with_seen_home(f, guest, replied(guest))
+    dock = await p.evaluate(DOCK_JS)
+    f.expect(dock[4][0] == 'fh-glow', 'the Songs dock item does not glow with no songs: %s' % dock[4])
+    await open_songs(f)
+    await f.stop('songs-empty', CARD_SONGS + ['.sg-search', '.sg-empty'])
+    await search(f, 'test', '.sg-results .sg-row')
+    await p.click('#first .sg-results .sg-add >> nth=0')
+    await p.wait_for_selector('#first .sg-mine .sg-row', state='visible')
+    await p.wait_for_timeout(400)
+    f.expect(await p.locator('#first .sg-board .sg-yours').count() == 1, 'the added song is not on the board as this household\'s')
+    await f.stop('songs-added', CARD_SONGS + ['.sg-mine .sg-row', '.sg-yours'])
+    for _ in range(2):
+        await p.click('#first .sg-results .sg-add:not([disabled]) >> nth=0')
+        await p.wait_for_timeout(600)
+    f.expect(await p.locator('#first .sg-mine .sg-row').count() == 3, 'three songs were not added')
+    f.expect(await p.locator('#first .sg-search').count() == 0, 'the search still shows with three songs')
+    await f.stop('songs-full', CARD_SONGS + ['.sg-full', '.sg-mine .sg-row'])
+    await p.click('#first .sg-remove >> nth=0')
+    await p.wait_for_selector('#first .sg-search', state='visible')
+    f.expect(await p.locator('#first .sg-mine .sg-row').count() == 2, 'Remove did not take the song off the list')
+    await close_card(f)
+    dock = await p.evaluate(DOCK_JS)
+    f.expect(dock[4][0] == 'fh-done', 'the Songs dock item is not done with songs: %s' % dock[4])
+    await f.stop('songs-dock-done', HOME)
+
+
+async def flow_songs_metoo(f, guest):
+    """Me too on another household's request adds it to this list: its count goes up by one and it is marked theirs."""
+    p = f.page
+    f.fixtures.board(guest['token'], {'picks': {'fitcheck-other-00001': ['9100000001', '9100000002'], 'fitcheck-other-00002': ['9100000001']}, 'hidden': {}})
+    await with_seen_home(f, guest, replied(guest))
+    await open_songs(f)
+    top = '#first .sg-board .sg-row >> nth=0'
+    f.expect(await p.inner_text(top + ' >> .sg-n') == '2 requests', 'the board does not count two households')
+    await p.click(top + ' >> .sg-metoo')
+    await p.wait_for_selector(top + ' >> .sg-yours', state='visible')
+    f.expect(await p.inner_text(top + ' >> .sg-n') == '3 requests', 'Me too did not raise the count by one')
+    f.expect(await p.locator('#first .sg-mine .sg-row').count() == 1, 'Me too did not add the song to the list')
+    await f.stop('songs-metoo', CARD_SONGS + ['.sg-mine .sg-row', '.sg-yours'])
+
+
+async def flow_songs_closed(f, guest):
+    """After requests close: the board and this household's songs, read only."""
+    p = f.page
+    own = [song_entry(4), song_entry(1)]
+    f.fixtures.board(guest['token'], {'picks': {OWN_CODE: ['9100000004', '9100000001'], 'fitcheck-other-00001': ['9100000002']}, 'hidden': {}})
+    await with_seen_home(f, guest, replied(guest, songs=own, pub=OWN_CODE), SONGS_CLOSE_MS + 43200000)
+    await open_songs(f)
+    for sel in ('.sg-search', '.sg-remove', '.sg-metoo', '.sg-add'):
+        f.expect(await p.locator('#first ' + sel).count() == 0, sel + ' shows after requests closed')
+    await f.stop('songs-closed', CARD_SONGS + ['.sg-closed', '.sg-mine .sg-row', '.sg-board .sg-row'])
+
+
+async def flow_songs_apple_down(f, guest):
+    """Apple refuses everything: the household's songs still show, the board offers to try again, search says it could not."""
+    p = f.page
+    own = [song_entry(4)]
+    f.fixtures.board(guest['token'], {'picks': {OWN_CODE: ['9100000004'], 'fitcheck-other-00001': ['9100000001']}, 'hidden': {}})
+    f.apple_down = True
+    await f.context.route(APPLE, lambda route: route.abort())   # added after the catalogue's route, so it wins
+    await with_seen_home(f, guest, replied(guest, songs=own, pub=OWN_CODE))
+    await open_songs(f)
+    await f.stop('songs-apple-down', CARD_SONGS + ['.sg-mine .sg-row', '.sg-failed', '.sg-retry'])
+    words = await p.evaluate(SONGS_WORDS_JS)
+    await search(f, 'test', '.sg-err')
+    f.expect(await p.inner_text('#first .sg-err') == words['searchFailed'], 'a search Apple refused does not say so')
+    await f.stop('songs-search-down', CARD_SONGS + ['.sg-err', '.sg-mine .sg-row'])
+
+
 PER_INVITE = [('first-visit', flow_first_visit), ('cards', flow_cards), ('travel', flow_travel), ('cant-come', flow_cant_come), ('closed', flow_closed),
               ('closed-replied', flow_closed_replied), ('second-visit', flow_second_visit),
               ('weekend', flow_weekend)]
@@ -1520,7 +1725,9 @@ PER_DEVICE = [('no-link', flow_no_link, None), ('full-minute', flow_full_minute,
               ('food-one', flow_food_one, 0), ('food-couple', flow_food_couple, 1), ('food-fullest', flow_food_fullest, 2),
               ('food-eight', flow_food_eight, 'eight'), ('food-closed', flow_food_closed, 1), ('food-save', flow_food_save, 'spare'),
               ('food-three', flow_food_three, 'three'), ('food-both-phones', flow_food_both_phones, 1), ('food-leave', flow_food_leave, 1),
-              ('food-cutoff-open', flow_food_cutoff_open, 1)]
+              ('food-cutoff-open', flow_food_cutoff_open, 1),
+              ('songs-board', flow_songs_board, 1), ('songs-save', flow_songs_save, 'spare'), ('songs-metoo', flow_songs_metoo, 'spare'),
+              ('songs-closed', flow_songs_closed, 1), ('songs-apple-down', flow_songs_apple_down, 'spare')]
 
 
 def plan(invites, spare, eight, three, only=''):
