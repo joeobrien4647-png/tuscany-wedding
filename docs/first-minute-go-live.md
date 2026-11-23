@@ -12,15 +12,13 @@ Before you start:
 
 ## 1. Publish the database rules (Joe only)
 
-The branch adds one block, `household`, to `firebase.rules.json`. Nothing else in the file changes compared with the published site's copy.
-
-The song board adds `songs` and `pub` under `household`, and two top-level blocks, `songOwner` and `board` (section 4f). Publish these rules before the song board code is pushed: until then every song save is refused. They are proven on the local emulator by `scripts/check-song-rules.cjs` (its header has the command).
+The rules on `main` should match what is live. The song board branch adds only its own blocks to `firebase.rules.json`: `songs` and `pub` under `household`, and two top-level blocks, `songOwner` and `board` (section 4f). So in step 2 the live rules should match `main`, and the branch's file differs from both only by those blocks. Publish them before the song board code is pushed: until then every song save is refused. They are proven on the local emulator by `scripts/check-song-rules.cjs` (its header has the command).
 
 1. Firebase console, Realtime Database, Rules tab. Copy what is live now into a file you keep (your way back).
 2. Compare the live rules with `firebase.rules.json` on `main`. If they differ, stop and work out why before going on: pasting the branch's file would overwrite the difference.
 3. Paste the branch's `firebase.rules.json` and publish.
 
-What the new block allows: anyone holding a personal link can read and write that one household's reply and stay choice. Nobody without the link can read it, and nobody but a signed-in admin can list households. Replies close at the end of Sunday 28 February 2027. A stay choice needs a yes first.
+What the `household` block allows: anyone holding a personal link can read and write that one household's reply and stay choice. Nobody without the link can read it, and nobody but a signed-in admin can list households. Replies close at the end of Sunday 28 February 2027. A stay choice needs a yes first.
 
 Not yet proven: these rules have only been checked for shape by the tests. Section 4 is the real proof that they accept a reply. To see a refusal now, use the Rules Playground on the same tab: a read of `/household` with no sign-in should be denied.
 
