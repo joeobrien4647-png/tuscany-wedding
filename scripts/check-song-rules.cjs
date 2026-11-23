@@ -172,8 +172,12 @@ async function main() {
 
   console.log('7. Deleting a board entry');
   await write('7a refused while the list has songs', false, 'board/picks/' + C.yes, null);
+  await write('7b a plain value is refused while the list has songs', false, 'board/picks/' + C.yes, 'junk');
   await seed(H(T.yes, 'songs'), null);
-  await write('7b allowed once the list is removed', true, 'board/picks/' + C.yes, null);
+  // With the list gone every slot reads null on both sides: a value with no slots must still be refused.
+  for (const [n, value] of [['c', 'junk'], ['d', 12345], ['e', true]])
+    await write('7' + n + ' a plain value (' + JSON.stringify(value) + ') at a code whose list is gone is refused', false, 'board/picks/' + C.yes, value);
+  await write('7f deleting is allowed once the list is removed', true, 'board/picks/' + C.yes, null);
 
   await reset();
   console.log('8. A stranger can sync an entry only to its true value');

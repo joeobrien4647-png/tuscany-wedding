@@ -113,7 +113,7 @@
       "picks": {
         "$pub": {
           ".write": "root.child('songOwner').child($pub).exists() && root.child('household').child(root.child('songOwner').child($pub).val()).child('pub').val() === $pub && (newData.exists() || !root.child('household').child(root.child('songOwner').child($pub).val()).child('songs').exists())",
-          ".validate": "root.child('songOwner').child($pub).exists() && newData.child('0').val() === root.child('household').child(root.child('songOwner').child($pub).val()).child('songs/list/0/id').val() && newData.child('1').val() === root.child('household').child(root.child('songOwner').child($pub).val()).child('songs/list/1/id').val() && newData.child('2').val() === root.child('household').child(root.child('songOwner').child($pub).val()).child('songs/list/2/id').val()",
+          ".validate": "newData.hasChild('0') && root.child('songOwner').child($pub).exists() && newData.child('0').val() === root.child('household').child(root.child('songOwner').child($pub).val()).child('songs/list/0/id').val() && newData.child('1').val() === root.child('household').child(root.child('songOwner').child($pub).val()).child('songs/list/1/id').val() && newData.child('2').val() === root.child('household').child(root.child('songOwner').child($pub).val()).child('songs/list/2/id').val()",
           "$i": { ".validate": "$i.matches(/^[0-2]$/) && newData.isString()" }
         }
       },
