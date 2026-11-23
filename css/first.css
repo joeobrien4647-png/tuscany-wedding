@@ -202,6 +202,8 @@ html.first-on body > :not(#first) { display: none; }
 #first .fh-wax { position: absolute; left: 50%; top: 40%; width: clamp(34px, 11.5vw, 54px); height: clamp(34px, 11.5vw, 54px); transform: translate(-50%, -50%); filter: drop-shadow(0 4px 6px rgba(0, 0, 0, .5)); pointer-events: none; }
 #first .fh-env-t { position: relative; max-width: 100%; font: 500 clamp(13px, 3.9vw, 16px)/1.15 var(--display); overflow-wrap: anywhere; }
 #first .fh-env-d { position: relative; margin-top: 3px; font: 500 11px/1.2 var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }
+#first .fh-env-i { position: absolute; top: 6px; right: 6px; width: 16px; height: 16px; line-height: 0; color: var(--gold); opacity: .85; pointer-events: none; }
+#first .fh-env-i svg { width: 16px; height: 16px; }
 #first .fh-dock { grid-row: 5; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 #first .fh-dk { display: grid; justify-items: center; gap: 5px; min-width: 0; padding: 2px 0; font: 500 11px/1.2 var(--ui); letter-spacing: .04em; color: var(--ink-soft); text-align: center; touch-action: manipulation; }
 #first .fh-dk-t { max-width: 100%; overflow-wrap: anywhere; }
@@ -302,6 +304,17 @@ html.first-on body > :not(#first) { display: none; }
 
 /* ==== Task 9: Travel and Questions ==== */
 #first .fc-questions .fc-bg::before { background-image: url(../images/first/night-blur.webp); }
+/* The envelope info panel: a small glass panel over the dimmed home screen, not a full card. */
+#first .fc-card.fc-envelope { justify-content: center; align-items: center; background: rgba(10, 13, 22, .76); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+#first .fc-envelope .fc-bg { display: none; }
+#first .fc-envelope .fc-inner { width: min(100%, 340px); justify-items: center; gap: 8px; padding: 24px 22px 22px; border-radius: 18px; border: 1px solid var(--line-gold); background: var(--glass-hi); text-align: center; }
+#first .fc-envelope .fc-t { font-size: clamp(30px, 9vw, 40px); padding-right: 0; }
+#first .fc-envelope .fc-body { justify-items: center; gap: 10px; }
+#first .fe-seal { width: 92px; height: 92px; line-height: 0; }
+#first .fe-seal .fh-wax { position: static; width: 100%; height: 100%; transform: none; }
+#first .fe-what { font: 400 17px/1.4 var(--ui); color: var(--ink); text-wrap: balance; }
+#first .fe-when { font: 500 12px/1.2 var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); }
+#first .fc-envelope .fe-remind { justify-self: center; margin: -6px 0 -10px; padding: 10px 12px; }
 
 /* Questions: one answer open at a time */
 #first .fc-qs { display: grid; gap: 9px; }

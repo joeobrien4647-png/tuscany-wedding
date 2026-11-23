@@ -51,6 +51,57 @@ test('envelopeInfo: what each envelope holds, when it opens, and Remind me for i
   assert.equal(info('castle', NOV, IPHONE_UA), null);
 });
 
+// A stand-in for the card frame (js/first/cards.js): records what the envelope panel builds, in order.
+function fakeCard(data, now) {
+  const node = (tag, cls, text) => ({ tag, cls: cls || '', text, attrs: {}, children: [], innerHTML: '',
+    appendChild(c) { this.children.push(c); return c; }, setAttribute(k, v) { this.attrs[k] = v; } });
+  const section = { listeners: {}, addEventListener(type, fn) { this.listeners[type] = fn; } };
+  const body = node('div', 'fc-body');
+  body.closest = sel => (sel === '.fc-card' ? section : null);
+  const card = { data, body, section, closed: 0, ctx: { now: () => now }, w: words, first: {}, el: node, rise: e => e,
+    heading(t) { card.title = t; }, close() { card.closed += 1; } };
+  return card;
+}
+
+test('the envelope panel shows the seal, what is inside, when it opens and Remind me, in that order', () => {
+  const card = fakeCard('estate', NOV);
+  home().envelopeCard.build(card);
+  assert.equal(card.title, 'The estate');
+  const kids = card.body.children;
+  assert.deepEqual(kids.map(k => k.cls.split(' ').pop()), ['fe-seal', 'fe-what', 'fe-when', 'fe-remind']);
+  assert.ok(kids[0].innerHTML.includes('id="fe-emb-estate"') && !kids[0].innerHTML.includes('fh-emb-'), 'the panel seal has its own ids');
+  assert.equal(kids[1].text, words.home.envelopes.estate.what);
+  assert.equal(kids[2].text, 'Opens Mon 1 Feb');
+  assert.equal(kids[3].text, words.home.remind);
+  assert.equal(kids[3].attrs.href, 'tuscany-2027-dates.ics');
+  card.section.listeners.click({ target: {} });
+  assert.equal(card.closed, 0, 'a tap inside the panel keeps it open');
+  card.section.listeners.click({ target: card.section });
+  assert.equal(card.closed, 1, 'a tap on the dimmed space around it closes it');
+});
+
+test('the photos panel has no Remind me, and a panel for an unknown envelope stays empty', () => {
+  const photos = fakeCard('photos', NOV);
+  home().envelopeCard.build(photos);
+  assert.deepEqual(photos.body.children.map(k => k.cls.split(' ').pop()), ['fe-seal', 'fe-what', 'fe-when']);
+  assert.equal(photos.body.children[2].text, words.home.photosOpens);
+  const none = fakeCard('castle', NOV);
+  home().envelopeCard.build(none);
+  assert.equal(none.body.children.length, 0);
+});
+
+test('each tile carries the info mark and opens the envelope panel after its shake', () => {
+  const js = read('js/first/home.js'), cardsJs = read('js/first/cards.js');
+  assert.match(js, /class="fh-env-i" aria-hidden="true"/);
+  assert.match(js, /openCard\('envelope', b, env\.key\)/);
+  assert.doesNotMatch(js, /toast\(env\.toast\)/, 'no tap note on the tiles');
+  assert.match(js, /cards\.open\(key, ctx, \{ root: host, from, data \}\)/);
+  assert.match(cardsJs, /data: o\.data/);
+  assert.match(cardsJs, /CARDS\.envelope = \{ build: card => root\.sjFirst\.envelopeCard\.build\(card\) \}/);
+  assert.match(read('css/first.css'), /#first \.fh-env-i \{/);
+  assert.match(read('css/first.css'), /#first \.fc-card\.fc-envelope \{/);
+});
+
 test('every envelope has words for what it holds, and the panel words are in place', () => {
   core.LOCKS.forEach(l => assert.ok(typeof words.home.envelopes[l.key].what === 'string' && words.home.envelopes[l.key].what.length > 0, l.key));
   assert.equal(words.home.seeInside, "see what's inside");
@@ -63,13 +114,14 @@ test('every envelope stays sealed in phase 1, even after its date', () => {
   assert.ok(home().envelopes(late, words).every(e => e.state === 'sealed'));
 });
 
-test('a sealed envelope tap shows the toast and never opens a card', () => {
+test('a sealed envelope tap shakes, then opens only its own info panel', () => {
   const js = read('js/first/home.js');
   const tap = js.match(/function tapEnvelope\([^)]*\) \{([\s\S]*?)\n {4}\}/);
   assert.ok(tap, 'function tapEnvelope');
-  assert.match(tap[1], /toast\(/);
-  assert.match(tap[1], /\.toast\b/);
-  assert.doesNotMatch(tap[1], /cards|openCard/);
+  assert.doesNotMatch(tap[1], /toast\(/, 'no tap note');
+  assert.match(tap[1], /openCard\('envelope', b, env\.key\)/);
+  assert.match(tap[1], /if \(live\(\)\)/, 'never opens after home has gone');
+  assert.match(tap[1], /PANEL_AFTER_MS/);
 });
 
 test('four dock buttons from words.dock.labels, with states from dockStates and the stay label', () => {

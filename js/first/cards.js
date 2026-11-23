@@ -5,7 +5,7 @@
 // name is set with textContent. open(key, ctx, { root, from }) opens a built card, anything else does nothing; close().
 (function (root) {
   'use strict';
-  const CARD_KEYS = ['reply', 'stay', 'travel', 'weekend', 'questions'];
+  const CARD_KEYS = ['reply', 'stay', 'travel', 'weekend', 'questions', 'envelope'];
   const STAY_KEYS = ['villa', 'own', 'later'];
 
   // core.js loads first on the page; under Node tests it is required here.
@@ -119,6 +119,7 @@
   //   card.beforeClose(fn)  runs fn when the guest presses the close control or Escape; return true to keep the card open
   //                    (a step back inside the card). Not asked when code closes the card.
   //   card.closeLabel(text)  names the close control while it steps back; with nothing, it is the frame's own name again
+  //   card.data              what the opener passed as opts.data (the envelope card: which envelope)
   // The card's background and anything else it needs is styled under #first .fc-<key>.
   const CARDS = {};
   let current = null, listening = false;
@@ -159,7 +160,7 @@
 
     const r = { key, box, host, opener: o.from || document.activeElement, behind: [], closers: [], guard: null };
     const api = {
-      body, ctx, w, first, host, el, button,
+      body, ctx, w, first, host, el, button, data: o.data,
       heading(title, kick) { h.textContent = title; kicker.textContent = kick || ''; kicker.hidden = !kick; },
       rise(e) { e.classList.add('fc-rise'); return e; },
       live: () => current === r,
@@ -448,6 +449,10 @@
   // ---------- the Weekend card ----------
   // Four day tiles and a day that opens full screen: js/first/weekend-card.js.
   CARDS.weekend = { build: card => root.sjFirst.weekendCard.build(card) };
+
+  // ---------- the envelope info panel ----------
+  // Built by home.js, beside the seal art it reuses; card.data is the envelope's key.
+  CARDS.envelope = { build: card => root.sjFirst.envelopeCard.build(card) };
 
   // ---------- the Questions card ----------
   // A short list of questions; one answer open at a time, opening one closes the others.

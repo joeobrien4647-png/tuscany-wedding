@@ -23,7 +23,7 @@ test('an envelope with an emblem shows the wax without letters and the emblem in
   assert.match(home, /<use href="#fm-seal-wax"\/>/);
   assert.match(home, /fill="url\(#fm-gild\)"/);
   assert.match(home, /fill-rule="evenodd"/, 'the holes in an emblem are real holes');
-  assert.match(home, /b\.innerHTML = FLAP \+ sealFor\(env\.key\);/);
+  assert.match(home, /b\.innerHTML = FLAP \+ sealFor\(env\.key\) \+ '<span class="fh-env-i"/);
   assert.match(home, /const WAX = '[^']*<use href="#fm-seal-art"\/>/);
 });
 

@@ -7,7 +7,7 @@
 // has landed (the Reply card, offering the food step after a saved yes).
 (function (root) {
   'use strict';
-  const TOAST_MS = 2300, COUNT_UP_MS = 1300, OPEN_AFTER_MS = 500;
+  const TOAST_MS = 2300, COUNT_UP_MS = 1300, OPEN_AFTER_MS = 500, PANEL_AFTER_MS = 220;
   const DOCK_KEYS = ['reply', 'stay', 'travel', 'weekend'];
   const DOCK_ICONS = ['reply', 'stay', 'drive', 'weekend'];
 
@@ -112,6 +112,7 @@
     drive: svg('<path d="M12 21s-6-5.4-6-10.6a6 6 0 0 1 12 0C18 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.2"/>'),
     weekend: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>'),
     lock: svg('<rect x="5" y="11" width="14" height="9.5" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', 16),
+    info: svg('<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.7v.1"/>', 16),
     soundOn: svg('<path d="M4 9.5h3.6L12.5 5.5v13l-4.9-4H4z"/><path d="M16 9a4.2 4.2 0 0 1 0 6M18.6 6.4a7.8 7.8 0 0 1 0 11.2"/>'),
     soundOff: svg('<path d="M4 9.5h3.6L12.5 5.5v13l-4.9-4H4z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5"/>')
   };
@@ -128,10 +129,10 @@
     film: { at: 'translate(100 100) scale(.0560) translate(-1048 -990)', d: 'M 894.6 302.4 C 1050.2 296.9 1201.2 348 1325.9 439.8 C 1468.9 546.2 1564.8 704.2 1593.1 880.2 C 1617.8 1041.5 1585.9 1206.5 1502.8 1347 C 1488.8 1370.6 1473.6 1391.7 1457.4 1413.7 C 1497.2 1414 1539.3 1412.7 1579.1 1412 L 1696.4 1410.6 L 1759.3 1409.8 C 1770.8 1409.7 1786 1408.7 1797.3 1410.2 C 1845.7 1416.7 1862.2 1458.5 1862.7 1500.7 L 1862.9 1560.8 C 1862.9 1578 1864.1 1606.9 1860.3 1622.2 C 1857 1635.7 1850.1 1648 1840.3 1657.8 C 1815.6 1682.7 1788 1678.4 1755.6 1678.6 L 1666.2 1679 L 1349.2 1679.6 L 1051.4 1679.7 C 999.7 1679.6 931.6 1682 881.4 1678.5 C 826 1674.7 771.2 1664.5 718.2 1647.9 C 615.1 1616.6 538.9 1574.8 459 1502.4 C 322.5 1379.3 240.7 1207 231.6 1023.5 C 224.4 841.1 289.2 663.3 412 528.3 C 535.9 391.1 709.9 309.7 894.6 302.4 z M 896.8 430.2 C 983.8 420.6 1062.2 483.3 1072 570.3 C 1081.8 657.3 1019.3 735.8 932.3 745.7 C 845.1 755.7 766.3 693 756.5 605.7 C 746.7 518.5 809.6 439.8 896.8 430.2 z M 664.3 1159.4 C 751.5 1152.7 827.8 1217.8 834.8 1305.1 C 841.7 1392.3 776.7 1468.7 689.5 1475.9 C 602 1483 525.3 1417.8 518.3 1330.3 C 511.3 1242.8 576.7 1166.2 664.3 1159.4 z M 1278 708.8 C 1365 702.6 1440.7 768.1 1446.9 855.2 C 1453.1 942.3 1387.5 1017.9 1300.5 1024.1 C 1213.4 1030.3 1137.8 964.7 1131.6 877.7 C 1125.3 790.6 1190.9 715 1278 708.8 z M 529.2 710.2 C 616.3 705.3 691 771.8 696 858.9 C 701 945.9 634.6 1020.6 547.5 1025.7 C 460.3 1030.8 385.5 964.3 380.5 877.1 C 375.5 789.9 442.1 715.2 529.2 710.2 z M 1144.6 1160.7 C 1231.6 1155.2 1306.4 1221.4 1311.7 1308.4 C 1316.9 1395.4 1250.5 1470 1163.5 1475 C 1076.8 1480 1002.5 1413.9 997.3 1327.2 C 992.1 1240.6 1058 1166.1 1144.6 1160.7 z M 898.3 874.9 C 960.7 867.8 1017 912.8 1024 975.2 C 1030.9 1037.6 985.9 1093.8 923.4 1100.7 C 861.2 1107.5 805.1 1062.6 798.2 1000.4 C 791.3 938.1 836 882 898.3 874.9 z M 1405.9 1468 C 1439 1468.1 1480.5 1466.6 1513 1468.6 L 1513.6 1615.7 L 1502.2 1615.9 L 1393.2 1616.6 C 1392.9 1610 1392.9 1602.7 1393 1596.1 C 1393.8 1557.5 1392 1517.8 1393.8 1479.3 C 1397.6 1475 1401.5 1471.8 1405.9 1468 z M 1699 1466.2 C 1714.5 1465.9 1799.9 1464.5 1808.8 1468.2 C 1815 1477.6 1813.6 1512.5 1813.7 1524.6 C 1814.1 1554.7 1814.1 1584.7 1813.8 1614.7 C 1778.3 1615.9 1734.8 1615 1699 1615 L 1699 1466.2 z M 1549.2 1466.4 C 1580.3 1465 1630.4 1465.6 1661.8 1466.5 L 1662 1561.8 C 1662 1578.7 1662.5 1598.8 1661.7 1615.4 C 1626 1616.8 1585.8 1616 1549.9 1616.1 C 1548.9 1568.2 1549 1514.4 1549.2 1466.4 z M 359 983.6 C 366.6 989.8 383.2 1024.5 390.3 1034.6 C 449.1 1117.7 466.1 1213.7 461.7 1314.5 C 392.2 1209.4 352.6 1111.7 359 983.6 z M 1088.1 456.5 C 1105.1 461.1 1122.4 469.5 1138.7 476.5 C 1238 519 1305.7 583.8 1369.5 668.5 C 1360.8 666.2 1351.5 660.4 1343 657.3 C 1237.4 618.8 1152.8 548.1 1088.1 456.5 z M 747.2 456.1 L 747.6 457.7 C 740 469.8 718.3 493.2 707.9 504.8 C 659.1 559.6 600.3 604.7 534.7 637.6 C 512.5 648.8 488.3 658.6 465.3 670 L 464.5 668.9 C 468.5 661.6 485.2 640.1 491 633 C 538.5 573.5 598.1 524.9 666 490.4 C 695.4 475.4 718.4 468.9 747.2 456.1 z M 1468.6 986.9 L 1469.4 988.1 C 1473.3 1108.2 1435.8 1208 1372.5 1307.3 C 1372.4 1307 1372.3 1306.7 1372.2 1306.3 C 1364 1233.6 1375.6 1165.4 1405.9 1098.9 C 1424.1 1059 1446.6 1024.6 1468.6 986.9 z M 887.6 1494.4 C 894.8 1493.6 909.5 1493.8 917 1493.7 C 972.7 1493.6 1021.3 1503.9 1073 1523.3 C 1041.2 1536.7 974.7 1545.2 940.2 1547 C 871.9 1549.2 816.5 1542 750.9 1523.3 C 791.8 1507.6 844 1497.4 887.6 1494.4 z M 1354 1514.9 C 1356.3 1518.6 1355.8 1603.1 1355.8 1616.1 L 1245.1 1616.7 L 1244.5 1616.5 C 1241.8 1613.2 1243 1594.6 1243.1 1589 C 1282.9 1568.9 1320.9 1544.9 1354 1514.9 z M 1205.7 1608 C 1207 1609.3 1206.8 1609.2 1207 1611 C 1207.9 1619 1203.8 1616.9 1195.2 1616.7 C 1189.6 1613.2 1204 1608.7 1205.7 1608 z' },
     photos: { at: 'translate(100 100) scale(.0635) translate(-1034 -952)', d: 'M 1009.3 670.4 C 1253.6 658.2 1461.6 846.1 1474.1 1090.4 C 1486.6 1334.7 1298.8 1542.9 1054.5 1555.6 C 810 1568.3 601.5 1380.2 589 1135.7 C 576.5 891.1 764.7 682.7 1009.3 670.4 z M 1008 868.9 C 1140.1 856.2 1257.4 952.9 1270.3 1085 C 1283.1 1217 1186.6 1334.5 1054.5 1347.5 C 922.2 1360.5 804.5 1263.8 791.6 1131.5 C 778.8 999.2 875.7 881.6 1008 868.9 z M 868 345.4 C 886.1 344.4 911.9 345.1 930.6 345.1 L 1048.5 345.1 L 1149.6 345.2 C 1176.5 345.2 1213.7 342.3 1237.7 353.4 C 1255.4 361.6 1270.5 374.5 1281.3 390.7 C 1291.3 405.9 1309.6 458.2 1316.6 476.8 L 1361.7 597 L 1430.7 597 C 1433.5 574.6 1437.7 558.3 1452 540.8 C 1479 507.4 1510.3 506.4 1549.7 507 C 1582.6 507.5 1607.2 505.4 1634.3 528.9 C 1655.7 547.3 1663.6 567.9 1665.7 595.2 C 1743.1 611.6 1806.1 672.8 1817.8 752.8 C 1819.9 767 1819 783.8 1818.8 798.2 L 1423.1 798 C 1370.5 735.3 1315.3 692.7 1242.2 657.5 C 1166.7 621.7 1083.2 605.9 999.8 611.4 C 892 618.9 789.5 660.7 707.2 730.7 C 681.2 752.9 663.3 772.5 640.8 798 L 249.4 798 C 249.3 796.2 249.3 794.5 249.3 792.8 C 249.4 737.7 266 693.5 304.2 653.6 C 368.1 586.7 436.1 597.1 519 597.1 L 705.3 596.9 C 721.7 555.8 737.1 513.6 753.1 472.4 C 761 452.1 769.7 424.2 778.9 405.3 C 783.5 395.7 789.4 386.8 796.5 378.7 C 816.6 356.1 838.6 347.3 868 345.4 z M 910.6 415.4 C 935.6 413.9 972.1 415 998 415 L 1159.4 415.1 C 1159.8 456.9 1159.4 500.2 1159.3 542.1 L 911.2 541.7 C 911 534.4 911 526.5 911.1 519.2 C 911.5 484.7 909.8 449.8 910.6 415.4 z M 1483.8 861.5 L 1818.7 861.7 L 1818.8 1234.4 L 1818.9 1317 C 1819.3 1391.4 1819 1440.9 1762.2 1499.3 C 1696.3 1567 1631.5 1558.6 1545.5 1558.8 L 1365.7 1558.5 C 1335 1558.3 1301.5 1559.1 1271.1 1558 C 1396 1487.9 1479.7 1379.2 1520.7 1242.3 C 1560.6 1109.1 1534 981.8 1470 861.8 L 1483.8 861.5 z M 249.3 861.5 L 593 861.7 C 533.4 962.6 512.4 1092.9 533.9 1207.7 C 559.4 1343.5 637.2 1455.2 750.5 1532.7 C 762.8 1541.5 778.8 1551 791.8 1558.6 L 455.1 1558.8 C 396.5 1558.5 347.1 1541.6 305.2 1499 C 278.4 1472.1 260.2 1437.9 252.8 1400.7 C 248.1 1377.7 249.1 1342 249.1 1317.4 L 249.1 1213.9 L 249.3 861.5 z M 413.6 488.7 L 634.2 489 C 634.1 508.9 635.5 530.5 634.5 550.2 C 561.5 551.6 486.9 550.3 413.7 550.1 C 412.9 532.1 413 506.8 413.6 488.7 z' }
   };
-  const sealFor = key => {
+  const sealFor = (key, prefix) => {
     const e = EMBLEMS[key];
     if (!e) return WAX;
-    const id = 'fh-emb-' + key;
+    const id = (prefix || 'fh-emb-') + key;
     return '<svg class="fh-wax" viewBox="-20 -20 240 240" aria-hidden="true" focusable="false"><defs><path id="' + id +
       '" fill-rule="evenodd" transform="' + e.at + '" d="' + e.d + '"/></defs><use href="#fm-seal-wax"/>' +
       '<use href="#' + id + '" x="1.6" y="1.8" fill="#2a0604" fill-opacity=".75"/><use href="#' + id + '" fill="url(#fm-gild)"/></svg>';
@@ -251,7 +252,7 @@
     const envButtons = envelopes(ctx.now(), w).map(env => {
       const b = button('fh-env fh-' + env.state, null, () => tapEnvelope(b, env));
       b.setAttribute('aria-label', env.label);
-      b.innerHTML = FLAP + sealFor(env.key);
+      b.innerHTML = FLAP + sealFor(env.key) + '<span class="fh-env-i" aria-hidden="true">' + ICON.info + '</span>';
       b.appendChild(el('span', 'fh-env-t', env.name));
       b.appendChild(el('span', 'fh-env-d', env.stamp));
       grid.appendChild(b);
@@ -296,15 +297,18 @@
     box.appendChild(toastEl);
 
     // from: the control that opened the card, so focus goes back to it when the card closes.
-    function openCard(key, from) {
+    // data: what the card needs to know (the envelope panel: which envelope).
+    function openCard(key, from, data) {
       const cards = first.cards;
-      if (cards && typeof cards.open === 'function') cards.open(key, ctx, { root: host, from });
+      if (cards && typeof cards.open === 'function') cards.open(key, ctx, { root: host, from, data });
     }
     function tapEnvelope(b, env) {
       if (!REDUCE) anim(b, [{ transform: 'none' }, { transform: 'translateX(-6px) rotate(-1deg)' }, { transform: 'translateX(5px) rotate(1deg)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(2px)' }, { transform: 'none' }], { duration: 500, easing: 'ease', fill: 'none' });
       if (S) S.pop(0.4);
       haptic([8, 40, 8]);
-      toast(env.toast);
+      // The shake shows first, then the panel of what is inside rises; with reduced motion it opens at once.
+      const openPanel = () => { if (live()) openCard('envelope', b, env.key); };
+      if (REDUCE) openPanel(); else root.setTimeout(openPanel, PANEL_AFTER_MS);
     }
     function toast(text) {
       const gen = ++r.toastGen;
@@ -446,7 +450,32 @@
     document.addEventListener('visibilitychange', () => { if (current && document.visibilityState === 'visible') refresh(); });
   }
 
-  const api = { envelopes, envelopeInfo, dockItems, bigCount, nextLine, remindHref, afterRefresh, stayChanged, readFresh, home: { show, refresh, repaint, toast: toastHome, clear } };
+  // The info panel for one envelope, opened as the 'envelope' card (js/first/cards.js) with data: its key. Its seal
+  // uses its own ids, since the tile's seal is still on the page behind it. A tap on the dimmed space around the panel
+  // closes it, as the close control and Escape do.
+  const envelopeCard = {
+    build(card) {
+      const w = card.w, info = envelopeInfo(card.data, card.ctx.now(), root.navigator && root.navigator.userAgent, w);
+      if (!info) return;
+      card.heading(info.name);
+      const seal = card.rise(card.el('div', 'fe-seal'));
+      seal.innerHTML = sealFor(info.key, 'fe-emb-');
+      card.body.appendChild(seal);
+      if (info.what) card.body.appendChild(card.rise(card.el('p', 'fe-what', info.what)));
+      card.body.appendChild(card.rise(card.el('p', 'fe-when', info.when)));
+      if (info.remind) {
+        const a = card.rise(card.el('a', 'fh-remind fe-remind', w.home.remind));
+        a.setAttribute('href', info.remind);
+        a.setAttribute('aria-label', w.home.remindLabel);
+        if (info.remind !== DATES_FILE) { a.setAttribute('target', '_blank'); a.setAttribute('rel', 'noopener'); }
+        card.body.appendChild(a);
+      }
+      const frame = card.body.closest ? card.body.closest('.fc-card') : null;
+      if (frame) frame.addEventListener('click', e => { if (e.target === frame) card.close(); });
+    }
+  };
+
+  const api = { envelopes, envelopeInfo, envelopeCard, dockItems, bigCount, nextLine, remindHref, afterRefresh, stayChanged, readFresh, home: { show, refresh, repaint, toast: toastHome, clear } };
   root.sjFirst = Object.assign(root.sjFirst || {}, api);
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);
