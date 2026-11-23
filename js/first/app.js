@@ -48,7 +48,13 @@
         if (!justWatched && home && typeof home.show === 'function') { first.reply.clear(); return home.show({ root: host, ctx }); }
         return show('already');
       }
-      if (where === 'cantcome') return show(justWatched ? 'already' : 'cantcome');
+      if (where === 'cantcome') {
+        // Songs a no left behind (a clear that failed on an earlier visit) come off the board; this visit shows none.
+        const was = ctx.household;
+        if (first.store && typeof first.store.clearSongsIfAny === 'function') Promise.resolve().then(() => first.store.clearSongsIfAny(ctx.invite.token, was)).catch(() => false);
+        if (was && was.songs) { ctx.household = Object.assign({}, was); delete ctx.household.songs; }
+        return show(justWatched ? 'already' : 'cantcome');
+      }
       if (where === 'ask') return show('ask', justWatched ? {} : { onWatch: watchAgain });
       return show(where);
     }

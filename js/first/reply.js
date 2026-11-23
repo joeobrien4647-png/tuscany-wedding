@@ -283,8 +283,16 @@
         });
       }
       function saved(choice) {
-        const before = ctx.household && ctx.household.reply;
-        ctx.household = Object.assign({}, ctx.household, { reply: { answer: choice.answer, coming: choice.coming, at: ctx.now() } });
+        const was = ctx.household, before = was && was.reply;
+        const next = Object.assign({}, was, { reply: { answer: choice.answer, coming: choice.coming, at: ctx.now() } });
+        if (choice.answer !== 'yes') {
+          // A no takes the household's songs off the board (the list, then its board entry); the board code stays.
+          // Not waited for: the can't-come screen repairs a clear that failed, on the next visit.
+          delete next.songs;
+          const token = invite ? invite.token : '';
+          if (first.store && typeof first.store.clearSongsIfAny === 'function') Promise.resolve().then(() => first.store.clearSongsIfAny(token, was)).catch(() => false);
+        }
+        ctx.household = next;
         if (typeof o.onSaved === 'function') o.onSaved(ctx.household.reply);
         if (choice.answer !== 'yes') {
           if (first.sound) first.sound.pop(0.7);
