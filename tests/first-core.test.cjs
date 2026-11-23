@@ -62,13 +62,27 @@ test('dock', () => {
   assert.equal(dockStates({}, now).stay, 'plain');
   assert.equal(dockStates({ reply: yes }, now).travel, 'plain');
   assert.equal(dockStates({ reply: yes }, now).wear, undefined);
-  assert.deepEqual(Object.keys(dockStates({ reply: yes }, now)), ['reply', 'stay', 'travel', 'weekend']);
+  assert.deepEqual(Object.keys(dockStates({ reply: yes }, now)), ['reply', 'stay', 'travel', 'weekend', 'songs']);
   assert.equal(dockStates({ reply: yes }, now).weekend, 'plain');
   assert.equal(canChangeStay({ stay: { choice: 'own' } }, REPLIES_CLOSE_MS), false);
   assert.equal(canChangeStay({ stay: { choice: 'own' } }, REPLIES_CLOSE_MS - 1), true);
   assert.equal(canChangeStay({ stay: { choice: 'villa' } }, REPLIES_CLOSE_MS - 1), true);
   assert.equal(canChangeStay({ stay: { choice: 'later' } }, REPLIES_CLOSE_MS), true);
   assert.equal(canChangeStay({}, REPLIES_CLOSE_MS), true);
+});
+test('dockStates: songs done with a song, glowing for a yes while open, plain once closed or without a yes', () => {
+  const now = Date.UTC(2026, 10, 10, 12), yes = { answer: 'yes', coming: [true], at: 1 };
+  const one = { at: 1, list: [{ id: '9100000001', title: 'Alpha', artist: 'Band One' }] };
+  assert.equal(dockStates({ reply: yes }, false, now).songs, 'glow');
+  assert.equal(dockStates({ reply: yes, songs: one }, false, now).songs, 'done');
+  assert.equal(dockStates({ reply: yes, songs: { at: 1, list: [] } }, false, now).songs, 'glow', 'an empty list is no song');
+  assert.equal(dockStates({ reply: yes }, false, core.SONGS_CLOSE_MS - 1).songs, 'glow');
+  assert.equal(dockStates({ reply: yes }, false, core.SONGS_CLOSE_MS).songs, 'plain');
+  assert.equal(dockStates({ reply: yes, songs: one }, false, core.SONGS_CLOSE_MS).songs, 'done');
+  assert.equal(dockStates({ reply: { answer: 'no', coming: [false], at: 1 } }, false, now).songs, 'plain');
+  assert.equal(dockStates({}, false, now).songs, 'plain');
+  assert.equal(dockStates({ reply: yes }).songs, 'plain', 'with no time it is plain unless done');
+  assert.equal(dockStates({ reply: yes, songs: one }).songs, 'done');
 });
 test('stay label', () => {
   const labels = { plain: 'Stay', choose: 'Choose stay', villa: 'La Conca', own: 'Own place' };

@@ -39,7 +39,7 @@ test('weekend days, dock labels and stay dock states', () => {
   for (const k of ['title', 'vibe', 'hint', 'swipe', 'back', 'open']) assert.equal(typeof words.weekend[k], 'string', k);
   assert.equal(words.weekend.open, 'Open the day');
   assert.equal(words.wear, undefined);
-  assert.deepEqual(words.dock.labels, ['Reply', 'Stay', 'Travel', 'Weekend']);
+  assert.deepEqual(words.dock.labels, ['Reply', 'Stay', 'Travel', 'Weekend', 'Songs']);
   assert.deepEqual(words.dock.stay, { plain: 'Stay', choose: 'Choose stay', villa: 'La Conca', own: 'Own place' });
 });
 

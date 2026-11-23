@@ -92,7 +92,7 @@
       photosStamp: 'June'
     },
     dock: {
-      labels: ['Reply', 'Stay', 'Travel', 'Weekend'],
+      labels: ['Reply', 'Stay', 'Travel', 'Weekend', 'Songs'],
       stay: { plain: 'Stay', choose: 'Choose stay', villa: 'La Conca', own: 'Own place' },
       states: { plain: 'Ready to read', glow: 'Something to do', done: 'Done' },
       label: 'Plan your trip'

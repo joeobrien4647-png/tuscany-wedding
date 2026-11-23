@@ -90,12 +90,15 @@
     repliesOpen(nowMs) || !['villa', 'own'].includes(stayChoiceOf(household));
 
   // travelStamped: this phone holds a stamped Getting there ticket (the database never tells a link).
-  function dockStates(household, travelStamped) {
+  // Songs: done with a song or more; glowing for a yes while requests are open; otherwise (or with no time) plain.
+  function dockStates(household, travelStamped, nowMs) {
     const choice = stayChoiceOf(household);
+    const list = household && household.songs && household.songs.list;
+    const songs = Array.isArray(list) && list.length ? 'done' : saidYes(household) && typeof nowMs === 'number' && songsOpen(nowMs) ? 'glow' : 'plain';
     return {
       reply: replyOf(household) ? 'done' : 'glow',
       stay: choice === 'villa' || choice === 'own' ? 'done' : stayIsOpen(household) ? 'glow' : 'plain',
-      travel: travelStamped === true ? 'done' : 'plain', weekend: 'plain'
+      travel: travelStamped === true ? 'done' : 'plain', weekend: 'plain', songs
     };
   }
 

@@ -8,8 +8,8 @@
 (function (root) {
   'use strict';
   const TOAST_MS = 2300, COUNT_UP_MS = 1300, OPEN_AFTER_MS = 500, PANEL_AFTER_MS = 220;
-  const DOCK_KEYS = ['reply', 'stay', 'travel', 'weekend'];
-  const DOCK_ICONS = ['reply', 'stay', 'drive', 'weekend'];
+  const DOCK_KEYS = ['reply', 'stay', 'travel', 'weekend', 'songs'];
+  const DOCK_ICONS = ['reply', 'stay', 'drive', 'weekend', 'songs'];
 
   // core.js loads first on the page; under Node tests it is required here.
   const core = root.sjFirst && root.sjFirst.LOCKS ? root.sjFirst
@@ -34,9 +34,9 @@
     });
   }
 
-  // The four dock items: plain, glowing (something to do) or done. Only the reply and the stay choice change them.
-  function dockItems(household, w, travelStamped) {
-    const states = core.dockStates(household, travelStamped);
+  // The five dock items: plain, glowing (something to do) or done, from the household and the time.
+  function dockItems(household, w, travelStamped, nowMs) {
+    const states = core.dockStates(household, travelStamped, nowMs);
     return DOCK_KEYS.map((key, i) => {
       const label = key === 'stay' ? core.stayLabel(household, w.dock.stay) : w.dock.labels[i];
       const state = states[key];
@@ -110,6 +110,7 @@
     reply: svg('<rect x="3.5" y="6" width="17" height="12" rx="2"/><path d="M4 7l8 6 8-6"/>'),
     stay: svg('<path d="M4 11l8-6 8 6v9H4z"/><path d="M10 20v-5h4v5"/>'),
     drive: svg('<path d="M12 21s-6-5.4-6-10.6a6 6 0 0 1 12 0C18 15.6 12 21 12 21z"/><circle cx="12" cy="10.4" r="2.2"/>'),
+    songs: svg('<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>'),
     weekend: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>'),
     lock: svg('<rect x="5" y="11" width="14" height="9.5" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>', 16),
     info: svg('<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5M12 7.7v.1"/>', 16),
@@ -329,7 +330,7 @@
     }
 
     function paintDock() {
-      dockItems(ctx.household, w, travelStamped(ctx)).forEach((item, i) => {
+      dockItems(ctx.household, w, travelStamped(ctx), ctx.now()).forEach((item, i) => {
         const b = dockButtons[i];
         b.className = 'fh-dk fh-' + item.state;
         b.setAttribute('aria-label', item.aria);

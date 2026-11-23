@@ -124,12 +124,12 @@ test('a sealed envelope tap shakes, then opens only its own info panel', () => {
   assert.match(tap[1], /PANEL_AFTER_MS/);
 });
 
-test('four dock buttons from words.dock.labels, with states from dockStates and the stay label', () => {
+test('five dock buttons from words.dock.labels, with states from dockStates and the stay label', () => {
   const h = home();
   const plain = h.dockItems(YES, words);
-  assert.deepEqual(plain.map(d => d.key), ['reply', 'stay', 'travel', 'weekend']);
-  assert.deepEqual(plain.map(d => d.state), ['done', 'glow', 'plain', 'plain']);
-  assert.deepEqual(plain.map(d => d.label), ['Reply', 'Choose stay', 'Travel', 'Weekend']);
+  assert.deepEqual(plain.map(d => d.key), ['reply', 'stay', 'travel', 'weekend', 'songs']);
+  assert.deepEqual(plain.map(d => d.state), ['done', 'glow', 'plain', 'plain', 'plain']);
+  assert.deepEqual(plain.map(d => d.label), ['Reply', 'Choose stay', 'Travel', 'Weekend', 'Songs']);
   const later = h.dockItems(stay('later'), words);
   assert.equal(later[1].state, 'glow');
   assert.equal(later[1].label, 'Choose stay');
@@ -141,6 +141,14 @@ test('four dock buttons from words.dock.labels, with states from dockStates and 
   assert.equal(own[1].label, 'Own place');
 });
 
+test('dockItems: five items, Songs last, glowing for a yes while requests are open', () => {
+  const items = home().dockItems(YES, words, false, Date.UTC(2026, 10, 10, 12));
+  assert.deepEqual(items.map(d => d.key), ['reply', 'stay', 'travel', 'weekend', 'songs']);
+  assert.equal(items[4].label, 'Songs');
+  assert.equal(items[4].state, 'glow');
+  assert.equal(items[4].aria, 'Songs, ' + words.dock.states.glow);
+  assert.ok(read('js/first/home.js').includes('dockItems(ctx.household, w, travelStamped(ctx), ctx.now())'), 'the home screen passes the time');
+});
 test('every dock aria-label says its state in words', () => {
   for (const household of [YES, stay('later'), stay('villa'), stay('own')])
     for (const d of home().dockItems(household, words)) {

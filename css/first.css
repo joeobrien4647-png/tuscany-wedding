@@ -204,7 +204,7 @@ html.first-on body > :not(#first) { display: none; }
 #first .fh-env-d { position: relative; margin-top: 3px; font: 500 11px/1.2 var(--ui); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }
 #first .fh-env-i { position: absolute; top: 6px; right: 6px; width: 16px; height: 16px; line-height: 0; color: var(--gold); pointer-events: none; }
 #first .fh-env-i svg { width: 16px; height: 16px; }
-#first .fh-dock { grid-row: 5; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+#first .fh-dock { grid-row: 5; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 #first .fh-dk { display: grid; justify-items: center; gap: 5px; min-width: 0; padding: 2px 0; font: 500 11px/1.2 var(--ui); letter-spacing: .04em; color: var(--ink-soft); text-align: center; touch-action: manipulation; }
 #first .fh-dk-t { max-width: 100%; overflow-wrap: anywhere; }
 #first .fh-ico { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--line-gold); color: var(--gold); background: var(--glass); transition: transform .2s var(--ease); }
