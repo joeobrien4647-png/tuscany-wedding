@@ -79,15 +79,15 @@
       questions: 'Questions',
       watch: 'Watch the invitation again',
       notYou: 'Not you?',
-      // what: what an envelope holds, shown in its info panel. The estate's line is Joe's; the other five are
-      // placeholders for him to rewrite.
+      // what: what an envelope holds, shown in its info panel. All six are Joe's, as are seeInside and photosOpens
+      // above (kept as they were, 23 Nov 2026). The photos stay in June until their date is known.
       envelopes: {
         estate: { name: 'The estate', what: 'Check out the venue and where you\'ll be staying' },
-        room: { name: 'Your room', what: 'Which room is yours' },
-        menu: { name: 'The menu', what: 'What we\'ll eat on the day' },
-        table: { name: 'Your table', what: 'Where you\'re sitting' },
-        film: { name: 'The film', what: 'A film to watch before the weekend' },
-        photos: { name: 'The photos', what: 'Photos from the weekend' }
+        room: { name: 'Your room', what: 'Where you\'ll crash after the party' },
+        menu: { name: 'The menu', what: 'Check out what\'s on the menu' },
+        table: { name: 'Your table', what: 'Who you\'ll be next to at dinner' },
+        film: { name: 'The film', what: 'The weekend\'s official trailer, popcorn optional' },
+        photos: { name: 'The photos', what: 'Every photo, the good and the blurry' }
       },
       photosStamp: 'June'
     },

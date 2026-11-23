@@ -192,17 +192,21 @@ Publish the new rules first (section 1): until then every song save is refused.
 
 ## 5. Write the words
 
-Every guest-facing line is in `js/first/words.js` and every one is a placeholder. Replace them with your own. The home screen has five buttons: Reply, Stay, Travel, Weekend and Songs. There is no Wear card; what to wear is a line inside each day of the Weekend card. The Getting there card's lines are under `travel`; its airports, airlines, drive times and tolls are not words, they come from `data/getting-there.json`. Ones that need a decision, not just wording:
+Every guest-facing line is in `js/first/words.js`. Most are still placeholders: replace them with your own. What is written so far is listed under Written so far, below. The home screen has five buttons: Reply, Stay, Travel, Weekend and Songs. There is no Wear card; what to wear is a line inside each day of the Weekend card. The Getting there card's lines are under `travel`; its airports, airlines, drive times and tolls are not words, they come from `data/getting-there.json`. Ones that need a decision, not just wording:
 
 - The gifts answer (it says details will follow)
 - The line under "your own place"
 - The weekend lines for each day. They sit per day under `weekend.days`. A day shows no Food and drink, Wear or Where row until it has a line for it, so leave a line out and the row is simply not there. The four day pictures (`images/first/fri.webp`, `sat.webp`, `sun.webp`, `mon.webp`) were made with an image tool from real photos of La Conca, so they are true to the place, and each shows the feel of its day. They are not a promise of the exact set-up on the day. Swap any picture that shows something La Conca will not have.
 - "Nearly ready" (shown when an envelope's date has passed but nothing is inside yet) and "Today" (shown on the wedding day)
 - "Remind me", its spoken label and the Android event title (`remind`, `remindLabel`, `remindEvent` under `home`), and the event titles in `tuscany-2027-dates.ics`
-- What is inside each envelope: `what` under `home.envelopes`, shown in that envelope's panel. The estate has your line. Your room, The menu, Your table, The film and The photos show placeholders until you write your own: "Which room is yours", "What we'll eat on the day", "Where you're sitting", "A film to watch before the weekend" and "Photos from the weekend".
-- The envelope panel's other words: "see what's inside", read out after each envelope's name (`seeInside`), and "Opens in June" for the photos (`photosOpens`).
 - The Songs card (`songs`): the line under its title is your own words for now ("No guarantees they'll get played on the weekend"); the rest are placeholders, including the credit line under the board (`credit`, see 4f step 8). The dock button is `Songs`, the fifth of `dock.labels`. The badge's alt text (`badge`) repeats the words on Apple's badge, "Listen on Apple Music"; keep it that way.
 - The amount is not in the words file. It is `SHARE_GBP` in `js/first/core.js`. No payment date is shown anywhere yet: the line says to send your share in the spring. Add a date only once you know when the balance is due to the villa.
+
+Written so far (23 Nov 2026):
+
+- All six envelope lines (`what` under `home.envelopes`). The film's line is about your weekend trailer.
+- The envelope panel's "see what's inside" (`seeInside`) and "Opens in June" (`photosOpens`), kept as they were. The photos stay in June (`photosStamp`) until their date is known.
+- The villa share line (`stay.share`), the line under the Weekend title (`weekend.vibe`) and the Songs no-promises line (`songs.promise`).
 
 Needs Joe, for the Weekend and Questions words:
 
