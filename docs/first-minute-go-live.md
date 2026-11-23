@@ -206,6 +206,8 @@ Written so far (23 Nov 2026):
 - The envelope panel's "see what's inside" (`seeInside`) and "Opens in June" (`photosOpens`), kept as they were. The photos stay in June (`photosStamp`) until their date is known.
 - The home screen: "Ciao" above the names (`kicker`, also the heading when a link has no name), "days till Tuscany" by the countdown, "Still in the post" for an envelope whose date has passed with nothing inside yet (`soon`), and the envelope names The estate, Your room, The feast, Your seat, The premiere and The snaps. "Today", "Remind me" and every other home label are kept as they were.
 - The calendar file `tuscany-2027-dates.ics`: the weekend is "Sophie & Joe's wedding weekend", and the 1 May event names the feast, your seat and the premiere.
+- The cover and the minute: "You're invited" when a link has no names, "Skip the intro", "Join us at" over La Conca and "The plan" over the four days. "Sophie & Joe", "For", "Tap the seal", "Tuscany, May 2027", "Tuscany", the dates and the labels only screen readers hear are kept as they were.
+- The Reply: "Coming to Tuscany?", "Wouldn't miss it", "Not all of us can make it" (right for any household size), "Who can make it?" and "Let us know by {date}"; "Tuscany, here you come" and "You're on the list" after a yes; "We'll raise a glass to you" after a no; "On the list" and "Change it any time until {date}" on the Reply card. Every other reply line is kept as it was.
 - The villa share line (`stay.share`), the line under the Weekend title (`weekend.vibe`) and the Songs no-promises line (`songs.promise`).
 
 Needs Joe, for the Weekend and Questions words:

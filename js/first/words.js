@@ -10,43 +10,43 @@
       kicker: 'Sophie & Joe',
       for: 'For',
       forBack: 'Welcome back',
-      forNobody: 'You are invited',
+      forNobody: 'You’re invited',
       hint: 'Tap the seal',
       sealLabel: 'Open the invitation',
       foot: 'Tuscany, May 2027'
     },
     minute: {
-      skip: 'Skip',
+      skip: 'Skip the intro',
       soundOn: 'Sound is on',
       soundOff: 'Sound is off',
       title: 'Tuscany',
       dates: 'Friday 28 to Monday 31 May 2027',
-      estateKicker: 'Four days at',
+      estateKicker: 'Join us at',
       estate: 'La Conca',
-      weekendKicker: 'The weekend'
+      weekendKicker: 'The plan'
     },
     ask: {
-      question: 'Are you coming?',
-      yes: 'Yes!',
+      question: 'Coming to Tuscany?',
+      yes: 'Wouldn’t miss it',
       no: 'Can’t make it',
-      onlyOne: 'Only one of us can make it',
-      who: 'Who is coming?',
+      onlyOne: 'Not all of us can make it',
+      who: 'Who can make it?',
       back: 'Back',
       replied: 'Your reply is in',
       change: 'Change my answer',
       saving: 'Saving your reply',
-      closesNote: 'Replies close on {date}',
+      closesNote: 'Let us know by {date}',
       watchAgain: 'Watch the invitation again'
     },
     yes: {
-      title: 'See you in Tuscany',
-      line: 'Your reply is saved'
+      title: 'Tuscany, here you come',
+      line: 'You’re on the list'
     },
     no: {
-      title: 'We’ll miss you',
+      title: 'We’ll raise a glass to you',
       line: 'Changed your mind?',
       again: 'Reply again',
-      until: 'You can change your answer until {date}'
+      until: 'Change it any time until {date}'
     },
     closed: {
       line: 'Replies have closed',
@@ -129,7 +129,7 @@
       sorted: 'All sorted'
     },
     replyCard: {
-      coming: 'Coming',
+      coming: 'On the list',
       closed: 'To change your reply, please message Joe or Sophie'
     },
     // The food step in the Reply card: one screen per person coming. Each pick label fits two per row on a small phone.
