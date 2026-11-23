@@ -84,6 +84,23 @@ test('dockStates: songs done with a song, glowing for a yes while open, plain on
   assert.equal(dockStates({ reply: yes }).songs, 'plain', 'with no time it is plain unless done');
   assert.equal(dockStates({ reply: yes, songs: one }).songs, 'done');
 });
+test('adminSteps no and clear remove the songs and the board entry before the reply', () => {
+  const PUB = 'testcode000000000001', SV = { '.sv': 'timestamp' };
+  assert.deepEqual(core.adminSteps('no', { peopleCount: 2, pub: PUB }), [
+    { path: 'stay', value: null }, { path: 'songs', value: null }, { path: 'board', ref: 'board/picks/testcode000000000001', value: null },
+    { path: 'reply', value: { answer: 'no', coming: [false, false], at: SV } }]);
+  assert.deepEqual(core.adminSteps('clear', { pub: PUB }), [
+    { path: 'stay', value: null }, { path: 'food', value: null }, { path: 'songs', value: null },
+    { path: 'board', ref: 'board/picks/testcode000000000001', value: null }, { path: 'reply', value: null }]);
+  for (const pub of [undefined, null, 'short', PUB + 'x', 'testcode00000000000/', 12345678901234567890])
+    assert.deepEqual(core.adminSteps('clear', { pub }).map(s => s.path), ['stay', 'food', 'songs', 'reply'], String(pub));
+  assert.deepEqual(core.adminSteps('no', { peopleCount: 1 }).map(s => s.path), ['stay', 'songs', 'reply']);
+});
+test('adminFailureMessage names the song steps', () => {
+  const steps = core.adminSteps('clear', { pub: 'testcode000000000001' });
+  assert.equal(core.adminFailureMessage(steps, 3, 'denied'), 'Could not finish that. Done: removed the stay choice, removed the food needs, removed the songs.'
+    + ' Not done: took the songs off the board, cleared the reply. Check this row. (denied)');
+});
 test('stay label', () => {
   const labels = { plain: 'Stay', choose: 'Choose stay', villa: 'La Conca', own: 'Own place' };
   const yes = { answer: 'yes', coming: [true] };

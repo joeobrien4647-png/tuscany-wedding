@@ -254,14 +254,19 @@
     return choice === 'villa' || choice === 'own' || choice === 'later' ? { choice, at: SERVER_TIME } : null;
   }
 
-  // ordered single-leaf steps: path is 'stay', 'food' or 'reply', value null means remove.
-  // Stay is always removed before reply is touched, so a stay never outlives its yes. Only Clear removes food:
-  // Can't come keeps it (every reader ignores food without a yes), so setting the answer back to yes brings it back.
+  // ordered single-leaf steps: path is 'stay', 'food', 'songs', 'board' or 'reply', value null means remove. A board step
+  // also carries its ref, board/picks/<code>, which is outside the household. Stay is always removed before reply is
+  // touched, so a stay never outlives its yes; Can't come and Clear take the songs and their board entry off first too.
+  // Only Clear removes food: Can't come keeps it (every reader ignores food without a yes), so setting the answer back
+  // to yes brings it back.
+  const BOARD_CODE = /^[A-Za-z0-9_-]{20}$/;
+  const songSteps = pub => [{ path: 'songs', value: null }]
+    .concat(typeof pub === 'string' && BOARD_CODE.test(pub) ? [{ path: 'board', ref: 'board/picks/' + pub, value: null }] : []);
   function adminSteps(action, opts) {
     const o = isObj(opts) ? opts : {};
     if (action === 'yes') return [{ path: 'reply', value: adminReply('yes', o.peopleCount) }];
-    if (action === 'no') return [{ path: 'stay', value: null }, { path: 'reply', value: adminReply('no', o.peopleCount) }];
-    if (action === 'clear') return [{ path: 'stay', value: null }, { path: 'food', value: null }, { path: 'reply', value: null }];
+    if (action === 'no') return [{ path: 'stay', value: null }].concat(songSteps(o.pub), [{ path: 'reply', value: adminReply('no', o.peopleCount) }]);
+    if (action === 'clear') return [{ path: 'stay', value: null }, { path: 'food', value: null }].concat(songSteps(o.pub), [{ path: 'reply', value: null }]);
     if (action === 'stay') { const v = adminStay(o.choice); return v ? [{ path: 'stay', value: v }] : []; }
     if (action === 'toggle') {
       if (!Array.isArray(o.coming)) return [];
@@ -273,6 +278,8 @@
 
   const describeStep = (st) => (st.path === 'stay' ? (st.value === null ? 'removed the stay choice' : 'saved the stay choice')
     : st.path === 'food' ? 'removed the food needs'
+    : st.path === 'songs' ? 'removed the songs'
+    : st.path === 'board' ? 'took the songs off the board'
     : (st.value === null ? 'cleared the reply' : 'saved the reply'));
 
   // what to tell the admin when step number `done` (0-based) failed

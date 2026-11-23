@@ -124,9 +124,9 @@ test('dashboard.html loads food-core after the travel rules and builds the list 
 test("the dashboard never sets food: only Clear removes it, and Can't come leaves it", () => {
   // Clear removes food in the same action, before the reply changes; a mis-click on Can't come costs no food needs
   const clear = adminSteps('clear', { peopleCount: 2 });
-  assert.deepEqual(clear.map(s => s.path), ['stay', 'food', 'reply']);
+  assert.deepEqual(clear.map(s => s.path), ['stay', 'food', 'songs', 'reply']);
   assert.equal(clear[1].value, null, 'clear: a delete only');
-  assert.deepEqual(adminSteps('no', { peopleCount: 2 }).map(s => s.path), ['stay', 'reply']);
+  assert.deepEqual(adminSteps('no', { peopleCount: 2 }).map(s => s.path), ['stay', 'songs', 'reply']);
   // no action writes a value to food, and the panel writes only what adminSteps plans
   for (const action of ['yes', 'no', 'clear', 'stay', 'toggle']) {
     const steps = adminSteps(action, { peopleCount: 2, choice: 'villa', coming: [true, true], index: 0 });
@@ -137,7 +137,7 @@ test("the dashboard never sets food: only Clear removes it, and Can't come leave
   assert.ok(panel.includes('sjFirst.adminSteps('), 'the panel writes through adminSteps');
   assert.ok(!/["'`]food["'`]/.test(panel), 'no path named food is written by hand');
   assert.ok(!/household\/["'`]?[^\n]*food/.test(panel), 'no database path to food in the panel');
-  assert.match(read('js/first/core.js'), /\{ path: 'stay', value: null \}, \{ path: 'food', value: null \}, \{ path: 'reply'/);
+  assert.match(read('js/first/core.js'), /\{ path: 'stay', value: null \}, \{ path: 'food', value: null \}\]\.concat\(songSteps/);
 });
 test('foodRows: the people list is cleaned the way the phone cleans it, so places agree', () => {
   const welcome = { tokGap: { display: 'Kit & Sam', lines: ['x'], people: ['Kit', '  ', null, '  Sam   Lee ', 'x'.repeat(90)] } };

@@ -19,6 +19,7 @@
   <script src="js/first/core.js"></script>
   <script src="js/first/travel-core.js"></script>
   <script src="js/first/food-core.js"></script>
+  <script src="js/first/songs-core.js"></script>
   <script>
     firebase.initializeApp({
       apiKey: "AIzaSyAbEpCIPFFqiuElH0DK1dkkl7JBbNyZTc8",
@@ -486,7 +487,7 @@
 
     // Registrations, payments, nudges and bank details are never kept in this browser's localStorage.
     // The guest list (wedding-guests-v4) still is, so the dashboard works offline.
-    const NO_CACHE_KEYS = ["registrations", "members/payment", "payments", "approved", "nudges", "welcome", "welcomeSeen", "household", "travel"];
+    const NO_CACHE_KEYS = ["registrations", "members/payment", "payments", "approved", "nudges", "welcome", "welcomeSeen", "household", "travel", "board"];
     NO_CACHE_KEYS.forEach(k => { try { localStorage.removeItem(k); } catch {} });
     const EMPTY_MAP = {};
     const asMap = (v) => safeObj(v, {});
@@ -2667,9 +2668,11 @@
     // Every write here is one leaf (household/<token>/reply or /stay) so a guest answering at the same moment is never overwritten.
     // Tokens are database keys only: they are never shown, and never stored in this browser.
     // Getting there tickets (travel/<token>) are shown read only: guests stamp them, nothing here changes them.
-    function InvitationsPanel({ welcome, seen, household, travel, status }) {
+    function InvitationsPanel({ welcome, seen, household, travel, board, status }) {
       const [busy, setBusy] = useState(null);
       const [foodCopied, setFoodCopied] = useState(false);
+      const [songsCopied, setSongsCopied] = useState(false);
+      const [hiddenNames, setHiddenNames] = useState({});
       const ready = status === "ready";
       const rows = ready ? sjFirst.householdRows(welcome, seen, household) : [];
       const t = sjFirst.householdTotals(rows);
@@ -2683,16 +2686,55 @@
         setFoodCopied(true);
         setTimeout(() => setFoodCopied(false), 2000);
       }).catch(() => {});
+      // The song board: requests from every yes household's own list, by song, most wanted first.
+      const songList = ready ? sjFirst.songs.songRows(welcome, household, board) : [];
+      const hiddenList = ready ? sjFirst.songs.hiddenIds(board) : [];
+      const copySongs = () => navigator.clipboard && navigator.clipboard.writeText(sjFirst.songs.djText(songList)).then(() => {
+        setSongsCopied(true);
+        setTimeout(() => setSongsCopied(false), 2000);
+      }).catch(() => {});
+      // The songs taken down are named from one Apple lookup; without an answer the song id shows.
+      const hiddenKey = hiddenList.join(",");
+      useEffect(() => {
+        if (!hiddenKey) return undefined;
+        let live = true;
+        Promise.all(sjFirst.songs.lookupUrls(hiddenList).map(u => fetch(u, { credentials: "omit", referrerPolicy: "no-referrer" })
+          .then(r => (r.ok ? r.json() : null)).catch(() => null)))
+          .then(bodies => {
+            if (!live) return;
+            const names = {};
+            bodies.forEach(b => sjFirst.songs.fromAppleBody(b).forEach(f => { names[f.id] = f.title + ", " + f.artist; }));
+            setHiddenNames(names);
+          });
+        return () => { live = false; };
+      }, [hiddenKey]);
+      // Song steps are written one at a time, in order; a failure says how far it got.
+      const runSongSteps = (key, steps) => {
+        if (!steps.length || busy !== null) return;
+        let done = 0;
+        setBusy(key);
+        steps.reduce((chain, st) => chain.then(() => {
+          const ref = db.ref(st.ref);
+          return (st.value === null ? ref.remove() : ref.set(st.value)).then(() => { done += 1; });
+        }), Promise.resolve())
+          .catch(e => window.alert("Could not finish that: " + done + " of " + steps.length + " steps done" + (e && e.message ? " (" + e.message + ")" : "") + ". Check the song list."))
+          .then(() => setBusy(null));
+      };
+      const removeSong = s => {
+        if (!window.confirm('Take "' + s.title + '" off the board for good? It comes off every list and nobody can add it again.')) return;
+        runSongSteps("song:" + s.id, sjFirst.songs.removeSteps(household, s.id));
+      };
+      const allowSong = id => runSongSteps("song:" + id, sjFirst.songs.allowSteps(id));
       const when = at => new Date(at).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
       const people = r => r.people.length;
       // one leaf per step, in order; a later failure says what did and did not happen
       const run = (r, action, opts) => {
-        const steps = sjFirst.adminSteps(action, { peopleCount: people(r), ...opts });
+        const steps = sjFirst.adminSteps(action, { peopleCount: people(r), pub: sjFirst.songs.cleanPub((household[r.token] || {}).pub), ...opts });
         if (!steps.length) return;
         let done = 0;
         setBusy(r.token);
         steps.reduce((chain, st) => chain.then(() => {
-          const ref = db.ref("household/" + r.token + "/" + st.path);
+          const ref = db.ref(st.ref || ("household/" + r.token + "/" + st.path));
           return (st.value === null ? ref.remove() : ref.set(st.value)).then(() => { done += 1; });
         }), Promise.resolve())
           .catch(e => window.alert(sjFirst.adminFailureMessage(steps, done, e && e.message)))
@@ -2703,7 +2745,7 @@
       const toggleComing = (r, i) => run(r, "toggle", { coming: r.coming, index: i });
       const putStay = (r, choice) => run(r, "stay", { choice });
       const clearReply = r => {
-        if (!window.confirm("Clear the reply, the stay choice and the food needs for " + r.display + "? They can answer again.")) return;
+        if (!window.confirm("Clear the reply, the stay choice, the food needs and the songs for " + r.display + "? They can answer again.")) return;
         run(r, "clear");
       };
       const pill = (on, color) => ({ ...bS, background: on ? color : P.stoneP, color: on ? "#fff" : P.txtM });
@@ -2811,11 +2853,41 @@
               {caterer.mismatched > 0 && <div style={{ fontSize: 12, color: P.red }}>{caterer.mismatched} saved for a name that has since changed. Check the people marked above.</div>}
             </div>
           )}
+          {ready && (
+            <div data-song-list style={{ marginTop: 12, paddingTop: 10, borderTop: "1px solid " + P.stoneL }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap", alignItems: "baseline" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: P.txt }}>Song requests</div>
+                <button onClick={copySongs} style={{ ...bS, background: P.stoneP, color: P.txtM }}>{songsCopied ? "Copied" : "Copy as text"}</button>
+              </div>
+              <div style={{ fontSize: 11, color: P.txtL, margin: "2px 0 6px" }}>Read only: what guests asked for, from households who said yes. Nothing here is promised. Remove takes a song off every list and the board for good.</div>
+              {songList.length === 0 && <div style={{ fontSize: 12, color: P.txtL }}>No requests yet</div>}
+              {songList.map(s => (
+                <div key={s.id} style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline", fontSize: 12, color: P.txt, padding: "3px 0" }}>
+                  <div style={{ minWidth: 0, overflowWrap: "anywhere" }}>
+                    <span style={{ fontWeight: 700 }}>{s.title}</span>{", " + s.artist + " (" + s.n + ")"}
+                    <div style={{ fontSize: 11, color: P.txtM }}>{s.households.join(", ")}</div>
+                  </div>
+                  <button disabled={busy !== null} onClick={() => removeSong(s)} style={{ ...bS, background: "none", color: P.red, textDecoration: "underline" }}>Remove</button>
+                </div>
+              ))}
+              {hiddenList.length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: P.txtM }}>Taken down</div>
+                  {hiddenList.map(id => (
+                    <div key={id} style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline", fontSize: 12, color: P.txtM, padding: "3px 0" }}>
+                      <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>{hiddenNames[id] || id}</span>
+                      <button disabled={busy !== null} onClick={() => allowSong(id)} style={{ ...bS, background: "none", color: P.blue, textDecoration: "underline" }}>Allow again</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       );
     }
 
-    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, approved, chase, saveChase, nudges, welcome, welcomeSeen, household, travel, invitesStatus }) {
+    function SiteTab({ registrations, siteConfig, saveSiteConfig, guests, profiles, bank, saveBank, payments, approved, chase, saveChase, nudges, welcome, welcomeSeen, household, travel, board, invitesStatus }) {
       const [resetNote, setResetNote] = useState({});
       const regs = Object.entries(safeObj(registrations, {})).map(([k, v]) => ({ ...safeObj(v, {}), _uid: k })).filter(r => r && r.name)
         .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
@@ -2946,7 +3018,7 @@
             ))}
           </div>
 
-          <InvitationsPanel welcome={welcome} seen={welcomeSeen} household={household} travel={travel} status={invitesStatus} />
+          <InvitationsPanel welcome={welcome} seen={welcomeSeen} household={household} travel={travel} board={board} status={invitesStatus} />
 
           {(() => {
             const ps = Object.values(safeObj(profiles, {})).filter(p => p && p.name);
@@ -3799,6 +3871,8 @@
       const [household, , b30, householdFailed, householdLoaded] = useStorage("household", EMPTY_MAP, asMap, { noCache: true });
       // Tickets load on their own: if they cannot be read the invitations still show, just without travel.
       const [travel] = useStorage("travel", EMPTY_MAP, asMap, { noCache: true });
+      // The song board (song ids under random codes, and the songs taken down) loads on its own as well.
+      const [board] = useStorage("board", EMPTY_MAP, asMap, { noCache: true });
       const invitesStatus = welcomeFailed || householdFailed || seenFailed ? "failed" : welcomeLoaded && householdLoaded && seenLoaded ? "ready" : "loading";
       const [music, saveMusic, b7] = useStorage("wedding-music-v3", DEFAULT_DATA.music, normalizeMusic);
       const [packing, savePacking, b8] = useStorage("wedding-packing-v3", DEFAULT_DATA.packing, safeArr);
@@ -3880,7 +3954,7 @@
             {tab === "packing" && <PackingTab packing={packing} savePacking={savePacking} dayKit={dayKit} saveDayKit={saveDayKit} />}
             {tab === "decisions" && <DecisionsTab decisions={decisions} saveDecisions={saveDecisions} />}
             {tab === "total" && <TotalCostTab legalSpend={legalSpend} budget={budget} eurRate={eurRate} guests={guests} />}
-            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} approved={approved} chase={chase} saveChase={saveChase} nudges={nudges} welcome={welcome} welcomeSeen={welcomeSeen} household={household} travel={travel} invitesStatus={invitesStatus} />}
+            {tab === "site" && <SiteTab registrations={registrations} siteConfig={siteConfig} saveSiteConfig={saveSiteConfig} guests={guests} profiles={profiles} bank={bank} saveBank={saveBank} payments={payments} approved={approved} chase={chase} saveChase={saveChase} nudges={nudges} welcome={welcome} welcomeSeen={welcomeSeen} household={household} travel={travel} board={board} invitesStatus={invitesStatus} />}
           </div>
         </div>
       );
