@@ -69,7 +69,8 @@
     }
     if (!ducked) return;
     ducked = false;
-    if (!wanted || !el) return;
+    // While the page is hidden the music stays paused; the visibility handler plays it on when the guest comes back.
+    if (!wanted || !el || (hasDom && document.hidden)) return;
     unlock();
     play(el);
     if (mg && ac) { const t = ac.currentTime; mg.gain.cancelScheduledValues(t); mg.gain.setValueAtTime(0.0001, t); mg.gain.exponentialRampToValueAtTime(0.42, t + 1.6); }

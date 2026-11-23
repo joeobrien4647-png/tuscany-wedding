@@ -13,6 +13,7 @@
   const songs = lib('songs', './songs-core.js');
   const core = root.sjFirst && root.sjFirst.fill ? root.sjFirst : typeof require === 'function' ? require('./core.js') : {};
   const isObject = v => !!v && typeof v === 'object' && !Array.isArray(v);
+  const saidYes = h => isObject(h) && isObject(h.reply) && h.reply.answer === 'yes';
 
   // ---------- previews ----------
   // One 30-second preview at a time; starting one stops another. The invitation's music fades out while a preview
@@ -81,24 +82,59 @@
       });
     }).catch(() => failed());
   }
-  // One change to the list: a board code first (with the household's first song), then the whole list, then the board
-  // entry, which the rules check against the list already saved (no word on failure: the next open mends it).
-  // Resolves { ok: true, household } with the household as it now is, or { ok: false }.
-  function applyChange(deps, household, token, nextList) {
-    const h = isObject(household) ? household : {}, store = deps.store, had = songs.cleanPub(h.pub);
-    return Promise.resolve().then(() => (had || !nextList.length ? had : store.claimPub(token))).then(function (pub) {
-      const code = songs.cleanPub(pub);
-      if (nextList.length && !code) return { ok: false };
-      return Promise.resolve(store.saveSongs(token, nextList)).then(function (saved) {
-        if (!saved) return { ok: false };
-        const next = Object.assign({}, h);
-        if (code) next.pub = code;
-        if (nextList.length) next.songs = { at: Date.now(), list: nextList.slice() };
-        else delete next.songs;
-        if (code) Promise.resolve().then(() => store.saveBoard(code, songs.idsOf(nextList))).catch(() => false);
-        return { ok: true, household: next };
+  // One change to the list, intent { add: song } or { remove: id }, made on the household as the database has it now
+  // (a partner's phone may have changed it): read it, apply the change, then a board code first (with the household's
+  // first song), then the whole list, then the board entry, which the rules check against the list already saved (no
+  // word on failure: the next open mends it). With no clear answer from the read, the change is made on this page's
+  // household. Resolves { ok: true, household } with the household as it now is, { ok: false, household } when the
+  // change could not be made on it (full meanwhile, or a save refused), { ok: false, left: true } when it no longer
+  // says yes, or { ok: false }.
+  function applyChange(deps, household, token, intent) {
+    const store = deps.store, page = isObject(household) ? household : {}, o = intent || {};
+    return Promise.resolve().then(() => store.load(token)).catch(() => undefined).then(function (fresh) {
+      const h = fresh === undefined ? page : isObject(fresh) ? fresh : {};
+      if (!saidYes(h)) return { ok: false, left: true };
+      const list = (songs.cleanSongs(h.songs) || { list: [] }).list;
+      const id = o.add ? o.add.id : o.remove, there = list.some(s => s.id === id);
+      if (o.add ? there : !there) return { ok: true, household: h };   // a partner made this change already
+      const next = o.add ? songs.addSong(list, o.add) : songs.removeSong(list, id);
+      if (!next) return { ok: false, household: h };                     // full meanwhile
+      const had = songs.cleanPub(h.pub);
+      return Promise.resolve().then(() => (had || !next.length ? had : store.claimPub(token))).then(function (pub) {
+        const code = songs.cleanPub(pub);
+        if (next.length && !code) return { ok: false, household: h };
+        return Promise.resolve(store.saveSongs(token, next)).then(function (saved) {
+          if (!saved) return { ok: false, household: h };
+          const out = Object.assign({}, h);
+          if (code) out.pub = code;
+          if (next.length) out.songs = { at: Date.now(), list: next.slice() };
+          else delete out.songs;
+          if (code) Promise.resolve().then(() => store.saveBoard(code, songs.idsOf(next))).catch(() => false);
+          return { ok: true, household: out };
+        });
       });
     }).catch(() => ({ ok: false }));
+  }
+  // A change has finished, perhaps after its card closed. The household and the dock always follow it; a failure the
+  // guest can no longer see on the card is said on the home screen; a household that no longer says yes (or a failure
+  // on the open card) has the household read again, which leaves for can't come after a no. Returns what the open
+  // card shows: 'paint', 'failed', or null when the card is gone.
+  function settleChange(res, ctx, first, w, live) {
+    const home = (first && first.home) || {}, r = res || {};
+    const call = (name, arg) => { if (typeof home[name] === 'function') home[name](arg); };
+    if (r.household) { ctx.household = r.household; call('repaint'); }
+    if (r.ok) return live ? 'paint' : null;
+    if (live || r.left) call('refresh');
+    else call('toast', w.errors.save);
+    return live ? 'failed' : null;
+  }
+  // Changes run one after another, even across cards: a second waits until the first has settled (it may outlive its
+  // card), so two never race on the household's list.
+  let queue = Promise.resolve();
+  function queueChange(fn) {
+    const run = queue.then(fn);
+    queue = run.then(() => null, () => null);
+    return run;
   }
 
   // ---------- the card ----------
@@ -113,7 +149,10 @@
     const preview = previewer({ makeAudio: () => new Audio(), sound: S, onChange: paintPlays });
 
     card.heading(W.title);
-    card.onClose(function () { gone = true; clearTimeout(timer); preview.stop(); });
+    // A preview stops when the guest leaves the page; the music then stays paused until they come back.
+    const onHidden = () => { if (document.hidden) preview.stop(); };
+    document.addEventListener('visibilitychange', onHidden);
+    card.onClose(function () { gone = true; clearTimeout(timer); preview.stop(); document.removeEventListener('visibilitychange', onHidden); });
     card.body.appendChild(card.rise(el('p', 'fc-p sg-promise', W.promise)));
 
     if (view.state === 'replyFirst') {
@@ -179,7 +218,7 @@
       view.mine.forEach(function (s) {
         let action = null;
         if (view.state === 'open') {
-          const b = button('sg-btn sg-remove', W.remove, () => change(songs.removeSong(view.mine, s.id), b));
+          const b = button('sg-btn sg-remove', W.remove, () => change({ remove: s.id }, b));
           action = b;
         }
         list.appendChild(row(seen[s.id] || s, action, 0));
@@ -205,7 +244,7 @@
       if (!shown.length) { resultsBox.appendChild(el('p', 'fc-p sg-none', W.none)); return; }
       shown.forEach(function (f) {
         const mine = view.mine.some(s => s.id === f.id);
-        const b = button('sg-btn sg-add', mine ? W.mine : W.add, () => change(songs.addSong(view.mine, f), b));
+        const b = button('sg-btn sg-add', mine ? W.mine : W.add, () => change({ add: f }, b));
         b.disabled = mine;
         resultsBox.appendChild(row(f, b, 0));
       });
@@ -224,7 +263,7 @@
         let action = null;
         if (r.mine) action = el('span', 'sg-yours', W.mine);
         else if (view.state === 'open' && !view.full) {
-          const b = button('sg-btn sg-metoo', W.metoo, () => change(songs.addSong(view.mine, r), b));
+          const b = button('sg-btn sg-metoo', W.metoo, () => change({ add: r }, b));
           action = b;
         }
         boardBox.appendChild(row(r, action, r.n));
@@ -351,33 +390,31 @@
       });
     }
 
-    // ---- Add, Me too and Remove: one at a time ----
-    function change(nextList, btn) {
-      if (busy || gone || !nextList) return;
+    // ---- Add, Me too and Remove: one at a time, queued behind any change still out ----
+    function change(intent, btn) {
+      if (busy || gone || !intent) return;
       busy = true;
       say('');
       if (btn) { btn.disabled = true; btn.classList.add('sg-wait'); }
-      applyChange(deps, ctx.household, token, nextList).then(function (res) {
+      queueChange(() => applyChange(deps, ctx.household, token, intent)).then(function (res) {
         busy = false;
-        if (gone || !card.live()) return;
-        if (!res.ok) {
-          // The choice stays on screen. A no meanwhile leaves for can't come; a song taken down meanwhile leaves the
-          // board and the search when the board is read again.
-          if (btn) { btn.disabled = false; btn.classList.remove('sg-wait'); }
-          say(w.errors.save);
-          if (first.home && typeof first.home.refresh === 'function') first.home.refresh();
-          loadBoard();
+        const next = settleChange(res, ctx, first, w, !gone && card.live());
+        if (next === 'paint') {
+          if (S) S.pop(0.5);
+          paint();
           return;
         }
-        ctx.household = res.household;
-        if (S) S.pop(0.5);
-        paint();
-        if (first.home && typeof first.home.repaint === 'function') first.home.repaint();
+        if (next !== 'failed') return;
+        // The choice stays on screen; a song taken down meanwhile leaves the board and the search when the board is
+        // read again.
+        if (btn) { btn.disabled = false; btn.classList.remove('sg-wait'); }
+        say(w.errors.save);
+        loadBoard();
       });
     }
   }
 
-  const api = { build, previewer, readBoard, applyChange };
+  const api = { build, previewer, readBoard, applyChange, settleChange, queueChange };
   root.sjFirst = root.sjFirst || {};
   root.sjFirst.songsCard = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

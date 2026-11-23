@@ -120,6 +120,15 @@ test('sound.duck pauses the music and plays it on from where it was, only while 
     sound.quiet();
     sound.duck(false);
     assert.deepEqual(log, ['pause'], 'after quiet() the music is not wanted, so it stays off');
+    log.length = 0;
+    sound.music();
+    sound.duck(true);
+    globalThis.document.hidden = true;
+    sound.duck(false);
+    assert.deepEqual(log, ['play@0', 'pause'], 'a preview that ends while the page is hidden leaves the music paused');
+    globalThis.document.hidden = false;
+    handlers.visibilitychange();
+    assert.deepEqual(log, ['play@0', 'pause', 'play@0'], 'and it plays on when the guest comes back');
   } finally {
     for (const k of Object.keys(saved)) { if (saved[k]) Object.defineProperty(globalThis, k, saved[k]); else delete globalThis[k]; }
     delete require.cache[file];
@@ -149,10 +158,9 @@ test('covers send no referrer and Apple text never goes through innerHTML', () =
   assert.match(art, /loading = 'lazy'/);
   assert.match(js, /rel = 'noopener noreferrer'/, 'the Apple Music link sends no referrer');
 });
-test('a save that fails says so, reads the household and the board again, and keeps the choice', () => {
-  const fail = js.slice(js.indexOf('if (!res.ok)'), js.indexOf('if (!res.ok)') + 500);
+test('a save that fails on the open card says so, reads the board again, and keeps the choice', () => {
+  const fail = js.slice(js.indexOf("if (next !== 'failed') return;"), js.indexOf("if (next !== 'failed') return;") + 400);
   assert.match(fail, /say\(w\.errors\.save\)/);
-  assert.match(fail, /home\.refresh\(\)/);
   assert.match(fail, /loadBoard\(\)/);
   assert.doesNotMatch(fail, /input\.value = ''|results = null/);
 });
@@ -202,45 +210,135 @@ test('opening shows the try-again line when the board or Apple gives nothing, an
   assert.equal((await songsCard.readBoard(thrown, { reply: YES }, TOKEN, OPEN)).failed, true);
 });
 
-// ---- a change to the list (Review Focus 4) ----
+// ---- a change to the list: made on the household as the database has it now (Review Focus 4; a partner's phone) ----
 function changeRig(answers) {
-  const calls = [], a = Object.assign({ claimPub: CODE, saveSongs: true, saveBoard: true }, answers);
+  const calls = [], a = Object.assign({ load: { reply: YES }, claimPub: CODE, saveSongs: true, saveBoard: true }, answers);
   const store = {
+    load: tok => { calls.push('load ' + tok); return a.load instanceof Error ? Promise.reject(a.load) : Promise.resolve(a.load); },
     claimPub: tok => { calls.push('claimPub ' + tok); return Promise.resolve(a.claimPub); },
     saveSongs: (tok, list) => { calls.push('saveSongs ' + list.map(s => s.id).join()); return Promise.resolve(a.saveSongs); },
     saveBoard: (code, ids) => { calls.push('saveBoard ' + code + ' ' + ids.join()); return Promise.resolve(a.saveBoard); }
   };
   return { calls, deps: { store } };
 }
-test('the first song claims a code, then saves the list, then the board entry', async () => {
+const NO = { answer: 'no', coming: [false], at: 1 };
+test('the first song reads the household, claims a code, then saves the list, then the board entry', async () => {
   const { calls, deps } = changeRig();
-  const res = await songsCard.applyChange(deps, { reply: YES }, TOKEN, [A]);
+  const res = await songsCard.applyChange(deps, { reply: YES }, TOKEN, { add: found(A) });
   await settle();
-  assert.deepEqual(calls, ['claimPub ' + TOKEN, 'saveSongs ' + A.id, 'saveBoard ' + CODE + ' ' + A.id]);
+  assert.deepEqual(calls, ['load ' + TOKEN, 'claimPub ' + TOKEN, 'saveSongs ' + A.id, 'saveBoard ' + CODE + ' ' + A.id]);
   assert.equal(res.ok, true);
   assert.deepEqual([res.household.reply, res.household.pub, res.household.songs.list], [YES, CODE, [A]]);
 });
-test('a household with a code saves straight away, and removing its last song deletes the list, then the entry', async () => {
-  const more = changeRig();
-  const res = await songsCard.applyChange(more.deps, { reply: YES, songs: { at: 1, list: [A] }, pub: OTHER }, TOKEN, [A, B]);
+test('a change is made on the household as the database has it now, so a partner\'s songs stay', async () => {
+  const fresh = { reply: YES, songs: { at: 2, list: [A, B] }, pub: OTHER };
+  const { calls, deps } = changeRig({ load: fresh });
+  const res = await songsCard.applyChange(deps, { reply: YES }, TOKEN, { add: found(C) });
   await settle();
-  assert.deepEqual(more.calls, ['saveSongs ' + A.id + ',' + B.id, 'saveBoard ' + OTHER + ' ' + A.id + ',' + B.id]);
-  assert.deepEqual(res.household.songs.list, [A, B]);
-  const last = changeRig();
-  const gone = await songsCard.applyChange(last.deps, { reply: YES, songs: { at: 1, list: [A] }, pub: OTHER }, TOKEN, []);
-  await settle();
-  assert.deepEqual(last.calls, ['saveSongs ', 'saveBoard ' + OTHER + ' ']);
-  assert.equal(gone.household.songs, undefined);
-  assert.equal(gone.household.pub, OTHER);
+  assert.deepEqual(calls, ['load ' + TOKEN, 'saveSongs ' + [A.id, B.id, C.id].join(), 'saveBoard ' + OTHER + ' ' + [A.id, B.id, C.id].join()]);
+  assert.deepEqual([res.ok, res.household.pub, res.household.songs.list], [true, OTHER, [A, B, C]]);
 });
-test('a change that cannot get a code or save the list changes nothing', async () => {
-  const noCode = changeRig({ claimPub: null });
-  assert.deepEqual(await songsCard.applyChange(noCode.deps, { reply: YES }, TOKEN, [A]), { ok: false });
-  assert.deepEqual(noCode.calls, ['claimPub ' + TOKEN]);
-  const refused = changeRig({ saveSongs: false });
-  assert.deepEqual(await songsCard.applyChange(refused.deps, { reply: YES, pub: CODE }, TOKEN, [A]), { ok: false });
+test('removing works on the fresh list too, and removing the last song deletes the list, then the entry', async () => {
+  const { calls, deps } = changeRig({ load: { reply: YES, songs: { at: 2, list: [A] }, pub: OTHER } });
+  const res = await songsCard.applyChange(deps, { reply: YES, songs: { at: 1, list: [A, B] }, pub: OTHER }, TOKEN, { remove: A.id });
   await settle();
-  assert.deepEqual(refused.calls, ['saveSongs ' + A.id], 'no board entry without the list');
-  const thrown = { store: { saveSongs: () => { throw new Error('x'); } } };
-  assert.deepEqual(await songsCard.applyChange(thrown, { reply: YES, pub: CODE }, TOKEN, [A]), { ok: false });
+  assert.deepEqual(calls, ['load ' + TOKEN, 'saveSongs ', 'saveBoard ' + OTHER + ' ']);
+  assert.deepEqual([res.ok, res.household.songs, res.household.pub], [true, undefined, OTHER]);
+});
+test('a song a partner already added, or already removed, is not saved again', async () => {
+  const fresh = { reply: YES, songs: { at: 2, list: [A] }, pub: OTHER };
+  const added = changeRig({ load: fresh });
+  assert.deepEqual(await songsCard.applyChange(added.deps, { reply: YES }, TOKEN, { add: found(A) }), { ok: true, household: fresh });
+  assert.deepEqual(added.calls, ['load ' + TOKEN]);
+  const removed = changeRig({ load: fresh });
+  assert.deepEqual(await songsCard.applyChange(removed.deps, { reply: YES, songs: { at: 1, list: [D] } }, TOKEN, { remove: D.id }), { ok: true, household: fresh });
+  assert.deepEqual(removed.calls, ['load ' + TOKEN]);
+});
+test('full meanwhile: nothing is saved and the household as it is comes back', async () => {
+  const fresh = { reply: YES, songs: { at: 2, list: [A, B, C] }, pub: OTHER };
+  const { calls, deps } = changeRig({ load: fresh });
+  assert.deepEqual(await songsCard.applyChange(deps, { reply: YES }, TOKEN, { add: found(D) }), { ok: false, household: fresh });
+  assert.deepEqual(calls, ['load ' + TOKEN]);
+});
+test('a household that no longer says yes makes no change', async () => {
+  for (const load of [{ reply: NO }, null, {}]) {
+    const { calls, deps } = changeRig({ load });
+    assert.deepEqual(await songsCard.applyChange(deps, { reply: YES }, TOKEN, { add: found(A) }), { ok: false, left: true }, JSON.stringify(load));
+    assert.deepEqual(calls, ['load ' + TOKEN]);
+  }
+});
+test('with no clear answer from the read, the change is made on this page\'s household', async () => {
+  for (const load of [undefined, new Error('offline')]) {
+    const { calls, deps } = changeRig({ load });
+    const res = await songsCard.applyChange(deps, { reply: YES, songs: { at: 1, list: [A] }, pub: CODE }, TOKEN, { add: found(B) });
+    await settle();
+    assert.deepEqual(calls, ['load ' + TOKEN, 'saveSongs ' + A.id + ',' + B.id, 'saveBoard ' + CODE + ' ' + A.id + ',' + B.id], String(load));
+    assert.deepEqual(res.household.songs.list, [A, B]);
+  }
+});
+test('a change that cannot get a code or save the list changes nothing, and says what the household is', async () => {
+  const noCode = changeRig({ claimPub: null });
+  assert.deepEqual(await songsCard.applyChange(noCode.deps, { reply: YES }, TOKEN, { add: found(A) }), { ok: false, household: { reply: YES } });
+  assert.deepEqual(noCode.calls, ['load ' + TOKEN, 'claimPub ' + TOKEN]);
+  const refused = changeRig({ load: { reply: YES, pub: CODE }, saveSongs: false });
+  assert.deepEqual(await songsCard.applyChange(refused.deps, { reply: YES }, TOKEN, { add: found(A) }), { ok: false, household: { reply: YES, pub: CODE } });
+  await settle();
+  assert.deepEqual(refused.calls, ['load ' + TOKEN, 'saveSongs ' + A.id], 'no board entry without the list');
+  const thrown = { store: { load: () => Promise.resolve({ reply: YES, pub: CODE }), saveSongs: () => { throw new Error('x'); } } };
+  assert.deepEqual(await songsCard.applyChange(thrown, { reply: YES }, TOKEN, { add: found(A) }), { ok: false });
+});
+
+// ---- a change that has finished, perhaps after its card closed ----
+function homeRig() {
+  const calls = [];
+  const home = { repaint: () => calls.push('repaint'), refresh: () => calls.push('refresh'), toast: text => calls.push('toast ' + text) };
+  return { calls, first: { home } };
+}
+const W = { errors: { save: 'Could not save, please try again' } };
+test('a saved change always reaches the household and the dock, and paints the card only while it is open', () => {
+  const saved = { reply: YES, songs: { at: 1, list: [A] }, pub: CODE };
+  const open = homeRig(), ctx = { household: { reply: YES } };
+  assert.equal(songsCard.settleChange({ ok: true, household: saved }, ctx, open.first, W, true), 'paint');
+  assert.deepEqual([ctx.household, open.calls], [saved, ['repaint']]);
+  const closed = homeRig(), ctx2 = { household: { reply: YES } };
+  assert.equal(songsCard.settleChange({ ok: true, household: saved }, ctx2, closed.first, W, false), null);
+  assert.deepEqual([ctx2.household, closed.calls], [saved, ['repaint']], 'saved after the card closed: the phone still knows');
+});
+test('a failed change: the open card says so and the household is read again; once closed, the home screen says so', () => {
+  const fresh = { reply: YES, songs: { at: 2, list: [A, B, C] } };
+  const open = homeRig(), ctx = { household: { reply: YES } };
+  assert.equal(songsCard.settleChange({ ok: false, household: fresh }, ctx, open.first, W, true), 'failed');
+  assert.deepEqual([ctx.household, open.calls], [fresh, ['repaint', 'refresh']]);
+  const closed = homeRig(), ctx2 = { household: { reply: YES } };
+  assert.equal(songsCard.settleChange({ ok: false }, ctx2, closed.first, W, false), null);
+  assert.deepEqual([ctx2.household, closed.calls], [{ reply: YES }, ['toast Could not save, please try again']]);
+  const left = homeRig();
+  assert.equal(songsCard.settleChange({ ok: false, left: true }, { household: { reply: YES } }, left.first, W, false), null);
+  assert.deepEqual(left.calls, ['refresh'], 'a household that no longer says yes leaves for its own screen');
+});
+test('changes run one after another, even when the first outlives its card', async () => {
+  const log = [];
+  let release;
+  const first = songsCard.queueChange(() => { log.push('a start'); return new Promise(r => { release = () => { log.push('a end'); r('a'); }; }); });
+  const second = songsCard.queueChange(() => { log.push('b start'); return 'b'; });
+  await settle();
+  assert.deepEqual(log, ['a start']);
+  release();
+  assert.deepEqual(await Promise.all([first, second]), ['a', 'b']);
+  assert.deepEqual(log, ['a start', 'a end', 'b start']);
+  await songsCard.queueChange(() => Promise.reject(new Error('x'))).catch(() => null);
+  assert.equal(await songsCard.queueChange(() => 'c'), 'c', 'a change that failed does not stop the next');
+});
+test('the card asks for changes as add or remove, queued, and settles them whether or not it is open', () => {
+  assert.ok(js.includes('change({ remove: s.id }, b)'));
+  assert.ok(js.includes('change({ add: f }, b)'));
+  assert.ok(js.includes('change({ add: r }, b)'));
+  const body = js.slice(js.indexOf('function change(intent, btn)'), js.indexOf('function change(intent, btn)') + 1200);
+  assert.ok(body.includes('queueChange(() => applyChange(deps, ctx.household, token, intent))'), 'the household is read when the change runs');
+  assert.ok(body.includes('settleChange(res, ctx, first, w, !gone && card.live())'));
+});
+test('a preview stops when the guest leaves the page', () => {
+  assert.ok(js.includes('const onHidden = () => { if (document.hidden) preview.stop(); };'));
+  assert.ok(js.includes("document.addEventListener('visibilitychange', onHidden)"));
+  assert.ok(js.includes("document.removeEventListener('visibilitychange', onHidden)"));
 });
