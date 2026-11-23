@@ -177,9 +177,24 @@ Under the countdown, the line naming the next envelope ends with "Remind me". On
 4. Add the invitation to the home screen (iPhone: Share, Add to Home Screen) and open it from there. Say whether it opens your invitation or "Please use the link Joe or Sophie sent you". On an iPhone a home-screen web app can start with its own empty storage; if it shows that line, the icon needs more work before guests are told about it.
 5. Afterwards delete the test events from your calendar.
 
+## 4f. The song board
+
+The fifth button in the dock, Songs, opens a board of the songs that households who said yes have asked for, most wanted first, each with how many households want it. A household can add up to three songs from Apple's catalogue, back another household's song with Me too, and remove its own, until the end of Saturday 15 May 2027 (UK time). After that the board can still be read and nothing on it changes. The board shows songs and counts only, never who asked: the dashboard's Song requests shows who. A household that changes its reply to Can't come loses its songs from the board.
+
+Publish the new rules first (section 1): until then every song save is refused.
+
+1. Phone A adds a song: it shows in Your songs and on the board with "1 request", and the Songs button in the dock shows done.
+2. Phone B, another household that said yes, opens Songs and sees the song. Me too makes it "2 requests".
+3. Tap a song's cover to play its preview: the invitation's music fades out and the preview plays. Tap it again to stop: the music comes back from where it was.
+4. Dashboard, Site tab, Invitations: Song requests lists the song with both households, and Copy as text gives one line for it with its title, artist and (2).
+5. Remove it there (it asks first). Open Songs again on both phones: it is gone from both boards, and a search no longer finds it.
+6. Allow again, under Taken down, lets it be found again.
+7. Phone A changes its reply to Can't come. Open Songs again on Phone B: Phone A's songs have left the board.
+8. Apple's terms, your call. Apple's Search API page (performance-partners.apple.com/search-api, its Legal section, read on 23 Nov 2026; its footer says 2022) treats previews and covers as promotion of the music: shown beside a store badge that links to the song, with "provided courtesy of iTunes" when previews are used, and previews streamed, never saved. The card streams previews, says "Song previews provided courtesy of iTunes" under the board and has an Apple Music link on every song. It has no badge. Choose one: keep it as it is, add Apple's badge (a download from Apple's marketing tools), or take the previews out.
+
 ## 5. Write the words
 
-Every guest-facing line is in `js/first/words.js` and every one is a placeholder. Replace them with your own. The home screen has four buttons: Reply, Stay, Travel and Weekend. There is no Wear card; what to wear is a line inside each day of the Weekend card. The Getting there card's lines are under `travel`; its airports, airlines, drive times and tolls are not words, they come from `data/getting-there.json`. Ones that need a decision, not just wording:
+Every guest-facing line is in `js/first/words.js` and every one is a placeholder. Replace them with your own. The home screen has five buttons: Reply, Stay, Travel, Weekend and Songs. There is no Wear card; what to wear is a line inside each day of the Weekend card. The Getting there card's lines are under `travel`; its airports, airlines, drive times and tolls are not words, they come from `data/getting-there.json`. Ones that need a decision, not just wording:
 
 - The gifts answer (it says details will follow)
 - The line under "your own place"
@@ -188,6 +203,7 @@ Every guest-facing line is in `js/first/words.js` and every one is a placeholder
 - "Remind me", its spoken label and the Android event title (`remind`, `remindLabel`, `remindEvent` under `home`), and the event titles in `tuscany-2027-dates.ics`
 - What is inside each envelope: `what` under `home.envelopes`, shown in that envelope's panel. The estate has your line. Your room, The menu, Your table, The film and The photos show placeholders until you write your own: "Which room is yours", "What we'll eat on the day", "Where you're sitting", "A film to watch before the weekend" and "Photos from the weekend".
 - The envelope panel's other words: "see what's inside", read out after each envelope's name (`seeInside`), and "Opens in June" for the photos (`photosOpens`).
+- The Songs card (`songs`): the line under its title is your own words for now ("No guarantees they'll get played on the weekend"); the rest are placeholders, including the credit line under the board (`credit`, see 4f step 8). The dock button is `Songs`, the fifth of `dock.labels`.
 - The amount is not in the words file. It is `SHARE_GBP` in `js/first/core.js`. No payment date is shown anywhere yet: the line says to send your share in the spring. Add a date only once you know when the balance is due to the villa.
 
 Needs Joe, for the Weekend and Questions words:
@@ -209,6 +225,7 @@ Some tests pin today's placeholder lines on purpose. When the real words go in t
 - `tests/first-fixwave-c.test.cjs` (H13): `weekend.swipe` ("Swipe for the next day").
 - `tests/first-cards-info.test.cjs`: "ask Joe or Sophie directly" in the bring answer, "Message Joe or Sophie" in the reach answer, "reply" (and not "message") in the food answer, "follow" in the gifts answer, and the share showing as "£150 each" in the cost answer.
 - `tests/first-cards.test.cjs`: "Joe or Sophie" in the Reply card's closed line.
+- `tests/songs-card.test.cjs`: the no-promises line (`songs.promise`).
 - `tests/weekend-view.test.cjs` ("nothing from the old Wear card is lost"): "Come as you are", "ties optional", "Swimwear", "gravel and grass" and "after dark".
 
 ## 6. Flip the switch
@@ -235,4 +252,4 @@ Push sections 5 to 7 together. Open one real link without `&first=1` to confirm 
 
 ## What this does not include
 
-The song request and the paid mark (phase 2; travel days are now part of the Getting there card), prices on the Getting there routes (January), and what is inside each sealed envelope (phase 3). The envelopes show their opening dates and stay sealed until those are built.
+The paid mark (phase 2; travel days are now part of the Getting there card), prices on the Getting there routes (January), and what is inside each sealed envelope (phase 3). The envelopes show their opening dates and stay sealed until those are built.
