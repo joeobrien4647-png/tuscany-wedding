@@ -92,7 +92,7 @@ CARD_DAY = CARD + ['.wk-live .wk-date', '.wk-live .wk-name', '.wk-live .wk-part'
 # A real day leaves room for the words on the see-the-picture control beside its icon.
 CARD_DAY_SEE = CARD_DAY + ['.wk-see-t']
 CARD_QUESTIONS = CARD + ['.fc-q-head']
-CARD_SONGS = CARD + ['.sg-promise', '.sg-board']
+CARD_SONGS = CARD + ['.sg-promise', '.sg-board', '.sg-badge']
 # The food step: ten picks and the note on every screen; Next until the last screen, then Done. Read only has no note box.
 FOOD = CARD + ['.ff-pick', '.ff-note', '.ff-done']
 FOOD_NEXT = CARD + ['.ff-pick', '.ff-note', '.ff-next']
@@ -1628,6 +1628,21 @@ async def flow_songs_board(f, guest):
     await p.evaluate("() => { const s = document.querySelector('#first .sg-scroll'); s.scrollTop = s.scrollHeight; }")
     await p.wait_for_timeout(400)
     await f.stop('songs-busy-end', CARD_SONGS + ['.sg-credit'])
+    badge = await p.evaluate("""async () => {
+      const all = document.querySelectorAll('#first .sg-badge'), a = all[0], i = a && a.querySelector('img'), s = document.querySelector('#first .sg-scroll');
+      if (!a || !i || !s) return { n: all.length };
+      if (!i.complete) await new Promise(r => { i.addEventListener('load', r, { once: true }); i.addEventListener('error', r, { once: true }); setTimeout(r, 3000); });
+      const r = i.getBoundingClientRect(), b = s.getBoundingClientRect();
+      return { n: all.length, h: r.height, onScreen: r.top >= b.top && r.bottom <= b.bottom && r.bottom <= innerHeight,
+               loaded: i.complete && i.naturalWidth === 1200 && i.naturalHeight === 463, href: a.href, target: a.target, rel: a.rel, alt: i.alt };
+    }""")
+    f.expect(badge['n'] == 1, 'the board does not end with one Apple Music badge')
+    if badge['n'] == 1:
+        f.expect(badge['onScreen'], 'the Apple Music badge is not on screen at the end of the board')
+        f.expect(badge['h'] >= 30, "the Apple Music badge is %.1f px tall, under Apple's 30" % badge['h'])
+        f.expect(badge['loaded'], 'the Apple Music badge picture did not load')
+        f.expect(badge['href'] == 'https://music.apple.com/' and badge['target'] == '_blank' and badge['rel'] == 'noopener noreferrer'
+                 and badge['alt'] == 'Listen on Apple Music', 'the badge does not open Apple Music in a new tab with no referrer, or its alt text is wrong')
     await p.evaluate("() => { document.querySelector('#first .sg-scroll').scrollTop = 0; }")
     await search(f, 'test', '.sg-results .sg-row')
     f.expect(await p.locator('#first .sg-results .sg-row').count() == 7, 'the search does not show its 7 songs (8 found, 1 taken down)')

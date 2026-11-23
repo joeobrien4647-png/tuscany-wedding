@@ -130,7 +130,11 @@ test('the phone-fit script walks the Songs card, with Apple answered from fixtur
     assert.ok(py.includes("'" + stop + "'"), stop);
   assert.ok(py.includes("(4, 'songs', CARD_SONGS"), 'the cards walk opens the fifth dock item, card-songs');
   assert.match(py, /SCROLL_OK = \[[^\]]*'\.sg-scroll',\s+#\s*\S/s, 'the Songs card scroller is named with its reason');
-  assert.ok(py.includes("CARD_SONGS = CARD + ['.sg-promise', '.sg-board']"), 'CARD_SONGS');
+  assert.ok(py.includes("CARD_SONGS = CARD + ['.sg-promise', '.sg-board', '.sg-badge']"), 'CARD_SONGS: every Songs stop shows the Apple Music badge');
+  const busy = py.slice(py.indexOf('async def flow_songs_board'), py.indexOf('async def flow_songs_board') + 6000);
+  for (const say of ['the board does not end with one Apple Music badge', 'the Apple Music badge is not on screen at the end of the board',
+    'px tall, under Apple', 'the Apple Music badge picture did not load', 'the badge does not open Apple Music in a new tab with no referrer'])
+    assert.ok(busy.includes(say), 'flow_songs_board checks: ' + say);
 });
 test('the phone-fit script names its three new exceptions and why', () => {
   const py = source();

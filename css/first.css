@@ -630,6 +630,9 @@ html.first-on body > :not(#first) { display: none; }
 #first .sg-yours { font: 600 11px/1 var(--ui); letter-spacing: .16em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }
 #first .sg-empty, #first .sg-none, #first .sg-failed, #first .sg-loading, #first .sg-full, #first .sg-closed { margin: 0; }
 #first .sg-retry { justify-self: start; min-height: 44px; padding: 0 22px; }
+#first .sg-badge { justify-self: start; margin: 4px; }
+#first .sg-badge-i { display: block; height: 36px; width: auto; }
+#first .sg-badge:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 4px; }
 #first .sg-credit { margin: 0; font: 400 11px/1.35 var(--ui); color: var(--ink-faint); }
 #first .sg-err { margin: 0; }
 @media (max-height: 640px) {

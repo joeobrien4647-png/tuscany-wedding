@@ -342,3 +342,54 @@ test('a preview stops when the guest leaves the page', () => {
   assert.ok(js.includes("document.addEventListener('visibilitychange', onHidden)"));
   assert.ok(js.includes("document.removeEventListener('visibilitychange', onHidden)"));
 });
+
+// ---------- Apple's badge ----------
+// Apple's own "Listen on Apple Music" PNG from the Download link in section 1.1 of Apple's Apple Music identity
+// guidelines (Apple_Music_Listen_on_Badge_RGB_USGB-EN_CI_122225.png), unchanged, once at the foot of the board.
+const BADGE_FILE = 'images/first/apple-music-badge.png';
+const fakeEl = (tag, cls, text) => ({ tag, className: cls, textContent: text, children: [], appendChild(c) { this.children.push(c); return c; } });
+test('the badge is one link to Apple Music, in a new tab with no referrer, holding Apple\'s picture with its alt text', () => {
+  assert.equal(typeof songsCard.badge, 'function');
+  const a = songsCard.badge(fakeEl, 'Listen on Apple Music');
+  assert.equal(a.tag, 'a');
+  assert.equal(a.className, 'sg-badge');
+  assert.equal(a.href, 'https://music.apple.com/');
+  assert.equal(a.target, '_blank');
+  assert.equal(a.rel, 'noopener noreferrer');
+  assert.equal(a.children.length, 1);
+  const img = a.children[0];
+  assert.equal(img.tag, 'img');
+  assert.equal(img.className, 'sg-badge-i');
+  assert.equal(img.src, BADGE_FILE);
+  assert.equal(img.alt, 'Listen on Apple Music');
+  assert.equal(img.width, 1200, 'the picture\'s own size, so its space is kept before it loads');
+  assert.equal(img.height, 463);
+});
+test('the board ends with the badge once, before the iTunes credit line', () => {
+  assert.ok(js.includes("[mineWrap, findWrap, boardWrap, badge(el, W.badge), el('p', 'sg-credit', W.credit)].forEach(e => scroll.appendChild(e));"));
+  assert.equal(js.split('badge(el, W.badge)').length, 2, 'one badge');
+  assert.equal(words.songs.badge, 'Listen on Apple Music', 'the alt text says what the badge says');
+});
+test('the badge file is Apple\'s PNG, unchanged', () => {
+  const png = fs.readFileSync(path.join(__dirname, '..', BADGE_FILE));
+  assert.equal(png.length, 82695);
+  assert.equal(png.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+  assert.equal(png.readUInt32BE(16), 1200);
+  assert.equal(png.readUInt32BE(20), 463);
+  assert.equal(require('node:crypto').createHash('sha256').update(png).digest('hex'), 'c45fe1a2b780da1f6a56a929f60c37ac549238f0480cf22ff2819454bd5d8438');
+});
+test('the badge shows at least 30 px tall with clear space of a tenth of its height, and nothing changes its look', () => {
+  const css = read('css/first.css');
+  const rule = sel => {
+    const at = css.indexOf('#first ' + sel + ' {');
+    assert.ok(at >= 0, 'no rule for ' + sel);
+    return css.slice(css.indexOf('{', at) + 1, css.indexOf('}', at));
+  };
+  const img = rule('.sg-badge-i'), link = rule('.sg-badge');
+  const h = Number((img.match(/(?:^|;)\s*height: (\d+)px/) || [])[1]);
+  assert.ok(h >= 30, 'height ' + h);
+  assert.match(img, /width: auto/);
+  const clear = Number((link.match(/(?:^|;)\s*margin: (\d+)px;/) || [])[1]);
+  assert.ok(clear >= h / 10, 'clear space ' + clear);
+  for (const r of [img, link]) assert.doesNotMatch(r, /filter|opacity|transform|shadow|radius|animation|blend|border/);
+});

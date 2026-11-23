@@ -7,6 +7,7 @@
   'use strict';
   const DEBOUNCE_MS = 400, SEARCH_MAX = 100;
   const SVG = 'http://www.w3.org/2000/svg', PLAY = 'M8 5.5v13l10.5-6.5z', STOP = 'M7 7h10v10H7z';
+  const BADGE_SRC = 'images/first/apple-music-badge.png', APPLE_MUSIC = 'https://music.apple.com/';
 
   // The files before this one on the page set these; under Node tests they are required here.
   const lib = (name, file) => (root.sjFirst && root.sjFirst[name]) || (typeof require === 'function' ? require(file) : null);
@@ -137,6 +138,23 @@
     return run;
   }
 
+  // ---------- Apple's badge ----------
+  // Apple's own Listen on Apple Music picture (a PNG, 1200 by 463, unchanged), once at the foot of the board and linked
+  // to Apple Music, as Apple's terms ask of a page that plays its previews. el is the card's el(tag, cls, text).
+  function badge(el, alt) {
+    const a = el('a', 'sg-badge');
+    a.href = APPLE_MUSIC;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    const img = el('img', 'sg-badge-i');
+    img.alt = alt;
+    img.width = 1200;
+    img.height = 463;
+    img.src = BADGE_SRC;
+    a.appendChild(img);
+    return a;
+  }
+
   // ---------- the card ----------
   function build(card) {
     const ctx = card.ctx, w = card.w, first = card.first, W = w.songs, S = first.sound;
@@ -168,7 +186,7 @@
     const boardBox = el('div', 'sg-board');
     boardWrap.appendChild(el('h3', 'fc-grp-k sg-head', W.board));
     boardWrap.appendChild(boardBox);
-    [mineWrap, findWrap, boardWrap, el('p', 'sg-credit', W.credit)].forEach(e => scroll.appendChild(e));
+    [mineWrap, findWrap, boardWrap, badge(el, W.badge), el('p', 'sg-credit', W.credit)].forEach(e => scroll.appendChild(e));
     card.body.appendChild(scroll);
     const err = el('p', 'fr-err sg-err');
     err.setAttribute('role', 'status');
@@ -414,7 +432,7 @@
     }
   }
 
-  const api = { build, previewer, readBoard, applyChange, settleChange, queueChange };
+  const api = { build, previewer, readBoard, applyChange, settleChange, queueChange, badge };
   root.sjFirst = root.sjFirst || {};
   root.sjFirst.songsCard = api;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;

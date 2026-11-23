@@ -300,6 +300,7 @@
       remove: 'Remove',
       play: 'Play a preview of {title}',
       apple: 'Apple Music',
+      badge: 'Listen on Apple Music',
       count: '{n} requests',
       countOne: '1 request',
       full: 'Remove one to add another',
