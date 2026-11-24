@@ -24,10 +24,10 @@ test('the link preview picture is a 1200 x 630 JPEG of at most 250 KB', () => {
   assert.ok(buf.length <= 250 * 1024, 'size ' + buf.length);
 });
 
-test('the page still points at the save-the-date picture until the switch flips', () => {
+test('the page points at the invitation picture now the switch is on', () => {
   const html = read('index.html');
-  assert.match(html, /<meta property="og:image" content="https:\/\/sophieandjoe2027\.com\/images\/save-the-date\/share-preview\.jpg">/);
-  assert.doesNotMatch(html, /images\/first\/share-preview/);
+  assert.match(html, /<meta property="og:image" content="https:\/\/sophieandjoe2027\.com\/images\/first\/share-preview\.jpg">/);
+  assert.doesNotMatch(html, /images\/save-the-date\/share-preview/);
 });
 
 test('the preview script is in the repo, makes the picture from the villa photo, and names no local folder', () => {

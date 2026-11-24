@@ -13,9 +13,9 @@ test('the switch', () => {
   assert.equal(shouldShowFirst({ search: '?first=1', enabled: true, signingIn: true }), false);
 });
 
-test('index.html ships with the switch off and loads nothing of the layer by default', () => {
+test('index.html has the switch on and loads the layer only from its optional-head script', () => {
   const html = read('index.html');
-  assert.match(html, /id="optional-head"[^>]*data-first-enabled="false"/);
+  assert.match(html, /id="optional-head"[^>]*data-first-enabled="true"/);
   const start = html.indexOf('<script id="optional-head"');
   const end = html.indexOf('</script>', start);
   let at = html.indexOf('js/first/');

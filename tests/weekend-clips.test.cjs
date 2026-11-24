@@ -120,8 +120,8 @@ test('the petals are drawn by the page, are decoration only, and move only while
   assert.match(css, /@keyframes wk-petal-fall/);
 });
 
-test('index.html does not preload any clip, and the switch stays off', () => {
+test('index.html does not preload any clip, with the switch on', () => {
   const html = read('index.html');
   assert.doesNotMatch(html, /\.mp4/);
-  assert.match(html, /data-first-enabled="false"/);
+  assert.match(html, /data-first-enabled="true"/);
 });

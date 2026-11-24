@@ -100,7 +100,7 @@ test('the travel card sets words with textContent only', () => {
 test('index.html loads the three travel files before cards', () => {
   const html = read('index.html');
   assert.match(html, /\["core", "food-core", "words", "store", "sound", "fx", "minute", "reply", "home", "travel-core", "travel-map", "travel-card", "weekend-card", "food-card", "songs-core", "apple", "songs-card", "cards", "app"\]/);
-  assert.match(html, /data-first-enabled="false"/);
+  assert.match(html, /data-first-enabled="true"/);
 });
 test('the card frame tells a card when it closes, so the map can stop', () => {
   assert.match(read('js/first/cards.js'), /onClose/);
