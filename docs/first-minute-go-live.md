@@ -1,12 +1,12 @@
 # The invitation: going live
 
-The new invitation is built on the `first-minute` branch and ships switched off. Sections 1 to 4 were done on 11 Nov 2026, and section 4a's rules and push on 14 Nov 2026; what is still to do is marked in 4a and 4b. Do the sections in order. Sections marked **Joe only** change the live database or the live site and must not be done by anyone else.
+The new invitation was built on the `first-minute` branch and shipped switched off. Sections 1 to 4 were done on 11 Nov 2026, and section 4a's rules and push on 14 Nov 2026. Joe and Sophie's two-phone test of sections 4 to 4f passed on 24 Nov 2026 with no problems, and sections 6 and 7 were built the same day; section 8 is their push. Once `main` has `data-first-enabled="true"`, the invitation is live for everyone. Do the sections in order. Sections marked **Joe only** change the live database or the live site and must not be done by anyone else.
 
 The order matters. The code goes live first with the switch off, so guests see no change, and only then is it tried for real on two phones. The switch is flipped last.
 
 Before you start:
 
-- The switch is `data-first-enabled` on the `optional-head` script in `index.html`. It is `"false"`.
+- The switch is `data-first-enabled` on the `optional-head` script in `index.html`. It is `"true"` since section 6; it was `"false"` until then.
 - A preview never needs the switch: add `&first=1` to a personal link. `&first=0` forces the old site.
 - `?signin=1` always shows the old sign-in, switch or no switch. The dashboard is unchanged apart from the new Invitations section in the Site tab.
 
@@ -20,7 +20,7 @@ The rules on `main` should match what is live. The song board branch adds only i
 
 What the `household` block allows: anyone holding a personal link can read and write that one household's reply and stay choice. Nobody without the link can read it, and nobody but a signed-in admin can list households. Replies close at the end of Sunday 28 February 2027. A stay choice needs a yes first.
 
-Not yet proven: these rules have only been checked for shape by the tests. Section 4 is the real proof that they accept a reply. To see a refusal now, use the Rules Playground on the same tab: a read of `/household` with no sign-in should be denied.
+Proven on the live database: the two-phone test (section 4) saved real replies, and on 24 Nov 2026 a read of `/household` with no sign-in was refused (section 4c).
 
 ## 2. Make and import the invitation list (Joe only)
 
@@ -44,7 +44,7 @@ Check: open the site as a guest would. It should look and behave exactly as it d
 2. Add `&first=1` and open it on Joe's phone and Sophie's phone. Sound on. Watch the whole minute once.
 3. Reply yes, pick who is coming, choose a place to stay, open each card.
 4. In the dashboard, Site tab, Invitations: the household should show the reply and the stay choice. (It shows as opened only if you did not use `&test=1`.)
-5. From that row, set the household to "Can't come" by hand, then press Clear. Both should work without an error message. This is the one dashboard action that has not been run against the real rules: if Clear shows "Not done", stop and say so before inviting anyone.
+5. From that row, set the household to "Can't come" by hand, then press Clear. Both should work without an error message. This was the one dashboard action not yet run against the real rules; it worked in the two-phone test on 24 Nov 2026. If Clear ever shows "Not done", stop and say so.
 6. On each phone, open the Reply card and tap "Not you?" so the phone forgets the test invitation.
 
 This is the first time it will have been seen or heard on a real phone. Things to look for: nothing cut off, nothing that scrolls, the music starts after the first tap and the sound button works, the video plays, the countdown is right.
@@ -53,7 +53,7 @@ Optional here, required after writing the words (section 5): on a computer with 
 
 ## 4a. The Getting there card
 
-Built on the `getting-there` branch, on top of sections 1 to 4, which were done on 11 Nov 2026. The Getting there work was pushed to `main` on 14 Nov 2026 (commit 14e8514) with the switch off, and the Firebase rules with the `travel` block were published the same day. Still to do: the two-phone test on the live site, and clearing the test tickets afterwards. The card sits behind the same switch, so guests see nothing until section 6.
+Built on the `getting-there` branch, on top of sections 1 to 4, which were done on 11 Nov 2026. The Getting there work was pushed to `main` on 14 Nov 2026 (commit 14e8514) with the switch off, and the Firebase rules with the `travel` block were published the same day. The two-phone test passed on 24 Nov 2026. Still to do: clearing the test tickets (below). One ticket, stamped on 18 Nov 2026, is still saved for the household used in the tests. The card sits behind the same switch, so guests see nothing until section 6.
 
 What it adds: a guest builds their trip on a map, fills a ticket and stamps it. A stamped ticket is saved at `travel/<their key>/<ticket number>`, where a personal link can write but never read. Only a signed-in admin can read it, so guests cannot see each other's plans. The phone that stamped a ticket keeps its own copy and shows it again; another phone starts empty.
 
@@ -66,7 +66,7 @@ What it adds: a guest builds their trip on a map, fills a ticket and stamps it. 
 5. Check a household with no yes cannot stamp: in the Rules Playground, a set at `/travel/<a key with no reply>/0` with no sign-in should be denied.
 6. Two more that should be denied, using a key that has replied yes: a read of `/travel/<that key>/0`, and a set at `/travel/<that key>/8` (there are only eight tickets, 0 to 7).
 
-Not yet proven: the rules have only been checked for shape by the tests. That they accept a real stamp is proven by the two-phone test below, and by nothing before it. The rules were published on 14 November 2026.
+Proven: a real ticket was stamped and saved on the live database on 18 Nov 2026. The rules were published on 14 November 2026.
 
 **Push with the switch still off (Joe only).** Done on 14 Nov 2026 (commit 14e8514). Merge `getting-there` into `main` and push, as in section 3. The site should look exactly as before.
 
@@ -86,7 +86,7 @@ Not in yet: prices on the routes. The "See live prices" link works now and opens
 
 ## 4b. The four cards pass
 
-The Weekend screen (four day tiles, each day opening full screen), the four-button home screen and the Questions changes went to `main` on 15 November 2026 (commit 275b420), with the switch still off. The two-phone list below is still to do. The sharper day pictures and a round of small fixes followed on 16 November 2026, also with the switch off. Try them on Joe's phone and Sophie's phone, with `&first=1&test=1` on your own household's link:
+The Weekend screen (four day tiles, each day opening full screen), the four-button home screen and the Questions changes went to `main` on 15 November 2026 (commit 275b420), with the switch still off. The two-phone list below passed on 24 Nov 2026. The sharper day pictures and a round of small fixes followed on 16 November 2026, also with the switch off. Try them on Joe's phone and Sophie's phone, with `&first=1&test=1` on your own household's link:
 
 1. Open Weekend and a day. Swipe between the days with a finger, both ways, on both phones.
 2. Tap the marks at the foot of a day: each one jumps to its day.
@@ -103,7 +103,7 @@ The Weekend screen (four day tiles, each day opening full screen), the four-butt
 
 ## 4c. Food needs and the link preview
 
-This work is on the branch `food-and-preview`, not on `main`. It goes to `main`, with the switch still off, only when Joe says so.
+This work came from the branch `food-and-preview` and is on `main`, pushed with the switch off.
 
 What it adds:
 
@@ -119,7 +119,7 @@ What it adds:
 2. Compare the live rules with `firebase.rules.json` on `main`. Once this branch is on `main`, the two differ by exactly the `food` block until the rules are published: that one difference is expected. If they differ in anything else, stop and work out why.
 3. Paste the branch's file and publish.
 
-**Check the rules after publishing.** Claude checks with real requests to the database, with no sign-in, against a test household that has said yes (Joe's own, during his two-phone test):
+**Check the rules after publishing.** Done on 24 Nov 2026, and all four held. Claude checked with real requests to the database, with no sign-in, against a short-lived test household that had said yes, then removed it:
 
 - a proper save of food needs is accepted, and is then removed again;
 - the same save with a pick called `steak` is refused;
@@ -128,7 +128,7 @@ What it adds:
 
 Joe's fallback is the Rules Playground, with no sign-in: a set at `/household/<a key with no reply>/food` is denied, and a set at `/household/<a yes key>/food` with a pick called `steak` is denied. The Playground cannot prove that a proper save is accepted, so it does not replace the check above.
 
-A household that has said yes may remove its own food needs before the cut-off (the rule allows it). On the dashboard, Clear removes a household's food needs along with its reply and stay choice, and asks first. Can't come does not remove them: every list ignores food needs from a household that has not said yes, and if the answer is set back to yes, that household's food needs come back. The dashboard writes as the signed-in admin, so the food rule does not limit it. The dashboard's food list has not been seen running yet, because nobody could sign in during the build. Check it once the rules are published.
+A household that has said yes may remove its own food needs before the cut-off (the rule allows it). On the dashboard, Clear removes a household's food needs along with its reply and stay choice, and asks first. Can't come does not remove them: every list ignores food needs from a household that has not said yes, and if the answer is set back to yes, that household's food needs come back. The dashboard writes as the signed-in admin, so the food rule does not limit it. The dashboard's food list was seen running in the two-phone test on 24 Nov 2026.
 
 "Saved for X, check with them" on the dashboard: food needs are kept by each person's place on the invitation and their name. Editing or reordering the names on an invitation un-matches that person's food needs. Either the guest gives them again, or the name goes back as it was.
 
@@ -239,9 +239,9 @@ Some tests pin your lines on purpose, so changing one fails a test that names it
 
 ## 6. Flip the switch
 
-In `index.html` set `data-first-enabled="true"`. Three tests pin the exact tag (`first-switch`, `ported-features`, `storybook-scenes`) and will fail until they are updated to match: that is expected, and it is a one-line change in each.
+Done on 24 Nov 2026. `index.html` has `data-first-enabled="true"`, and the six tests that pin the switch (`first-switch`, `ported-features`, `storybook-scenes`, `travel-card`, `weekend-card`, `weekend-clips`) now expect it on.
 
-Once the food and preview branch is on `main`, in the same change: set the `og:image` address in `index.html` to `https://sophieandjoe2027.com/images/first/share-preview.jpg` and update `tests/share-preview.test.cjs`, which pins the old address. Section 4c says how to check the preview.
+In the same change, the `og:image` address in `index.html` is `https://sophieandjoe2027.com/images/first/share-preview.jpg`, and `tests/share-preview.test.cjs` pins it. Section 4c says how to check the preview.
 
 ## 7. Retire the old pages
 
@@ -249,13 +249,17 @@ Point `getting-here.html`, `weekend-guide.html`, `villas.html` and `gallery.html
 
 Check afterwards: a guest who is not signed in can no longer reach any page that shows bank details.
 
+Done on 24 Nov 2026. `scripts/retire-pages.cjs` writes every retired page from `data/retired-routes.json`, which now has 39. The four pages, and the ten older ones that led to `getting-here.html` or `weekend-guide.html`, all lead to `index.html`. Tests that only covered the retired pages' content were removed; the arrival sheet, Plan the drive and the villa explorer's code keep theirs. The explorer's code and model stay in the repo, though no page loads them now. Links to the retired pages from the pages still standing (the old front page behind `?signin=1`, `arrival-essentials.html`, `our-story.html`, `join-in.html` and `getting-there.html`) now land on the invitation.
+
+Checked the same day: with no sign-in, the database refuses `/members`, `/members/payment`, `/approved`, `/payments` and `/household`, and no page has bank details written into it. They show only after sign-in: on the old front page for an approved guest, and on the dashboard.
+
 ## 8. Push again (Joe only)
 
-Push sections 5 to 7 together. Open one real link without `&first=1` to confirm the invitation now opens by itself.
+Push sections 6 and 7 together (section 5's words went out on 24 Nov 2026). Open one real link without `&first=1` to confirm the invitation now opens by itself.
 
 ## If something goes wrong
 
-- The invitation misbehaves after the switch is on: set `data-first-enabled="false"`, change the three tests from section 6 back to match, and push. The old front page is back for everyone. Replies already saved stay in the database. Pages retired in section 7 stay retired until that change is undone too.
+- The invitation misbehaves after the switch is on: set `data-first-enabled="false"`, change the six tests from section 6 back to match, and push. The old front page is back for everyone. Replies already saved stay in the database. Pages retired in section 7 stay retired until that change is undone too.
 - The rules misbehave: paste back the copy you kept in section 1 and publish.
 - One household's answer is wrong: fix or clear it from the Invitations section of the dashboard.
 
