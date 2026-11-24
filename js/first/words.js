@@ -1,4 +1,4 @@
-// The guest-facing words. Go-live section 5 lists the lines Joe has written; the rest are placeholders to rewrite.
+// The guest-facing words, every line chosen by Joe on 23 and 24 Nov 2026 (go-live section 5 lists what changed).
 // Keep lines short and plain. Placeholders: {n}, {names}, {date}, {share}, {total} (the food step), and on the Getting
 // there card {from}, {to}, {drive}, {km}, {price}. No amounts or payment dates in this file.
 (function (root) {

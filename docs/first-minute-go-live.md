@@ -192,14 +192,14 @@ Publish the new rules first (section 1): until then every song save is refused.
 
 ## 5. Write the words
 
-Every guest-facing line is in `js/first/words.js`. Most are still placeholders: replace them with your own. What is written so far is listed under Written so far, below. The home screen has five buttons: Reply, Stay, Travel, Weekend and Songs. There is no Wear card; what to wear is a line inside each day of the Weekend card. The Getting there card's lines are under `travel`; its airports, airlines, drive times and tolls are not words, they come from `data/getting-there.json`. Ones that need a decision, not just wording:
+Every guest-facing line is in `js/first/words.js`. Joe chose every line on 23 and 24 Nov 2026, through multiple-choice questions: the changes are listed under Written, below, and every line not listed there was kept as it was. The home screen has five buttons: Reply, Stay, Travel, Weekend and Songs. There is no Wear card; what to wear is a line inside each day of the Weekend card. The Getting there card's lines are under `travel`; its airports, airlines, drive times and tolls are not words, they come from `data/getting-there.json`. Still open:
 
 - The four day pictures (`images/first/fri.webp`, `sat.webp`, `sun.webp`, `mon.webp`) were made with an image tool from real photos of La Conca, so they are true to the place, and each shows the feel of its day. They are not a promise of the exact set-up on the day. Swap any picture that shows something La Conca will not have.
 - The amount is not in the words file. It is `SHARE_GBP` in `js/first/core.js`. No payment date is shown anywhere yet: the line says to send your share in the spring. Add a date only once you know when the balance is due to the villa.
 
-Written so far (23 Nov 2026):
+Written (23 and 24 Nov 2026):
 
-- All six envelope lines (`what` under `home.envelopes`). The film's line is about your weekend trailer.
+- All six envelope lines (`what` under `home.envelopes`). The premiere's line is about your weekend trailer.
 - The envelope panel's "see what's inside" (`seeInside`) and "Opens in June" (`photosOpens`), kept as they were. The photos stay in June (`photosStamp`) until their date is known.
 - The home screen: "Ciao" above the names (`kicker`, also the heading when a link has no name), "days till Tuscany" by the countdown, "Still in the post" for an envelope whose date has passed with nothing inside yet (`soon`), and the envelope names The estate, Your room, The feast, Your seat, The premiere and The snaps. "Today", "Remind me" and every other home label are kept as they were.
 - The calendar file `tuscany-2027-dates.ics`: the weekend is "Sophie & Joe's wedding weekend", and the 1 May event names the feast, your seat and the premiere.
@@ -211,26 +211,31 @@ Written so far (23 Nov 2026):
 - The food step: "Locked in! Message Joe or Sophie to change them" after the cut-off. The heading, the hint, the ten picks, the note, the count line, the buttons and the rest are kept as they were.
 - The Songs card: the title is "Song requests", an empty board says "Be the first to request a song", and a household with three songs sees "That's your three, remove one to swap". The rest are kept, including the credit line (`credit`) and the badge's alt text (`badge`), which stay as Apple's terms ask (4f step 8).
 - The dock: the five buttons are kept, and the Stay button reads "Stay?" when it needs a pick, which fits on one line where "Choose stay" took two. The labels only screen readers hear and the error lines are kept as they were.
+- The Getting there card: every line is kept as it was.
 - The villa share line (`stay.share`), the line under the Weekend title (`weekend.vibe`) and the Songs no-promises line (`songs.promise`).
 
-Needs Joe, for the Weekend and Questions words:
+Notes for later changes:
 
 - A line may have no tag at all: leave out `when` and only the words show.
 - At most three parts a day. A fourth is not shown.
 - Monday has no Wear line, by choice.
+- Five lines are not shown anywhere at the moment, so they were not part of the choosing: `home.allOpen`, `home.open`, `home.back`, `cover.forBack` and `stay.sorted`.
 
 Then run `node --test tests/*.test.cjs`. One test checks the words for the house rules (no long dashes, no dot separators, no full stop on a short line) and will name any line that breaks them.
 
 Then run the fit check, `python scripts/check-first-fit.py`. This step is required, not optional: nothing in the node tests limits how long a Weekend line is, and only the fit check shows a day that no longer fits a phone. It takes about fifteen minutes and should end with PASS on 916 stops.
 
-Some tests pin today's placeholder lines on purpose. When the real words go in they fail, and each needs its expected line updated:
+Some tests pin your lines on purpose, so changing one fails a test that names it. When you change a pinned line, update its expected value there too:
 
-- `tests/first-words.test.cjs`: the four day names and dates, `weekend.open` ("Open the day"), the dock labels and the Stay button's states, the photos envelope's "June", no digit anywhere in Questions, "usually" and "check before you book" in the Travel route lines.
-- `tests/first-words.test.cjs` also pins `words.food.picks.none` ("Nothing for me"), and `tests/food-card.test.cjs` pins the count-line words ("Food needs given for", "No food needs given yet").
+- `tests/first-words.test.cjs`: the four day names and dates, `weekend.open` ("Open the day"), the dock labels and the Stay button's states, the photos envelope's "June", no digit anywhere in Questions, "usually" and "check before you book" in the Travel route lines, and `food.picks.none` ("Nothing for me").
+- `tests/first-home.test.cjs`: "see what's inside", "Opens in June" and the dock labels with "Stay?".
+- `tests/food-card.test.cjs`: the count-line words ("Food needs given for", "No food needs given yet").
 - `tests/first-fixwave-c.test.cjs` (H13): `weekend.swipe` ("Swipe for the next day").
-- `tests/first-cards-info.test.cjs`: "ask Joe or Sophie directly" in the bring answer, "Message Joe or Sophie" in the reach answer, "reply" (and not "message") in the food answer, "follow" in the gifts answer, and the share showing as "£150 each" in the cost answer.
+- `tests/first-cards-info.test.cjs`: "ask Joe or Sophie directly" in the bring answer, "Message Joe or Sophie" in the reach answer, "reply" (and not "message") in the food answer, "honeymoon" in the gifts answer, and the share showing as "£150 each" in the cost answer.
 - `tests/first-cards.test.cjs`: "Joe or Sophie" in the Reply card's closed line.
 - `tests/songs-card.test.cjs`: the no-promises line (`songs.promise`).
+- `tests/weekend-view.test.cjs`: the Dress code and Bring lines.
+- `scripts/check-first-fit.py`: "Still in the post" on an envelope past its date.
 
 ## 6. Flip the switch
 
