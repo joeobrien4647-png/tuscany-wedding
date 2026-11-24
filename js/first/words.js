@@ -16,7 +16,7 @@
       foot: 'Tuscany, May 2027'
     },
     minute: {
-      skip: 'Skip the intro',
+      skip: 'Skip',
       soundOn: 'Sound is on',
       soundOff: 'Sound is off',
       title: 'Tuscany',
