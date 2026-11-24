@@ -194,8 +194,6 @@ Publish the new rules first (section 1): until then every song save is refused.
 
 Every guest-facing line is in `js/first/words.js`. Most are still placeholders: replace them with your own. What is written so far is listed under Written so far, below. The home screen has five buttons: Reply, Stay, Travel, Weekend and Songs. There is no Wear card; what to wear is a line inside each day of the Weekend card. The Getting there card's lines are under `travel`; its airports, airlines, drive times and tolls are not words, they come from `data/getting-there.json`. Ones that need a decision, not just wording:
 
-- The gifts answer (it says details will follow)
-- The line under "your own place"
 - The four day pictures (`images/first/fri.webp`, `sat.webp`, `sun.webp`, `mon.webp`) were made with an image tool from real photos of La Conca, so they are true to the place, and each shows the feel of its day. They are not a promise of the exact set-up on the day. Swap any picture that shows something La Conca will not have.
 - The Songs card (`songs`): the line under its title is your own words for now ("No guarantees they'll get played on the weekend"); the rest are placeholders, including the credit line under the board (`credit`, see 4f step 8). The dock button is `Songs`, the fifth of `dock.labels`. The badge's alt text (`badge`) repeats the words on Apple's badge, "Listen on Apple Music"; keep it that way.
 - The amount is not in the words file. It is `SHARE_GBP` in `js/first/core.js`. No payment date is shown anywhere yet: the line says to send your share in the spring. Add a date only once you know when the balance is due to the villa.
@@ -209,6 +207,8 @@ Written so far (23 Nov 2026):
 - The cover and the minute: "You're invited" when a link has no names, "Skip the intro", "Join us at" over La Conca and "The plan" over the four days. "Sophie & Joe", "For", "Tap the seal", "Tuscany, May 2027", "Tuscany", the dates and the labels only screen readers hear are kept as they were.
 - The Reply: "Coming to Tuscany?", "Wouldn't miss it", "Not all of us can make it" (right for any household size), "Who can make it?" and "Let us know by {date}"; "Tuscany, here you come" and "You're on the list" after a yes; "We'll raise a glass to you" after a no; "On the list" and "Change it any time until {date}" on the Reply card. Every other reply line is kept as it was.
 - The Weekend card: Friday is "Welcome night", with a dress theme ("Italian summer: linen, stripes and shades"); Saturday has "Dinner and dancing" in the evening; Sunday is "Recovery mode" by the pool; Monday ends with "A proper breakfast". The part-of-day tags are confirmed, the clothes row is labelled "Dress code", and the hint is "Tap a day for the details". The title, the other three day names, "Swipe for the next day", the see-the-picture control and the spoken labels are kept as they were. `tests/weekend-view.test.cjs` now pins your Dress code and Bring lines.
+- The Questions card: Gifts says no gifts are expected and that contributions to your honeymoon would be incredibly appreciated; Weather and packing is "Pack for sun by day, a layer by night" with the forecast to follow. The title, the six questions and the other four answers are kept as they were.
+- The Stay card: "Stay nearby, we'll feed you at all three" under your own place, La Conca's "You get" lines ("A bed at La Conca for all three nights", "Every meal, and the drinks keep flowing"), Welcome night in the own-place list, and "Locked in! Message Joe or Sophie to change it" once choices are fixed. Everything else on the card is kept as it was.
 - The villa share line (`stay.share`), the line under the Weekend title (`weekend.vibe`) and the Songs no-promises line (`songs.promise`).
 
 Needs Joe, for the Weekend and Questions words:
@@ -216,7 +216,6 @@ Needs Joe, for the Weekend and Questions words:
 - A line may have no tag at all: leave out `when` and only the words show.
 - At most three parts a day. A fourth is not shown.
 - Monday has no Wear line, by choice.
-- Three answers are new: food needs, what it costs (it uses `{share}`, which becomes the amount) and the weather and packing (no numbers until they come from a real source).
 
 Then run `node --test tests/*.test.cjs`. One test checks the words for the house rules (no long dashes, no dot separators, no full stop on a short line) and will name any line that breaks them.
 

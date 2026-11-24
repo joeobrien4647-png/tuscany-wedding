@@ -105,13 +105,13 @@
       villa: {
         title: 'With us at La Conca',
         sub: 'All three nights, everything included',
-        get: ['A bed at the estate for all three nights', 'Every breakfast, lunch and dinner'],
+        get: ['A bed at La Conca for all three nights', 'Every meal, and the drinks keep flowing'],
         need: [SPRING]
       },
       own: {
         title: 'I’ll book my own place',
-        sub: 'Stay nearby, join the three gatherings',
-        get: ['Friday evening, the wedding and Pool day & BBQ', 'Food and drinks at all three'],
+        sub: 'Stay nearby, we’ll feed you at all three',
+        get: ['Welcome night, the wedding and Pool day & BBQ', 'Food and drinks at all three'],
         need: ['Sort your own breakfasts and other lunches', 'Nothing to pay us']
       },
       later: {
@@ -124,7 +124,7 @@
       share: 'We do ask for {share} to cover the cost of accommodation at the villa, but it also includes all food and drink costs for the entirety of your stay',
       spring: SPRING,
       word: 'Have a word with us if you need to',
-      fixed: 'Your choice is fixed now, please message Joe or Sophie',
+      fixed: 'Locked in! Message Joe or Sophie to change it',
       saving: 'Saving your choice',
       sorted: 'All sorted'
     },
@@ -278,14 +278,14 @@
     // Each answer is a string or a short list of lines (at most three, at most 44 characters each).
     questions: {
       title: 'Questions',
-      gifts: { q: 'Gifts?', a: 'Details will follow' },
+      gifts: { q: 'Gifts?', a: ['No gifts expected, honestly', 'Contributions to our honeymoon', 'would be incredibly appreciated'] },
       reach: { q: 'How do I reach you?', a: ['Message Joe or Sophie directly', 'The way you normally would'] },
       food: { q: 'Food needs?', a: ['Allergies or a diet we should know about?', 'Add them in your reply, person by person'] },
       cost: {
         q: 'What does it cost?',
         a: ['At La Conca your share is {share}', 'That covers your bed, meals and drinks', 'Your own place: nothing to pay us']
       },
-      weather: { q: 'Weather and packing?', a: ['Bring swimwear and a layer for the evening', 'More on the weather nearer the time'] },
+      weather: { q: 'Weather and packing?', a: ['Pack for sun by day, a layer by night', 'Forecast to follow nearer the time'] },
       bring: { q: 'Can I bring someone?', a: ['Plus-ones are very limited', 'Please ask Joe or Sophie directly'] }
     },
     songs: {

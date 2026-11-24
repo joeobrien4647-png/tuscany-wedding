@@ -54,7 +54,7 @@ test('questions: nothing invents a gift policy, a channel or a time', () => {
   const q = JSON.stringify(words.questions);
   assert.doesNotMatch(q, /whatsapp|email|phone|registry|cash|money|voucher|nothing needed/i);
   assert.match([].concat(words.questions.reach.a).join(' '), /Message Joe or Sophie/);
-  assert.match(words.questions.gifts.a, /follow/);
+  assert.match([].concat(words.questions.gifts.a).join(' '), /honeymoon/);
   assert.match([].concat(words.questions.food.a).join(' '), /reply/i);
   assert.doesNotMatch([].concat(words.questions.food.a).join(' '), /message/i);
 });
