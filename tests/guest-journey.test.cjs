@@ -5,7 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
 const read = name => fs.readFileSync(path.join(root, name), 'utf8');
-const pages = ['getting-here.html', 'weekend-guide.html', 'arrival-essentials.html'];
+const pages = ['arrival-essentials.html'];
 
 test('public practical guides exist and load without an account or heavy runtime', () => {
   for (const page of pages) {
@@ -31,14 +31,11 @@ test('dates and pending details remain consistent with approved source and calen
   assert.ok(data.pending.includes('final villa entrance'));
   assert.match(read('tuscany-2027.ics'), /DTSTART;VALUE=DATE:20270528/);
   assert.match(read('tuscany-2027.ics'), /DTEND;VALUE=DATE:20270601/);
-  const programme = read('weekend-guide.html');
-  for (const day of ['Friday 28', 'Saturday 29', 'Sunday 30', 'Monday 31']) assert.ok(programme.includes(day));
-  assert.match(programme, /final programme[^<]*still to be confirmed/i);
   for (const page of pages) assert.doesNotMatch(read(page), /\b\d{1,2}:\d{2}\b|\b(?:a\.m\.|p\.m\.)/);
 });
 
 test('arrival caveats and named villa planning links do not promise an exact entrance', () => {
-  for (const page of ['getting-here.html', 'arrival-essentials.html']) {
+  for (const page of pages) {
     const html = read(page);
     assert.match(html, /postal address may not take you to your villa’s entrance/);
     assert.match(html, /final (?:villa )?arrival instructions/i);

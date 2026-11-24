@@ -7,7 +7,8 @@ const read = file => fs.readFileSync(path.join(root, file), 'utf8');
 const routes = JSON.parse(read('data/retired-routes.json'));
 
 test('retired guest URLs lead to real pages and cannot run demo forms or old profile access', () => {
-  assert.equal(Object.keys(routes).length, 36);
+  assert.equal(Object.keys(routes).length, 39);
+  for (const file of ['getting-here.html', 'weekend-guide.html', 'villas.html', 'gallery.html']) assert.equal(routes[file], 'index.html', file);
   for (const [file, target] of Object.entries(routes)) {
     const html = read(file);
     assert.match(html, /name="robots" content="noindex"/);
@@ -23,7 +24,7 @@ test('retired guest URLs lead to real pages and cannot run demo forms or old pro
 });
 
 test('guest navigation prioritises essentials and links to real help', () => {
-  for (const file of ['index.html', 'getting-here.html', 'weekend-guide.html', 'arrival-essentials.html', 'our-story.html', 'join-in.html']) {
+  for (const file of ['index.html', 'arrival-essentials.html', 'our-story.html', 'join-in.html']) {
     const nav = read(file).match(/<nav class="guest-nav"[\s\S]*?<\/nav>/)?.[0];
     assert.ok(nav, file);
     const home = file === 'index.html' ? '' : 'index.html';

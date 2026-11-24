@@ -5,7 +5,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8').replace(/\r\n/g, '\n');
 const exists = file => fs.existsSync(path.join(root, file));
-const pages = ['villas.html', 'getting-there.html'];
+const pages = ['getting-there.html'];
 
 function walk(dir) {
   return fs.readdirSync(path.join(root, dir), { withFileTypes: true }).flatMap(entry => {
@@ -14,7 +14,7 @@ function walk(dir) {
   });
 }
 
-test('villa explorer and Plan the drive use the postcard chrome without the old reveal gate', () => {
+test('Plan the drive uses the postcard chrome without the old reveal gate', () => {
   for (const file of pages) {
     const html = read(file);
     const nav = html.match(/<nav class="guest-nav"[\s\S]*?<\/nav>/)?.[0];
@@ -25,15 +25,6 @@ test('villa explorer and Plan the drive use the postcard chrome without the old 
     assert.match(html, /<footer class="guest-footer">/);
     assert.ok(html.includes('href="css/postcard-features.css"'), file);
     assert.doesNotMatch(html, /reveal-gate-style|js\/reveal\.js|js\/main\.js|firebase|accommodation\.html|travel\.html|Cinzel/, file);
-  }
-});
-
-test('Travel & stay links to both ported pages while the nav keeps its four links', () => {
-  const html = read('getting-here.html');
-  const nav = html.match(/<nav class="guest-nav"[\s\S]*?<\/nav>/)[0];
-  for (const file of pages) {
-    assert.ok(html.includes(`href="${file}"`), file);
-    assert.ok(!nav.includes(file), file);
   }
 });
 
