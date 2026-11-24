@@ -40,7 +40,7 @@ test('weekend days, dock labels and stay dock states', () => {
   assert.equal(words.weekend.open, 'Open the day');
   assert.equal(words.wear, undefined);
   assert.deepEqual(words.dock.labels, ['Reply', 'Stay', 'Travel', 'Weekend', 'Songs']);
-  assert.deepEqual(words.dock.stay, { plain: 'Stay', choose: 'Choose stay', villa: 'La Conca', own: 'Own place' });
+  assert.deepEqual(words.dock.stay, { plain: 'Stay', choose: 'Stay?', villa: 'La Conca', own: 'Own place' });
 });
 
 test('keys later screens read', () => {

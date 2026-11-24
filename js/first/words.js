@@ -93,7 +93,7 @@
     },
     dock: {
       labels: ['Reply', 'Stay', 'Travel', 'Weekend', 'Songs'],
-      stay: { plain: 'Stay', choose: 'Choose stay', villa: 'La Conca', own: 'Own place' },
+      stay: { plain: 'Stay', choose: 'Stay?', villa: 'La Conca', own: 'Own place' },
       states: { plain: 'Ready to read', glow: 'Something to do', done: 'Done' },
       label: 'Plan your trip'
     },
@@ -153,7 +153,7 @@
       change: 'Change food needs',
       see: 'See food needs',
       leave: 'Back to your reply',
-      closed: 'To change food needs, please message Joe or Sophie'
+      closed: 'Locked in! Message Joe or Sophie to change them'
     },
     // The Getting there card. Airports, airlines, drive times and tolls are not here: they come from the data file.
     travel: {
@@ -289,7 +289,7 @@
       bring: { q: 'Can I bring someone?', a: ['Plus-ones are very limited', 'Please ask Joe or Sophie directly'] }
     },
     songs: {
-      title: 'Songs',
+      title: 'Song requests',
       promise: "No guarantees they'll get played on the weekend",
       yours: 'Your songs',
       board: "Everyone's requests",
@@ -303,8 +303,8 @@
       badge: 'Listen on Apple Music',
       count: '{n} requests',
       countOne: '1 request',
-      full: 'Remove one to add another',
-      empty: 'No requests yet',
+      full: "That's your three, remove one to swap",
+      empty: 'Be the first to request a song',
       none: 'Nothing found',
       closed: 'Requests are closed',
       replyFirst: 'Reply first, then add songs',

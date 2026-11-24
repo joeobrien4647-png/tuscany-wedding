@@ -129,10 +129,10 @@ test('five dock buttons from words.dock.labels, with states from dockStates and 
   const plain = h.dockItems(YES, words);
   assert.deepEqual(plain.map(d => d.key), ['reply', 'stay', 'travel', 'weekend', 'songs']);
   assert.deepEqual(plain.map(d => d.state), ['done', 'glow', 'plain', 'plain', 'plain']);
-  assert.deepEqual(plain.map(d => d.label), ['Reply', 'Choose stay', 'Travel', 'Weekend', 'Songs']);
+  assert.deepEqual(plain.map(d => d.label), ['Reply', 'Stay?', 'Travel', 'Weekend', 'Songs']);
   const later = h.dockItems(stay('later'), words);
   assert.equal(later[1].state, 'glow');
-  assert.equal(later[1].label, 'Choose stay');
+  assert.equal(later[1].label, 'Stay?');
   const villa = h.dockItems(stay('villa'), words);
   assert.equal(villa[1].state, 'done');
   assert.equal(villa[1].label, 'La Conca');
