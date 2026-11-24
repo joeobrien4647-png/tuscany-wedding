@@ -223,7 +223,7 @@ Notes for later changes:
 
 Then run `node --test tests/*.test.cjs`. One test checks the words for the house rules (no long dashes, no dot separators, no full stop on a short line) and will name any line that breaks them.
 
-Then run the fit check, `python scripts/check-first-fit.py`. This step is required, not optional: nothing in the node tests limits how long a Weekend line is, and only the fit check shows a day that no longer fits a phone. It takes about fifteen minutes and should end with PASS on 916 stops.
+Then run the fit check, `python scripts/check-first-fit.py`. This step is required, not optional: nothing in the node tests limits how long a Weekend line is, and only the fit check shows a day that no longer fits a phone. It takes about fifteen minutes and should end with PASS on 984 stops (the last full run, 24 Nov 2026, did).
 
 Some tests pin your lines on purpose, so changing one fails a test that names it. When you change a pinned line, update its expected value there too:
 
