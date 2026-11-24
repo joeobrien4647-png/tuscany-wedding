@@ -93,7 +93,7 @@ The Weekend screen (four day tiles, each day opening full screen), the four-butt
 3. Press the close control on an open day: it goes back to the four days. Press it again: the card closes.
 4. On the home screen, the four buttons sit evenly across the row.
 5. Open Questions and open every question in turn.
-6. Switch on Reduce Motion (iPhone: Settings, Accessibility, Motion; Android: Settings, Accessibility, Remove animations) and do 1 to 5 again. The Weekend title, the line under it and "Tap a day" must all show.
+6. Switch on Reduce Motion (iPhone: Settings, Accessibility, Motion; Android: Settings, Accessibility, Remove animations) and do 1 to 5 again. The Weekend title, the line under it and "Tap a day for the details" must all show.
 7. Turn a phone sideways on an open day and back again.
 8. Look at how sharp the Saturday picture is on a real screen.
 9. Open each day and wait a moment: the picture starts to move (Friday the toast, Saturday the light and falling petals, Sunday the pool, Monday the goodbye). Swipe to the next day: the last one stops and the new one starts. The words must never wait for the moving picture.
@@ -196,7 +196,7 @@ Every guest-facing line is in `js/first/words.js`. Most are still placeholders: 
 
 - The gifts answer (it says details will follow)
 - The line under "your own place"
-- The weekend lines for each day. They sit per day under `weekend.days`. A day shows no Food and drink, Wear or Where row until it has a line for it, so leave a line out and the row is simply not there. The four day pictures (`images/first/fri.webp`, `sat.webp`, `sun.webp`, `mon.webp`) were made with an image tool from real photos of La Conca, so they are true to the place, and each shows the feel of its day. They are not a promise of the exact set-up on the day. Swap any picture that shows something La Conca will not have.
+- The four day pictures (`images/first/fri.webp`, `sat.webp`, `sun.webp`, `mon.webp`) were made with an image tool from real photos of La Conca, so they are true to the place, and each shows the feel of its day. They are not a promise of the exact set-up on the day. Swap any picture that shows something La Conca will not have.
 - The Songs card (`songs`): the line under its title is your own words for now ("No guarantees they'll get played on the weekend"); the rest are placeholders, including the credit line under the board (`credit`, see 4f step 8). The dock button is `Songs`, the fifth of `dock.labels`. The badge's alt text (`badge`) repeats the words on Apple's badge, "Listen on Apple Music"; keep it that way.
 - The amount is not in the words file. It is `SHARE_GBP` in `js/first/core.js`. No payment date is shown anywhere yet: the line says to send your share in the spring. Add a date only once you know when the balance is due to the villa.
 
@@ -208,11 +208,11 @@ Written so far (23 Nov 2026):
 - The calendar file `tuscany-2027-dates.ics`: the weekend is "Sophie & Joe's wedding weekend", and the 1 May event names the feast, your seat and the premiere.
 - The cover and the minute: "You're invited" when a link has no names, "Skip the intro", "Join us at" over La Conca and "The plan" over the four days. "Sophie & Joe", "For", "Tap the seal", "Tuscany, May 2027", "Tuscany", the dates and the labels only screen readers hear are kept as they were.
 - The Reply: "Coming to Tuscany?", "Wouldn't miss it", "Not all of us can make it" (right for any household size), "Who can make it?" and "Let us know by {date}"; "Tuscany, here you come" and "You're on the list" after a yes; "We'll raise a glass to you" after a no; "On the list" and "Change it any time until {date}" on the Reply card. Every other reply line is kept as it was.
+- The Weekend card: Friday is "Welcome night", with a dress theme ("Italian summer: linen, stripes and shades"); Saturday has "Dinner and dancing" in the evening; Sunday is "Recovery mode" by the pool; Monday ends with "A proper breakfast". The part-of-day tags are confirmed, the clothes row is labelled "Dress code", and the hint is "Tap a day for the details". The title, the other three day names, "Swipe for the next day", the see-the-picture control and the spoken labels are kept as they were. `tests/weekend-view.test.cjs` now pins your Dress code and Bring lines.
 - The villa share line (`stay.share`), the line under the Weekend title (`weekend.vibe`) and the Songs no-promises line (`songs.promise`).
 
 Needs Joe, for the Weekend and Questions words:
 
-- The part-of-day tags on each day (Afternoon, Evening, All day, Morning) are guesses. Confirm or change them.
 - A line may have no tag at all: leave out `when` and only the words show.
 - At most three parts a day. A fourth is not shown.
 - Monday has no Wear line, by choice.
@@ -230,7 +230,6 @@ Some tests pin today's placeholder lines on purpose. When the real words go in t
 - `tests/first-cards-info.test.cjs`: "ask Joe or Sophie directly" in the bring answer, "Message Joe or Sophie" in the reach answer, "reply" (and not "message") in the food answer, "follow" in the gifts answer, and the share showing as "£150 each" in the cost answer.
 - `tests/first-cards.test.cjs`: "Joe or Sophie" in the Reply card's closed line.
 - `tests/songs-card.test.cjs`: the no-promises line (`songs.promise`).
-- `tests/weekend-view.test.cjs` ("nothing from the old Wear card is lost"): "Come as you are", "ties optional", "Swimwear", "gravel and grass" and "after dark".
 
 ## 6. Flip the switch
 

@@ -239,39 +239,39 @@
       price: { from: 'from about {price}', checked: 'checked {date}', live: 'See live prices' },
       load: { wait: 'Unfolding the map', failed: 'Could not load the map', retry: 'Try again' }
     },
-    // The Weekend screen: four days, each with a short intro, the parts of the day and a few lines. All placeholders.
+    // The Weekend screen: four days, each with a short intro, the parts of the day and a few lines, all chosen by Joe.
     // A day's wear, bring, food and where are optional: a line that is not there is not shown.
     weekend: {
       title: 'The weekend',
       vibe: 'Drinks flowing all weekend',
-      hint: 'Tap a day',
+      hint: 'Tap a day for the details',
       swipe: 'Swipe for the next day',
       back: 'Back to the four days',
       open: 'Open the day',
       see: 'See the picture',
       unsee: 'Back to the day',
-      labels: { wear: 'Wear', food: 'Food and drink', where: 'Where' },
+      labels: { wear: 'Dress code', food: 'Food and drink', where: 'Where' },
       days: [
         {
-          date: 'Fri 28 May', name: 'Pizza night', intro: 'Bags down, drink in hand, pizza on the table',
-          parts: [{ when: 'Afternoon', what: 'Arrive and settle in' }, { when: 'Evening', what: 'Pizza night' }],
-          wear: 'Come as you are', food: 'Pizza'
+          date: 'Fri 28 May', name: 'Welcome night', intro: 'Arrive, unpack, then pizza and drinks till late',
+          parts: [{ when: 'Afternoon', what: 'Arrive and settle in' }, { when: 'Evening', what: 'Pizza and drinks' }],
+          wear: 'Italian summer: linen, stripes and shades', food: 'Pizza, and plenty of it'
         },
         {
-          date: 'Sat 29 May', name: 'The wedding', intro: 'The big one: dressed up, outdoors and on late',
-          parts: [{ when: 'Afternoon', what: 'The wedding' }, { when: 'Evening', what: 'A long evening outdoors' }],
-          wear: 'Dressed up for a warm evening outdoors, ties optional, colour encouraged',
-          bring: ['Shoes for gravel and grass', 'A layer for after dark']
+          date: 'Sat 29 May', name: 'The wedding', intro: 'Dressed up, outdoors and dancing till late',
+          parts: [{ when: 'Afternoon', what: 'The wedding' }, { when: 'Evening', what: 'Dinner and dancing' }],
+          wear: 'Dress to impress, ties optional, colour encouraged',
+          bring: ['Dancing shoes that cope with grass', 'A layer for after dark']
         },
         {
-          date: 'Sun 30 May', name: 'Pool day & BBQ', intro: 'A slow start, the pool all day, cold drinks and a BBQ',
+          date: 'Sun 30 May', name: 'Pool day & BBQ', intro: 'Recovery mode: pool, cold drinks and a BBQ',
           parts: [{ when: 'All day', what: 'Pool day and a BBQ' }],
-          wear: 'Swimwear and BBQ clothes', food: 'A BBQ'
+          wear: 'Swimwear, shades and flip-flops', food: 'A big BBQ'
         },
         {
-          date: 'Mon 31 May', name: 'Breakfast and goodbyes', intro: 'One more coffee together before the road home',
-          parts: [{ when: 'Morning', what: 'One last breakfast together' }],
-          food: 'Breakfast'
+          date: 'Mon 31 May', name: 'Breakfast and goodbyes', intro: 'Coffee, breakfast, then the road home',
+          parts: [{ when: 'Morning', what: 'One last breakfast' }],
+          food: 'A proper breakfast'
         }
       ]
     },

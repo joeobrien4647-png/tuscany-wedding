@@ -86,10 +86,10 @@ test('the shipped weekend words have every part kept: none is dropped by the vie
   words.weekend.days.forEach((d, i) => assert.equal(v.days[i].parts.length, Math.min(3, d.parts.length), d.name));
 });
 
-// Pins placeholder phrases on purpose (listed in docs/first-minute-go-live.md): update it when the real Wear lines go in.
-test('nothing from the old Wear card is lost', () => {
+// Pins Joe's Dress code and Bring lines (chosen 24 Nov 2026), so a later edit cannot drop one by accident.
+test('every day keeps its Dress code and Bring lines', () => {
   const text = JSON.stringify(wk.weekendView(words));
-  for (const s of ['Come as you are', 'ties optional', 'Swimwear', 'gravel and grass', 'after dark']) assert.ok(text.includes(s), s);
+  for (const s of ['Italian summer', 'ties optional', 'Swimwear', 'cope with grass', 'after dark']) assert.ok(text.includes(s), s);
 });
 
 test('weekendView: a day with no name is left out, the others keep their own picture key', () => {

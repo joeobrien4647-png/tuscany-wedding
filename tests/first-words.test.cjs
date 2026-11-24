@@ -33,7 +33,7 @@ test('required sections exist', () => {
 });
 
 test('weekend days, dock labels and stay dock states', () => {
-  assert.deepEqual(words.weekend.days.map(d => d.name), ['Pizza night', 'The wedding', 'Pool day & BBQ', 'Breakfast and goodbyes']);
+  assert.deepEqual(words.weekend.days.map(d => d.name), ['Welcome night', 'The wedding', 'Pool day & BBQ', 'Breakfast and goodbyes']);
   assert.deepEqual(words.weekend.days.map(d => d.date), ['Fri 28 May', 'Sat 29 May', 'Sun 30 May', 'Mon 31 May']);
   for (const d of words.weekend.days) assert.equal(d.line, undefined);
   for (const k of ['title', 'vibe', 'hint', 'swipe', 'back', 'open']) assert.equal(typeof words.weekend[k], 'string', k);
