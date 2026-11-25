@@ -53,7 +53,7 @@ Optional here, required after writing the words (section 5): on a computer with 
 
 ## 4a. The Getting there card
 
-Built on the `getting-there` branch, on top of sections 1 to 4, which were done on 11 Nov 2026. The Getting there work was pushed to `main` on 14 Nov 2026 (commit 14e8514) with the switch off, and the Firebase rules with the `travel` block were published the same day. The two-phone test passed on 24 Nov 2026. Still to do: clearing the test tickets (below). One ticket, stamped on 18 Nov 2026, is still saved for the household used in the tests. The card sits behind the same switch, so guests see nothing until section 6.
+Built on the `getting-there` branch, on top of sections 1 to 4, which were done on 11 Nov 2026. The Getting there work was pushed to `main` on 14 Nov 2026 (commit 14e8514) with the switch off, and the Firebase rules with the `travel` block were published the same day. The two-phone test passed on 24 Nov 2026, and the one test ticket saved on the live database (stamped on 18 Nov 2026) was removed on 25 Nov 2026. The card sits behind the same switch, so guests see nothing until section 6.
 
 What it adds: a guest builds their trip on a map, fills a ticket and stamps it. A stamped ticket is saved at `travel/<their key>/<ticket number>`, where a personal link can write but never read. Only a signed-in admin can read it, so guests cannot see each other's plans. The phone that stamped a ticket keeps its own copy and shows it again; another phone starts empty.
 
@@ -80,7 +80,7 @@ Proven: a real ticket was stamped and saved on the live database on 18 Nov 2026.
 6. In the dashboard, Site tab, Invitations: your household's row should show a "Travel" line for each ticket, and an Arrivals list underneath.
 7. Things to look for on a real phone: nothing cut off, only the list at the bottom scrolls, the map moves smoothly, typing an airport name does not hide the box behind the keyboard.
 
-**Clear the test tickets (Joe only).** The dashboard shows tickets but does not change them. In the Firebase console, Realtime Database, Data tab, open `travel`, find your household's key and delete that one entry. Never delete `travel` itself once guests have stamped. Then on each phone open the Reply card and tap "Not you?", which also forgets the ticket kept on that phone.
+**Clear the test tickets.** The database part was done on 25 Nov 2026, on Joe's say: the one saved ticket, stamped on 18 Nov 2026, was removed at `travel/<that household's key>`, and `travel` is now empty. To do it by hand: the dashboard shows tickets but does not change them. In the Firebase console, Realtime Database, Data tab, open `travel`, find your household's key and delete that one entry. Never delete `travel` itself once guests have stamped. Then on each phone open the Reply card and tap "Not you?", which also forgets the ticket kept on that phone.
 
 Not in yet: prices on the routes. The "See live prices" link works now and opens Google Flights for the chosen route and days. Prices shown on the card come in January, and need a SerpApi account and key that only Joe can create.
 
