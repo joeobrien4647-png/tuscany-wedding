@@ -1,6 +1,6 @@
 # The invitation: going live
 
-The new invitation was built on the `first-minute` branch and shipped switched off. Sections 1 to 4 were done on 11 Nov 2026, and section 4a's rules and push on 14 Nov 2026. Joe and Sophie's two-phone test of sections 4 to 4f passed on 24 Nov 2026 with no problems, and sections 6 and 7 were built the same day; section 8 is their push. Once `main` has `data-first-enabled="true"`, the invitation is live for everyone. Do the sections in order. Sections marked **Joe only** change the live database or the live site and must not be done by anyone else.
+The new invitation was built on the `first-minute` branch and shipped switched off. Sections 1 to 4 were done on 11 Nov 2026, and section 4a's rules and push on 14 Nov 2026. Joe and Sophie's two-phone test of sections 4 to 4f passed on 24 Nov 2026 with no problems, and sections 6 and 7 were built and pushed (section 8) the same day, so the invitation has been live for everyone since then. Do the sections in order. Sections marked **Joe only** change the live database or the live site and must not be done by anyone else.
 
 The order matters. The code goes live first with the switch off, so guests see no change, and only then is it tried for real on two phones. The switch is flipped last.
 
@@ -148,7 +148,7 @@ Two phones (`&first=1&test=1` on your own household's link):
 
 The words Joe needs to write are under `food` in `js/first/words.js` (the title, the hint, the ten picks, the note label and placeholder, the count line, the buttons and the closed line), and the Questions food answer. To trim or add picks, change `PICKS` in `js/first/food-core.js` and the rule's list in `firebase.rules.json` together (a test checks they match), then publish the rules again.
 
-At go-live (section 6): change the `og:image` address in `index.html` to `https://sophieandjoe2027.com/images/first/share-preview.jpg`. There is no separate Twitter image tag; the Twitter card uses `og:image`. Update the one test that pins the old address, `tests/share-preview.test.cjs`. To check it: WhatsApp keeps a preview per address, so send yourself a personal link you have never sent before and look at the picture. Facebook's Sharing Debugger shows it too. To make the picture again: `PYTHONIOENCODING=utf-8 python scripts/make-share-preview.py`.
+At go-live (section 6): change the `og:image` address in `index.html` to `https://sophieandjoe2027.com/images/first/share-preview.jpg`. There is no separate Twitter image tag; the Twitter card uses `og:image`. Update the one test that pins the old address, `tests/share-preview.test.cjs`. To check it: WhatsApp keeps a preview per address, so send yourself a personal link you have never sent before and look at the picture. Done on 26 Nov 2026: the new picture shows. Facebook's Sharing Debugger shows it too. To make the picture again: `PYTHONIOENCODING=utf-8 python scripts/make-share-preview.py`.
 
 The phone-fit check now walks the food step on all four setups (one, two, three and eight people, the fullest screen, after the cut-off, a failed save, both phones in the step at once, leaving mid-step, and the cut-off passing while the step is open). The last full run took 15 minutes (881 seconds) and ended with PASS on 904 stops.
 
@@ -256,6 +256,8 @@ Checked the same day: with no sign-in, the database refuses `/members`, `/member
 ## 8. Push again (Joe only)
 
 Push sections 6 and 7 together (section 5's words went out on 24 Nov 2026). Open one real link without `&first=1` to confirm the invitation now opens by itself.
+
+Done. Pushed on 24 Nov 2026 (commit 7b6bbd2) and checked on the live site straight after. On 26 Nov 2026 Joe opened his own link without `&first=1` and the invitation opened by itself.
 
 ## If something goes wrong
 
